@@ -1,6 +1,204 @@
 {
-  "generated_at": "2026-03-23T13:57:56.558277+00:00",
-  "updated_date": "20260222-20260323",
+  "generated_at": "2026-03-23T20:17:08.304389+00:00",
+  "updated_date": "20260323",
   "carryover_days": 9,
-  "items": []
+  "items": [
+    {
+      "id": "2603.20092v1",
+      "title": "How Out-of-Equilibrium Phase Transitions can Seed Pattern Formation in Trained Diffusion Models",
+      "abstract": "In this work, we propose a theoretical framework that interprets the generation process in trained diffusion models as an instance of out-of-equilibrium phase transitions. We argue that, rather than evolving smoothly from noise to data, reverse diffusion passes through a critical regime in which small spatial fluctuations are amplified and seed the emergence of large-scale structure. Our central insight is that architectural constraints, such as locality, sparsity, and translation equivariance, transform memorization-driven instabilities into collective spatial modes, enabling the formation of coherent patterns beyond the training data. Using analytically tractable patch score models, we show how classical symmetry-breaking bifurcations generalize into spatially extended critical phenomena described by softening Fourier modes and growing correlation lengths. We further connect these dynamics to effective field theories of the Ginzburg-Landau type and to mechanisms of pattern formation in non-equilibrium physics. Empirical results on trained convolutional diffusion models corroborate the theory, revealing signatures of criticality including mode softening and rapid growth of spatial correlations. Finally, we demonstrate that this critical regime has practical relevance: targeted perturbations, such as classifier-free guidance pulses applied at the estimated critical time, significantly improve generation control. Together, these findings position non-equilibrium critical phenomena as a unifying principle for understanding, and potentially improving, the behavior of modern diffusion models.",
+      "authors": [
+        "Luca Ambrogioni"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-03-20T16:19:10+00:00",
+      "link": "https://arxiv.org/pdf/2603.20092v1",
+      "tags": [
+        "keyword:RL DM"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "generation process in trained diffusion models",
+      "llm_evidence_cn": "训练好的扩散模型中的生成过程",
+      "llm_evidence": "训练好的扩散模型中的生成过程",
+      "canonical_evidence": "训练好的扩散模型中的生成过程",
+      "llm_tldr_en": "Provides a theoretical framework interpreting diffusion generation as out-of-equilibrium phase transitions.",
+      "llm_tldr_cn": "提供了一个理论框架，将扩散生成过程解释为非平衡相变。",
+      "llm_tldr": "提供了一个理论框架，将扩散生成过程解释为非平衡相变。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "generative diffusion models and denoising processes",
+      "matched_requirement_id": "req-2",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.20092v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.15370v1",
+      "title": "Trajectory-Diversity-Driven Robust Vision-and-Language Navigation",
+      "abstract": "Vision-and-Language Navigation (VLN) requires agents to navigate photo-realistic environments following natural language instructions. Current methods predominantly rely on imitation learning, which suffers from limited generalization and poor robustness to execution perturbations. We present NavGRPO, a reinforcement learning framework that learns goal-directed navigation policies through Group Relative Policy Optimization. By exploring diverse trajectories and optimizing via within-group performance comparisons, our method enables agents to distinguish effective strategies beyond expert paths without requiring additional value networks. Built on ScaleVLN, NavGRPO achieves superior robustness on R2R and REVERIE benchmarks with +3.0% and +1.71% SPL improvements in unseen environments. Under extreme early-stage perturbations, we demonstrate +14.89% SPL gain over the baseline, confirming that goal-directed RL training builds substantially more robust navigation policies. Code and models will be released.",
+      "authors": [
+        "Jiangyang Li",
+        "Cong Wan",
+        "SongLin Dong",
+        "Chenhao Ding",
+        "Qiang Wang",
+        "Zhiheng Ma",
+        "Yihong Gong"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-16T14:46:54+00:00",
+      "link": "https://arxiv.org/pdf/2603.15370v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "reinforcement learning framework for goal-directed navigation",
+      "llm_evidence_cn": "用于目标导向导航的强化学习框架",
+      "llm_evidence": "用于目标导向导航的强化学习框架",
+      "canonical_evidence": "用于目标导向导航的强化学习框架",
+      "llm_tldr_en": "NavGRPO uses Group Relative Policy Optimization to improve robustness and generalization in vision-language navigation.",
+      "llm_tldr_cn": "NavGRPO利用组相对策略优化来提高视觉语言导航的鲁棒性和泛化能力。",
+      "llm_tldr": "NavGRPO利用组相对策略优化来提高视觉语言导航的鲁棒性和泛化能力。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.15370v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.17919v1",
+      "title": "Training Diffusion Language Models for Black-Box Optimization",
+      "abstract": "We study offline black-box optimization (BBO), aiming to discover improved designs from an offline dataset of designs and labels, a problem common in robotics, DNA, and materials science with limited labeled samples. While recent work applies autoregressive LLMs to BBO by formatting tasks as natural-language prompts, their left-to-right design generation struggles to capture the strong bidirectional dependencies inherent in design problems. To address this, we propose adapting diffusion LLMs to offline BBO to leverage their bidirectional modeling capabilities. However, a domain gap exists between the natural text pre-training of diffusion LLMs and the heterogeneous signals in BBO (prompts, designs, and labels). To bridge this gap, we construct a unified prompt-response corpus and introduce delimiter tokens to explicitly mark field boundaries for domain adaptation. We further propose a two-stage post-training framework to align the diffusion LLM generation with high-label designs. The first stage performs supervised fine-tuning on the unified dataset via masked-response prediction, and the second stage adopts reinforcement learning with rewards defined by label improvements. Our method achieves state-of-the-art results on Design-Bench small-data settings.",
+      "authors": [
+        "Zipeng Sun",
+        "Can Chen",
+        "Ye Yuan",
+        "Haolun Wu",
+        "Jiayao Gu",
+        "Christopher Pal",
+        "Xue Liu"
+      ],
+      "primary_category": "cs.CE",
+      "categories": [
+        "cs.CE"
+      ],
+      "published": "2026-03-18T16:56:23+00:00",
+      "link": "https://arxiv.org/pdf/2603.17919v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Diffusion LLMs for offline black-box optimization in robotics",
+      "llm_evidence_cn": "用于机器人离线黑盒优化的扩散语言模型",
+      "llm_evidence": "用于机器人离线黑盒优化的扩散语言模型",
+      "canonical_evidence": "用于机器人离线黑盒优化的扩散语言模型",
+      "llm_tldr_en": "Adapts diffusion language models to offline black-box optimization to capture bidirectional dependencies in designs.",
+      "llm_tldr_cn": "将扩散语言模型应用于离线黑盒优化，以捕获设计中的双向依赖关系。",
+      "llm_tldr": "将扩散语言模型应用于离线黑盒优化，以捕获设计中的双向依赖关系。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "diffusion models for offline reinforcement learning and policy optimization",
+      "matched_requirement_id": "req-7",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.17919v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.17631v1",
+      "title": "Benchmarking Reinforcement Learning via Stochastic Converse Optimality: Generating Systems with Known Optimal Policies",
+      "abstract": "The objective comparison of Reinforcement Learning (RL) algorithms is notoriously complex as outcomes and benchmarking of performances of different RL approaches are critically sensitive to environmental design, reward structures, and stochasticity inherent in both algorithmic learning and environmental dynamics. To manage this complexity, we introduce a rigorous benchmarking framework by extending converse optimality to discrete-time, control-affine, nonlinear systems with noise. Our framework provides necessary and sufficient conditions, under which a prescribed value function and policy are optimal for constructed systems, enabling the systematic generation of benchmark families via homotopy variations and randomized parameters. We validate it by automatically constructing diverse environments, demonstrating our framework's capacity for a controlled and comprehensive evaluation across algorithms. By assessing standard methods against a ground-truth optimum, our work delivers a reproducible foundation for precise and rigorous RL benchmarking.",
+      "authors": [
+        "Sinan Ibrahim",
+        "Grégoire Ouerdane",
+        "Hadi Salloum",
+        "Henni Ouerdane",
+        "Stefan Streif",
+        "Pavel Osinenko"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "eess.SY",
+        "math.OC"
+      ],
+      "published": "2026-03-18T11:52:21+00:00",
+      "link": "https://arxiv.org/pdf/2603.17631v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "benchmarking framework for RL algorithms",
+      "llm_evidence_cn": "强化学习算法的基准测试框架",
+      "llm_evidence": "强化学习算法的基准测试框架",
+      "canonical_evidence": "强化学习算法的基准测试框架",
+      "llm_tldr_en": "Introduces a rigorous benchmarking framework for RL by generating systems with known optimal policies.",
+      "llm_tldr_cn": "通过生成具有已知最优策略的系统，为强化学习算法提供了一个严谨的基准测试框架。",
+      "llm_tldr": "通过生成具有已知最优策略的系统，为强化学习算法提供了一个严谨的基准测试框架。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.17631v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.17468v1",
+      "title": "Efficient Soft Actor-Critic with LLM-Based Action-Level Guidance for Continuous Control",
+      "abstract": "We present GuidedSAC, a novel reinforcement learning (RL) algorithm that facilitates efficient exploration in vast state-action spaces. GuidedSAC leverages large language models (LLMs) as intelligent supervisors that provide action-level guidance for the Soft Actor-Critic (SAC) algorithm. The LLM-based supervisor analyzes the most recent trajectory using state information and visual replays, offering action-level interventions that enable targeted exploration. Furthermore, we provide a theoretical analysis of GuidedSAC, proving that it preserves the convergence guarantees of SAC while improving convergence speed. Through experiments in both discrete and continuous control environments, including toy text tasks and complex MuJoCo benchmarks, we demonstrate that GuidedSAC consistently outperforms standard SAC and state-of-the-art exploration-enhanced variants (e.g., RND, ICM, and E3B) in terms of sample efficiency and final performance.",
+      "authors": [
+        "Hao Ma",
+        "Zhiqiang Pu",
+        "Xiaolin Ai",
+        "Huimu Wang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-03-18T08:22:31+00:00",
+      "link": "https://arxiv.org/pdf/2603.17468v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "reinforcement learning algorithm with LLM guidance",
+      "llm_evidence_cn": "带有LLM引导的强化学习算法",
+      "llm_evidence": "带有LLM引导的强化学习算法",
+      "canonical_evidence": "带有LLM引导的强化学习算法",
+      "llm_tldr_en": "Presents GuidedSAC, an RL algorithm that uses LLMs to provide action-level guidance for efficient exploration.",
+      "llm_tldr_cn": "提出了GuidedSAC，一种利用大语言模型提供动作级引导以实现高效探索的强化学习算法。",
+      "llm_tldr": "提出了GuidedSAC，一种利用大语言模型提供动作级引导以实现高效探索的强化学习算法。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.17468v1",
+      "carry_days": 1
+    }
+  ]
 }
