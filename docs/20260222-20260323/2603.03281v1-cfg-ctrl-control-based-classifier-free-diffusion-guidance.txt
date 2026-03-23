@@ -1,0 +1,923 @@
+Title: CFG-Ctrl: Control-Based Classifier-Free Diffusion Guidance
+
+URL Source: https://arxiv.org/pdf/2603.03281v1
+
+Published Time: Wed, 04 Mar 2026 02:29:05 GMT
+
+Number of Pages: 21
+
+Markdown Content:
+# CFG-Ctrl: Control-Based Classifier-Free Diffusion Guidance 
+
+## Hanyang Wang *, Yiyang Liu *, Jiawei Chi, Fangfu Liu, Ran Xue, Yueqi Duan †
+
+## Tsinghua University 
+
+## Abstract 
+
+Classifier-Free Guidance (CFG) has emerged as a central approach for enhancing semantic alignment in flow-based diffusion models. In this paper, we explore a unified frame-work called CFG-Ctrl , which reinterprets CFG as a control applied to the first-order continuous-time generative flow, using the conditional–unconditional discrepancy as an er-ror signal to adjust the velocity field. From this perspective, we summarize vanilla CFG as a proportional controller (P-control) with fixed gain, and typical follow-up variants de-velop extended control-law designs derived from it. How-ever, existing methods mainly rely on linear control, inher-ently leading to instability, overshooting, and degraded se-mantic fidelity especially on large guidance scales. To ad-dress this, we introduce Sliding Mode Control CFG ( SMC-CFG ), which enforces the generative flow toward a rapidly convergent sliding manifold. Specifically, we define an ex-ponential sliding mode surface over the semantic prediction error and introduce a switching control term to establish nonlinear feedback-guided correction. Moreover, we pro-vide a Lyapunov stability analysis to theoretically support finite-time convergence. Experiments across text-to-image generation models including Stable Diffusion 3.5, Flux, and Qwen-Image demonstrate that SMC-CFG outperforms standard CFG in semantic alignment and enhances robust-ness across a wide range of guidance scales. Project Page: 
+
+https://hanyang-21.github.io/CFG-Ctrl .
+
+## 1. Introduction 
+
+Diffusion models [16, 45, 46] have recently achieved state-of-the-art performance in high-fidelity image synthe-sis across diverse domains [35, 37]. Building on the similar probabilistic formulation, flow matching [25, 32] provides a more straightforward alternative by directly estimating deterministic velocity fields, realizing stable training and faster sampling than diffusion [9, 11]. These flow-based methods have demonstrated strong capability across text-to-image [8, 21], text-to-video [19, 47, 55], and other visual generation applications [22, 48, 61].  
+
+> ∗Equal contribution. †Corresponding author.
+
+Figure 1. Phase diagram in the e- ˙e plane. We schematically il-lustrate the convergence patterns of CFG and the proposed SMC-CFG. Left : CFG’s ideal linear convergence trajectory and the strong oscillatory divergence under high guidance scales. Right :the proposed SMC-CFG, through a switching-forcing mechanism, drives the system states toward the sliding mode surface governed by parameter λ, achieving robust and rapid convergence. 
+
+A key technique widely adopted in diffusion models is Classifier-Free Guidance (CFG) [15], which enhances se-mantic alignment between the generated sample and the in-put condition. Previous studies commonly interpret CFG as a linear extrapolation between unconditional and condi-tional predictions within deterministic diffusion flows [41]. While this perspective offers an intuitive interpretation, the resulting linear extrapolation can distort the generative tra-jectory from the learned data manifold, leading to oversatu-rated colors, warped structures, and strong sensitivity to the guidance scale [5]. Several improved methods have been proposed to alleviate these issues, including linear recom-position [53], orthogonal decomposition [9, 39], and dy-namic weighting schedules [41, 49]. We observe that the discrepancy between the conditional and unconditional velocity predictions gradually diminishes in diffusion flow progress, effectively serving as a natu-ral error signal. This observation motivates us to reinter-pret CFG not as a static extrapolation rule, but as a form of feedback control applied to the latent generative flow. Based on this observation, we explore a unified theoretical framework called CFG-Ctrl for Classifier-Free Guidance in flow matching diffusion. Under this CFG-Ctrl paradigm, the standard CFG corresponds to a proportional controller (P-control) that amplifies the semantic error with a fixed gain and feeds it back into the system, while existing CFG 1
+
+> arXiv:2603.03281v1 [cs.CV] 3 Mar 2026
+
+variants can be regarded as alternative designs of feedback control laws. However, most of these methods rely on ap-proximately linear control laws for feedback, which cannot ensure stable convergence when the underlying generative dynamics become highly nonlinear—particularly as model capacity increases or the guidance scale becomes large as shown in Figure 1 (left). To address this, we further propose Sliding Mode Con-trol CFG ( SMC-CFG ), a control-based guidance mecha-nism that directs the flow trajectory onto a rapidly converg-ing sliding mode surface. This design draws on the proven success of Sliding Mode Control (SMC) [7, 59] in stabi-lizing nonlinear dynamical systems. As shown in Figure 1 (right), our approach constructs a sliding mode surface over the semantic prediction error, corresponding to the gray dashed line in the figure. We also introduce a switching con-trol term that enforces nonlinear, feedback-driven corrective force, which are represented by the arrows at both sides of the convergence curve. This design adaptively regulates the evolution of the flow trajectory and preserves stability even under strong guidance. To theoretically substantiate conver-gence, we provide a Lyapunov stability analysis based on the principle of monotonically decreasing energy, demon-strating that SMC-CFG supports finite-time convergence to-ward the desired semantic manifold. Extensive experiments on three state-of-the-art text-to-image (T2I) models show that SMC-CFG consistently improves semantic fidelity, re-duces visual artifacts, and maintains robustness across mul-tiple semantic and perceptual metrics. Our contributions are summarized as follows: • We explore CFG-Ctrl, a novel theoretical framework for Classifier-Free Guidance in flow matching models grounded in control theory, unifying the systematic in-terpretation of diverse guidance strategies. • We propose SMC-CFG, a sliding-mode-based nonlinear feedback controller for flow models, and prove finite-time convergence under Lyapunov stability analysis. • Extensive experiments across multiple diffusion back-bones demonstrate that SMC-CFG achieves superior se-mantic fidelity, visual coherence, and robustness, particu-larly under high guidance scales. 
+
+## 2. Related Work 
+
+Diffusion and Flow Matching. Diffusion models [16, 45, 46] have garnered significant attention in recent years as a class of generative models that iteratively transform simple distributions into more complex ones, ultimately generating high-quality samples. Early diffusion models define a for-ward diffusion process, where noise is gradually added to data samples, typically starting from a simple prior such as an isotropic Gaussian. The reverse process is then learned by training a neural network to estimate the score function of the data distribution [37, 46], enabling the model to pro-gressively recover the original data. More recently, flow matching [25, 32] has been proposed to model the transfor-mation process via a learned velocity field, which simplifies the generative formulation and leads to better empirical per-formance. This paradigm has been widely adopted in large-scale foundation models across multiple domains, including image generation [21, 50, 51], video generation [12, 28, 30], and 3D content generation [26, 31, 57], demonstrating its scalability and strong performance advantages. 
+
+Guidance in Diffusion. Guidance techniques play a cru-cial role across a wide range of visual tasks [29, 56]. In diffusion-based generative models, guidance emerges as a core mechanism for conditional generation. Early ap-proaches such as Classifier Guidance (CG) [6] improve sample quality by leveraging an external classifier to steer the denoising process toward desired semantic targets, but require training a separate noise-aware classifier and are dif-ficult to scale to complex or multimodal conditioning sig-nals. To address these limitations, Classifier-Free Guidance (CFG) [15] was introduced, enabling conditional genera-tion [27, 38, 40] without an auxiliary classifier. By jointly training the diffusion model with and without condition-ing inputs, CFG allows flexible control at inference time through a simple interpolation between conditional and un-conditional predictions. Subsequent works [5, 20, 23, 62] explore adaptive guidance strategies for CFG by dynami-cally adjusting the guidance scale [49, 53] or refining the guidance direction [39] to mitigate oversaturation, thereby improving fidelity and reducing artifacts. Building upon these, recent studies [9, 41] have extended the CFG to flow matching models. For example, CFG-Zero ⋆ [9] introduces an optimized guidance scale to correct velocity estimation, while Rectified-CFG++ [41] proposes an adaptive predic-tor–corrector scheme that integrates the deterministic effi-ciency of rectified flows. These methods demonstrate that guidance remains a powerful and extensible mechanism for controllable and efficient generative modeling. 
+
+Control Theory. Control theory provides a foundational framework for designing systems that can regulate their be-havior to achieve desired objectives. Its principles are fun-damental to ensuring the performance, safety, and efficiency of complex systems across aerospace [3, 4], robotics [44, 58], and industrial process control [34, 43]. Among various approaches, Proportional–Integral–Derivative (PID) con-trol [1] remains one of the most widely adopted strate-gies due to its simplicity and broad applicability, effec-tively balancing responsiveness, stability, and steady-state accuracy using feedback errors. Beyond PID, advanced paradigms address more complex challenges: Model Pre-dictive Control (MPC) optimizes future actions based on a system model [10], while Adaptive Control adjusts parame-ters online to manage uncertainties [2]. Furthermore, robust control strategies guarantee stability against defined model 2inaccuracies. Sliding Mode Control (SMC) [7], as a promi-nent example of robust control, introduces a discontinuous law that forces the system trajectory onto a predefined man-ifold, ensuring exceptional resilience to disturbances. These diverse control strategies have inspired recent efforts to in-tegrate feedback-based and stability-driven principles into learning-based and generative modeling frameworks. 
+
+## 3. Method 
+
+3.1. Preliminaries 
+
+Classifier-Free Guidance (CFG) [15] introduces guidance by linearly interpolating between the conditional and un-conditional velocity fields. Let vθ (xt, t, ∅) denote the un-conditional velocity, obtained by dropping the condition c
+
+during training. The guided velocity is computed as:                
+
+> ˆvθ(xt, t, c) = vθ(xt, t, ∅) + w· vθ(xt, t, c)−vθ(xt, t, ∅),
+
+(1) where w ≥ 1 is the guidance weight. Rearranging yields: 
+
+ˆvθ (xt, t, c) = (1 − w) vθ (xt, t, ∅) + w vθ (xt, t, c). (2) When w = 1 , the model reduces to the standard condi-tional predictor. Increasing w > 1 amplifies the conditional component, improving semantic alignment at the cost of re-duced sample diversity. 
+
+Weight-Scheduler [49] introduces a time-varying guidance weight w(t) in place of the fixed weight w in standard CFG. The guided velocity becomes:                
+
+> ˆvθ(xt, t, c) = vθ(xt, t, ∅) + w(t)· vθ(xt, t, c)−vθ(xt, t, ∅).
+
+(3) Here, the scheduler w(t) is a monotonically increasing function of the denoising step to avoid overshooting the guidance in the initial stages. 
+
+Adaptive Projected Guidance (APG) [39] mitigates over-saturation by down-weighting the component of the guid-ance direction that is parallel to the conditional prediction. The standard CFG update direction ∆vt = vθ (xt, t, c) −
+
+vθ (xt, t, ∅) is decomposed into parallel and orthogonal components:               
+
+> ∆v∥
+> t=⟨∆vt,vθ(xt,t, c)⟩∥vθ(xt,t, c)∥2vθ(xt, t, c),∆v⊥
+> t= ∆ vt−∆v∥
+> t.
+
+(4) APG reduces oversaturation by down-weighting the parallel term. The guided velocity then becomes:               
+
+> vAPG (xt, t, c) = vθ(xt, t, ∅) + w· ∆v⊥
+> t+η∆v∥
+> t
+> ,η≤1.
+
+(5) APG chooses η < 1 to suppress oversaturation while pre-serving the quality-enhancing orthogonal component. 
+
+3.2. Motivation 
+
+Classifier-Free Guidance (CFG) has demonstrated remark-able empirical success across numerous diffusion-based generative models and related applications. In prior formu-lations, CFG can be viewed as a linear extrapolation within deterministic diffusion flows [41], as expressed in Eq. (1). We denote the guidance term as 
+
+e(t) = vθ (xt, t, c) − vθ (xt, t, ∅). (6) Ideally, during the denoising process from time step T
+
+to 0, CFG continuously injects conditional information into the trajectory xt. This mechanism progressively enriches the semantic content encoded in xt as the timestep de-creases. In the final stages of denoising, when most se-mantic information has already been embedded in xt, the conditional and unconditional predictions tend to converge, 
+
+i.e ., vθ (xt, t, c) ≈ vθ (xt, t, ∅), such that both e and its temporal derivative ˙e approach zero. This ideal behavior can be viewed geometrically as a guidance process evolv-ing on the (e, ˙e) plane, aiming to drive the system state toward the equilibrium point (0 , 0) . The most direct and stable convergence path under such a setting corresponds to the first-order linear system: 
+
+˙e = −λ0 · e, λ0 = − ˙e(T ) · e(T )
+
+∥e(T )∥2 , (e(T )̸ = 0). (7) From the viewpoint of differential-equation, it implies a rapid and stable exponential convergence. In practice, however, the assumption of collinear (e, ˙e)
+
+relationship rarely holds, especially when model capacity increases and the CFG guidance scale is enlarged. The re-sulting system becomes highly nonlinear, and the standard CFG formulation may exhibit oscillatory or divergent be-havior, as illustrated in Fig. 1 (left). Such instability often manifests as color distortion, loss of fine details, or incon-sistent textures in generated images [5, 39, 62]. Motivated by the effectiveness of control methods in sta-bilizing oscillatory behavior and ensuring convergence in dynamical systems, we revisit CFG from a control-theoretic perspective. Rather than treating CFG as a static extrapola-tion method, we propose to view CFG as a feedback control process that actively regulates the evolution of e(t), driving it toward the equilibrium in a principled, rate-aware manner. 
+
+3.3. Theoretical Formulation of CFG-Ctrl 
+
+In this section, we introduce CFG-Ctrl, a unified theoretical framework for CFG in flow matching models, which sys-tematically interprets diverse guidance strategies. We first model the flow matching sampling process as a continuous-time controlled dynamical system. Let xt ∈ X ⊆ Rd de-note the latent state at time t ∈ [0 , T ], whose evolution fol-lows the control-affine ordinary differential equation 
+
+dxt
+
+dt = vθ (xt, t ) + G(xt, t )ut, (8) 3Table 1. Typical CFG variants under CFG-Ctrl formulation. We summarize the key components of various methods under the control formulation, along with their corresponding types of control interpretations.                                                                          
+
+> Method Gain KtOperator ΠtError e(t)Control Interpretation
+> CFG [15] wI∆vθ(t)Proportional control Weight Scheduler [49] w(t)I∆vθ(t)Time-varying gain scheduling APG [39] wIηI I−Pt
+> Pt
+> 
+> , P t=vθ(c)vθ(c)⊤
+> |vθ(c)|2∆vθ(t)Projection-based Feedback Control CFG-Zero ⋆[9] wI st
+> 1−stI,st=vθ(c)⊤vθ(∅)
+> |vθ(∅)|2
+> I−Pt
+> Pt
+> 
+> , P t=vθ(∅)vθ(∅)⊤
+> |vθ(∅)|2∆vθ(t)Projection-based Feedback Control Rectified-CFG++ [41] Iα(t)I, α (t) = λmax (1 −t)γI
+> ∆vθ(t)∆vθ(t−∆t
+> 2)
+> 
+> Model Predictive Control SMC-CFG wI∆vθ(t)−k·sign (st)Sliding Mode Control
+
+with the initial condition x0 ∼ N (0 , I). In Eq. (8), vθ :
+
+X × [0 , T ] → X is the pre-trained velocity field, G : X × 
+
+[0 , T ] → Rd×m is the input mapping matrix, and ut ∈ U ⊆ 
+
+Rm is the guidance control input. Guidance mechanisms act directly in the latent coordi-nates without cross-space transformations; hence we set 
+
+G(xt, t ) = Id (full actuation, m = d), reducing Eq. (8) to the additive-velocity form 
+
+dxt
+
+dt = vθ (xt, t ) + ut. (9) To better analyze guidance mechanisms, we propose to formulate the control signal ut using a general state-feedback law, decomposing it into two key components: 
+
+ut = Kt Πt
+
+ e(t). (10) Here, e(t), defined in Eq. (6), is regarded as the semantic er-ror of the system. We term Kt the guidance schedule, as it schedules the guidance strength, and Πt the direction opera-tor, as it shapes the correction direction ( e.g ., normalization or projection). Under the CFG-Ctrl formulation, we can interpret the standard CFG as a specific, simple instance of this general control law. The standard CFG update Eq. (1) modifies the closed-loop dynamics as: 
+
+dxt
+
+dt = vθ (xt, t, ∅) + w (vθ (xt, t, c) − vθ (xt, t, ∅)) ,
+
+(11) where w is the guidance scale. This specific form is recov-ered when the guidance schedule Kt is a constant scalar and the direction operator Πt is identity: 
+
+Kt = w, Πt = I. (12) Substituting these into the closed-loop dynamics dxt 
+
+> dt
+
+=
+
+vθ (xt, t, ∅) + Kt Πt(e(t)) in Eq. (9) and (10) yields: 
+
+dxt
+
+dt = vθ (xt, t, ∅) + Kt Πt(e(t)) = vθ (xt, t, ∅) + w (vθ (xt, t, c) − vθ (xt, t, ∅)) ,
+
+(13) which recovers the standard CFG update in Eq. (11). Thus, CFG is mathematically equivalent to a proportional state-feedback controller (P-control) acting on the semantic alignment error e(t). The guidance scale w, serving as the constant guidance schedule, directly plays the role of the proportional gain. This state-feedback perspective, decomposing guidance into the guidance schedule Kt and the direction operator 
+
+Πt, provides a structured framework to understand existing CFG advancements. Many follow-up typical CFG variants can be reinterpreted as specific control laws for modulating either the strength via Kt or the direction via Πt.
+
+Guidance Schedule . We next focus on the guidance sched-ule component Kt. Recall that standard CFG applies a con-stant guidance schedule w to the semantic feedback signal. However, Kt does not need to be fixed. A prominent ex-ample of a dynamic guidance schedule is guidance weight scheduling. Recent work [49] has shown that replacing the constant gain w with a time-varying schedule w(t) leads to substantial improvements in sample quality and seman-tic consistency. Under our formulation, this corresponds to choosing a time-dependent guidance schedule while the di-rection operator remains identity: 
+
+Kt = w(t), Πt = I, (14) with the same semantic error signal e(t) in Eq. (6). The resulting closed-loop dynamics are shown in Eq. (3). This reveals that the weight-scheduler approach is a time-varying proportional feedback controller, also known in control theory as gain-scheduled control. The key differ-ence from standard CFG is that the guidance schedule Kt is no longer fixed. From a control perspective, the motivation for a dynamic guidance schedule is clear: in early stages of sampling, the state xt is dominated by noise, so applying strong correc-tion (a large Kt) may amplify noise rather than semantic alignment. A smaller gain w(t) is therefore desirable at high noise levels. As the sample becomes more structured, the feedback signal becomes more semantically meaning-ful, and the gain can be safely increased. 4Direction Operator . The direction operator Πt can be combined with a more advanced guidance schedule Kt.Whereas weight-schedulers [49] use a scalar Kt and an identity Πt, Adaptive Projected Guidance (APG) [39] demonstrates a case where Kt becomes a matrix gain, work-ing in conjunction with a structured Πt. Within the first-order state-feedback framework, APG can be written as: 
+
+Kt = w I ηI  , Πt =
+
+I − Pt
+
+Pt
+
+
+
+, Pt = vθ (c)vθ (c)⊤
+
+|vθ (c)|2 ,
+
+(15) where Pt is an orthogonal projection onto the conditional direction vθ (c) = vθ (xt, t, c). Applying the direction op-erator Πt first decomposes the semantic error e(t) into or-thogonal and parallel components: 
+
+∆v⊥
+
+> t
+
+∆v∥
+
+> t
+
+
+
+= Π t(e(t)) = 
+
+I − Pt
+
+Pt
+
+
+
+e(t). (16) The guidance schedule Kt, now a structured matrix, applies the global CFG scaling w while introducing an additional factor η specifically on the parallel component, yielding: 
+
+dxt
+
+dt = vθ (xt, t, ∅) + Kt Πt(e(t)) = vθ (xt, t, ∅) + w
+
+
+
+∆v⊥ 
+
+> t
+
++ η ∆v∥
+
+> t
+
+
+
+.
+
+(17) APG therefore reshapes the feedback signal: instead of uniformly amplifying the semantic correction (as in scalar 
+
+Kt), the matrix-based guidance schedule Kt selectively en-hances the parallel component aligned with the conditional direction. In control-theoretic terms, APG is a projection-based feedback controller. This design improves semantic alignment without the instability of simply increasing the proportional gain w, since it adjusts how strongly the guid-ance acts on different components (via Kt) rather than just 
+
+how strongly overall . We show more control interpretations of various CFG methods in Table 1. For notation list and theoretical details, please refer to supplementary material. 
+
+3.4. Sliding Mode Control CFG 
+
+Existing CFG methods primarily rely on linear feedback, such as linear combinations or orthogonal projections of the conditional and unconditional velocity estimates. However, the ODE flow is inherently a highly nonlinear dynamical system, particularly when the model capacity becomes large and guidance scale is high. In such regimes, linear guidance tends to amplify nonlinear distortions, leading to oversatu-rated textures and semantic inconsistency. To address these issues, we reinterpret CFG under the first-order state-feedback control framework introduced in Sec. 3.3. Under this perspective, we propose Sliding Mode Control CFG (SMC-CFG), which introduces a nonlinear 
+
+Algorithm 1 SMC-CFG  
+
+> 1:
+
+Input: Velocity model vθ (·, t, c), input condition c,guidance scale w, SMC parameters λ, k. 
+
+> 2:
+
+xT ∼ N (0 , I) 
+
+> 3:
+
+for t = T to 1 do  
+
+> 4:
+
+vt(c) ← vθ (xt, t, c) # Conditional prediction  
+
+> 5:
+
+vt(∅) ← vθ (xt, t, ∅) # Unconditional prediction  
+
+> 6:
+
+e(t) ← vt(c) − vt(∅) 
+
+> 7:
+
+if e(t + 1) is None then  
+
+> 8:
+
+e(t + 1) ← e(t) 
+
+> 9:
+
+end if  
+
+> 10:
+
+st ← (e(t) − e(t + 1)) + λ · e(t + 1) # Sliding surface  
+
+> 11:
+
+∆e ← − k · sign (st) # Switching control  
+
+> 12:
+
+e(t) ← e(t) + ∆ e # SMC guidance update  
+
+> 13:
+
+ˆvt ← vt(∅) + w · e(t) 
+
+> 14:
+
+ˆxt−1 ← ODEUpdate (xt, ˆvt, t ) 
+
+> 15:
+
+end for  
+
+> 16:
+
+Return x0
+
+sliding surface that continuously corrects the semantic de-viation while constraining the diffusion trajectory to evolve toward a stable low-energy semantic manifold. For the semantic error e(t) defined in Eq. (6), the ideal target behavior is that (e(t), ˙e(t)) decays directly toward origin, as shown in Figure 1 (left): 
+
+˙e(t) = −λ0 e(t), λ > 0. (18) Here λ0 denotes the slope of the ideal line, with its value typically determined by the initial state (e(T ), ˙e(T )) . The ODE solution e(t) = e(T )exp( −λt ) also ensures smooth, monotonic exponential convergence. However, the diffusion dynamics cannot ensure the ideal process of e; thus we define the sliding mode surface: 
+
+s(t) = ˙ e(t) + λe(t), (19) where λ is an adjustable shape parameter of the sliding mode surface, and the surface implicitly encodes the tar-get error dynamics in Eq. (18). The manifold s(t) = 0, as illustrated by the dashed line in Figure 1 (right), defines the desired semantic equilibrium flow. We adopt the Lyapunov function [33] V to measure the deviation of the system from the sliding manifold. For stable convergence, the system en-ergy must monotonically decrease over time: 
+
+V (s) = 12 ∥s∥2, ˙V = s⊤ ˙s < 0. (20) We derive ˙s from the semantic guidance error in Eq. (6). Using the chain rule, its time derivative is 
+
+˙e(t) = ∂vθ (x, t, c)
+
+∂x ˙x − ∂vθ (x, t, ∅)
+
+∂x ˙x
+
++ ∂vθ (x, t, c)
+
+∂t − ∂vθ (x, t, ∅)
+
+∂t .
+
+(21) 5Table 2. Quantitative evaluation of CFG methods. Lower ( ↓) FID and higher ( ↑) CLIP, Aesthetic, ImageReward, PickScore, HPSv2, HPSv2.1 and MPS scores indicate better performance. Note that Qwen-Image preserves natural image statistics, yielding the lowest FID. 
+
+Guidance FID ↓ CLIP ↑ Aesthetic ↑ ImageReward ↑ PickScore ↑ HPSv2 ↑ HPSv2.1 ↑ MPS ↑
+
+SD3.5 [8] 41.725 0.3399 5.4256 0.3591 0.2124 0.2710 0.2372 6.5554 w/ CFG [15] 21.421 0.3681 5.5875 0.8889 0.2190 0.2930 0.2842 7.2476 w/ CFG-Zero ⋆ [9] 20.317 0.3691 5.6124 0.9312 0.2195 0.2942 0.2862 7.0430 w/ Rect-CFG++ [41] 20.550 0.3655 5.5663 0.7097 0.2173 0.2887 0.2748 6.7854 w/ SMC-CFG 20.044 0.3694 5.5790 0.9486 0.2211 0.2945 0.2875 7.5719 
+
+Flux-dev [21] 52.598 0.3272 5.4568 0.2572 0.2137 0.2650 0.2280 5.9592 w/ CFG [15] 27.323 0.3692 5.5397 0.8749 0.2228 0.2917 0.2828 7.8387 w/ CFG-Zero ⋆ [9] 26.901 0.3742 5.7053 1.0300 0.2262 0.2987 0.2992 8.1573 w/ Rect-CFG++ [41] 27.219 0.3728 5.6909 1.0075 0.2252 0.2974 0.2963 7.9746 w/ SMC-CFG 26.398 0.3743 5.7342 1.0558 0.2268 0.2986 0.3021 8.2307 
+
+Qwen-Image [50] 24.894 0.3626 5.4081 0.5742 0.2157 0.2815 0.2613 6.7152 w/ CFG [15] 35.431 0.3815 5.5995 1.1063 0.2260 0.2996 0.3038 8.1852 w/ CFG-Zero ⋆ [9] 35.391 0.3822 5.6598 1.1941 0.2279 0.3019 0.3092 8.3739 w/ Rect-CFG++ [41] 34.371 0.3834 5.6007 1.1727 0.2276 0.3017 0.3068 8.1026 w/ SMC-CFG 33.371 0.3856 5.6289 1.2035 0.2275 0.3026 0.3105 8.4320 
+
+We introduce a sliding-mode correction term ∆e(t), giving the full control u(t) = w(e(t) + ∆ e(t)) , which modulates the semantic guidance by directly shaping the error dynam-ics rather than altering the model prediction. Substituting the controlled state dynamics in Eq. (8) into the time derivative of the semantic error yields:         
+
+> ˙e(t) = Φ(t, x) + w
+> ∂vθ(x,t, c)
+> ∂x−∂vθ(x,t, ∅)
+> ∂x
+> 
+> G(x, t ) ∆ e(t),
+
+(22) where Φ absorbs terms independent of ∆e(t). Differ-entiating and substituting the sliding surface definition in Eq. (19), we obtain: 
+
+˙s(t) = Φs(t, x) + Γs(t) ∆ e(t), (23) where Γs denotes the coefficient matrix multiplying ∆e,and Φs(t, x) represents all remaining terms. We assume that Γs has minimum singular value lower-bounded ( i.e ., 
+
+σmin (Γs) ≥ bmin > 0), and Φs is bounded ( i.e ., ∥Φs∥ ≤ δ,
+
+∃δ > 0), which are standard in sliding mode control. Substituting into the Lyapunov derivative yields: 
+
+˙V = s⊤Φ(t, e) + s⊤Γ(t)∆ e(t). (24) We apply the classical switching control law: 
+
+∆e(t) = −K · sign( s(t)) , (25) where K = k I is a positive diagonal gain matrix. Since 
+
+σmin (Γ(t)K) ≥ k b min , we obtain: 
+
+˙V ≤ ∥ s∥δ − k b min ∥s∥ = −(k b min − δ)∥s∥. (26) Therefore, choosing k such that k b min > δ ensures: 
+
+˙V = s⊤ ˙s ≤ − η∥s∥, η = k b min − δ > 0. (27) Dividing both sides by ∥s∥ > 0 yields the scalar differential inequality 
+
+ddt ∥s(t)∥ ≤ − η. 
+
+Integrating from 0 to t gives 
+
+∥s(t)∥ ≤ ∥ s(0) ∥ − ηt, 
+
+which supports finite-time convergence of s(t) to zero. In particular: 
+
+∥s(t)∥ = 0 for some t ≤ ∥s(0) ∥
+
+η . (28) We present the entire method in Algorithm 1. The pro-posed sliding mode surface and switching control law en-force stable semantic guidance by ensuring that the diffu-sion trajectory converges to the desired manifold, depicted by the red curve in Figure 1, eliminating oscillations and improving consistency during guided sampling. 
+
+## 4. Experiments 
+
+4.1. Experimental Setups 
+
+Datasets and Baselines. We conduct experiments on a sub-set of the MS-COCO [24] dataset, comprising 5,000 image-text pairs. To demonstrate the generality of our method across diverse model scales, we evaluate it on several state-of-the-art flow-based T2I models, including Stable Diffu-sion 3.5 (SD3.5) [8], Flux-dev [21], and Qwen-Image [50] with 8B, 12B, and 20B parameters, respectively. In addition to comparing against the standard Classifier-Free Guidance baseline, we include two recent guidance variants designed 6Qwen -Image           
+
+> Prompt: Several gliders floating on the ocean next to
+> an island . Dozens of kite skiers out in the ocean .
+> Prompt: A teddy bear is sitting in a cooking pot on a
+> stove.
+> Prompt: There are two red roses and three white lilies
+> in a vase.
+> Prompt: A futuristic laboratory setting. In the center of
+> the room, a glowing blue holographic projection shimmers.
+> SMC -CFG CFG
+
+FLUX         
+
+> Prompt: A bird on the left of a clock.
+> Prompt: A blue and white bus labeled subway
+> shuttle .
+> Prompt: Man walking next many birds in cages at
+> a street market.
+> Prompt: A close -up of an enchanted sword, its
+> blade made of dark…word is clearly visible: MAGIC
+> SMC -CFG CFG
+
+SD3.5     
+
+> Prompt: In the center of the scroll, there is large,
+> ornate script that reads: FORBIDDEN KNOWLEDGE .
+> Prompt: A man is holding a tennis racket trying to hit
+> the ball .
+> Prompt: A cat is looking at the other cat on the
+> computer screen .
+> SMC -CFG CFG
+> Prompt: A deer made of shimmering starlight grazing
+> beside a silver river.
+
+Figure 2. Qualitative results across different T2I models. We provide visual comparisons between CFG and our SMC-CFG across various models. SMC-CFG exhibits better performance in positional relationships, text generation, and detailed object representation. 
+
+specifically for flow-matching generative models: CFG-zero ⋆ [9] and Rectified-CFG++ [41]. We implement both methods on all evaluated backbones following the official paper and open-source code to ensure a fair and consistent comparison. For more comprehensive experiments on addi-tional T2I benchmark and diffusion model, please refer to our supplementary material. 
+
+Evaluation Metrics. To assess image quality and vi-sual realism, we report the Fr´ echet Inception Distance (FID) [14]. To measure the alignment between gener-ated images and input text prompts, we use the CLIP Score [13, 36], which quantifies semantic consistency in the joint vision–language embedding space. In addition to these core metrics, we further provide a comprehensive evalua-tion of aesthetic quality and human preference, including Aesthetic Score [42], ImageReward [54], PickScore [18], HPSv2 [52], HPSv2.1 [52], and MPS [60]. Together, these metrics offer a holistic perspective on both the fidelity and human-perceived appeal of the generated content. 
+
+Implementation Details. All experiments are conducted on a single NVIDIA A100 GPU (40GB). We implement the proposed method SMC-CFG on three representative pre-trained T2I diffusion models: SD3.5 [8], Flux-dev [21], and Qwen-Image [50]. For all models, we adopt their default CFG scales provided in the official implementations. In our SMC-CFG framework, the two hyperparameters λ and 
+
+K are kept fixed within each model and shared across all datasets and experimental conditions to ensure fair compar-ison. See supplementary material for more implementation details and complete hyperparameter configurations. 
+
+4.2. Text-to-Image Generation 
+
+In this section, we evaluate the effectiveness of our pro-posed SMC-CFG in text-to-image generation. Experiments are conducted on the MS-COCO [24] dataset using three state-of-the-art flow-based models. To ensure a fair and up-to-date comparison, we implement two recent CFG vari-ants (CFG-zero ⋆ [9] and Rectified-CFG++ [41]) designed for flow-matching models as baselines. 
+
+Quantitative Evaluation. Table 2 reports the quantitative results of SMC-CFG compared with the standard CFG and baselines across different T2I models. Our method consis-tently achieves lower FID scores, indicating the generated images exhibit improved visual quality and realism. Mean-while, the higher CLIP Scores demonstrate stronger seman-tic alignment between the generated images and the input 7CFG -Zero Rectified -CFG++ SMC -CFG CFG   
+
+> Prompt: A man in a revolutionary -era costume talks on a cellphone.
+> Prompt: Man and child on a Kawasaki motorcycle near an open garage door.
+> ⋆
+
+Figure 3. Qualitative comparison with baseline methods. For challenging scenarios including relative positions, clothing styles, and human actions, baseline methods produce irrational outputs, while SMC-CFG preserves robust text consistency. 
+
+prompts. Furthermore, SMC-CFG attains superior scores on ImageReward, HPSv2.1, and MPS scores, signifying that the generated images are more aligned with human aes-thetic and preference judgments. For additional metrics, our method also achieves comparable or better results than the baselines, demonstrating strong overall generation quality. 
+
+Qualitative Evaluation. We further present qualitative comparisons to illustrate the improvements achieved by SMC-CFG. As shown in Figure 2, across different model backbones, our method produces images with sharper de-tails, more coherent object structures, and more faithful ad-herence to the textual descriptions compared to standard CFG. This demonstrates that our approach is consistently effective and model-agnostic. In addition, Figure 3 high-lights results on more challenging prompts involving com-plex compositions, fine-grained semantics, or stylistic at-tributes. Compared with recent flow-matching-based guid-ance variants, SMC-CFG generates images that better pre-serve semantic correctness and maintain aesthetic quality, without introducing over-smoothing or mode collapse. 
+
+Table 3. Ablation study on hyperparameter λ and k. We conduct ablation across various hyperparameter settings in four metrics: FID, CLIP, Aesthetic (Aesth), and ImageReward (Im-gRwd), respectively measuring generation quality, semantic align-ment, aesthetic level, and human preference. 
+
+λ k FID ↓ CLIP ↑ Aesth ↑ ImgRwd ↑
+
+3 0.1 26.193 0.3698 5.7064 1.0174 4 0.1 26.006 0.3701 5.7098 1.0219 5 0.1 25.951 0.3709 5.7128 1.0248 
+
+6 0.1 26.143 0.3703 5.7071 1.0228 5 0.1 25.951 0.3709 5.7128 1.0248 5 0.4 26.143 0.3719 5.7218 1.0504 
+
+5 0.7 26.416 0.3739 5.7175 1.0406 5 1.0 26.281 0.3741 5.7054 1.0453 CFG Scale Prompt: A poster with large centered text that reads: WELCOME TO THE FOREST. 
+
+Figure 4. Visual comparison between CFG (top) and SMC-CFG (bottom) across different CFG scales. 
+
+4.3. Ablation Studies and Analysis 
+
+Ablation on Hyperparameters. To gain a deeper under-standing of the roles of hyperparameters in SMC-CFG, we perform an ablation study on their distinct impacts. The top of Table 3 illustrates how λ shapes the sliding mode surface. Extreme values (too low or too high) distort this manifold, impairing guidance stability and diminishing output fidelity. On the bottom of Table 3, we explore influence of k (with fixed λ), which governs the force toward the sliding mode surface. Modest k yields slow convergence and meanwhile alleviates the distortions introduced by CFG, thereby weak-ening text-image alignment ( i.e ., lower CLIP scores) but preserves realism ( i.e ., lower FID). In contrast, excessive 
+
+k causes abrupt pulls, triggering erratic sampling or vibra-tions. Though boosting semantic match, such outputs suffer from reduced aesthetic appeal and poor human-preference ratings. Overall, suitable hyperparameters strike a trade-off between perceptual excellence and textual fidelity. 
+
+Guidance Scale. We analyze how guidance scales influ-ence the generation performance of SMC-CFG in Figure 4. At large guidance scales, CFG improves semantic align-ment at the cost of significant degradation in image quality and realism. In contrast, SMC-CFG exhibits more stable performance across a wide range of guidance scales, maxi-mizing the capability of CFG while avoiding significant re-ductions in image quality and aesthetic appeal. 
+
+## 5. Conclusion 
+
+We explore a unified framework called CFG-Ctrl, reinter-preting CFG as a feedback control in flow matching models and analyzing its nonlinear behaviors under high guidance scales. From this perspective, we further propose SMC-CFG, a nonlinear control-based guidance mechanism that introduces a switching control term to enforce fast and sta-ble convergence along the sliding mode surface. Extensive experiments demonstrate that SMC-CFG consistently im-proves semantic alignment and visual fidelity while main-taining robustness across diverse guidance scales. Ablation studies also reveal how its hyperparameters affect stability and perception. We believe this control-theoretic per-spective provides a promising direction for more effective and robust guidance in future large-scale generative models. 8References 
+
+[1] K.J. ˚ Astr¨ om and T. H¨ agglund. PID Controllers . International Society for Measurement and Control, 1995. 2 [2] K. J. ˚ Astr¨ om. Adaptive Control. In Mathematical System Theory: The Influence of R. E. Kalman , pages 437–450. Springer, Berlin, Heidelberg, 1991. 2 [3] Randal W Beard and Timothy W McLain. Small unmanned aircraft: Theory and practice . Princeton university press, 2012. 2 [4] Arthur Earl Bryson. Applied optimal control: optimization, estimation and control . Routledge, 2018. 2 [5] Hyungjin Chung, Jeongsol Kim, Geon Yeong Park, Hyelin Nam, and Jong Chul Ye. Cfg++: Manifold-constrained clas-sifier free guidance for diffusion models. arXiv preprint arXiv:2406.08070 , 2024. 1, 2, 3 [6] Prafulla Dhariwal and Alexander Nichol. Diffusion models beat gans on image synthesis. Advances in neural informa-tion processing systems , 34:8780–8794, 2021. 2 [7] Christopher Edwards and Sarah K Spurgeon. Sliding mode control: theory and applications . CRC press, 1998. 2, 3 [8] Patrick Esser, Sumith Kulal, Andreas Blattmann, Rahim Entezari, Jonas M¨ uller, Harry Saini, Yam Levi, Dominik Lorenz, Axel Sauer, Frederic Boesel, et al. Scaling recti-fied flow transformers for high-resolution image synthesis. In Forty-first international conference on machine learning ,2024. 1, 6, 7, 4 [9] Weichen Fan, Amber Yijia Zheng, Raymond A Yeh, and Zi-wei Liu. Cfg-zero*: Improved classifier-free guidance for flow matching models. arXiv preprint arXiv:2503.18886 ,2025. 1, 2, 4, 6, 7 [10] Carlos E. Garc´ ıa, David M. Prett, and Manfred Morari. Model predictive control: Theory and practice—A survey. 
+
+Automatica , 25(3):335–348, 1989. 2 [11] Will Grathwohl, Ricky TQ Chen, Jesse Bettencourt, Ilya Sutskever, and David Duvenaud. Ffjord: Free-form con-tinuous dynamics for scalable reversible generative models. 
+
+arXiv preprint arXiv:1810.01367 , 2018. 1 [12] Yoav HaCohen, Nisan Chiprut, Benny Brazowski, Daniel Shalem, Dudu Moshe, Eitan Richardson, Eran Levin, Guy Shiran, Nir Zabari, Ori Gordon, et al. Ltx-video: Realtime video latent diffusion. arXiv preprint arXiv:2501.00103 ,2024. 2 [13] Jack Hessel, Ari Holtzman, Maxwell Forbes, Ronan Le Bras, and Yejin Choi. Clipscore: A reference-free evaluation met-ric for image captioning. In Proceedings of the 2021 confer-ence on empirical methods in natural language processing ,pages 7514–7528, 2021. 7, 4 [14] Martin Heusel, Hubert Ramsauer, Thomas Unterthiner, Bernhard Nessler, and Sepp Hochreiter. Gans trained by a two time-scale update rule converge to a local nash equilib-rium. Advances in neural information processing systems ,30, 2017. 7, 4 [15] Jonathan Ho and Tim Salimans. Classifier-free diffusion guidance. arXiv preprint arXiv:2207.12598 , 2022. 1, 2, 3, 4, 6[16] Jonathan Ho, Ajay Jain, and Pieter Abbeel. Denoising dif-fusion probabilistic models. Advances in neural information processing systems , 33:6840–6851, 2020. 1, 2 [17] Kaiyi Huang, Kaiyue Sun, Enze Xie, Zhenguo Li, and Xihui Liu. T2i-compbench: A comprehensive bench-mark for open-world compositional text-to-image genera-tion. Advances in Neural Information Processing Systems ,36:78723–78747, 2023. 3, 4 [18] Yuval Kirstain, Adam Polyak, Uriel Singer, Shahbuland Ma-tiana, Joe Penna, and Omer Levy. Pick-a-pic: An open dataset of user preferences for text-to-image generation. Ad-vances in neural information processing systems , 36:36652– 36663, 2023. 7, 4 [19] Weijie Kong, Qi Tian, Zijian Zhang, Rox Min, Zuozhuo Dai, Jin Zhou, Jiangfeng Xiong, Xin Li, Bo Wu, Jianwei Zhang, et al. Hunyuanvideo: A systematic framework for large video generative models. arXiv preprint arXiv:2412.03603 , 2024. 1[20] Tuomas Kynk¨ a¨ anniemi, Miika Aittala, Tero Karras, Samuli Laine, Timo Aila, and Jaakko Lehtinen. Applying guidance in a limited interval improves sample and distribution quality in diffusion models. Advances in Neural Information Pro-cessing Systems , 37:122458–122483, 2024. 2 [21] Black Forest Labs. Flux. https://github.com/ black-forest-labs/flux , 2024. 1, 2, 6, 7, 4 [22] Black Forest Labs, Stephen Batifol, Andreas Blattmann, Frederic Boesel, Saksham Consul, Cyril Diagne, Tim Dock-horn, Jack English, Zion English, Patrick Esser, Sumith Ku-lal, Kyle Lacey, Yam Levi, Cheng Li, Dominik Lorenz, Jonas M¨ uller, Dustin Podell, Robin Rombach, Harry Saini, Axel Sauer, and Luke Smith. Flux.1 kontext: Flow matching for in-context image generation and editing in latent space, 2025. 1 [23] Shanchuan Lin, Bingchen Liu, Jiashi Li, and Xiao Yang. Common diffusion noise schedules and sample steps are flawed. In Proceedings of the IEEE/CVF winter conference on applications of computer vision , pages 5404–5411, 2024. 2[24] Tsung-Yi Lin, Michael Maire, Serge Belongie, James Hays, Pietro Perona, Deva Ramanan, Piotr Doll´ ar, and C Lawrence Zitnick. Microsoft coco: Common objects in context. In 
+
+European conference on computer vision , pages 740–755. Springer, 2014. 6, 7, 4 [25] Yaron Lipman, Ricky TQ Chen, Heli Ben-Hamu, Maximil-ian Nickel, and Matt Le. Flow matching for generative mod-eling. arXiv preprint arXiv:2210.02747 , 2022. 1, 2 [26] Fangfu Liu, Wenqiang Sun, Hanyang Wang, Yikai Wang, Haowen Sun, Junliang Ye, Jun Zhang, and Yueqi Duan. Re-conx: Reconstruct any scene from sparse views with video diffusion model. arXiv preprint arXiv:2408.16767 , 2024. 2 [27] Fangfu Liu, Hanyang Wang, Weiliang Chen, Haowen Sun, and Yueqi Duan. Make-your-3d: Fast and consistent subject-driven 3d content generation. In European Conference on Computer Vision , pages 389–406. Springer, 2024. 2 [28] Fangfu Liu, Hanyang Wang, Shunyu Yao, Shengjun Zhang, Jie Zhou, and Yueqi Duan. Physics3d: Learning physical properties of 3d gaussians via video diffusion. arXiv preprint arXiv:2406.04338 , 2024. 2 
+
+9[29] Fangfu Liu, Hao Li, Jiawei Chi, Hanyang Wang, Minghui Yang, Fudong Wang, and Yueqi Duan. Langscene-x: Re-construct generalizable 3d language-embedded scenes with trimap video diffusion. arXiv preprint arXiv:2507.02813 ,2025. 2 [30] Fangfu Liu, Hanyang Wang, Yimo Cai, Kaiyan Zhang, Xiao-hang Zhan, and Yueqi Duan. Video-t1: Test-time scaling for video generation. arXiv preprint arXiv:2503.18942 , 2025. 2 [31] Fangfu Liu, Junliang Ye, Yikai Wang, Hanyang Wang, Zhengyi Wang, Jun Zhu, and Yueqi Duan. Dreamreward-x: Boosting high-quality 3d generation with human preference alignment. IEEE Transactions on Pattern Analysis and Ma-chine Intelligence , 2025. 2 [32] Xingchao Liu, Chengyue Gong, and Qiang Liu. Flow straight and fast: Learning to generate and transfer data with rectified flow. arXiv preprint arXiv:2209.03003 , 2022. 1, 2 [33] Aleksandr Mikhailovich Lyapunov. The general problem of the stability of motion. International journal of control , 55 (3):531–534, 1992. 5 [34] David Q Mayne, James B Rawlings, Christopher V Rao, and Pierre OM Scokaert. Constrained model predictive control: Stability and optimality. Automatica , 36(6):789–814, 2000. 2[35] William Peebles and Saining Xie. Scalable diffusion models with transformers. In Proceedings of the IEEE/CVF inter-national conference on computer vision , pages 4195–4205, 2023. 1 [36] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning transferable visual models from natural language supervi-sion. In International conference on machine learning , pages 8748–8763. PmLR, 2021. 7, 4 [37] Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Bj¨ orn Ommer. High-resolution image synthesis with latent diffusion models. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 10684–10695, 2022. 1, 2 [38] Nataniel Ruiz, Yuanzhen Li, Varun Jampani, Yael Pritch, Michael Rubinstein, and Kfir Aberman. Dreambooth: Fine tuning text-to-image diffusion models for subject-driven generation. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 22500– 22510, 2023. 2 [39] Seyedmorteza Sadat, Otmar Hilliges, and Romann M We-ber. Eliminating oversaturation and artifacts of high guid-ance scales in diffusion models. In The Thirteenth Interna-tional Conference on Learning Representations , 2024. 1, 2, 3, 4, 5 [40] Chitwan Saharia, William Chan, Saurabh Saxena, Lala Li, Jay Whang, Emily L Denton, Kamyar Ghasemipour, Raphael Gontijo Lopes, Burcu Karagol Ayan, Tim Salimans, et al. Photorealistic text-to-image diffusion models with deep language understanding. Advances in neural information processing systems , 35:36479–36494, 2022. 2 [41] Shreshth Saini, Shashank Gupta, and Alan C Bovik. Rectified-cfg++ for flow based models. arXiv preprint arXiv:2510.07631 , 2025. 1, 2, 3, 4, 6, 7 [42] Christoph Schuhmann. LAION-Aesthetics. https:// laion.ai/blog/laion-aesthetics/ , 2022. Ac-cessed: 2023-11-10. 7, 4 [43] Dale E Seborg, Thomas F Edgar, Duncan A Mellichamp, and Francis J Doyle III. Process dynamics and control . John Wiley & Sons, 2016. 2 [44] Bruno Siciliano, Lorenzo Sciavicco, Luigi Villani, and Giuseppe Oriolo. Robotics: modelling, planning and con-trol . Springer, 2009. 2 [45] Jiaming Song, Chenlin Meng, and Stefano Ermon. Denoising diffusion implicit models. arXiv preprint arXiv:2010.02502 , 2020. 1, 2 [46] Yang Song, Jascha Sohl-Dickstein, Diederik P Kingma, Ab-hishek Kumar, Stefano Ermon, and Ben Poole. Score-based generative modeling through stochastic differential equa-tions. arXiv preprint arXiv:2011.13456 , 2020. 1, 2 [47] Team Wan, Ang Wang, Baole Ai, Bin Wen, Chaojie Mao, Chen-Wei Xie, Di Chen, Feiwu Yu, Haiming Zhao, Jianxiao Yang, et al. Wan: Open and advanced large-scale video gen-erative models. arXiv preprint arXiv:2503.20314 , 2025. 1, 4[48] Hanyang Wang, Fangfu Liu, Jiawei Chi, and Yueqi Duan. Videoscene: Distilling video diffusion model to generate 3d scenes in one step. In 2025 IEEE/CVF Conference on Com-puter Vision and Pattern Recognition (CVPR) , pages 16475– 16485. IEEE, 2025. 1 [49] Xi Wang, Nicolas Dufour, Nefeli Andreou, Marie-Paule Cani, Victoria Fern´ andez Abrevaya, David Picard, and Vicky Kalogeiton. Analysis of classifier-free guidance weight schedulers. Transactions on Machine Learning Research Journal , 2024. 1, 2, 3, 4, 5 [50] Chenfei Wu, Jiahao Li, Jingren Zhou, Junyang Lin, Kaiyuan Gao, Kun Yan, Sheng-ming Yin, Shuai Bai, Xiao Xu, Yilei Chen, et al. Qwen-image technical report. arXiv preprint arXiv:2508.02324 , 2025. 2, 6, 7, 4 [51] Kailu Wu, Fangfu Liu, Zhihan Cai, Runjie Yan, Hanyang Wang, Yating Hu, Yueqi Duan, and Kaisheng Ma. Unique3d: High-quality and efficient 3d mesh generation from a single image. Advances in Neural Information Processing Systems ,37:125116–125141, 2024. 2 [52] Xiaoshi Wu, Yiming Hao, Keqiang Sun, Yixiong Chen, Feng Zhu, Rui Zhao, and Hongsheng Li. Human preference score v2: A solid benchmark for evaluating human preferences of text-to-image synthesis. arXiv preprint arXiv:2306.09341 ,2023. 7, 4 [53] Mengfei Xia, Nan Xue, Yujun Shen, Ran Yi, Tieliang Gong, and Yong-Jin Liu. Rectified diffusion guidance for condi-tional generation. In Proceedings of the Computer Vision and Pattern Recognition Conference , pages 13371–13380, 2025. 1, 2 [54] Jiazheng Xu, Xiao Liu, Yuchen Wu, Yuxuan Tong, Qinkai Li, Ming Ding, Jie Tang, and Yuxiao Dong. Imagere-ward: Learning and evaluating human preferences for text-to-image generation. Advances in Neural Information Pro-cessing Systems , 36:15903–15935, 2023. 7, 4 [55] Zhuoyi Yang, Jiayan Teng, Wendi Zheng, Ming Ding, Shiyu Huang, Jiazheng Xu, Yuanming Yang, Wenyi Hong, Xiao-han Zhang, Guanyu Feng, et al. Cogvideox: Text-to-video 
+
+10 diffusion models with an expert transformer. arXiv preprint arXiv:2408.06072 , 2024. 1 [56] Runmao Yao, Yi Du, Zhuoqun Chen, Haoze Zheng, and Chen Wang. Airroom: Objects matter in room reidentifi-cation. In Proceedings of the Computer Vision and Pattern Recognition Conference , pages 1385–1394, 2025. 2 [57] Runmao Yao, Junsheng Zhou, Zhen Dong, and Yu-Shen Liu. Anchoreddream: Zero-shot 360 {\ deg } indoor scene gen-eration from a single view via geometric grounding. arXiv preprint arXiv:2601.16532 , 2026. 2 [58] Tsuneo Yoshikawa. Foundations of robotics: analysis and control . MIT press, 1990. 2 [59] Meysar Zeinali and Leila Notash. Adaptive sliding mode control with uncertainty estimator for robot manipulators. 
+
+Mechanism and Machine Theory , 45(1):80–90, 2010. 2 [60] Sixian Zhang, Bohan Wang, Junqiang Wu, Yan Li, Tingt-ing Gao, Di Zhang, and Zhongyuan Wang. Learning multi-dimensional human preference for text-to-image generation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 8018–8027, 2024. 7, 4[61] Zibo Zhao, Zeqiang Lai, Qingxiang Lin, Yunfei Zhao, Haolin Liu, Shuhui Yang, Yifei Feng, Mingxin Yang, Sheng Zhang, Xianghui Yang, et al. Hunyuan3d 2.0: Scaling diffu-sion models for high resolution textured 3d assets generation. 
+
+arXiv preprint arXiv:2501.12202 , 2025. 1 [62] Candi Zheng and Yuan Lan. Characteristic guidance: Non-linear correction for diffusion model at large guidance scale. In International Conference on Machine Learning , pages 61386–61412. PMLR, 2024. 2, 3 
+
+11 CFG-Ctrl: Control-Based Classifier-Free Diffusion Guidance 
+
+# Supplementary Material 
+
+## 6. More Theoretical Analysis 
+
+6.1. Notation Table 
+
+To facilitate the understanding of the theoretical derivations of CFG-Ctrl and SMC-CFG, we summarize the main sym-bols, their corresponding technical meanings, and relevant mathematical expressions or value constraints in Table 4. These notations cover core components such as velocity fields, semantic error signals, and stability analysis metrics, providing a clear reference for readers to follow the logical flow of the proposed framework. 
+
+6.2. Additional CFG Variants 
+
+CFG-Zero ⋆ [9] introduces an optimizable scalar s⋆ ∈ R>0
+
+into the standard CFG framework, with its guided velocity field formulated as: 
+
+ˆvθ (xt, t, c) = (1 − w) · s⋆ · vθ (xt, t, ∅) + w vθ (xt, t, c)= s⋆ · vθ (xt, t, ∅)+ w ·  vθ (xt, t, c) − s⋆ · vθ (xt, t, ∅).
+
+(29) As summarized in Table 1 of the main text, under the CFG-Ctrl paradigm, the guidance schedule Kt and direction op-erator Πt of CFG-Zero ⋆ are modeled as: 
+
+Kt =
+
+h
+
+wI s⋆ 
+
+> 1−s⋆
+
+I
+
+i
+
+, s⋆ = vθ (c)⊤vθ (∅)
+
+|vθ (∅)|2 ),
+
+Πt =
+
+I − Pt
+
+Pt
+
+
+
+, Pt = vθ (∅)vθ (∅)⊤
+
+|vθ (∅)|2 .
+
+(30) Substituting these components into the closed-loop dynam-ics of CFG-Ctrl yields: 
+
+dxt
+
+dt = vθ (xt, t, ∅) + Kt Πt(et)= v⊤ 
+
+> θ
+
+(c)vθ (∅)
+
+|vθ (∅)|2 vθ (xt, t, ∅)+ w
+
+
+
+vθ (xt, t, c) − v⊤ 
+
+> θ
+
+(c)vθ (∅)
+
+|vθ (∅)|2 vθ (xt, t, ∅)
+
+
+
+= s⋆t · vθ (xt, t, ∅) + w (vθ (xt, t, c) − s⋆t · vθ (xt, t, ∅)) ,
+
+(31) where s⋆t corresponds to v⊤    
+
+> θ(c)vθ(∅)
+> |vθ(∅)|2
+
+. Notably, CFG-Zero ⋆
+
+shares a similar design motivation with APG [39]: both adopt orthogonal projection transformations as their di-rection operators. The key distinction lies in the pro-jection target—APG projects onto the conditional veloc-ity field vθ (xt, t, c), while CFG-Zero ⋆ projects onto the unconditional velocity field vθ (xt, t, ∅). From a control-theoretic perspective, both methods fall into the category of projection-based structured feedback controllers. 
+
+Rectified-CFG++ [41] differs from standard CFG by in-corporating not only the error signal derived from the cur-rent latent state xt (defined as ∆vθ (t) = vθ (xt, t, c) −
+
+vθ (xt, t, ∅)) but also predictive information from a future state xt− ∆t
+
+> 2
+
+. The error signal for this predicted future state is formulated as: 
+
+∆vθ (t− ∆t
+
+2 ) = vθ (xt− ∆t
+
+> 2
+
+, t − ∆t
+
+2 , c)−vθ (xt− ∆t
+
+> 2
+
+, t − ∆t
+
+2 , ∅),
+
+(32) and the guided velocity field of Rectified-CFG++ is given by: 
+
+ˆvθ (xt, t, c) = vθ (xt, t, c) + α(t) ∆ vθ (t − ∆t
+
+2 ). (33) As outlined in Table 1 of the main text, within the CFG-Ctrl framework, the guidance schedule Kt and direction opera-tor Πt of Rectified-CFG++ are structured as: 
+
+Kt = I α(t)I , α(t) = λmax (1 − t)γ ,
+
+Πt =
+
+ ∆vθ (t)∆vθ (t − ∆t 
+
+> 2
+
+)
+
+
+
+. (34) Substituting these components into the closed-loop dynam-ics of CFG-Ctrl leads to the following derivation: 
+
+dxt
+
+dt = vθ (xt, t, ∅) + Kt Πt(et)= vθ (xt, t, ∅) + ∆ vθ (t) + α(t)∆ vθ (t − ∆t
+
+2 )= vθ (xt, t, c) + α(t)∆ vθ (t − ∆t
+
+2 ).
+
+(35) Notably, Rectified-CFG++ adopts a time-varying gain scheduling strategy via α(t) , which dynamically adjusts guidance strength throughout the sampling process. Be-yond this, the method embodies the core principle of Model Predictive Control, which is a robust control paradigm that leverages a system model to predict future behavior over a finite horizon and optimize control actions accordingly. By integrating error information from the predicted future state xt− ∆t
+
+> 2
+
+, Rectified-CFG++ effectively anticipates po-tential deviations in the generative flow and pre-emptively adjusts guidance, thereby enhancing the stability of seman-tic alignment and the efficiency of the sampling process. 
+
+6.3. Theoretical Motivation: Robustness Analysis 
+
+In this section, we provide a theoretical motivation for the proposed SMC-CFG framework from a robust control per-1Table 4. Notation table. 
+
+Notation Meaning Value 
+
+xt Latent state at time t during generative flow sampling. x0 ∼ N (0 , I) (initial state) 
+
+vθ (xt, t, ∅) Unconditional velocity field, obtained by dropping the condition c. /
+
+vθ (xt, t, c) Conditional velocity field, incorporating the input condition c. /
+
+ˆvθ (xt, t, c) Guided velocity field, combined via guidance. /
+
+w CFG guidance scale. w ≥ 1
+
+e(t) Semantic error signal. vθ (xt, t, c) − vθ (xt, t, ∅)˙e(t) Temporal derivative of the semantic error signal. /
+
+ut General guidance control input. ut = KtΠt(e(t)) 
+
+Kt Guidance schedule matrix/scalar in CFG-Ctrl framework. /
+
+Πt Direction operator in CFG-Ctrl framework. /
+
+S Semantic sliding manifold. S = {(x, t ) | s(t) = 0}
+
+s(t) Sliding mode surface variable in SMC-CFG. s(t) = ˙ e(t) + λe(t)
+
+λ Shape parameter of the sliding mode surface. Hyperparameter 
+
+k Gain of the switching control term. Hyperparameter 
+
+∆e(t) SMC correction term (Switching Control). −k · sign (s(t)) = −k s(t)
+
+> ∥s(t)∥2
+
+Φ(t, xt) Intrinsic drift dynamics (encapsulating model non-linearities). ∥Φ∥2 ≤ δ
+
+Γ(t) Effective control gain matrix (Jacobian of semantic difference). Γ = wI + ∆ Γ(t)∆Γ(t) Anisotropic deviation from the nominal isotropic guidance. /
+
+δ Upper bound of the intrinsic drift dynamics. δ > 0
+
+ρ Upper bound of the anisotropic deviation norm. ∥∆Γ∥2 ≤ ρ < w ϵ Positive safety margin for the control gain. ϵ > 0
+
+V (s) Lyapunov function candidate for stability analysis. V (s) = 12 ∥s∥22
+
+∆t Discrete time step size for sampling. /
+
+spective. Unlike standard CFG, which relies on linear ex-trapolation and assumes an ideal linear evolution of the se-mantic error, SMC-CFG explicitly introduces a nonlinear switching term to handle the unmodeled non-linearities and disturbances inherent in the diffusion flow. Our analysis demonstrates that under reasonable robustness assumptions, the proposed controller drives the generative trajectory to-ward the semantic sliding manifold S = {(x, t ) | s(t) = 
+
+0}.
+
+6.3.1. Dynamics of the Sliding Variable 
+
+Let e(t) = vθ (xt, t, c) − vθ (xt, t, ∅) denote the semantic error signal. Recall that the sliding variable is defined as 
+
+s(t) = ˙ e(t) + λe(t). Substituting the closed-loop update law into the time derivative of the sliding variable, we obtain the governing equation: 
+
+˙s(t) = Φ(t, xt) + Γ(t) · ∆e(t), (36) where: • Φ(t, xt) represents the intrinsic drift dynamics , encapsu-lating the system’s natural evolution and standard CFG terms. • Γ(t) denotes the effective control gain matrix , which cor-responds to the scaled Jacobian of the semantic differ-ence: Γ(t) = w∇x(vθ (c) − vθ (∅)) .A key challenge in diffusion models is that Γ(t) is highly non-linear and anisotropic. To address this, we adopt a ro-bust control strategy by decomposing the gain into a nomi-nal part and a deviation part. 26.3.2. Robustness Assumptions Assumption 1 (Boundedness of Intrinsic Drift) . While the gradients of diffusion models may diverge at time bound-aries ( t → 0 or t → T ), we assume that within the ef-fective sampling interval, the drift term Φ(t, xt) is locally bounded: 
+
+sup 
+
+> t, x∈D
+
+∥Φ(t, x)∥2 ≤ δ. (37) 
+
+Assumption 2 (Nominal Control Dominance) . We decom-pose the effective gain matrix Γ(t) into a nominal isotropic gain wI and an anisotropic deviation ∆Γ(t):
+
+Γ(t) = wI + ∆ Γ(t). (38) 
+
+We assume that the guidance scale w is sufficiently large such that the nominal control direction dominates the anisotropic deviation. Specifically, there exists a constant 
+
+ρ < w such that the spectral norm of the deviation is bounded: 
+
+∥∆Γ(t)∥2 ≤ ρ. (39) 
+
+Remark: Assumption 2 is physically intuitive: it implies that the CFG guidance force w is the dominant driver of the semantic correction, and the local curvature of the velocity field ∆Γ acts as a subordinate disturbance. 
+
+6.3.3. Robust Stability Analysis 
+
+We now show that the proposed switching control law 
+
+∆e(t) = −k s(t) 
+
+> ∥s(t)∥2
+
+ensures stability despite these uncer-tainties. 
+
+Theorem 1 (Robust Convergence) . Consider the system in Eq. (36) under Assumptions 1 and 2. If the switching gain 
+
+k satisfies: 
+
+k > δw − ρ + ϵ, (40) 
+
+where ϵ > 0 is a safety margin, then the sliding variable 
+
+s(t) converges to zero in finite time. Proof. Consider the Lyapunov function V (s) = 12 ∥s∥22. Its derivative is: 
+
+˙V = s⊤ ˙s = s⊤ (Φ + ( wI + ∆ Γ)∆ e) . (41) Substituting the control law ∆e = −k s 
+
+> ∥s∥2
+
+(for s̸ = 0): 
+
+˙V = s⊤Φ − wk ∥s∥2 − ks⊤∆Γ s
+
+∥s∥2
+
+≤ ∥ s∥2∥Φ∥2 − wk ∥s∥2 + k∥s∥2∥∆Γ∥2.
+
+(42) Applying the bounds δ and ρ from Assumptions 1 and 2: 
+
+˙V ≤ ∥ s∥2 (δ − wk + kρ ) = ∥s∥2 (δ − k(w − ρ)) . (43) From the condition in Eq. (40), we have k(w − ρ) > δ +
+
+ϵ(w − ρ). Substituting this into the inequality: 
+
+˙V ≤ ∥ s∥2 (δ − (δ + ϵ(w − ρ))) = −ϵ(w − ρ)∥s∥2. (44) Let η = ϵ(w − ρ) > 0. The differential inequality 
+
+˙V ≤ − √2ηV 1/2 guarantees finite-time convergence to the manifold s(t) = 0.This analysis demonstrates that SMC-CFG is theoreti-cally robust: as long as the gain k is chosen to cover the worst-case combination of intrinsic drift δ and Jacobian mismatch ρ, the system remains stable. 
+
+6.3.4. Discrete Implementation and Stability Corridor 
+
+The theoretical derivation above serves as a continuous-time design guide. In practice, diffusion models operate in discrete time steps ∆t, where high-gain switching can lead to chattering. Based on the discrete evolution ∥st+1 ∥ ≈ |∥ st∥ − ∆t(wef f k − δ)|, we derive a heuristic Stability Corridor for hyperparameter tuning: 
+
+δest 
+
+w|{z} 
+
+> Convergence
+
+< k < 2∥st∥2
+
+w∆t| {z } 
+
+> Stability
+
+. (45) This corridor highlights the trade-off: k must be large enough to overcome model drift (lower bound), but bounded by the inverse step size to prevent numerical os-cillations (upper bound). This aligns with our experimental findings in Table 3, where a moderate fixed k achieves the optimal balance. 
+
+Remark on Hyperparameter Selection. The theoretical analysis in Eq. (45) establishes a stability corridor for the gain k, bounded by the intrinsic model drift δ (lower bound) and the discretization frequency 1/∆t (upper bound). In practice, while the exact value of δ varies across timesteps and samples, it is inherently bounded by the Lipschitz con-tinuity of the pre-trained network. Furthermore, the upper bound is typically dominated by the inverse step size term, creating a wide margin for feasible k. Consequently, we treat k as a scalar hyperparameter. Our ablation studies (Table 3 in the main paper) empirically verify this theoret-ical corridor: excessively low k fails to overcome model drift (under-correction), while excessively high k induces numerical chattering (over-correction). A fixed intermedi-ate value provides robust performance across diverse inputs without requiring real-time estimation of δ.
+
+## 7. Additional Implementation Details 
+
+7.1. Datasets and Baselines. 
+
+To comprehensively evaluate the proposed SMC-CFG, we compare it with the standard CFG on the image-generation benchmark T2I-CompBench [17] using three different flow matching models. T2I-CompBench is a comprehensive benchmark for open-world compositional text-to-image generation, comprising 6,000 compositional text prompts. In our experiments, we focus on four sub-categories that are 3most relevant to text-aligned image fidelity: color binding, shape binding, texture binding, and spatial relationships. For all flow matching models, we adopt publicly avail-able checkpoints from HuggingFace. Specifically, Stable Diffusion 3.5 is based on the “stabilityai/stable-diffusion-3.5-large” public weights. Flux-dev uses “black-forest-labs/FLUX.1-dev”. Given that Flux-dev is a guidance-distilled model, we set the embedded guidance to 1 in base-line experiments to ensure fairness when no CFG is ap-plied. Qwen-Image uses the “Qwen/Qwen-Image” check-point. All models generate images at a resolution of 1024 
+
+× 1024 from textual prompts without any additional fine-tuning. 
+
+7.2. Metrics. 
+
+In the main text, we utilize a series of evaluation metrics. FID (Fr´ echet Inception Distance) [14] computes the Fr´ echet Distance between the multivariate Gaussian distribution es-timated from the feature vectors of generated images and of real images, assessing the image quality and diversity of the generated results. CLIP Score [13], utilizing a pre-trained CLIP [36] model, quantifies the semantic alignment between the generated image and the text prompt by com-puting the cosine similarity between their respective L2-normalized feature vectors. Aesthetic Score [42] serves as an aesthetic regression model, evaluating the image’s gen-eral aesthetic appeal, such as excellent composition and har-monious coloring. ImageReward [54] is a general-purpose reward model trained on a large dataset of expert human preference feedback, which quantifies the generated im-age’s perceived quality and attractiveness to predict the probability of being preferred by humans. PickScore [18] is a CLIP-based scoring function trained on real users’ pref-erence data, specifically designed to predict the probability of a generated image being selected by humans in a com-petitive setting. HPSv2 and HPSv2.1 (Human Preference Score) [52] are multi-dimensional perceptual metrics that simultaneously assess the image adherence to the prompt, aesthetic quality, and visual fidelity. Finally, MPS (Multi-dimensional Preference Score) [60] is a unified model that utilizes a condition mask on top of the CLIP model to pre-dict the quality of a text-to-image output across four distinct human preference dimensions: Overall, Aesthetics, Seman-tic Alignment, and Detail Quality. 
+
+7.3. Hyperparameters. 
+
+We determine the hyperparameters of SMC-CFG through grid search over the two parameters λ and k. Specifically, 
+
+λ is searched within {2, 3, 4, 5, 6, 7, 8}, while k is explored over {0.01 , 0.05 , 0.1, 0.15 , ..., 0.75 , 0.8}. To avoid test-set leakage, the grid search is conducted on an auxiliary set of 200 cases sampled from the MS-COCO [24] dataset, which is entirely disjoint from the evaluation set used in the experi-                                 
+
+> Table 5. Quantitative evaluation on T2I-CompBench. Model Color ↑Shape ↑Texture ↑Spatial ↑
+> SD3.5 [8] 0.6790 0.5915 0.7243 0.1625
+> w/ SMC-CFG 0.7461 0.6009 0.7406 0.2563
+> Flux-dev [21] 0.8172 0.5751 0.7432 0.2708
+> w/ SMC-CFG 0.8216 0.6199 0.7901 0.2939
+> Qwen-Image [50] 0.7747 0.5621 0.6747 0.2968
+> w/ SMC-CFG 0.8191 0.5934 0.7421 0.4085
+
+ment. The optimal configurations selected for the three text-to-image models used in our experiments are as follows: for Stable Diffusion 3.5, λ = 6 and k = 0 .1; for Flux, λ = 6 
+
+and k = 0 .7; and for Qwen-Image, λ = 6 and k = 0 .1.The main experiments adopt these hyperparameter settings without further modification. 
+
+## 8. More Experiments 
+
+8.1. Text-to-Image Benchmark Evaluation 
+
+We evaluate SMC-CFG on three flow matching text-to-image models using T2I-CompBench [17], and compare it with representative CFG-based baselines on VQAScore (GenAI-Bench). Table 5 shows that SMC-CFG improves the compositional generation performance of SD3.5, Flux-dev, and Qwen-Image on Color, Shape, Texture, and Spa-tial. The gains are generally larger on spatial and attribute-related dimensions. Table 6 reports the VQAScore results on SD3.5. SMC-CFG achieves the best Base, Advance, and Overall scores among the compared methods, outperform-ing standard CFG as well as recent variants such as CFG-Zero and Rect-CFG++. Visual comparisons on the three T2I models are shown in Figure 7, 8, and 9.                       
+
+> Table 6. Compositional alignment evaluation on SD3.5. Method VQAScore (GenAI-Bench) Base ↑Advance ↑Overall ↑
+> Base (w/o CFG) 0.79 0.64 0.70 w/ CFG 0.83 0.64 0.72 w/ CFG-Zero ⋆0.88 0.66 0.75 w/ Rect-CFG++ 0.87 0.64 0.73
+> w/ SMC-CFG 0.89 0.68 0.77
+
+8.2. Text-to-Video Generation 
+
+We further extend our evaluation to the text-to-video gen-eration task to assess the generalization capability of SMC-CFG. Using the Wan2.2-TI2V-5B [47] model, we conduct a qualitative comparison against the standard CFG base-line. As visualized in Figure 10, our method demonstrates 4Table 7. Video comparison on Wan2.2-TI2V-5B.                   
+
+> Method Total Score Quality Score Semantic Score Color Human Action Subject Consistency
+> CFG 0.5594 0.6581 0.4607 0.9087 0.5313 0.9450
+> SMC-CFG 0.5839 0.6747 0.4931 0.9818 0.6000 0.9609
+
+superior stability in the spatiotemporal domain. Specifi-cally, SMC-CFG enhances temporal consistency, produc-ing smoother motion trajectories with fewer visual artifacts or flickering compared to the baseline. Furthermore, it ex-hibits robust semantic adherence in complex compositional scenarios, effectively maintaining the spatial structure and identity of generated objects throughout the video sequence. We also show quantitative evaluation in Table 7. SMC-CFG improves the total VBench score and gives higher Quality and Semantic scores than CFG. It also performs better on Color, Human Action, and Subject Consistency. These re-sults suggest that the behavior of SMC-CFG is not limited to text-to-image generation and can transfer to text-to-video generation as well. 
+
+8.3. Computational Efficiency 
+
+We further assess the computational overhead and infer-ence latency of our method at different output resolutions to demonstrate its practicality in real-world deployment sce-narios. As presented in Table 8, SMC-CFG exhibits mem-ory consumption and FLOPs that are comparable to those of standard CFG in a single inference pass, and the average inference time remains nearly identical. These results indi-cate that SMC-CFG preserves the computational efficiency of standard CFG and does not introduce additional compu-tational cost or latency during inference. 
+
+Table 8. Computational cost and inference time comparison of standard CFG and SMC-CFG.                   
+
+> Resolution Guidance Memory (GB) FLOPs (G) Runtime (s)
+> 512×512 CFG 31.99 1203370.06 23.84
+> SMC-CFG 31.99 1203370.07 23.97 1024×1024 CFG 33.59 3590870.89 44.78
+> SMC-CFG 33.59 3590870.93 45.09
+
+8.4. Ablation Study on Hyperparameter Effects 
+
+We conduct visual comparison with fixed initial noise to show impact of hyperparameters. As shown in Figure 5, λ
+
+governs the stability of structural details by shaping the slid-ing mode manifold, while k regulates the overall semantic alignment and its trade-off with aesthetic realism. 
+
+## 9. More Discussion 
+
+9.1. CFG Scale 
+
+We analyze the effect of the CFG scale by visualizing the performance curves of the main evaluation metrics un-0.3 0.7 1.5 3.0 5.0 10.0            
+
+> 2
+> 6
+> 10
+> 15
+> Prompt:Thesnowboarderhasjumpedhighintotheairfromasnowramp.
+> O
+> �
+> �
+
+Figure 5. Qualitative results under various hyperparameters. 
+
+der varying guidance strengths on the Flux-dev model, as shown in Figure 6. When the CFG scale reaches the model’s default optimal value of 2, both standard CFG and other baseline methods achieve their best performance. How-ever, their performance rapidly degrades as the scale in-creases further, revealing the strong nonlinear distortions introduced by high guidance. In contrast, SMC-CFG con-tinues to improve as the CFG scale increases, demonstrat-ing that it can better exploit the potential of guidance with-out suffering from the instability observed in conventional methods. Even under extremely large scales, SMC-CFG shows only a slight performance drop, indicating strong ro-bustness against over-guidance effects. 
+
+Figure 6. Performance curves of different methods under varying CFG scales. 
+
+9.2. Limitations and Future Work 
+
+Despite its ability to alleviate the nonlinear effects asso-ciated with high CFG scales and to substantially improve compositional image generation, SMC-CFG introduces two additional hyperparameters, which increase the complex-ity of deployment and may require manual tuning for dif-5ferent models. In the future, we plan to explore adaptive guidance control mechanisms capable of dynamically ad-justing control parameters according to the evolving state of the generative process. In particular, one promising way is to incorporate error-differential feedback, where changes in text–image alignment across successive steps are used to automatically increase or decrease the effective guidance strength. The adaptive strategy offers the potential to elim-inate manual tuning while improving stability and perfor-mance under varying guidance scales. 6A blue backpack and a brown cow 
+
+# A brown acorn and a green leaf A blue pen and a yellow highlighter 
+
+# A brown banana and a green horse 
+
+# A red tomato and a yellow pepper  A round bagel and a square toaster. 
+
+# A small bagel and a 
+
+# rectangular sandwich 
+
+# A brown backpack and a 
+
+# blue sheep 
+
+# A small kitten and a big dog 
+
+# sat side by side. 
+
+# A round bagel and a square 
+
+# piece of toast Figure 7. Addtional visual comparison between CFG (left) and SMC-CFG (right) in SD3.5. 
+
+> 7
+
+## A black cat and a brown mouse 
+
+## A black cloud and a white sky A blue backpack and a red car 
+
+## A brown bear and a blue boat 
+
+## A brown frog and a green pond  A red boat and a blue book 
+
+## A white cat and a black paw 
+
+## A pyramidal candle and a 
+
+# diamond candlestick holder 
+
+## A spherical tennis ball and a 
+
+## conical tennis shoe 
+
+## A spherical ball and a 
+
+# conical party hat Figure 8. Addtional visual comparison between CFG (left) and SMC-CFG (right) in Flux-dev. 
+
+> 8
+
+## A balloon on the bottom of a dog 
+
+## A brown frog and a green pond A blue boat and a brown cat 
+
+## A fabric dress and a glass vase 
+
+## A black cat and a white paw  A brown cup and a blue horse 
+
+## A spherical balloon and a 
+
+## rectangular banner 
+
+## A black jacket and a brown hat 
+
+## A black gold and white vase 
+
+## sitting on a counter 
+
+## Fluffy clouds and a glass table Figure 9. Addtional visual comparison between CFG (left) and SMC-CFG (right) in Qwen-Image. 
+
+> 9
+
+Prompt: A fork on the right of a knife, front view .
+
+Prompt: Fireworks. 
+
+Prompt: River. 
+
+Prompt: A zebra and a giraffe. 
+
+> CFG SMC -CFG  CFG SMC -CFG  CFG SMC -CFG  CFG SMC -CFG Figure 10. Additional video comparisons between CFG (above) and SMC-CFG (below) in Wan2.2-TI2V-5B.
+
+10

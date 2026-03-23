@@ -1,0 +1,691 @@
+Title: Bridging Dynamics Gaps via Diffusion Schr\"odinger Bridge for Cross-Domain Reinforcement Learning
+
+URL Source: https://arxiv.org/pdf/2602.23737v1
+
+Published Time: Mon, 02 Mar 2026 01:32:35 GMT
+
+Number of Pages: 12
+
+Markdown Content:
+# Bridging Dynamics Gaps via Diffusion Schrödinger Bridge for Cross-Domain Reinforcement Learning 
+
+# Hanping Zhang, Yuhong Guo 
+
+School of Computer Science, Carleton University, Ottawa, Canada 
+
+Abstract 
+
+Cross-domain reinforcement learning (RL) aims to learn transferable policies under dynamics shifts between source and target domains. A key challenge lies in the lack of target-domain environment interaction and reward supervi-sion, which prevents direct policy learning. To address this challenge, we propose Bridging Dynamics Gaps for Cross-Domain Reinforcement Learning (BDGxRL), a novel frame-work that leverages Diffusion Schrödinger Bridge (DSB) to align source transitions with target-domain dynamics en-coded in offline demonstrations. Moreover, we introduce a reward modulation mechanism that estimates rewards based on state transitions, applying to DSB-aligned samples to en-sure consistency between rewards and target-domain dynam-ics. BDGxRL performs target-oriented policy learning en-tirely within the source domain, without access to the target environment or its rewards. Experiments on MuJoCo cross-domain benchmarks demonstrate that BDGxRL outperforms state-of-the-art baselines and shows strong adaptability under transition dynamics shifts. 
+
+# 1 Introduction 
+
+Reinforcement learning (RL), a cornerstone of modern se-quential decision-making, has been successfully applied across a wide range of domains, including robotics (Kober, Bagnell, and Peters 2013), game playing (Berner et al. 2019), recommender systems (Afsar, Crump, and Far 2022), and autonomous driving (Aradi 2020). By interacting with an environment to maximize long-term cumulative rewards, RL agents can learn complex policies from experience. However, directly training RL agents in real-world scenar-ios is often impractical due to limitations in data availabil-ity, environment accessibility, and retraining flexibility. This challenge is particularly evident in cross-domain settings, such as transferring policies between simulation and the real world, or adapting quickly between related tasks or environ-ments. Bridging the cross-domain gap is critical to improv-ing the real-world applicability of RL. To tackle this issue, cross-domain adaptation in RL has at-tracted increasing attention. In such settings, agents are typ-ically trained in a source domain (e.g., a simulator) and then deployed in a target domain (e.g., the real world). In many real-world applications, the source and target domains often share the same state and action spaces, since the simulated agents are typically designed to mimic their physical coun-terparts. However, the transition dynamics between the two domains often differ due to subtle mismatches in physical properties such as gravity, mass, or friction. These discrep-ancies, known as dynamics gaps, can result in significant degradation in policy performance when transferring from simulation to reality. Addressing these dynamics gaps is non-trivial, especially when direct interaction with the real-world environment is unavailable or restricted. A promising alternative is to col-lect limited offline expert demonstrations from the target domain. However, these demonstrations are typically sparse and lack reward annotations, making it difficult to directly apply conventional RL objectives. Moreover, reusing the re-ward function from the source domain is often inappropriate, as the dynamics gap may induce a mismatch between the source and target reward realizations, even when the nomi-nal reward function remains unchanged. This reward incon-sistency further complicates the challenge of learning trans-ferable policies. As a result, effective cross-domain adapta-tion methods must address both the divergence in transition dynamics and the scarcity of explicit supervision in the tar-get domain, including the absence of reward signals. To bridge the dynamics gap in cross-domain RL, we con-sider the Diffusion Schrödinger Bridge (DSB) (De Bortoli et al. 2021), a recently developed probabilistic framework for distribution alignment. DSB formulates the interpolation between two probability distributions as a stochastic opti-mal transport (OT) problem, solved via a time-dependent diffusion process. Unlike traditional OT (Peyré, Cuturi et al. 2019), which often requires explicit coupling or cost func-tions, DSB learns a continuous flow that transforms samples from a source distribution to a target distribution without re-quiring paired data. Originally applied in generative model-ing tasks such as unpaired image translation and distribution morphing, DSB has shown strong capabilities in capturing complex structural differences between domains. Motivated by DSB’s strengths, we explore its potential in cross-domain RL for transition dynamics adaptation. Specif-ically, by learning a DSB process that transports source-domain transitions to match the distribution of offline ex-pert transitions in the target domain, we can generate aligned trajectories that better reflect the target environment. This alignment is achieved without requiring online interactions 
+
+> arXiv:2602.23737v1 [cs.LG] 27 Feb 2026
+
+or reward annotations in the target domain, making DSB par-ticularly suitable for offline cross-domain RL settings where supervision is limited. To address the overall challenge of cross-domain adapta-tion in RL, we propose a novel framework named Bridging Dynamics Gaps for Cross-Domain Reinforcement Learn-ing (BDGxRL), which leverages DSB to tackle dynamics gaps without requiring access to the target environment. Our method consists of three key components: First, we learn a DSB-based transition bridge using only offline ex-pert demonstrations from the target domain and trajecto-ries sampled from the online source environment. This en-ables the adaptation of transition dynamics in a purely of-fline manner. Second, we perform reward modulation by training an action-independent reward model on the source domain, which estimates rewards solely based on the state transition pairs. This reward model is modulated using the DSB-transformed transitions to the target domain, mitigat-ing reward mismatch caused by dynamics differences in the absence of target-domain rewards. Third, the learned tran-sition DSB is used to transform source-domain trajectories into target-style transitions, upon which the modulated re-ward is applied. This allows us to learn a target-oriented policy entirely within the source domain, without any on-line interaction or direct data collection with rewards from the target environment. We evaluate BDGxRL on a set of cross-domain benchmarks built upon the MuJoCo simula-tion suite (Todorov, Erez, and Tassa 2012), and compare it with several state-of-the-art cross-domain RL methods. Ex-perimental results demonstrate that BDGxRL consistently outperforms existing baselines, achieving superior adapt-ability under challenging dynamics shifts. Our contributions are summarized as follows: • We propose BDGxRL, a novel framework that enables learning a target-oriented policy in the source environ-ment, addressing dynamics gaps in cross-domain RL. • We are the first to introduce the DSB into cross-domain RL, enabling transition dynamics transformation from the source domain to align with the target domain. • We identify that changes in transition dynamics can in-duce inconsistencies in reward functions. To mitigate this, we introduce a reward modulation mechanism that supplements missing target-domain rewards. • Experimental results on multiple physics-based simula-tion benchmarks demonstrate that BDGxRL consistently outperforms state-of-the-art cross-domain RL baselines. 
+
+# 2 Related Work 
+
+2.1 Cross-Domain Reinforcement Learning 
+
+Cross-domain RL dates back to the early applications of do-main adaptation (DA) in RL (Lazaric 2012). With the rise of deep reinforcement learning, Higgins et al. (2017) were among the first to explicitly introduce domain adaptation to RL. They systematically identified the key factors that may differ across domains: observations, actions, rewards, and transitions, and proposed the DisentAngled Representa-tion Learning Agent (DARLA) to handle such domain shifts. Building upon DARLA, Xing et al. (2021) proposed La-tent Unified State Representation (LUSR), which learns a shared latent space across domains to mitigate observation-level discrepancies, enabling policy transfer without explic-itly addressing dynamics mismatch. A significant shift in focus came with Eysenbach et al. (2020), who introduced Domain Adaptation with Rewards from Classifiers (DARC), a modern approach to consider the off-dynamics setting. DARC trains a classifier to dis-tinguish source-domain transitions from target-domain ones, and modifies the reward function to penalize source-domain transitions. Liu, Zhang, and Wang (2022) extended this idea to the offline setting with Dynamics-Aware Reward Augmentation (DARA). Instead of distinguishing transitions based solely on rewards, DARA learns a classifier to identify domain discrepancies over full (s, a, s ′) tuples and modifies rewards to penalize transitions that do not appear plausible in the target domain. Further advancing this line of work, Guo et al. (2024) proposed Domain Adaptation and Reward-Augmented Imitation Learning (DARAIL), which incorpo-rates adversarial imitation learning from observations to align source and target behaviors. They also introduce a Reward-Augmented Estimator (RAE) to refine reward mod-ification based on inferred dynamics mismatch. More re-cently, Niu et al. (2024) proposed Cross-Domain Trajec-tory EDiting (xTED), which employs a diffusion model to transform source domain trajectories into target-like ones. By injecting and subsequently denoising noise, xTED learns to generate plausible target-domain trajectories for policy training. Lyu et al. (2024a) introduced a cross-domain policy adaptation method by capturing representation mismatch, which learns two encoders: one for state-action pairs and one for next states, trained exclusively on the target domain. Transitions with large representation deviations under these encoders are penalized via reward modification, effectively filtering out implausible transitions. All these methods share the off-dynamics setting, where the dynamics differ between domains, and source domain data/environment is abundant while access to the target domain is limited. Our work fo-cuses on learning a target-oriented policy entirely from an online source domain, assuming only limited demonstra-tions are available from the target domain. Several recent works adopt related but slightly different settings. For example, some assume either offline source or offline target datasets while still requiring limited target domain interactions, rather than purely learning from the source domain. Xu et al. (2023) focus on the online source domain but allow a few online interactions in the target do-main. They propose Value-Guided Data Filtering (VGDF), which leverages value function consistency across domains to select source domain transitions whose estimated values closely match those in the target domain. Niu et al. (2022) study a Sim2Real setting where both limited real-world data and an imperfect simulator are available. Their proposed Dynamics-Aware Hybrid Offline-and-Online Reinforcement Learning (H2O) framework jointly learns from real-world offline data and simulator-based online rollouts. H2O adap-tively penalizes simulated transitions with large dynamics gaps through a dynamics-aware Q-function adjustment. 2.2 Diffusion Schrödinger Bridge 
+
+Diffusion models (Ho, Jain, and Abbeel 2020; Song, Meng, and Ermon 2020) have recently gained widespread recog-nition for their powerful generative capabilities in domains such as image generation (Rombach et al. 2022). In addi-tion, their conditional variants (Song et al. 2020; Zhang et al. 2023) enable controlled generation with flexible condition-ing inputs. Moreover, the particularly important challenge of data translation, especially in scenarios involving two large unpaired datasets, necessitates extending diffusion models beyond unconditional generation. The Optimal Transport (OT) problem (Peyré, Cuturi et al. 2019; Santambrogio 2015), which seeks the most efficient way to map one probability distribution to another, pro-vides a fundamental framework for addressing data trans-lation. Li et al. (2023) integrate OT theory into the diffu-sion process by computing semi-discrete OT maps during denoising, thereby improving both the sampling efficiency and quality. To address unpaired or partially paired datasets, Gu et al. (2023) introduce optimal transport-guided condi-tional score-based diffusion models. Their method couples unpaired data distributions using OT and integrates this cou-pling into conditional score-based diffusion models, achiev-ing strong image translation. De Bortoli et al. (2021) were the first to apply the con-cept of the Schrödinger Bridge (SB) (Léonard 2013) to dif-fusion models, offering a probabilistic framework to solve OT problems by finding the optimal stochastic process, e.g., Brownian motion, connecting two distributions. They in-troduce the Diffusion Schrödinger Bridge (DSB), enabling data translation between distinct domains, and solve it via Iterative Proportional Fitting (IPF). Subsequently, Shi et al. (2023) propose Iterative Markovian Fitting (IMF) and the associated Diffusion Schrödinger Bridge Matching (DSBM) algorithm to efficiently compute the SB solution. Build-ing on these, De Bortoli et al. (2024) introduce improved variants: α-IMF and α-DSBM, designed for more challeng-ing unpaired data translation tasks, achieving state-of-the-art performance. Somnath et al. (2023) propose SBALIGN, which leverages aligned datasets to solve DSB more effi-ciently. Meanwhile, Kim, Yoon, and Lee (2024) introduce Data Ensemble (DE), a method for enhancing the neural backbone of DSB. Despite DSB’s growing success in un-paired image data translation, its potential applications in other areas remain underexplored. In this work, we investi-gate the use of DSB to align the transition dynamics between the source and target domains, facilitating effective policy transfer across environments with mismatched dynamics. 
+
+# 3 Preliminaries 
+
+In this section, we provide a brief introduction on the Dif-fusion Schrödinger Bridge (DSB) problem and its practical realization via the Iterative Markov Fitting (IMF) procedure. These tools are foundational to our approach for translating transition dynamics across domains. 
+
+Diffusion Schrödinger Bridge The Schrödinger Bridge (SB) problem seeks a stochastic process that transports an initial distribution Π0 to a terminal distribution Π1 over time, while remaining as close as possible, in the sense of Kullback–Leibler (KL) divergence, to a given reference pro-cess Q, typically a Brownian motion. In Diffusion Schrödinger Bridge (DSB), the reference process Q is taken to be a diffusion process with known time-forward dynamics. Given marginals Π0 and Π1, the goal is to find an optimal path measure P⋆ that minimizes the KL divergence from the reference diffusion process: 
+
+P∗ = arg min 
+
+> P∈M (Π 0,Π1)
+
+{KL( P ∥ Q) | P0 = Π 0, P1 = Π 1} (1) where M(Π 0, Π1) denotes the set of Markov path measures with the prescribed initial and terminal marginals. Once the optimal bridge P⋆ is obtained, it defines a stochastic trans-formation that couples Π0 and Π1, allowing us to effectively translate between the two distributions. 
+
+Iterative Markov Fitting Iterative Markov Fitting (IMF) (Shi et al. 2023) is an efficient procedure for solving the SB problem. IMF introduces two alternating projection operators: the Markov projection proj M (Gyöngy 1986) and the reciprocal projection proj R(Q) (Léonard, Rœlly, and Zambrini 2014). Starting from an initial path measure, these projections are applied iteratively to generate a sequence of path measures Pn as follows: 
+
+P2n+1 = proj M(P2n), P2n+2 = proj R(Q)(P2n+1 ). (2) This alternating procedure ensures that at every even step 
+
+2n, the path measure P2n satisfies the marginal constraints 
+
+P2n 
+
+> 0
+
+= Π 0 and P2n 
+
+> 1
+
+= Π 1. With sufficient iterations, the sequence Pn converges to the optimal solution P⋆ to the Schrödinger Bridge problem: lim n→∞ KL( Pn ∥ P⋆) = 0 .
+
+# 4 Method 
+
+Problem Setting Reinforcement learning (RL) is typically formulated as a Markov Decision Process (MDP), defined by the tuple M = ( S, A, T , R, γ ), where S is the state space, A is the action space, T : S × A → P (S) represents the transition dynamics, R : S × A → R is the reward func-tion, and γ ∈ (0 , 1) is the discount factor. The cross-domain RL setting involves two related MDPs: a source domain MS
+
+and a target domain MT . These two domains are assumed to share the common state and action spaces, i.e., SS = ST
+
+and AS = AT , but differ in their transition dynamics, with 
+
+TS̸ = TT , resulting in a dynamics gap. In the source domain 
+
+MS , we assume access to an online environment that allows unlimited interactions and provides reward signals. This en-ables the agent to freely sample transitions (st, a t, r t, s t+1 )
+
+during training. In contrast, the target domain MT is of-fline and reward-free. Specifically, we are only given a static dataset of offline trajectories DT = {(st, a t, s t+1 )} col-lected in the target domain, without access to either interac-tive environment or ground-truth rewards. The objective is to learn a policy π(a|s) that performs well under the transition dynamics of MT , using only online data from the source do-main and the offline dataset DT from the target domain. This setting captures practical scenarios where the target domain is accessible only through offline expert demonstrations, and the reward function is difficult to specify or unavailable. Reward Modulation Target-Oriented Policy Learning 
+
+> Online Rollouts
+> Transition Aware Reward Model
+> Offline Demonstrations
+> Imitation Learning
+> DSB-based Dynamics Alignment
+> Forward Drift
+> Backward Drift
+
+Figure 1: Overview of the proposed BDGxRL framework. The agent first collects a dataset DS from the source environment, which is used to train a transition-aware reward model R(st, s t+1 ). Together with offline target demonstrations DT , it also trains a DSB model for dynamics alignment. During online interactions, source transitions are translated into target-style transitions via ˜st+1 ∼ DSB( st, a t, s t+1 ) to mitigate dynamics mismatch. The modulated reward ˜rt = R(st, ˜st+1 ) is then used to learn a target-oriented policy entirely within the source domain, initialized via imitation from DT .To address dynamics gaps across domains in this prob-lem setting, we present a novel BDGxRL framework for target-oriented policy learning. It aligns the transition dy-namics of the source and target domains based on the Diffu-sion Schrödinger Bridge (DSB). As the reward function in the target domain is unavailable, a reward modulation strat-egy is designed to adapt the reward model trained on the source domain to estimate rewards for DSB-aligned transi-tions. Building on dynamics alignment and reward modula-tion, the target-oriented policy learning framework is devel-oped to enable policy optimization for the target domain in the source online environment, without requiring access to the target environment or rewards. We also provide a the-oretical analysis on the performance bound of the learned target policy. An overview of our BDGxRL framework is presented in Figure 1. 
+
+4.1 DSB-based Dynamics Alignment 
+
+Bridging the dynamics gap between the source and target domains is particularly challenging in the absence of online interaction with the target environment. Given access only to a limited set of offline expert demonstrations from the target domain, denoted as DT = {(st, a t, s t+1 )}, while it is possible to learn a transition model TT from DT , aligning or adapting the source-domain transition dynamics TS to the target-domain dynamics remains difficult. The lack of paired transitions or any shared supervision between the domains further complicates this alignment task and renders direct policy transfer infeasible. To address this problem, we draw inspiration from re-cent advances in unpaired data translation using the Diffu-sion Schrödinger Bridge (DSB), which has proven effective in tasks such as image domain adaptation. In our context, we formulate the source-domain transition dynamics as the source marginal distribution Π0 = TS (st+1 |st, a t) and the target-domain transition dynamics as the target marginal dis-tribution Π1 = TT (st+1 |st, a t). Our goal is to learn a DSB that aligns these two distributions, thereby enabling one to translate transitions sampled from the source dynamics into transitions that are consistent with the target dynamics. Once this mapping is established, we can predict the target-domain next state st+1 for any given source-domain state-action pair (st, a t) by translating the corresponding source transition to the target domain. 
+
+Transition Representation To model transition, we col-lect rollouts from the source environment to form a dataset 
+
+DS . We then sample transitions pS ∼ D S , where each tran-sition represents a conditional distribution pS (st+1 | st, a t),and similarly, sample transitions pT ∼ D T from the target demonstrations. Each transition is represented as a concate-nated vector of state, action, and next state: 
+
+p = [ st; at; st+1 ] . (3) This unified transition format allows us to treat transition samples as points in a shared representation space, enabling the application of DSB to learn a translation between source and target transition distributions. 
+
+DSB Training To train the DSB model for transition dy-namics alignment, we follow the Iterative Markov Fitting (IMF) procedure (Shi et al. 2023) and adopt Brownian mo-tion B as the reference process to simplify the formula-tion by avoiding additional drift terms. The objective is to learn two optimal drift functions, vθ⋆ and vϕ⋆ , correspond-ing to the forward and backward velocity fields that transport the source-domain transition distribution Π0 to the target-domain distribution Π1, and vice versa. Forward Process In the forward direction, the process starts from a source-domain sample pS 
+
+> 0
+
+∼ Π0 and evolves according to the following stochastic differential equation (SDE): 
+
+dpSk = vθ⋆ (k, pSk ) d k + σ0 dBk, (4) where σ0 denotes a fixed diffusion magnitude and Bk is a standard Brownian motion with the same dimension as pS 
+
+> 0
+
+.Since Brownian motion is a Gaussian process, conditioning it on fixed endpoints results in a Brownian bridge whose conditional expectation evolves linearly in time. In the IMF framework, we construct such Brownian bridges between sampled endpoint pairs and use their drift as regression tar-gets. Specifically, the forward drift function vθ is trained to approximate the drift of these endpoint-conditioned Brown-ian bridges. The parameters θ is obtained by solving 
+
+θ⋆ = arg min 
+
+> θ
+
+Z 10
+
+EΠk, 1
+
+"
+
+p1 −p+
+
+> k
+
+1−k −vθ (k, p+ 
+
+> k
+
+)
+
+> 2
+
+#
+
+dk, (5) where p+ 
+
+> k
+
+denotes an intermediate sample drawn from a ref-erence Brownian bridge conditioned on endpoints (ˆ p0, p1).Here, p1 ∼ Π1 is a real target-domain sample, and ˆp0 is the source-domain endpoint generated by the backward pro-cess from a previous backward iteration. Under this refer-ence bridge, p+ 
+
+> k
+
+admits the closed-form interpolation 
+
+p+ 
+
+> k
+
+= (1 − k)ˆ p0 + kp1 + σ0
+
+pk(1 − k) z, (6) where z ∼ N (0 , I ).
+
+Backward Process Similarly, the backward process starts from a target-domain sample pT 
+
+> 0
+
+∼ Π1 and evolves back-ward in time according to 
+
+dpTk = vϕ⋆ (1 − k, pTk ) d k + σ0 dBk. (7) The forward and backward SDEs correspond to two time-direction parameterizations of the same Schrödinger bridge process. Under the Schrödinger bridge law, their interme-diate states satisfy the distributional identity pSkd
+
+= pT
+
+> 1−k
+
+.Accordingly, the backward drift function vϕ is trained by re-gressing against the drift of Brownian bridges constructed between sampled endpoint pairs as follows: 
+
+ϕ⋆ = arg min 
+
+> ϕ
+
+Z 10
+
+EΠ0,k 
+
+"
+
+p0 −p−
+
+> k
+
+k −vϕ(k, p− 
+
+> k
+
+)
+
+> 2
+
+#
+
+dk, (8) where p− 
+
+> k
+
+is sampled from a reference Brownian bridge con-ditioned on endpoints (p0, ˆp1), with p0 ∼ Π0 and ˆp1 gen-erated by the forward process from a previous forward iter-ation. Under this reference bridge, the intermediate sample admits the closed-form expression 
+
+p− 
+
+> k
+
+= (1 − k)p0 + kˆp1 + σ0
+
+pk(1 − k) z. (9) By alternately optimizing θ and ϕ, we obtain forward and backward drift functions that jointly approximate the opti-mal Schrödinger bridge between between Π0 and Π1, which we subsequently use to perform transition dynamics align-ment between the two domains. 
+
+Dynamics Alignment Once the drift functions are learned, we can translate source-domain transitions into target-domain transitions by deploying the forward process. However, solving the continuous-time SDEs exactly is typ-ically intractable. In practice, we approximate the diffu-sion process using a discretized Langevin-like scheme, com-monly the Euler–Maruyama method (Shi et al. 2023; Song et al. 2020). This allows us to denoise over K discrete steps with fixed time interval ∆k = 1 
+
+> K
+
+. At each timestep k, the transition vector is updated as: 
+
+pk+1 = pk + vθ⋆ (k · ∆k, pk)∆ k + σ0
+
+√∆kξk, (10) where ξk ∼ N (0 , I ). After K steps, we obtain the translated transition pT ≈ pK that mimics the target domain. A sim-ilar procedure can be applied in the reverse direction using the backward drift function vϕ⋆ .This procedure enables us to translate source-domain transitions into target-style transitions by sampling from the learned bridge distribution P⋆, without access to the target environment. For notational convenience, we define 
+
+DSB S→T as the forward translation operator and DSB T →S
+
+as the reverse translation operator. Thus, given a source tran-sition pS = ( st, a t, s t+1 ), we can generate the correspond-ing target-style next state ˜st+1 via forward translation: 
+
+˜st+1 ∼ DSB S→T (st, a t, s t+1 ). (11) 
+
+4.2 Reward Modulation 
+
+With the DSB-aligned transition dynamics, we are able to obtain target-style transitions to mitigate the dynamics gap between the source and target domains. However, learning a target-domain policy remains infeasible without a reward function from the target environment, as the offline target dataset DT does not contain any reward information. In modern RL literature, rewards are often modeled as a function of the state-action pair, R(st, a t). A straightforward approach is to reuse the reward function from the source en-vironment. However, in many settings, particularly those in-volving goal-reaching or control tasks, the reward is more naturally tied to the outcome of the transition, i.e., the next state st+1 . In fact, some formulations treat the reward as a function of st+1 alone (Sutton, Barto et al. 1998). Conse-quently, applying the source reward function directly in the target domain can be misleading due to the misalignment in transition dynamics. 
+
+Transition-Aware Reward To address the problem, we propose a transition-aware reward function R(st, s t+1 ),which depends on both the current state and the resulting next state, but not on the action taken. This formulation cap-tures the essence of transition outcome and is agnostic to the specific control signal that causes the transition. We train the transition-aware reward model using the dataset DS = {(st, s t+1 , r t)} collected from the source domain environment, which includes both transitions and ground-truth rewards. The reward model is learned by mini-mizing the following mean squared error (MSE): 
+
+Lreward = E(st,s t+1 ,r t)∼D S
+
+h
+
+(R(st, s t+1 ) − rt)2i
+
+. (12) Afterward, we can apply this reward model to the translated target-style transitions to produce target-oriented rewards. Specifically, for each source transition (st, a t, s t+1 , r t),we first compute the target-aligned next state ˜st+1 ∼
+
+DSB S→T (st+1 |st, a t), and then modulate the reward as: 
+
+˜rt = R(st, ˜st+1 ). (13) This reward modulation mechanism ensures consistency be-tween the reward and the target-domain dynamics, while re-lying solely on source-domain interactions and supervision. 
+
+4.3 Target-Oriented Policy Learning 
+
+In cross-domain RL, the offline target dataset DT is typi-cally both limited in size and lacks reward supervision, mak-ing it unsuitable for direct policy optimization. To overcome this challenge, our proposed BDGxRL framework leverages modulated source-environment interactions to learn a target-oriented policy, based on DSB-driven dynamics alignment and transition-aware reward modulation. The goal is to train a policy solely within the source domain that generalizes well to the target environment, despite the dynamics mis-match and absence of target rewards. Specifically, our proposed BDGxRL framework has two two phases–offline pretraining phase and online policy learning phase. During offline pretraining, we first collect a dataset DS by sampling rollouts from the source environ-ment. Using DS and the target demonstrations DT , we then train a DSB model to align the source and target dynamics, and concurrently fit a transition-aware reward model. During online policy learning, at each online interac-tion step in the source environment, we sample an action 
+
+at from the current policy π. Executing at yields the next state st+1 under the source dynamics. We then apply the learned DSB model to translate the transition into a target-style transition ˜st+1 ∼ DSB S→T (st, a t, s t+1 ). Given this translated next state, we use the learned reward model to compute a modulated reward ˜rt = R(st, ˜st+1 ). The tran-sition (st, a t, ˜rt, ˜st+1 ) is added to a replay buffer B. We use an off-policy RL algorithm, such as Soft Actor-Critic (SAC) (Haarnoja et al. 2018a,b), to optimize the policy us-ing the transitions stored in B. This enables learning a policy that maximizes target-style rewards while interacting exclu-sively with the source environment. To further improve sample efficiency and leverage the ex-pert demonstrations from the target domain, we initialize the policy using imitation learning, for example via Behavior Cloning (BC) (Torabi, Warnell, and Stone 2018). The imita-tion loss is defined as: 
+
+LIL = E(s,a )∼D T [− log π(a|s)] . (14) We then incorporate the imitation loss as a regularization term during online RL optimization. The final policy objec-tive becomes: 
+
+Ltotal = LRL + α · L IL , (15) where LRL denotes the standard RL loss, and α is a balanc-ing coefficient between exploration and imitation. Below we provide a theoretical analysis that shows the learned target-oriented policy can closely approximate the optimal policy under mild assumptions. 
+
+Theorem 1 (Policy Value Bound under DSB Translation) .
+
+Assume the reward is bounded by Rmax , and the discount factor satisfies γ ∈ [0 , 1) . Let π be the policy learned using BDGxRL with DSB-based dynamics translation and reward modulation, and let π⋆ denote the optimal policy in the tar-get environment. Then, when the number of IMF iterations for DSB training is sufficiently large, the value difference between π and π⋆ in the target MDP MT is bounded as:               
+
+> ∆V:= Vπ⋆
+> MT−Vπ
+> MDSB ≤√2Rmax γ
+> (1 −γ)2· √ϵm+ 2√2Rmax
+> (1 −γ)2· √ϵπ,
+> (16)
+
+where ϵm = O
+
+ 1 
+
+> NS
+
++ 1
+
+> NT
+
+
+
+denotes the dynamics approx-imation error induced by DSB training with NS = |D S | and 
+
+NT = |D T |, and ϵπ captures the policy approximation error between the learned target-oriented policy and the optimal target-oriented policy. 
+
+This theorem demonstrates the theoretical soundness of the proposed approach in bridging the dynamics mismatch and enabling reliable policy learning in the target domain. 
+
+# 5 Experiments 
+
+5.1 Experimental Settings 
+
+Experimental Environments We evaluate our method in MuJoCo (Todorov, Erez, and Tassa 2012) physics-based robotic simulation environments, with offline demonstration datasets provided by the D4RL benchmark (Fu et al. 2020). The source domain is derived by modifying the physics pa-rameters of the original MuJoCo environments, introducing three types of domain gaps: (1) 2× gravity, (2) 0.25×/0.5× friction, and (3) 2× thigh size of the robots. These modifi-cations alter the transition dynamics between the source and target environments while leaving the state and action spaces unchanged. The experiments involve two tasks (HalfChee-tah and Walker2d), three levels of target demonstration expertise (Medium, Medium-Replay, Medium-Expert), and the three types of domain gaps mentioned above. 
+
+Comparison Methods We compare our method against several state-of-the-art cross-domain RL baselines, includ-ing xTED (Niu et al. 2024) (combined with IQL (Kostrikov, Nair, and Levine 2021) or DARA (Liu, Zhang, and Wang 2022)), DARA (Liu, Zhang, and Wang 2022), DARC (Ey-senbach et al. 2020), DARAIL (Guo et al. 2024), as well as the source behavior policy from the expert data in D4RL (Fu et al. 2020), and an imitation learning policy (GAIL) (Ho and Ermon 2016) trained on the target domain. 
+
+5.2 Experimental Results 
+
+We report the experimental results using D4RL normalized scores (Fu et al. 2020), where episodic returns are scaled such that a random policy scores 0 and an expert policy scores 100. This score is a widely adopted metric for com-paring performance across different tasks and methods. All results are summarized in Table 1. Overall, our proposed BDGxRL consistently achieves the highest performance across all tasks and settings, demonstrating strong generalizability and adaptability un-der various dynamics gaps. In the HalfCheetah environment, Task Expert Domain Gap D4RL xTED (IL) xTED (CD) DARA GAIL DARC DARAIL BDGxRL (Ours)                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+
+> HalfCheetah Med Gravity 39 .5±2.440 .6±2.041 .1±2.040 .6±1.939 .0±1.840 .1±1.642 .6±2.446 .3±2.7
+> Friction 43 .1±1.543 .2±3.044 .2±1.842 .3±1.740 .2±2.041 .7±1.943 .9±2.347 .8±2.9
+> Thigh Size 39 .5±2.440 .7±2.441 .5±1.640 .4±2.139 .5±2.240 .9±1.742 .7±2.146 .5±2.5
+> Med-R Gravity 26 .2±3.530 .7±1.930 .7±1.927 .2±3.228 .2±1.730 .5±2.233 .6±2.337 .8±2.8
+> Friction 26 .2±3.531 .8±3.132 .4±2.923 .2±4.730 .0±1.931 .3±2.535 .0±2.439 .5±2.6
+> Thigh Size 26 .2±3.530 .3±1.932 .9±2.729 .1±1.428 .9±2.130 .7±2.434 .4±2.138 .6±2.7
+> Med-E Gravity 40 .1±2.945 .3±3.845 .3±3.839 .7±3.840 .7±1.542 .4±8.947 .7±6.553 .2±3.0
+> Friction 40 .1±2.945 .0±3.045 .0±3.041 .4±3.541 .5±1.744 .1±5.348 .6±4.155 .1±3.5
+> Thigh Size 40 .1±2.943 .0±3.145 .1±3.337 .9±4.146 .8±2.348 .2±2.651 .0±2.955 .6±2.5
+> Walker2d Med Gravity 45 .3±15 .958 .2±11 .759 .0±10 .553 .2±11 .155 .3±2.156 .6±2.660 .4±3.063 .9±3.2
+> Friction 45 .3±15 .954 .3±10 .654 .3±10 .651 .1±11 .452 .2±2.354 .5±2.458 .0±3.161 .6±3.4
+> Thigh Size 45 .3±15 .958 .7±9.558 .3±9.849 .1±10 .653 .1±2.555 .2±2.759 .2±2.862 .8±3.0
+> Med-R Gravity 26 .6±5.931 .8±4.733 .5±3.313 .2±5.730 .3±2.032 .8±2.136 .2±2.539 .8±3.1
+> Friction 26 .6±5.930 .3±2.430 .3±2.428 .3±9.028 .7±2.231 .5±2.034 .8±2.738 .1±3.2
+> Thigh Size 26 .6±5.929 .4±3.329 .4±3.327 .0±6.628 .0±2.330 .4±2.133 .9±2.637 .2±2.9
+> Med-E Gravity 71 .0±21 .082 .9±11 .183 .2±11 .673 .4±14 .376 .6±2.979 .9±16 .783 .6±11 .587 .0±4.9
+> Friction 71 .0±21 .074 .0±24 .574 .0±24 .578 .8±20 .277 .2±3.380 .1±17 .985 .4±9.889 .5±5.0
+> Thigh Size 71 .0±21 .081 .0±11 .181 .0±11 .178 .4±14 .375 .3±2.578 .7±2.883 .0±3.286 .3±3.4
+
+Table 1: Experimental results across three domain gaps (gravity, friction, thigh size) and three demonstration levels (Medium, Medium-Replay, Med-Expert) on two MuJoCo environments, averaged over five runs. BDGxRL surpasses all baselines across all domain gaps and expert levels. For example, under the Medium-Expert setting with the Gravity gap, BDGxRL reaches 53.2, significantly outperforming DARC (47.7) and DARAIL (51.0). Even under the challenging Medium-Replay setting, BDGxRL shows robust performance, achieving up to 39.5 (Friction) compared to 35.0 by DARAIL and 32.4 by xTED (CD). A similar trend is observed in the Walker2d environment. BDGxRL outperforms prior methods in all domain gap set-tings. Under the Medium-Expert setting with Friction, it achieves 89.5, outperforming DARAIL (85.4) and GAIL (77.2). Notably, even when the baseline methods suffer from high variance or degraded performance in low-quality demonstrations (e.g., DARA in Med-R setting), BDGxRL maintains stable and superior results across all cases. We also visualize the average scores of each method across all tasks in Figure 2, which summarizes the overall performance across diverse tasks, domain gaps, and demon-stration levels. BDGxRL consistently outperforms all base-lines, achieving the highest mean score among all methods. The noticeable gap between BDGxRL and the second-best method (DARAIL) highlights its strong generalization capa-bility under dynamics mismatch. In contrast, baseline meth-ods lacking explicit dynamics alignment, such as D4RL and GAIL, consistently underperform. These results demonstrate the effectiveness of our pro-posed dynamics alignment and reward modulation strate-gies. By jointly leveraging online source rollouts and offline target demonstrations, BDGxRL bridges the dynamics gap while preserving policy optimality, establishing a new state-of-the-art in cross-domain RL. 
+
+5.3 Ablation Study 
+
+To further evaluate the contribution of each component in our method, we conduct an ablation study by comparing the 
+
+Figure 2: Overall average performance of each method across all tasks, domain gaps, and demonstration levels. full BDGxRL framework with three ablated variants: (1) w/o IL, which removes imitation learning for policy initializa-tion; (2) w/o RM, which disables reward modulation and di-rectly uses the source domain reward model; and (3) w/o Alignment, which removes the transition modulation step, relying solely on source domain dynamics without applying diffusion-based adaptation. The results are reported in Ta-ble 2, focusing on the Medium expert level. The results show that removing transition alignment leads to the most significant performance drop across both tasks and all domain gaps, highlighting its critical role in address-ing dynamics mismatch. Excluding imitation learning also results in substantial performance degradation, particularly on Walker2d, emphasizing the importance of leveraging of-fline target demonstrations. Reward modulation has a com-paratively smaller but consistent impact on performance. Overall, these findings confirm that all three components: transition alignment, imitation learning, and reward modu-lation, play essential and complementary roles in achieving robust cross-domain policy learning. Task Domain Gap BDGxRL w/o IL w/o RM w/o Alignment                         
+
+> HalfCheetah Gravity 46 .3±2.739 .5±3.542 .1±3.133 .8±5.2
+> Friction 47 .8±2.940 .3±3.343 .2±2.935 .4±4.8
+> Thigh Size 46 .5±2.540 .1±3.042 .8±2.834 .9±5.1
+> Walker2d Gravity 63 .9±3.255 .5±4.158 .2±3.344 .7±6.7
+> Friction 61 .6±3.453 .3±3.956 .1±3.143 .2±5.8
+> Thigh Size 62 .8±3.054 .1±4.056 .8±3.243 .9±6.0
+
+Table 2: Ablation results under the Medium expert level across three domain gaps on two MuJoCo environments. 
+
+# 6 Conclusion 
+
+In this work, we proposed BDGxRL, a novel framework that performs transition dynamics alignment via DSB and reward modulation for cross-domain RL. It enables target-oriented online policy learning in a source environment using only offline expert demonstrations without reward signals from the target domain. We also provided a theoretical bound on the learned policy value gap. Experimental results on Mu-JoCo benchmarks across various domain gaps and demon-stration levels show that BDGxRL consistently outperforms prior state-of-the-art approaches, demonstrating its robust-ness and effectiveness in bridging dynamics discrepancies for cross-domain RL. 
+
+# References 
+
+Afsar, M. M.; Crump, T.; and Far, B. 2022. Reinforcement learning based recommender systems: A survey. ACM Com-puting Surveys , 55(7): 1–38. Aradi, S. 2020. Survey of deep reinforcement learning for motion planning of autonomous vehicles. IEEE Transac-tions on Intelligent Transportation Systems , 23(2): 740–759. Berner, C.; Brockman, G.; Chan, B.; Cheung, V.; D˛ ebiak, P.; Dennison, C.; Farhi, D.; Fischer, Q.; Hashme, S.; Hesse, C.; et al. 2019. Dota 2 with Large Scale Deep Reinforcement Learning. arXiv preprint arXiv:1912.06680 .De Bortoli, V.; Korshunova, I.; Mnih, A.; and Doucet, A. 2024. Schrodinger bridge flow for unpaired data transla-tion. Advances in Neural Information Processing Systems ,37: 103384–103441. De Bortoli, V.; Thornton, J.; Heng, J.; and Doucet, A. 2021. Diffusion schrödinger bridge with applications to score-based generative modeling. Advances in Neural Information Processing Systems , 34: 17695–17709. Eysenbach, B.; Asawa, S.; Chaudhari, S.; Levine, S.; and Salakhutdinov, R. 2020. Off-dynamics reinforcement learn-ing: Training for transfer with domain classifiers. arXiv preprint arXiv:2006.13916 .Fu, J.; Kumar, A.; Nachum, O.; Tucker, G.; and Levine, S. 2020. D4rl: Datasets for deep data-driven reinforcement learning. arXiv preprint arXiv:2004.07219 .Gu, X.; Yang, L.; Sun, J.; and Xu, Z. 2023. Optimal transport-guided conditional score-based diffusion model. 
+
+Advances in Neural Information Processing Systems , 36: 36540–36552. Guo, Y.; Wang, Y.; Shi, Y.; Xu, P.; and Liu, A. 2024. Off-Dynamics Reinforcement Learning via Domain Adap-tation and Reward Augmented Imitation. arXiv preprint arXiv:2411.09891 .Gyöngy, I. 1986. Mimicking the one-dimensional marginal distributions of processes having an Itô differential. Proba-bility theory and related fields , 71(4): 501–516. Haarnoja, T.; Zhou, A.; Abbeel, P.; and Levine, S. 2018a. Soft actor-critic: Off-policy maximum entropy deep rein-forcement learning with a stochastic actor. In International conference on machine learning , 1861–1870. Pmlr. Haarnoja, T.; Zhou, A.; Hartikainen, K.; Tucker, G.; Ha, S.; Tan, J.; Kumar, V.; Zhu, H.; Gupta, A.; Abbeel, P.; et al. 2018b. Soft actor-critic algorithms and applications. arXiv preprint arXiv:1812.05905 .Higgins, I.; Pal, A.; Rusu, A.; Matthey, L.; Burgess, C.; Pritzel, A.; Botvinick, M.; Blundell, C.; and Lerchner, A. 2017. Darla: Improving zero-shot transfer in reinforcement learning. In International conference on machine learning ,1480–1490. PMLR. Ho, J.; and Ermon, S. 2016. Generative adversarial imita-tion learning. Advances in neural information processing systems , 29. Ho, J.; Jain, A.; and Abbeel, P. 2020. Denoising diffusion probabilistic models. Advances in neural information pro-cessing systems , 33: 6840–6851. Kim, H.; Yoon, J.; and Lee, J. 2024. Fast Ensembling with Diffusion Schr \" odinger Bridge. arXiv preprint arXiv:2404.15814 .Kober, J.; Bagnell, J. A.; and Peters, J. 2013. Reinforcement Learning in Robotics: A Survey. The International Journal of Robotics Research , 32(11): 1238–1274. Kostrikov, I.; Nair, A.; and Levine, S. 2021. Offline rein-forcement learning with implicit q-learning. arXiv preprint arXiv:2110.06169 .Lazaric, A. 2012. Transfer in reinforcement learning: a framework and a survey. In Reinforcement Learning: State-of-the-Art , 143–173. Springer. Léonard, C. 2013. A survey of the schr \" odinger problem and some of its connections with optimal transport. arXiv preprint arXiv:1308.0215 .Léonard, C.; Rœlly, S.; and Zambrini, J.-C. 2014. Reciprocal processes. A measure-theoretical point of view. Probability Surveys , 11(none): 237 – 269. Li, Z.; Li, S.; Wang, Z.; Lei, N.; Luo, Z.; and Gu, D. X. 2023. DPM-OT: a new diffusion probabilistic model based on op-timal transport. In Proceedings of the ieee/cvf international conference on computer vision , 22624–22633. Liu, J.; Zhang, H.; and Wang, D. 2022. Dara: Dynamics-aware reward augmentation in offline reinforcement learn-ing. arXiv preprint arXiv:2203.06662 .Lyu, J.; Bai, C.; Yang, J.; Lu, Z.; and Li, X. 2024a. Cross-domain policy adaptation by capturing representation mis-match. arXiv preprint arXiv:2405.15369 .Lyu, J.; Xu, K.; Xu, J.; Yan, M.; Yang, J.-W.; Zhang, Z.; Bai, C.; Lu, Z.; and Li, X. 2024b. ODRL: A Benchmark for Off-Dynamics Reinforcement Learning. In The Thirty-eight Conference on Neural Information Processing Systems Datasets and Benchmarks Track .Niu, H.; Chen, Q.; Liu, T.; Li, J.; Zhou, G.; Zhang, Y.; Hu, J.; and Zhan, X. 2024. xTED: Cross-Domain Adapta-tion via Diffusion-Based Trajectory Editing. arXiv preprint arXiv:2409.08687 .Niu, H.; Qiu, Y.; Li, M.; Zhou, G.; Hu, J.; Zhan, X.; et al. 2022. When to trust your simulator: Dynamics-aware hy-brid offline-and-online reinforcement learning. Advances in Neural Information Processing Systems , 35: 36599–36612. Peyré, G.; Cuturi, M.; et al. 2019. Computational optimal transport: With applications to data science. Foundations and Trends® in Machine Learning , 11(5-6): 355–607. Rombach, R.; Blattmann, A.; Lorenz, D.; Esser, P.; and Om-mer, B. 2022. High-resolution image synthesis with latent diffusion models. In Proceedings of the IEEE/CVF confer-ence on computer vision and pattern recognition , 10684– 10695. Santambrogio, F. 2015. Optimal transport for applied math-ematicians , volume 87. Springer. Shi, Y.; De Bortoli, V.; Campbell, A.; and Doucet, A. 2023. Diffusion schrödinger bridge matching. Advances in Neural Information Processing Systems , 36: 62183–62223. Somnath, V. R.; Pariset, M.; Hsieh, Y.-P.; Martinez, M. R.; Krause, A.; and Bunne, C. 2023. Aligned diffusion schrödinger bridges. In Uncertainty in Artificial Intelli-gence , 1985–1995. PMLR. Song, J.; Meng, C.; and Ermon, S. 2020. Denoising diffusion implicit models. arXiv preprint arXiv:2010.02502 .Song, Y.; Sohl-Dickstein, J.; Kingma, D. P.; Kumar, A.; Er-mon, S.; and Poole, B. 2020. Score-based generative model-ing through stochastic differential equations. arXiv preprint arXiv:2011.13456 .Sutton, R. S.; Barto, A. G.; et al. 1998. Reinforcement Learning: An Introduction . MIT press Cambridge. Todorov, E.; Erez, T.; and Tassa, Y. 2012. Mujoco: A physics engine for model-based control. In 2012 IEEE/RSJ interna-tional conference on intelligent robots and systems , 5026– 5033. IEEE. Torabi, F.; Warnell, G.; and Stone, P. 2018. Behavioral cloning from observation. arXiv preprint arXiv:1805.01954 .Xing, J.; Nagata, T.; Chen, K.; Zou, X.; Neftci, E.; and Krichmar, J. L. 2021. Domain adaptation in reinforce-ment learning via latent unified state representation. In Pro-ceedings of the AAAI Conference on Artificial Intelligence (AAAI) .Xu, K.; Bai, C.; Ma, X.; Wang, D.; Zhao, B.; Wang, Z.; Li, X.; and Li, W. 2023. Cross-domain policy adaptation via value-guided data filtering. Advances in Neural Information Processing Systems , 36: 73395–73421. Xu, T.; Li, Z.; and Yu, Y. 2020. Error bounds of imitating policies and environments. Advances in Neural Information Processing Systems , 33: 15737–15749. Zhang, C.; Zhang, C.; Zhang, M.; and Kweon, I. S. 2023. Text-to-image diffusion models in generative ai: A survey. 
+
+arXiv preprint arXiv:2303.07909 .Zhu, Z.; Locatello, F.; and Cevher, V. 2023. Sample com-plexity bounds for score-matching: Causal discovery and generative modeling. Advances in Neural Information Pro-cessing Systems , 36: 3325–3337. Algorithm 1: Target-Oriented Policy Learning of BDGxRL  
+
+> 1:
+
+Input: Source environment ES , offline target dataset 
+
+DT , initial policy π(at|st), replay buffer B 
+
+> 2:
+
+% Offline Pretraining Phase:  
+
+> 3:
+
+Collect source dataset DS by interacting with ES . 
+
+> 4:
+
+Train the transition-aware reward model R(st, s t+1 ) on 
+
+DS using Eq. (10).  
+
+> 5:
+
+Train the DSB model on DS and DT using Eq. (4)(5) and Eq.(6)(7).  
+
+> 6:
+
+Pretrain policy π(at|st) via behavior cloning on DT . 
+
+> 7:
+
+% Online Policy Learning Phase:  
+
+> 8:
+
+while not converged do  
+
+> 9:
+
+Reset environment ES and observe initial state s0. 
+
+> 10:
+
+for each timestep t do  
+
+> 11:
+
+Sample action at ∼ π(· | st). 
+
+> 12:
+
+Execute at to obtain next state st+1 and reward rt. 
+
+> 13:
+
+Translate state: ˜st+1 = DSB S→T (st, a t, s t+1 ). 
+
+> 14:
+
+Compute modulated reward: ˜rt = R(st, ˜st+1 ). 
+
+> 15:
+
+Append (st, a t, s t+1 , r t) to DS for model update.  
+
+> 16:
+
+Store transition (st, a t, ˜rt, ˜st+1 ) in replay buffer B. 
+
+> 17:
+
+Set st+1 = ˜ st+1 . 
+
+> 18:
+
+end for  
+
+> 19:
+
+Update policy π(at|st) using SAC with buffer B. 
+
+> 20:
+
+Periodically update DSB and reward models using the augmented DS . 
+
+> 21:
+
+end while 
+
+# A Training Algorithm of BDGxRL 
+
+The full training procedure of the proposed BDGxRL is out-lined in Algorithm 1. 
+
+# B Full Ablation Results 
+
+Table 3 reports the full ablation results across all expert lev-els (Medium, Medium-Replay, and Medium-Expert) and do-main gaps (gravity, friction, and thigh size) on two MuJoCo tasks. The results consistently highlight the importance of each component within BDGxRL. Across all settings, removing transition alignment (w/o Alignment) leads to the most pronounced performance degradation, particularly in high-performing regimes such as Walker2d (Med-E), where the score drops from 87.0 to 62.4 (gravity) and from 89.5 to 64.2 (friction). This under-scores the essential role of DSB-based transition alignment in handling dynamics mismatch. Excluding imitation learn-ing (w/o IL) also causes significant drops in performance, especially in lower-quality data regimes such as HalfChee-tah (Med-R), where training from scratch limits policy ef-fectiveness. This demonstrates the value of leveraging of-fline target demonstrations for policy initialization under do-main shifts. Disabling reward modulation (w/o RM) results in moderate yet consistent performance declines. For exam-ple, in Walker2d (Med-R), performance on the friction set-ting drops from 38.1 to 32.1. Although its effect is less dras-tic than the other components, reward modulation still con-tributes to improved alignment of cross-domain rewards. In summary, the full ablation results confirm the comple-mentary nature of BDGxRL’s three key components. Each plays a distinct role in enabling robust cross-domain policy learning across a wide range of domain gaps and data con-ditions. 
+
+# Theoretical Analysis of BDGxRL 
+
+In this section, we provide a theoretical analysis of BDGxRL, based on policy evaluation error bounds, to estab-lish a theoretical guarantee for the effectiveness of the pol-icy learned via BDGxRL. Specifically, we prove Theorem 1, which shows that the performance of the learned BDGxRL policy is bounded within a specific error margin under mild assumptions. To prove Theorem 1, we begin by analyzing the total sources of error in policy learning. These errors primarily arise from two factors: • Transition model error: due to the inaccuracy of the learned transition model via DSB. • Policy optimization error: resulting from the suboptimal-ity of policy learning using deep neural networks. Formally, let MT denote the true target MDP, MDSB the learned transition model obtained via DSB, π⋆ the optimal policy in the true MDP, and π the target-oriented policy learned by BDGxRL. Then the total policy evaluation error can be decomposed as: 
+
+V π⋆ 
+
+> MT
+
+− V π 
+
+> MDSB
+
+≤ V π⋆ 
+
+> MT
+
+− V π⋆
+
+> MDSB
+
+| {z }
+
+> transition model error
+
++ V π⋆ 
+
+> MDSB
+
+− V π
+
+> MDSB
+
+| {z }
+
+> policy optimization error
+
+.
+
+(17) We now show that, under mild and reasonable assumptions, both error terms can be explicitly bounded. 
+
+Assumption 1. Let NDSB denote the number of IMF itera-tions used in solving the DSB, NS the size of the source do-main dataset, and NT the size of the target domain dataset. The reward function is bounded by Rmax , and the discount factor satisfies γ ∈ [0 , 1) . We assume that the DSB is cor-rectly implemented with a score-based model and trained with a sufficiently large number of IMF iterations. The target dataset size NT = |D T | is fixed by offline demonstrations, while the source dataset size NS = |D S | grows during train-ing via data collection in the source domain. 
+
+Under Assumption 1, the DSB-based dynamics alignment is assumed to produce accurate transitions when the number of IMF iterations NDSB is large enough, and the score-based model is trained using both source and target data. We now present a bound on the transition model error. 
+
+Lemma 1 (Transition Model Error Bound) . Under Assump-tion 1, the transition model error is bounded as: 
+
+V π⋆ 
+
+> MT
+
+− V π⋆ 
+
+> MDSB
+
+≤√2Rmax γ
+
+(1 − γ)2 · √ϵm, (18) 
+
+where the transition model error ϵm decomposes as: 
+
+ϵm ≈ O 
+
+ 1
+
+NS
+
++ 1
+
+NT
+
+
+
+. (19) 
+
+The transition model error ϵm decreases as the source data size increases during policy training, and is lower bounded by the target domain demonstration size as O( 1 
+
+> NT
+
+).Task Expert Domain Gap BDGxRL (Ours) w/o IL w/o RM w/o Alignment 
+
+HalfCheetah Med Gravity 46 .3 ± 2.7 39 .5 ± 3.5 42 .1 ± 3.1 33 .8 ± 5.2
+
+Friction 47 .8 ± 2.9 40 .3 ± 3.3 43 .2 ± 2.9 35 .4 ± 4.8
+
+Thigh Size 46 .5 ± 2.5 40 .1 ± 3.0 42 .8 ± 2.8 34 .9 ± 5.1
+
+Med-R Gravity 37 .8 ± 2.8 31 .0 ± 4.0 33 .2 ± 3.7 25 .6 ± 6.1
+
+Friction 39 .5 ± 2.6 32 .5 ± 3.2 34 .4 ± 3.4 27 .2 ± 5.3
+
+Thigh Size 38 .6 ± 2.7 31 .8 ± 3.0 33 .9 ± 3.2 26 .4 ± 5.0
+
+Med-E Gravity 53 .2 ± 3.0 45 .2 ± 4.2 48 .8 ± 3.6 37 .5 ± 6.4
+
+Friction 55 .1 ± 3.5 46 .3 ± 4.0 50 .1 ± 3.7 39 .3 ± 6.0
+
+Thigh Size 55 .6 ± 2.5 46 .9 ± 3.8 50 .4 ± 3.6 40 .7 ± 5.8
+
+Walker2d Med Gravity 63 .9 ± 3.2 55 .5 ± 4.1 58 .2 ± 3.3 44 .7 ± 6.7
+
+Friction 61 .6 ± 3.4 53 .3 ± 3.9 56 .1 ± 3.1 43 .2 ± 5.8
+
+Thigh Size 62 .8 ± 3.0 54 .1 ± 4.0 56 .8 ± 3.2 43 .9 ± 6.2
+
+Med-R Gravity 39 .8 ± 3.1 33 .3 ± 3.8 35 .5 ± 3.6 28 .2 ± 5.4
+
+Friction 38 .1 ± 3.2 32 .1 ± 3.7 34 .0 ± 3.3 27 .0 ± 4.9
+
+Thigh Size 37 .2 ± 2.9 31 .3 ± 3.5 33 .2 ± 3.2 26 .2 ± 4.7
+
+Med-E Gravity 87 .0 ± 4.9 75 .1 ± 5.6 80 .3 ± 4.2 62 .4 ± 7.5
+
+Friction 89 .5 ± 5.0 77 .3 ± 5.4 82 .0 ± 4.3 64 .2 ± 7.2
+
+Thigh Size 86 .3 ± 3.4 74 .8 ± 5.3 79 .4 ± 4.1 61 .8 ± 6.8
+
+Table 3: Full ablation results across three domain gaps (gravity, friction, thigh size) and three demonstration levels (Medium, Medium-Replay, Med-Expert) on two MuJoCo environments, averaged over three runs. 
+
+Proof. Based on the previous conclusion from (Xu, Li, and Yu 2020), when learning a policy in an imitation environ-ment with transition model errors, and assuming that the learned transition model is close to the true transition dy-namics in the sense that: 
+
+E(s,a )∼ρπ [KL ( TT (·| s, a ) ∥ T DSB (·| s, a ))] ≤ ϵm, (20) then the transition model error is bounded as: 
+
+V π⋆ 
+
+> MT
+
+− V π⋆ 
+
+> MDSB
+
+≤√2Rmax γ
+
+(1 − γ)2 · √ϵm. (21) 
+
+Decomposition of ϵm In our context, the error ϵm in learn-ing the transition model arises from two sources: (1) the ap-proximation error of the score-based model used in DSB, and (2) the optimization error in solving the DSB problem. We write: 
+
+ϵm = ϵsbm 
+
+|{z} 
+
+> score-based model error
+
++ ϵdsb 
+
+|{z} 
+
+> DSB solver error
+
+. (22) 
+
+Score-based model error ϵsbm According to (Zhu, Lo-catello, and Cevher 2023), the estimation error of score-based models approximately scales inversely with the amount of training data. Suppose the dataset size is N , then the estimation error is bounded by O( 1 
+
+> N
+
+).In our setting, the DSB model is trained bidirectionally, which effectively doubles the learning error. Let NS denote the number of transitions collected from the source domain and NT denote the number of offline demonstrations from the target domain. Then the total score-based model error is bounded by: 
+
+ϵsbm = O
+
+ 1
+
+NS
+
++ 1
+
+NT
+
+
+
+. (23) Since transitions from the source domain are continuously collected during online training, the term O( 1 
+
+> NS
+
+) keeps de-creasing over time. With sufficiently long training, the score-based model error ϵsbm will be dominated by the fixed-size offline demonstration data from the target domain. 
+
+DSB error ϵdsb The DSB solver error ϵdsb originates from imperfect optimization of the DSB objective relative to the true target transition distribution. Let TT denote the ground-truth transition distribution in the target environment, and let T n denote the transition distribution induced by the DSB after n iterations of IPF or IMF. Then: 
+
+ϵdsb = KL( T n ∥ T T ). (24) As discussed in the preliminary section, the residual error of DSB vanishes asymptotically as the number of IPF/IMF iterations increases. That is, 
+
+lim  
+
+> n→∞
+
+ϵdsb = lim  
+
+> n→∞
+
+KL( T n ∥ T T ) = 0 . (25) Therefore, with sufficiently many iterations, the DSB op-timization error ϵdsb can be made arbitrarily small. Under Assumption 1, we have shown that the transition model er-ror term V π 
+
+> MT
+
+− V π 
+
+> MDSB
+
+is bounded by Eq. (18), with the overall error ϵm decomposed into two components, both of which diminish with sufficient data and training. 
+
+Theorem 2 (Policy Value Bound under DSB Translation) .
+
+Assume the reward is bounded by Rmax , and the discount factor satisfies γ ∈ [0 , 1) . Let π be the policy learned using BDGxRL with DSB-based dynamics translation and reward modulation, and let π⋆ denote the optimal policy in the tar-get environment. Then, when the number of IMF iterations for DSB training is sufficiently large, the value difference between π and π⋆ in the target MDP MT is bounded as:               
+
+> ∆V:= Vπ⋆
+> MT−Vπ
+> MDSB ≤√2Rmax γ
+> (1 −γ)2· √ϵm+ 2√2Rmax
+> (1 −γ)2· √ϵπ,
+> (26)
+
+where ϵm = O
+
+ 1 
+
+> NS
+
++ 1
+
+> NT
+
+
+
+denotes the dynamics approx-imation error induced by DSB training with NS = |D S | and 
+
+NT = |D T |, and ϵπ captures the policy approximation error between the learned target-oriented policy and the optimal target-oriented policy. Proof. Based on Theorem 1 of (Xu, Li, and Yu 2020), un-der Assumption 1, for any policy π satisfying KL( π(·| s) ∥
+
+π⋆(·| s)) ≤ ϵπ , the policy optimization error is bounded as: 
+
+V π⋆ 
+
+> MDSB
+
+− V π 
+
+> MDSB
+
+≤ 2√2Rmax 
+
+(1 − γ)2 · √ϵπ . (27) Combining this with the transition model error 
+
+V π 
+
+> MT
+
+− V π 
+
+> MDSB
+
+established in Lemma 1, the total value difference between the learned target-oriented policy π and the optimal target policy π⋆ is bounded by:                
+
+> ∆V:= Vπ⋆
+> MT−Vπ
+> MDSB ≤√2Rmax γ
+> (1 −γ)2·√ϵm+ 2√2Rmax
+> (1 −γ)2·√ϵπ.
+> (28)
+
+This result demonstrates that the proposed BDGxRL framework can effectively learn a target-oriented policy that achieves near-optimal performance in the target environ-ment. 
+
+# C Implementation Details 
+
+We conduct our experiments on MuJoCo (Todorov, Erez, and Tassa 2012) environments from the xTED bench-mark (Niu et al. 2024), utilizing online interactions in the modified source domain and offline data from D4RL (medium-expert) as the target domain. Each task contains 20,000 offline transitions from demonstration data in the tar-get domain. The three target environments are adapted from standard MuJoCo tasks with the following modifications: (1) Gravity: doubling the gravitational acceleration to alter the simulation dynamics; (2) Friction: reducing the friction co-efficient to 0.25× or 0.5×, making it harder for the agent to maintain balance; (3) Thigh Size: increasing thigh size by 2× to introduce morphological discrepancies in embodiment. For dynamics alignment, we adopt the official implemen-tation of Diffusion Schrödinger Bridge Matching (DSBM) and Iterative Markovian Fitting (IMF) from (Shi et al. 2023) as the backbone of our DSB-based approach. To modulate rewards, we train a three-layer MLP reward model using source domain rollouts. Target-oriented policy learning is performed using SAC, initialized via behavior cloning (BC) on the target dataset. A KL regularization term with coeffi-cient α = 0 .1 is applied to encourage consistency with the imitation policy. Some experimental environments are also partially adopted from Off-Dynamics Reinforcement Learn-ing (ODRL) (Lyu et al. 2024b).

@@ -1,0 +1,1708 @@
+Title: A theory of learning data statistics in diffusion models, from easy to hard
+
+URL Source: https://arxiv.org/pdf/2603.12901v1
+
+Published Time: Mon, 16 Mar 2026 00:52:51 GMT
+
+Number of Pages: 25
+
+Markdown Content:
+# A theory of learning data statistics in diffusion models, from easy to hard 
+
+Lorenzo Bardone ∗
+
+, Claudia Merger and Sebastian Goldt †
+
+International School of Advanced Studies (SISSA), Trieste, Italy 
+
+16th March 2026 
+
+Abstract 
+
+While diffusion models have emerged as a powerful class of generative models, their learning dynamics remain poorly understood. We address this issue first by empirically showing that standard diffusion models trained on natural images exhibit a distributional simplicity bias, learning simple, pair-wise input statistics before specializing to higher-order correlations. We reproduce this behaviour in simple denoisers trained on a minimal data model, the mixed cumulant model, where we precisely control both pair-wise and higher-order correlations of the inputs. We identify a scalar invariant of the model that governs the sample complexity of learning pair-wise and higher-order correlations that we call the diffusion information exponent , in analogy to related invariants in different learning paradigms. Using this invariant, we prove that the denoiser learns simple, pair-wise statistics of the inputs at linear sample complexity, while more complex higher-order statistics, such as the fourth cumulant, require at least cubic sample complexity. We also prove that the sample complexity of learning the fourth cumulant is linear if pair-wise and higher-order statistics share a correlated latent structure. Our work describes a key mechanism for how diffusion models can learn distributions of increasing complexity. 
+
+# 1 Introduction 
+
+Introduced only ten years ago, diffusion models [1–3] quickly reached state-of-the-art performance in generative modeling. Yet our theoretical understanding of why these models learn so efficiently remains limited compared to our understanding of neural networks in “standard” supervised learning. For example, one robust finding in both classical and recent studies of supervised learning has been that neural networks exhibit a simplicity bias – they first learn simpler features of their target before moving to more complex features. This effect can be seen both in time during training, or as a function of the training set size. Simplicity biases were shown first in the context of learning a target function over Gaussian inputs [4– 9], in autoencoders [10], and experimentally for image classification [11]; a similar effect can also be seen in the kernel regime [12, 13]. More recently, a distributional simplicity bias , whereby neural networks first rely on pair-wise input statistics before exploiting higher-order input correlations was shown both theoretically and experimentally in image classification [14–17] and next-token prediction [18–21]. Whether similar principles govern the distributional learning dynamics of diffusion models remains an open question. Here, we show through a combination of careful experiments and a rigorous analysis of SGD dynamics in simplified models that denoising diffusion models exhibit a distributional simplicity bias. 
+
+> ∗Current address: Statistical Physics of Computation Laboratory, Ecole Polytechnique Fédérale de Lausanne (EPFL).
+> †Correspondence to: lorenzo.bardone@epfl.ch, {cmerger, sgoldt}@sissa.it
+
+1              
+
+> arXiv:2603.12901v1 [stat.ML] 13 Mar 2026 10 010 5
+> steps
+> 10 1
+> 10 0
+> loss
+> a) CIFAR10, overall loss
+> mean
+> mean + cov.
+> train
+> test
+> 10 110 5
+> steps
+> 0.5
+> 0.6
+> 0.7
+> 0.8
+> loss
+> c) MCM, et= 0.74
+> 10 010 5
+> steps
+> 10 1
+> 10 0
+> loss
+> b) CIFAR10, et= 0.90
+> d) steps = 10 e) steps = 1152 f) steps = 12068 g) steps = 100000
+
+Figure 1: Sequential learning in diffusion models. a) Test loss of diffusion model and loss on CIFAR-10 clones during training. Vertical dotted lines mark training stages of images generated from the model shown in panels d)-g). All curves are averages over 3 initializations of the network models and 5 · 10 3
+
+test data. Shaded areas report standard deviation over random initialization. Panel b) reports the same as a), but for denoising samples with fixed level of noise x = e−tx0 + √1 − e−2tz where x0 is a data point and noise z ∼ N (0 , Id ). c) Test loss of a neural network trained on the mixed cumulant model with dimension d = 10 2 a fixed level of noise, evaluated on clones of the data set. All curves in panel c) are averages over 5 initializations of the network model and 10 4 test data. d)-g) Samples generated from U-nets [22] on CIFAR-10 at various training stages. Our main experimental contribution is a demonstration of distributional simplicity bias in standard U-net based denoisers trained in a denoising diffusion paradigm on an image modeling task, see Fig. 1 and Section 2. Specifically, we find for the first ≈ 10 3 steps of training, a U-Net trained to denoise CIFAR10 images achieves the same test loss on the CIFAR10 test set as it does on samples from a Gaussian distribution that have the same mean and covariance as the CIFAR10 images. In other words, the denoiser only relies on pair-wise correlations between pixels to denoise images up to that point in training. Only after about 10 3 steps of SGD, the network starts to exploit the higher-order correlations between pixels, which is evidenced by the lower loss of the denoiser on real images, where such correlations are present, than on the Gaussian surrogate model. We discuss this experiment in more detail in Section 2. How can we describe this distributional simplicity bias theoretically? While several works have examined the dynamics of score denoising in simplified models [23–27], they either consider random feature denoisers or model data as drawn from a Gaussian distribution, and hence cannot account for genuine feature learning of higher-order input correlations. Feature learning in non-linear autoencoders, arguably the simplest class of denoiser neural networks, on a reconstruction task was analysed by Refinetti & Goldt [28] and Cui & Zdeborová [29]. More recently, Cui et al. [30, 31] extended this approach to analyse the learning dynamics of auto-encoders trained in a diffusion paradigm at linear sample complexity. Here, we instead characterise the learning dynamics in a solvable model of the learning dynamics of score diffusion by identifying a key invariant that governs the sample complexity at which a denoising diffusion model recovers information carried by pair-wise and higher-order correlations, going beyond linear sample complexity. 2For our main theoretical results , . . . 1. . . . we prove nearly sharp thresholds for the number of samples required by a simple denoiser to learn from higher-order correlations (Section 4.1); 2. . . . we rigorously establish the distributional simplicity bias of denoising diffusion models by proving a separation of timescales between learning pair-wise and higher-order correlations (Section 4.2); 3. . . . we demonstrate that constraining SGD to the unit sphere, often considered a minor technical detail, is crucial for efficient learning in this model: unconstrained SGD can remain confined near the trivial solution, while spherical SGD exhibits successful learning dynamics, whose timescales we explicitly characterize (Section 4.3). 4. . . . we analyse this effect in more detail in the special case where we choose the optimal denoiser (Section 4.4). Our results thus describe a key mechanism for how denoising diffusion models learn distributions of increasing complexity. On the technical level, we identify a scalar invariant of the loss that describes the initial stages of the learning dynamics, which we call the diffusion information exponent k∗ by analogy to similar invariants found for the single/multi-index problems like the information exponent [32], which allows us to establish nearly sharp thresholds on the sample complexity of learning specific statistical features of the data. 
+
+# 2 A distributional simplicity bias in denoising diffusion models 
+
+Diffusion models are trained by adding increasing amounts of Gaussian i.i.d. noise to real data until the original data is no longer discernible from pure noise. A neural network is trained to reverse this process by predicting and removing the noise step by step. To learn to denoise data in this way, the model must make use of the statistics of the data it is trained on, i.e. it must infer the characteristic properties of the distribution of the data. After training, one starts from random noise and iteratively removes the noise predicted by the model to obtain new, realistic samples. To measure which statistics of the data the model is exploiting, we evaluate the model on several clone datasets, which share statistical properties of the real dataset during training [16]. Here, our original dataset are grayscale CIFAR-10 images [33], on which we train a U-net architecture [22] using denoising score matching [2, 3]. Each clone is a data set of inputs sampled from a Gaussian, whose mean (“mean”) or mean and covariance (“mean + cov”) have been fitted to the images in CIFAR-10. We detail their generation and show examples of the clone data sets in Section A.1. The test loss measures the models’ ability to predict the noise added to the images, both real images and those of the clones. If the model has equal performance on the real data and a clone dataset, this means that, despite the real data having a far richer statistic than the clone, the model has not learnt to use those statistics to predict the noise yet. In this case, we choose the clones to reproduce statistics that can be inferred from the data directly (the mean and the covariance). Figure 1a) shows that as training progresses, the diffusion model specializes more and more: at first, the performance on all test sets (real data and clones) is equal. At later training stages, the models’ performance on the more specialized clones improves, whereas its performance on less specialized clones stagnates, meaning that the model has learnt to exploit the statistics of the data that go beyond the one of the clones it outperforms. We show the samples obtained from these models at various training stages in Fig. 1 a)-f). We repeat the same experiment with the CelebA data set and find the same sequential learning behaviour, see Section A.2. We report details on the training procedure in A.2.1. This experiment substantiates the claim that lower order statistics (i.e. mean and covariance) are learnt in the initial phases of learning, whereas higher-order statistics are learnt later. In the following, we will introduce a model which allows us to explain this sequential learning property of the neural network from lower to higher order statistics. 33 Setup for our theoretical analysis 
+
+We will analyse the dynamics of projected stochastic gradient descent (pSGD) for a simple, non-linear denoiser trained on inputs sampled from a non-Gaussian distribution. We now describe in detail the diffusion paradigm we analyse, the input distribution we use, and the denoiser we will train. 
+
+3.1 Denoising diffusion 
+
+We model the diffusion process following a standard approach, see for instance [34]; all the details are in Section B.2. The diffusion process is defined on a time interval t ∈ [0 , T ], with P0 the unknown distribution that we want to learn to sample from, and a distribution over latent variables PT ≈ N (0 , 1d).The dynamics are described by the following SDE: dx
+
+dt = −xdt + dWt, (1) where Wt ∈ Rd is a d dimensional Wiener process. The solution at time t can be written in distribution as: 
+
+x(t) D
+
+= e−tx(0) + p∆tz (2) where x(0) ∼ P0, z ∼ N (0 , 1d) and ∆t = 1 − e−2t. The goal in diffusion models is learning the score of the density at intermediate times, which is given by 
+
+Fi(x, t ) = ∂ log Pt(x)
+
+∂x i
+
+= − xi − E [xi(0) |x(t) = x]e−t
+
+∆t
+
+, (3) where the last equality, called Tweedie’s formula , is at the core of the feasibility of diffusion models. It gives a recipe on how to approximate the score via empirical averages of the noised process. The objective then becomes learning F, which allows one to realize the reverse SDE [35] and to generate new samples from pure noise. Here, we will not treat the generation process, but focus on learning the score from data. To do this, one usually uses a mean-square objective for a collection of fixed time intervals. Let us denote Swt (x) the approximated score that depends on weight w. The loss function for diffusion time t can be rewritten, up to a constant, as 
+
+L(w) = 12 E 
+
+> x0∼P0
+> z∼N (0 ,1d)
+
+Swt (x0e−t + p∆tz) + z
+
+√∆t
+
+> 2
+
+, (4) see Section B.2 for a derivation. The loss in Eq. (4) can be well approximated having just samples from P0, which allows to estimate the integral over x0. The additional Gaussian integral over z in Eq. (4) is a term that is peculiar to diffusion models. To perform the subsequent analysis, we must decompose the loss into Hermite polynomials. To this end, we use Stein’s lemma (lemma B.4 in the appendix), following the approach of [36], to rewrite the loss and apply the Hermite decomposition. 
+
+3.2 Input distribution 
+
+We draw samples x from the mixed cumulant model (MCM) of Bardone & Goldt [17]. The idea of the mixed cumulant model is to generate inputs that appear isotropically Gaussian in all directions except along the two vectors, or “spikes”, u, v ∈ Rd. This means that taking linear projections of inputs sampled from the mixed cumulant model along a fixed, random direction w ∈ Rd, λμ = w · xμ, results in random variables λμ that follow a standard normal distribution with high probability. However, there are two special directions that a generative model needs to learn: first, the covariance spike u, along which inputs are still normally distributed, but with higher variance, defined by the signal-to-noise ratio βu.The second special direction is the cumulant spike v: projecting inputs along this cumulant spike yields 4a non-Gaussian distribution; by constraining the variance of this distribution to be equal to one, we ensure that the cumulant spike v can only be discovered using higher-order statistics of the inputs, making it harder to detect. We construct samples xμ, μ ∈ [n] of the mixed cumulant model thus: 
+
+xμ = pβuλμu + pβvνμv + zμ (5) where βu ∈ R, β v ∈ [0 , 1] are constant signal to noise ratios that modulate the intensity of the signal, 
+
+λμ ∼ N (0 , 1) and νμ ∼ Rademacher (1 /2) are latent variables, and zμ ∼ N (0 , 1 − βvvv ⊤) is high-dimensional noise. 
+
+3.3 Denoiser and learning algorithm 
+
+We consider the simplest architecture that is able to learn the score of a MCM with one non-Gaussian spike (the explicit derivation of the target score is in appendix B.3). The denoiser takes the form of a rank-1 non-linear autoencoder with a skip connection 
+
+Swt (x) = −x − σ(w · x)w. (6) Autoencoders of this type have been studied before for reconstruction [28, 31, 37] and for denoising diffusion [31]. To train the denoiser weight w, we update an initial weight w0 ∼ Unif (Sd−1) via online projected SGD (pSGD): 
+
+˜wτ +1 = wτ − ηd∇sph L (wτ , x τ ), wτ +1 = ˜wτ +1 
+
+∥ ˜wτ +1 ∥ (7) where L (w, x ) is the sample-wise loss that substitutes the average over P0 in Eq. (4) with the evaluation on a sample x ∼ P0. ∇sph is the spherical gradient: ∇sph f (w) = ( 1 − ww ⊤)∇f (w). We analyse projected SGD rather than standard SGD mainly because it improves the network’s ability to learn the score in our controlled setting. We discuss how using non-projected SGD impacts learning in Section 4.3. We simplify ∇sph L , by expanding the square in Eq. (4), differentiating with respect to w and then applying Stein lemma B.4 to remove the integral over z. At each training time τ , L is computed on a new independent sample xτ ∼ P0. We obtain a formula that depends only on samples of x ∼ Pt, not z:
+
+∇sph Lt(w, x ) = ( 1d − ww ⊤)Fσ(x · w) (8) where we have defined the effective nonlinearity 
+
+Fσ(x · w) := σ′′ (x · w) − σ′(x · w)σ(x · w) − σ(x · w) − σ′(x · w)x · w, (9) The detailed derivation is given in appendix Section B.4. 
+
+# 4 Theoretical analysis of score denoising 
+
+Our goal is now to establish the sample complexities required to learn certain statistical structures of the inputs like the covariance and cumulant spikes u and v with the diffusion model. Our strategy will be to identify a scalar invariant that describes the initial stages of the learning dynamics, which we call the diffusion information exponent k∗ by analogy to similar invariants found for single/multi-index problems like the information exponent [32]), generative exponent [38], or the leap index [8]. Here, we extend these ideas to the diffusion setting. The main technical difference compared to their setting is that they assumed a Gaussian distribution over inputs with identity covariance; here we analyse a non-isotropic, non-Gaussian input distribution, using the methodology of Bardone & Goldt [17]. To highlight the difficulty of learning higher-order correlations using denoising diffusion, we start by considering a setting where inputs only carry non-trivial structure in their higher-order correlations, 5meaning that the covariance signal-to-noise ratio is βu = 0 . In this case, the only relevant order parameter to describe the learning dynamics is the overlap α = w · v between the weight vector of the denoiser and the cumulant spike. This overlap is small at initialization, of order α = Θ ( 1/√d). We will say that the autoencoder has learnt the higher-order correlations if the autoencoder has “weakly recovered” the cumulant spike v, i.e. when the overlap α = w · v ∼ O(1) . This transition from diminishing to macroscopic overlap α marks the exit of the search phase of stochastic gradient descent, and it often requires most of the runtime of online SGD [32]. 
+
+4.1 The diffusion information exponent determines the sample complexity for recovering data structure 
+
+We now introduce the diffusion information exponent , which determines the sample complexity required to learn correlations of different orders. We expand both the effective non-linearity Fσ and the likelihood ratio 
+
+Lt := dPt
+
+dN (0 , 1d)
+
+in the Hermite basis (see definition B.2), with coefficients (cFi )i∈N and (cLj )j∈N, respectively. The Hermite coefficients of Fσ encode the properties of the loss function together with the chosen nonlinearity σ,while the Hermite coefficients of the likelihood ratio characterize the structure of the data distribution. The hardness of the inference task in the online regime is governed by how these two sequences of coefficients interact. When the learning rate is sufficiently small, the noisy online dynamics are well approximated by the gradient flow of the population loss. Then the evolution of the overlap ατ is dominated by the leading non-vanishing contribution in the Hermite expansions, yielding 
+
+ατ +1 = ατ + ηd cLk⋆ cFk⋆−1 α k⋆−1 
+
+> τ
+
++ O
+
+
+
+α k⋆
+
+> τ
+
+
+
+.
+
+We define k⋆, the diffusion information exponent , as the smallest integer k such that the k-th Hermite coefficient of the likelihood ratio and the (k − 1) -th Hermite coefficient of Fσ are both non-zero. Intuitively, k⋆ identifies the lowest-order statistical feature of the data that is both present in the distribution and exploitable by the combination of the mean-squared error loss and the nonlinearity σ.As a consequence, starting from a random initialization, it takes on the order of d k⋆−1 iterations—and hence samples, since we are in the online regime—to reach recovery of the spike v, as made precise in the propositions that follow. 
+
+Assumption 4.1 (Essential) . σ and P are such that ∇sph L(α) is strictly negative for all α ∈ (0 , 1) 
+
+Assumption 4.2 (Technical) . Define 
+
+Hd(x, w ) := L (x, w ) − L (w)
+
+We assume the following estimates hold for some C1 > 0, ε > 0:
+
+sup 
+
+> w∈Sd−1
+
+E
+
+h
+
+(∇sph Hd(x, w ) · v)2i
+
+≤ C1 (10) 
+
+sup 
+
+> w∈Sd−1
+
+E
+
+h
+
+∥∇ sph Hd(x, w )∥4+ εi
+
+≤ C1d(4+ ε)/2 (11) 6Proposition 4.3 (Positive result) . Assume that Lt(x · v) is the likelihood ratio of a sub-Gaussian random variable, and σ an activation function such that Fσ satisfies assumption 4.1 and assumption 4.2. Denote with k∗ the information exponent of the loss L and let ˆn(d, k ∗) be a sample complexity threshold defined as: 
+
+
+
+ˆn(d, 1) = ω(d)ˆn(d, 2) = ω(d log 2 d)ˆn(d, k ) = ω(dk−1 log 2 d) k ≥ 3
+
+then the application of ˆn(d, k ∗) steps of projected gradient descent with step size ηd satisfying 
+
+1ˆn ≪ ηd ≪ 1
+
+√ˆnd (12) 
+
+starting from isotropic initialization w ∼ Unif (Sd−1) leads to: 
+
+lim  
+
+> d→∞
+
+|v · w(ˆ n(d, k ∗)) | = 1 . (13) 
+
+Where the limit holds in probability and in Lp for all p ≥ 1.
+
+Proposition 4.4 (Negative result) . In the setting of the previous propositions, if n(d) = o(ˆ n(d, k ∗)) and 
+
+ηd =
+
+
+
+O   1
+
+> d
+
+ k∗ = 1 , 2
+
+ηd = O
+
+
+
+> 1
+
+√n(d)d
+
+
+
+k∗ ≥ 3
+
+the online SGD with learning rate ηd will fail to reach weak recovery: 
+
+lim  
+
+> d→∞
+
+sup  
+
+> τ≤n(d)
+
+|v · w(τ )| = 0 (14) 
+
+where the limit is in probability and in Lp for any p ≥ 1.Proof. Propositions 4.3 and 4.4 are essentially corollaries of theorems 1.3 and 1.4 in [32]. We explain the details in appendix B.4. Together, propositions 4.3 and 4.4 show how the diffusion information exponent k⋆ governs the sample complexity of online SGD: the model can only recover the planted direction v after it has seen a number of samples roughly on the order of dk∗−1, and not before. For our setting given by Eq. (5) with βu = 0 , β v > 0, we find k∗ = 4 , meaning that recovery of the cumulant spike takes a number of samples larger than cubic in the dimension. We note that in the setting of proposition 4.3 and 4.4, the lower bounds of Székely et al. [39] for algorithmic detection of the cumulant spike u apply, which suggest that the cumulant spike v can be weakly recovered by a polynomial-time algorithm with dk∗/2 samples, which is less than the sample complexity that we found for online SGD. In analogy to Gaussian single-index models, we expect that the smoothing techniques of Biroli et al. [40] and Damian et al. [41] could reduce the sample complexity from n ≳ dk∗−1 down to n ≳ dk∗/2, at the cost of fine-tuning the activation function of the denoiser to the relevant cumulant of the data distribution; see Ricci et al. [42] for an example of effect in the context of independent component analysis. Even reducing the sample complexity to dk⋆/2 would not fully account for the rapid separation from Gaussian clones observed in Fig. 1. This gap likely reflects the highly idealized nature of our setting, where higher-order statistics are completely isolated; in the next section, we study how interactions between low and higher-order information qualitatively change this picture. 74.2 Simplicity bias in denoising diffusion 
+
+We now add back the covariance spike βu to our data model, which is carried by the covariance. This corresponds more closely to the setting found in real tasks, where both lower and higher order statistics are present in the data. The dynamics in this case are more complex, and the sample complexity required to learn the structure in the higher-order correlations depends on whether there are correlations among latent variables, as illustrated by the next proposition. 
+
+Assumption 4.5 . The link function σ is a thrice differentiable function, with bounded first, second and third order derivatives. Hence F (z) = σ′′ (z) − σ′(z)σ(z) − σ(z) − σ′(z)z is a globally Lipschitz function, hence F belongs to the space of square integrable function with respect to the density of 
+
+N (0 , 1) for all t (being all sub-Gaussian distributions). Assume moreover that σ is so that F satisfies the following conditions 
+
+cF 
+
+> 1
+
+= E 
+
+> z∼N (0 ,1)
+
+[F (z)h1(z)] > 0 (15) 
+
+cF 
+
+> 3
+
+= E 
+
+> z∼N (0 ,1)
+
+[F (z)h3(z)] < 0 (16) 
+
+Proposition 4.6. Under assumption 4.5, consider pSGD Eq. (7) dynamics trained on L defined as Eq. (8) ,with data distributed as a mixed cumulant model Eq. (5) . Then: 1. with independent latent variables λμ, νμ and learning rate ηd → 0 as d → ∞ , as long as n =
+
+od
+
+
+
+min 
+
+ dη2
+
+> d
+
+, d 3
+
+ 
+
+, we have that lim d→∞ sup τ ≤n |wτ · v| = 0 in Lp for every p ≥ 1.2. with a number of samples n = θdd, with θd = Ω(log 2 d) and growing at most polynomially in d;step size ηd chosen so that 1 
+
+> θd
+
+≪ ηd ≪ 1√θd
+
+pSGD reaches weak recovery in a time τu ≤ n i.e. there exists ι > 0 independent of d such that for τ ≥ τu, with high probability wτ · u ≥ ι. Moreover, in the case of positive correlation of latent variables E [λμνμ] > 0, conditioning on having matching sign at initialization: (v · w0)( u · w0) > 0, weak recovery is achieved also for the cumulant spike 
+
+v in a time τv ≤ n.The first part of proposition 4.6 is a negative result: the cumulant spike cannot be recovered at linear sample complexity. The second part of this statement is instead a positive result: pSGD weakly recovers the covariance spike u, and hence learns about the pair-wise statistics, in quasi-linear sample complexity. For the cumulant spike v instead, we find that if the latent variables λμ and νμ are uncorrelated, pSGD will need at least d3 samples to weakly recover v (as for single spike models, see proposition 4.3), and hence learn about higher-order correlations. This clear separation of timescales for the recovery of u
+
+and v rigorously establishes the distributional simplicity bias: the model learns pair-wise statistics (long) before higher-order correlations. However, if latent variables have a positive correlation, pSGD will recover the spike v with Θ ( dpolylog (d)) samples. A similar speed-up due to correlated latent variables was found by Bardone & Goldt [17] for supervised classification. We provide the proof in Section B.5. We show an example of a neural network trained on the mixed cumulant model in Fig. 1 c). This model exhibits the same sequential learning property as conventionally trained diffusion models on image data, see Fig. 1 a), b). 
+
+4.3 The importance of the spherical constraint for SGD 
+
+In order to consider a setting slightly closer to practice, we now remove the spherical constraint on SGD. The optimization algorithm then becomes simply: 
+
+(
+
+w0 ∼ Unif (Sd−1)
+
+wτ +1 = wτ − ηd∇L (wτ , x τ ) τ > 1 (17) Surprisingly, this simple change can let performances of the denoiser greatly deteriorate, as we now discuss. 80 1 2 3 4
+
+‖w‖
+
+> −1
+> 0
+> 1
+> Λ(‖ w‖)
+
+ReLU 
+
+ReLU 2
+
+−tanh 
+
+sigmoid 
+
+−tanh(10 x)10 
+
+σ * , t = 0.5 
+
+σ * , t = 1 Figure 2: Examples of the contraction term Λ for different choices of activation σ. σ∗ denotes the matched functional form of the score Eq. (B.14) for different values of the diffusion time t.We can see this loss of performance most clearly in the single spike case with βu = 0 . Expanding the gradient of the population loss, we notice that the removal of the spherical constraint leads to appearance of an additional, radial term. Recalling the notation for the overlap with the hidden spiked direction ατ = v · wτ , we have: 
+
+−∇L t(wτ ) = −E [∇L (wτ , x τ )] (18) 
+
+= cLk∗ c ˜Fk∗−1
+
+(k∗ − 1)! αk∗−1 
+
+> τ
+
++ O(αk∗ 
+
+> τ
+
+)
+
+!
+
+v
+
+| {z }
+
+> signal term
+
++
+
+
+
+c ˜F 
+
+> 1
+
++ cGσ 
+
+> 0
+
++ O(ατ )
+
+
+
+wτ
+
+| {z }
+
+> additional radial term
+
+, (19) where (c ˜Fi )i∈N and (cGj )j∈N are the Hermite coefficients of the functions: 
+
+˜Fσ(xw, || w|| ) = σ′′ (xw)|| w|| 2 − σ′(xw)σ(xw)|| w|| 2
+
+− σ(xw) − σ′(xw)xw,Gσ(xw) = 2 σ′(xw) − σ2(xw).
+
+(20) Due to the fact that we are not considering w to have fixed norm, the coefficients (c ˜Fi )i∈N and (cGj )j∈N
+
+depend on || w|| and are defined by the formula (see also Section B.6 for more details on the expansion): 
+
+c ˜Fk (|| w|| ) := E 
+
+> x∼N (0 ,1)
+
+h
+
+∂k ˜Fσ(w · x)
+
+i
+
+(21) 
+
+cGk (|| w|| ) = E 
+
+> x∼N (0 ,1)
+
+h
+
+∂kGσ(w · x)
+
+i
+
+(22) We can immediately see that the additional radial term strongly impacts the dynamics; in particular, in case σ is an odd function (which implies c ˜F 
+
+> 0
+
+= 0 ) or cL 
+
+> 1
+
+= 0 , it is the leading contribution in Eq. (18). Zooming in on this case, many choices of σ (especially if we pick σ to be able to perfectly match the score, see Fig. 2 and Section 4.4) imply that c ˜F 
+
+> 1
+
++ cG 
+
+> 0
+
+< 0, so it acts as a weight decay term that pushes 
+
+wτ +1 towards zero. In case cL 
+
+> 2
+
+not large enough, the weight decay term overwhelms the signal term, leading to contraction dynamics that converge to zero. In the next two paragraphs we will analyse the rigorous statement and interpret its implication. 9Proposition 4.7. In the setting described in Section 4.3 with cL 
+
+> 1
+
+c ˜F 
+
+> 0
+
+= 0 (for instance, this is verified when 
+
+σ is an odd function), with a population loss that can be expanded as Eq. (18) , with a C∞ link function 
+
+σ such that Λ( || w|| ) := (1 + cL 
+
+> 2
+
+)c ˜F 
+
+> 1
+
+(|| w|| ) + cG 
+
+> 0
+
+and Λ( || w|| ) ≤ − k0 < 0 for all || w|| ≤ Γ. Suppose we initialize such that || w0|| < Γ and α0 → 0 as d → ∞ . We perform SGD as in Eq. (17) with step size η,such that lim d→∞ η = 0 . Then there exists ¯d such that for d > ¯d the sequences ατ := wτ · v and || wτ || 
+
+satisfy the following upper bound for all τ with probability that goes to 1 as d → ∞ :
+
+ατ ≤ ¯γτ α0 + rd (23) 
+
+∥wτ ∥ ≤ ¯δτ || w0|| + sd (24) 
+
+where 0 < ¯γ, ¯δ < 1 and rd, s d → 0 as d → ∞ . In particular ¯d is such that ατ ≤ α0 and || wτ || ≤ || w0|| 
+
+for all τ ≥ 0.
+
+The proof is presented in Section B.6 in the appendix. Proposition 4.7 shows that for many choices of nonlinearity σ SGD dynamics initialized isotropically with w0 ∼ Unif (Sd−1) cannot escape an attracting minimum at w = 0 : both the overlap ατ and then norm || wτ || shrink to 0 without ever surpassing their value at initialization. It may seem counterintuitive to see a phenomenology that is so different from the case of projected SGD discussed in propositions 4.3, 4.4 and 4.6. It turns out that this effect is due to precise properties of the data structure and the architecture that we are considering. First, we need to highlight the assumptions: cL 
+
+> 1
+
+c ˜F 
+
+> 0
+
+= 0 means that data structures with low information exponent , cL
+
+> 1
+
+̸ = 0 are less likely to show this behavior: in these cases the strong linear correlations in the data strongly push the gradient of the loss towards non-trivial solutions, counterbalancing the attraction that the additional radial term 
+
+in Eq. (18) may present. In case of information exponent larger than one ( cL 
+
+> 1
+
+= 0 ), it is the assumption 
+
+Λ( || w|| ) = (1 + cL 
+
+> 2
+
+)c ˜F 
+
+> 1
+
+(|| w|| ) + cG 
+
+> 0
+
+< 0 (25) that regulates the attracting behavior of the fixed point w = 0 . We can see in Fig. 2 that it is possible to classify common activation functions based on this property (note that non-smooth functions such as ReLU or ReLU 2 violate the regularity assumptions of proposition 4.7, but it is still possible to work with smoothed versions of these nonlinearities). It is worth pointing out that in practice, it is possible to manually tweak σ via small rescaling so that the sign of Λ can change. An example is the case of 
+
+σ = − tanh : it is possible to consider a scaled version ξ → − tanh(10 ξ)10 (green line in Fig. 2) for which 
+
+Λ is always positive. Note that the choice of the sign for σ is driven by the necessity of requiring 
+
+C ˜Fσ 
+
+> 3
+
+CL 
+
+> 4
+
+≥ 0, otherwise the signal term in equation 18 would push in the wrong direction. 
+
+4.4 The case of the optimal denoiser 
+
+A particular case that it is worth to discuss in detail is the choice of σ that could optimally represent the score of the data distribution (see the derivation of Eq. (B.14) in the appendix). For a fixed diffusion time t, we define the matched denoiser as 
+
+σ∗ 
+
+> t
+
+(ξ) = − e−t
+
+∆t
+
+
+
+e−tξ − tanh 
+
+ ξe −t
+
+∆t
+
+ 
+
+. (26) The denoiser σ∗ 
+
+> t
+
+has the property that it is the function that can reach the smallest population loss value, attained for w = v, and its functional form can be derived by simply going through the steps in the derivation of Eq. (4) backwards, see Section B.2. Studying the optimization problem with σ∗ 
+
+> t
+
+is the analog of studying denoising diffusion in the teacher-student scenario : a setting in which the architecture that needs to perform inference has the same structure of the data generating process, and only needs to infer the weights (see for instance Engel & Broeck [43] for a review). In our setting, for all times t ∈ (0 , 1) , σ∗ satisfies the assumptions of proposition 4.7 and the sub-optimal solution w = 0 is the effective attractor of the dynamics. This is the first example known to the 10 10 0 10 2 10 4 10 6      
+
+> steps
+> 0
+> 1
+> overlap
+> a) Two-layer Autoencoder
+> 10 010 210 410 6
+> steps
+> 0
+> 1
+> overlap
+> b) Three-layer Resnet
+> 10 010 210 410 6
+> steps
+> 0
+> 1
+> overlap
+> c) Four-layer Resnet
+> tanh
+> ReLU 2
+> ReLU
+> sigmoid
+
+Figure 3: Normalized overlap of first-layer weights of neural networks of varying depth trained with Adam on inputs drawn from the mixed cumulant model, Eq. (5), at d = 100 . All curves are averages over 5 random initializations of the neural networks. authors of a model in which the teacher-student scenario is suboptimal with respect to the choice of the non-linearity. We can single out two factors that explain why the solution w = 0 is more stable than in other settings. 1. The most trivial contribution is given by the employment of MSE loss which provides the con-traction term σ2(xw) inside Gσ. Even though this is an obvious contribution, it is worth to point it out since many other theoretical works on single/multi index Gaussian models in supervised learning consider different loss functions, such as correlation loss studied in [17, 41], that do not have this property. 2. The nature of the score denoising tasks. Indeed, part of the push towards 0 in the case of σ∗ is due to the term 2( σ∗)′(xw) in Gσ. This term comes from integrating out the additional Gaussian noise present in equation 4 via Stein’s lemma (lemma B.4), a specific contribution that is not present in usual supervised setting. 
+
+4.5 The role of overparametrization and depth 
+
+We investigated how more flexible architectures can learn higher-order statistics without task-specific tuning of the nonlinearity by training multi-layer autoencoders (matched to Eq. (6)) and feed-forward residual networks on the MCM model (Fig. 3, see Section A.3 for experimental details). We measure learning by the maximal overlap w⊤v/ ∥w∥ between the first-layer weights and the spiked direction. We observe that over-parameterization can mitigate the curse predicted by proposition 4.7. In Fig. 3, a wide two-layer autoencoder trained with Adam is able to learn the hidden direction v with the activations ReLU and ReLU 2, even though Λ < 0 for both these nonlinearities, and we recall that Λ < 0 implies that training a single-neuron autoencoder with unprojected GD would get stuck near the trivial solution 
+
+w = 0 . Indeed, we show in Fig. A.4 that Adam applied to a narrow architecture remains stuck at zero. The over-parametrisation thus helps the network to escape the trivial solution. Over-parametrisation is well known to speed up learning in different settings, like learning two-layer ReLU networks [44] or phase retrieval [45]. For the two-layer networks in Fig. A.4a), it could be that the repulsive interactions between neurons in wide networks [46] spread neurons apart and counteract the contraction toward 
+
+w = 0 predicted by the single-neuron dynamics. Understanding this mechanism more precisely is an interesting direction for future work. Width and depth, however, affect learnability in different ways. As depth increases, ReLU 2 networks lose the ability to recover the spike, likely due to exploding activations induced by repeated squaring. Strikingly, deeper networks with tanh or sigmoid activations do recover the spike. As discussed in Section 4.3, simple reparametrizations can flip the sign of Λ, so that an activation violating the condition of proposition 4.7 can be transformed into an equivalent learnable representation. This suggests a possible role of depth: early layers can implement data-dependent transformations that effectively reparameterize the input seen by later layers, improving the conditioning of the nonlinearity and thereby restoring learnability without explicit tuning of σ.11 5 Concluding perspectives 
+
+We demonstrated experimentally that diffusion models learn statistics of increasing complexity over training, where complexity is defined via the order of the cumulants exploited by the model. In the mixed cumulant model, we rigorously analyze this phenomenon and show that learning is governed by the diffusion information exponent k∗, which determines the sample complexity required to recover a given statistic and depends on both the architecture and the data distribution; correlated latent variables facilitate learning. While our theoretical analysis focuses on a simple denoiser with a single hidden unit and a single non-Gaussian direction, the diffusion information exponent can in principle be computed for richer architectures and more structured data models. We further compare two optimization protocols and show that SGD projected on the sphere out-performs its unconstrained counterpart, which can be trapped by a suboptimal attracting solution at 
+
+∥w∥ = 0 for several common nonlinearities. Numerical experiments indicate that increasing network width and depth restores the ability to learn higher-order statistics, suggesting that both overparametriz-ation and depth can mitigate unfavorable nonlinearities without explicit fine-tuning. Overall, our results show that diffusion models exhibit a distributional simplicity bias beyond supervised learning: when data or model expressivity is limited, they reliably learn lower-order statistics before higher-order ones. 
+
+# Code availability 
+
+The code to reproduce our experiments is available at https://github.com/ClaudiaMer/DiffusionEasy2Hard. 
+
+# Acknowledgements 
+
+SG and CM gratefully acknowledge funding from the European Research Council (ERC) for the project “beyond2”, ID 101166056. SG also acknowledges funding from the European Union–NextGenerationEU, in the framework of the PRIN Project SELF-MADE (code 2022E3WYTY – CUP G53D23000780001), and from Next Generation EU, in the context of the National Recovery and Resilience Plan, Investment PE1 – Project FAIR “Future Artificial Intelligence Research” (CUP G53C22000440006). 
+
+# References 
+
+1. Sohl-Dickstein, J., Weiss, E., Maheswaranathan, N. & Ganguli, S. Deep Unsupervised Learning using Nonequilibrium Thermodynamics in Proceedings of the 32nd International Conference on Machine Learning (eds Bach, F. & Blei, D.) 37 (PMLR, Lille, France, 2015), 2256–2265 (cit. on p. 1). 2. Ho, J., Jain, A. & Abbeel, P. Denoising Diffusion Probabilistic Models arXiv:2006.11239 [cs, stat]. Dec. 2020 (cit. on pp. 1, 3). 3. Song, Y. & Ermon, S. Generative Modeling by Estimating Gradients of the Data Distribution in 
+
+Advances in Neural Information Processing Systems 32 (Curran Associates, Inc., 2019) (cit. on pp. 1, 3). 4. Saad, D. & Solla, S. Exact Solution for On-Line Learning in Multilayer Neural Networks. Phys. Rev. Lett. 74, 4337–4340 (1995) (cit. on p. 1). 5. Saxe, A. M., McClelland, J. L. & Ganguli, S. Exact solutions to the nonlinear dynamics of learning in deep linear neural networks in ICLR (2014) (cit. on p. 1). 6. Saxe, A. M., McClelland, J. L. & Ganguli, S. A mathematical theory of semantic development in deep neural networks. Proceedings of the National Academy of Sciences 116, 11537–11546 (2019) (cit. on p. 1). 12 7. Abbe, E., Adsera, E. B. & Misiakiewicz, T. Sgd learning on neural networks: leap complexity and saddle-to-saddle dynamics in The Thirty Sixth Annual Conference on Learning Theory (2023), 2552– 2623 (cit. on p. 1). 8. Dandi, Y., Krzakala, F., Loureiro, B., Pesce, L. & Stephan, L. How Two-Layer Neural Networks Learn, One (Giant) Step at a Time. Journal of Machine Learning Research 25, 1–65 (2024) (cit. on pp. 1, 5). 9. Berthier, R., Montanari, A. & Zhou, K. Learning time-scales in two-layers neural networks. Founda-tions of Computational Mathematics 25, 1627–1710 (2025) (cit. on p. 1). 10. Kögler, K., Shevchenko, A., Hassani, H. & Mondelli, M. Compression of Structured Data with Autoencoders: Provable Benefit of Nonlinearities and Depth in Forty-first International Conference on Machine Learning (2024) (cit. on p. 1). 11. Kalimeris, D. et al. SGD on Neural Networks Learns Functions of Increasing Complexity in Advances in Neural Information Processing Systems 32: Annual Conference on Neural Information Processing Systems 2019, NeurIPS 2019, December 8-14, 2019, Vancouver, BC, Canada (eds Wallach, H. M. et al. )(2019), 3491–3501 (cit. on p. 1). 12. Farnia, F., Zhang, J. & Tse, D. A Spectral Approach to Generalization and Optimization in Neural Networks in ICLR (2018) (cit. on p. 1). 13. Rahaman, N. et al. On the Spectral Bias of Neural Networks in Proc. of ICML (eds Chaudhuri, K. & Salakhutdinov, R.) 97 (PMLR, 2019), 5301–5310 (cit. on p. 1). 14. Ingrosso, A. & Goldt, S. Data-driven emergence of convolutional structure in neural networks. 
+
+Proceedings of the National Academy of Sciences 119, e2201854119 (2022) (cit. on p. 1). 15. Merger, C. et al. Learning Interacting Theories from Data. Physical Review X 13. Publisher: American Physical Society, 041033 (Nov. 2023) (cit. on p. 1). 16. Refinetti, M., Ingrosso, A. & Goldt, S. Neural networks trained with SGD learn distributions of increasing complexity in International Conference on Machine Learning (2023), 28843–28863 (cit. on pp. 1, 3). 17. Bardone, L. & Goldt, S. Sliding Down the Stairs: How Correlated Latent Variables Accelerate Learning with Neural Networks in Proceedings of the 41st International Conference on Machine Learning 235 
+
+(PMLR, 2024), 3024–3045 (cit. on pp. 1, 4, 5, 8, 11, 23). 18. Rende, R., Gerace, F., Laio, A. & Goldt, S. A distributional simplicity bias in the learning dynamics of transformers. Advances in Neural Information Processing Systems 37, 96207–96228 (2024) (cit. on p. 1). 19. Belrose, N., Pope, Q., Quirke, L., Mallen, A. & Fern, X. Neural Networks Learn Statistics of Increasing Complexity. arXiv preprint arXiv:2402.04362 (2024) (cit. on p. 1). 20. Favero, A., Sclocchi, A., Cagnetta, F., Frossard, P. & Wyart, M. How compositional generalization and creativity improve as diffusion models are trained en. arXiv:2502.12089 [stat]. Mar. 2025 (cit. on p. 1). 21. Garnier-Brun, J., Mézard, M., Moscato, E. & Saglietti, L. How Transformers Learn Structured Data: Insights From Hierarchical Filtering in Forty-second International Conference on Machine Learning 
+
+(2025) (cit. on p. 1). 22. Ronneberger, O., Fischer, P. & Brox, T. U-Net: Convolutional Networks for Biomedical Image Seg-mentation arXiv:1505.04597 [cs]. May 2015 (cit. on pp. 2, 3, 16). 23. Li, X., Dai, Y. & Qu, Q. Understanding Generalizability of Diffusion Models Requires Rethinking the Hidden Gaussian Structure 2024. arXiv: 2410.24060 [cs.LG] (cit. on p. 2). 24. Bonnaire, T., Urfin, R., Biroli, G. & Mézard, M. Why Diffusion Models Don’t Memorize: The Role of Implicit Dynamical Regularization in Training arXiv:2505.17638 [cs]. May 2025 (cit. on p. 2). 25. George, A. J., Veiga, R. & Macris, N. Analysis of Diffusion Models for Manifold Data arXiv:2502.04339 [math]. Feb. 2025 (cit. on p. 2). 13 26. Merger, C. & Goldt, S. Generalization Dynamics of Linear Diffusion Models May 2025 (cit. on p. 2). 27. Wang, B. & Pehlevan, C. An Analytical Theory of Spectral Bias in the Learning Dynamics of Diffusion Models in The Thirty-ninth Annual Conference on Neural Information Processing Systems (2025) (cit. on p. 2). 28. Refinetti, M. & Goldt, S. The dynamics of representation learning in shallow, non-linear autoencoders 
+
+in International Conference on Machine Learning (2022), 18499–18519 (cit. on pp. 2, 5). 29. Cui, H. & Zdeborová, L. High-dimensional asymptotics of denoising autoencoders. Advances in Neural Information Processing Systems 36, 11850–11890 (2023) (cit. on p. 2). 30. Cui, H., Krzakala, F., Vanden-Eijnden, E. & Zdeborova, L. Analysis of Learning a Flow-based Gener-ative Model from Limited Sample Complexity in The Twelfth International Conference on Learning Representations (2024) (cit. on p. 2). 31. Cui, H., Pehlevan, C. & Lu, Y. M. A solvable model of learning generative diffusion: theory and insights 
+
+in The Thirty-ninth Annual Conference on Neural Information Processing Systems (2025) (cit. on pp. 2, 5). 32. Ben Arous, G., Gheissari, R. & Jagannath, A. Online Stochastic Gradient Descent on Non-Convex Losses from High-Dimensional Inference. J. Mach. Learn. Res. 22 (2021) (cit. on pp. 3, 5–7, 22). 33. Krizhevsky, A. Learning Multiple Layers of Features from Tiny Images 2009 (cit. on p. 3). 34. Biroli, G. & Mézard, M. Generative diffusion in very large dimensions. en. Journal of Statistical Mechanics: Theory and Experiment 2023, 093402 (Sept. 2023) (cit. on pp. 4, 20). 35. Anderson, B. D. Reverse-time diffusion equation models. en. Stochastic Processes and their Applica-tions 12, 313–326 (May 1982) (cit. on p. 4). 36. Shah, K., Chen, S. & Klivans, A. Learning Mixtures of Gaussians Using the DDPM Objective 2023. arXiv: 2307.01178 [cs.DS] (cit. on pp. 4, 21). 37. Mendes, V. C. et al. A solvable high-dimensional model where nonlinear autoencoders learn structure invisible to PCA while test loss misaligns with generalization 2026. arXiv: 2602.10680 [stat.ML] 
+
+(cit. on p. 5). 38. Damian, A., Pillaud-Vivien, L., Lee, J. & Bruna, J. Computational-Statistical Gaps in Gaussian Single-Index Models (Extended Abstract) in Proceedings of Thirty Seventh Conference on Learning Theory 
+
+(eds Agrawal, S. & Roth, A.) 247 (PMLR, 2024), 1262–1262 (cit. on p. 5). 39. Székely, E., Bardone, L., Gerace, F. & Goldt, S. Learning from higher-order correlations, efficiently: hypothesis tests, random features, and neural networks. en. Advances in Neural Information Pro-cessing Systems 37, 78479–78522 (Dec. 2024) (cit. on pp. 7, 21). 40. Biroli, G., Cammarota, C. & Ricci-Tersenghi, F. How to iron out rough landscapes and get optimal performances: averaged gradient descent and its application to tensor PCA. Journal of Physics A: Mathematical and Theoretical 53, 174003 (2020) (cit. on p. 7). 41. Damian, A., Nichani, E., Ge, R. & Lee, J. D. Smoothing the Landscape Boosts the Signal for SGD: Optimal Sample Complexity for Learning Single Index Models in Thirty-seventh Conference on Neural Information Processing Systems (2023) (cit. on pp. 7, 11). 42. Ricci, F., Bardone, L. & Goldt, S. Feature learning from non-Gaussian inputs: the case of Independent Component Analysis in high dimensions. arXiv preprint arXiv:2503.23896 (2025) (cit. on p. 7). 43. Engel, A. & Broeck, C. V. D. Statistical Mechanics of Learning (Cambridge University Press, 2001) (cit. on p. 10). 44. Safran, I. M., Yehudai, G. & Shamir, O. The effects of mild over-parameterization on the optimization landscape of shallow relu neural networks in Conference on Learning Theory (2021), 3889–3934 (cit. on p. 11). 14 45. Sarao Mannelli, S., Vanden-Eijnden, E. & Zdeborová, L. Optimization and generalization of shallow neural networks with quadratic activation functions. Advances in Neural Information Processing Systems 33, 13445–13455 (2020) (cit. on p. 11). 46. Mei, S., Montanari, A. & Nguyen, P. -M. A mean field view of the landscape of two-layer neural networks. Proceedings of the National Academy of Sciences 115, E7665–E7671. eprint: https : //www.pnas.org/doi/pdf/10.1073/pnas.1806579115 (2018) (cit. on p. 11). 47. Liu, Z., Luo, P., Wang, X. & Tang, X. Deep Learning Face Attributes in the Wild English. in Proceedings of the IEEE International Conference on Computer Vision (ICCV) ISSN: 2380-7504 (IEEE Computer Society, Dec. 2015), 3730–3738 (cit. on p. 16). 48. McCullagh, P. Tensor methods in statistics (Courier Dover Publications, 2018) (cit. on p. 19). 49. Szegő, G. Orthogonal Polynomials (American mathematical society, 1939) (cit. on p. 19). 50. Abramowitz, M. & Stegun, I. A. Handbook of mathematical functions with formulas, graphs, and mathematical tables xiv+1046 (National Bureau of Standards, 1964) (cit. on p. 19). 51. Bandeira, A. S., Kunisky, D. & Wein, A. S. Computational Hardness of Certifying Bounds on Con-strained PCA Problems in 11th Innovations in Theoretical Computer Science Conference (ITCS 2020) 
+
+(ed Vidick, T.) 151 (Schloss Dagstuhl–Leibniz-Zentrum fuer Informatik, 2020), 78:1–78:29 (cit. on pp. 19, 20). 15 a) mean b) mean + cov. c) test Figure A.1: Samples from the different "clones" as well as the test data set. a) shows images drawn from the mean clone which follows a Gaussian distribution with matching mean to the CIFAR-10 dataset and identity covariance. In b), we additionally match the covariance matrix of the Gaussian distribution to the CIFAR-10 dataset. c) shows 9 images from the CIFAR-10 dataset. a) mean b) mean + cov. c) test 
+
+Figure A.2: Samples from the different "clones" as well as the test data set. a) shows images drawn from the mean clone which follows a Gaussian distribution with matching mean to the CelebA dataset and identity covariance. In b), we additionally match the covariance matrix of the Gaussian distribution to the CelebA dataset. c) shows 9 images from the CelebA dataset. 
+
+# A Details on experiments 
+
+A.1 The clones 
+
+To generate the clone datasets, we first determine the mean μ and the covariance Σ of the test datasets for both CelebA and CIFAR-10. We then sample the "mean" clone from a Gaussian distribution with mean μ and identity covariance. We then sample the "mean + cov." clone from a Gaussian distribution with matching mean and covariance. We show examples of these datasets in Fig. A.1 and Fig. A.2. 
+
+A.2 Sequential learning in CelebA data 
+
+In Fig. A.3 we report the outcome of the sequential learning experiment on 10 5 CelebA data [47], which we downscale to 80 × 80 greyscale pixels. We observe the same sequential learning behavior as for the CIFAR-10 data. We observe that the loss curves are more noisy than the ones for CIFAR-10, we expect these effects to be due to the finite learning rate used during training. 
+
+A.2.1 Training hyperparameters 
+
+We use diffusion models with a Unet architecture [22], T = 10 3 levels of noise and sinusoidal embedding for t. For the CIFAR-10 data reported in 1, we use the Adam optimizer with learning rate 10 −3. For the CelebA data reported in A.3, we reduce the learning rate to 10 −4. For both data sets we use a batchsize of 10 2 samples. 16 10 0 10 2 10 4        
+
+> steps
+> 10 1
+> 10 0
+> loss
+> e) overall loss
+> mean
+> mean + cov.
+> train
+> test
+> a) steps = 11 b) steps = 118 c) steps = 9237 d) steps = 100000
+> 10 010 3
+> steps
+> 10 1
+> 10 0
+> loss
+> f) t=100
+> 10 010 3
+> steps
+> 10 1
+> 10 0
+> loss
+> g) t=500
+
+Figure A.3: Training Unets on CelebA data. a)-d) samples generated from the model at various training stages. e) Test loss of the model on clones of the dataset during training. Vertical dotted lines mark training stages of images generated from the model shown in panels a)-d). f)-g) same as e), but for fixed level of noise. All curves are averaged over 2 initializations of the network models and 5 · 10 3 test data. Shaded areas report standard deviation over random initialization. 
+
+A.3 Learning the MCM model 
+
+In this section, we describe the different architectures trained on the MCM model. We sort these descriptions by the figures they correspond to. 
+
+Fig. 1c): n-layer feedforward network with linear skip connection. Let x ∈ Rd be the input drawn according to Eq. (5) with βu = 10 2, β v = 1 ,. The network defines a sequence of hidden representations {h(k)}d−1 
+
+> k=1
+
+⊂ Rm as follows: 
+
+h(1) = g(W1x) , (A.1) 
+
+h(k) = g
+
+
+
+Wkh(k−1) 
+
+, k = 2 , . . . , n − 1, (A.2) where W1 ∈ Rm×d, Wk ∈ Rm×m for k ≥ 2 are learnable weight matrices, g(·) is an element-wise nonlinearity, and λ ∈ R is a fixed residual scaling parameter, which we set to one. The output of the network is given by 
+
+f (x) = αx + Wout h(n−1) + Ax + b, (A.3) where Wout ∈ Rd×m is a learnable output weight matrix and α ∈ R is a fixed skip-connection coefficient. We have also added a general linear mapping Ax + b to the output to allow the network to learn the Gaussian part of the score explicitly; A ∈ Rd×d, b ∈ Rd is a learnable matrix and bias vector. This architecture was used to produce panel c) Fig. 1, choosing σ =ReLu and m = 10 , n = 3 . To train it, we used objective Eq. (4), the Adam optimizer with learning rate η = 10 −3 and a batch-size of 10 2 data samples per step. 
+
+Fig. 3 a): Twolayer Autoencoder. We consider a two-layer neural network with tied weights. Given an input x ∈ Rd drawn according to Eq. (5) with βu = 0 , β v = 1 , the hidden representation is computed as 
+
+h = σ(W x )
+
+17 10 0 10 1 10 2 10 3 10 4 10 5 10 6           
+
+> steps
+> 10 3
+> 10 0
+> overlap
+> a) Two-layer Autoencoder, m= 1
+> trained with Adam
+> tanh
+> ReLU 2
+> ReLU
+> sigmoid
+> 10 010 110 210 310 410 510 6
+> steps
+> 0
+> 1overlap
+> b) Two-layer Autoencoder, m= 100
+> trained with SGD
+
+Figure A.4: Normalized overlap of first-layer weights of neural networks of varying m trained with Adam or SGD the MCM model at d = 100 . All curves are averages over 5 random initializations of the neural networks. where W ∈ Rm×d and σ(x) is an element-wise nonlinearity. We also add a trainable skip connection α,so the output is given by 
+
+S(x) = −αx − W Th + b (A.4) where the second layer reuses the transpose of the first-layer weights and b ∈ Rd is a learnable bias. This architecture was used to produce panel a) Fig. 3, choosing different activation functions for σ. To train it, we used objective Eq. (4), the Adam optimizer with learning rate η = 10 −4 and a batch-size of 
+
+10 2 data samples per step. 
+
+Fig. 3 b-c): n-layer Resnet . Let x ∈ Rd be the input drawn according to Eq. (5) with βu = 0 , β v = 1 ,. The network defines a sequence of hidden representations {h(k)}d−1 
+
+> k=1
+
+⊂ Rm as follows: 
+
+h(1) = g(W1x) , (A.5) 
+
+h(k) = λ h (k−1) + g
+
+
+
+Wkh(k−1) 
+
+, k = 2 , . . . , n − 1, (A.6) where W1 ∈ Rm×d, Wk ∈ Rm×m for k ≥ 2 are learnable weight matrices, g(·) is an element-wise nonlinearity, and λ ∈ R is a fixed residual scaling parameter, which we set to one. The output of the network is given by 
+
+f (x) = αx + Wout h(n−1) , (A.7) where Wout ∈ Rd×m is a learnable output weight matrix and α ∈ R is a fixed skip-connection coefficient. All linear layers are bias-free. This architecture was used to produce panel b)-c) Fig. 3, choosing different activation functions for σ. To train it, we used objective Eq. (4), the Adam optimizer with learning rate 
+
+η = 10 −4 and a batch-size of 10 2 data samples per step. 
+
+A.4 Further experiments on learning the MCM model 
+
+Here we present two further experiments on the MCM model using the same architecture as in Fig. 3a), see Section A.3 for details. We modify the setting used to obtain Fig. 3a) in two ways: first, we remove the overparametrization, i.e., we set the width of the autoencoder to m = 1 . We find that the model can no longer recover the spike. In the second experiment, we keep the width of the autoencoder at m = 100 ,meaning that the network is overparametrized, but use SGD instead of Adam as an optimization regime. Further, we increase the learning rate to η = 10 −2, as SGD can have slower convergence than Adam. We find that using SGD, the same architectures are able to recover the spike as in the case where we trained with Adam. We hence conclude that overparametrization is the key for recovery of the spike. 
+
+# B Details on the analysis and proofs 
+
+B.1 Hermite polynomials 
+
+We recall the definition and a few properties of the Hermite polynomials. 18 Definition B.1. The Hermite polynomial of degree m is 
+
+hm(x) := ( −1) me x22
+
+dm
+
+dxm
+
+
+
+e− x22
+
+
+
+(B.1) There is also a general formula: 
+
+hm(x) = m!
+
+> ⌊m/ 2⌋
+
+X
+
+> j=0
+
+(−1) j
+
+2j j!( m − 2j)! xm−2j (B.2) The Hermite polynomials enjoy the following properties (for details see McCullagh [48], Szegő [49] and Abramowitz & Stegun [50]): 
+
+• they are an orthogonal system with respect to the L2 product weighted with the density of the Normal distribution: 1
+
+√2π
+
+Z ∞−∞ 
+
+hn(x)hm(x)e− x22 dx = n!δm,n ; (B.3) 
+
+• hm is a monic polynomial of degree m, hence (hm)m∈{ 1,...,N } generates the space of polynomials of degree ≤ N ;
+
+• the previous two properties imply that the family of Hermite polynomials is an orthogonal basis for the Hilbert space L2(R, Q) where Q is the normal distribution; 
+
+• they enjoy the following recurring relationship 
+
+hm+1 (x) = xh m(x) − h′
+
+> m
+
+(x) = xh m(x) − mh m−1(x), (B.4) 
+
+Multivariate case In the multivariate m-dimensional case we can generalize to Hermite tensors 
+
+(Hα)α∈Nm defined as: 
+
+Hα(x1, . . . , x m) = 
+
+> m
+
+Y
+
+> i=1
+
+hαi (xi) (B.5) most of the properties of the one-dimensional Hermite polynomials extend to this case: they form an orthogonal basis of L2(Rm, N (0 , 1m). We have that: 
+
+E x∼N (0 ,1)[Hα(x)Hβ(x)] = α!δα,β (B.6) 
+
+Definition B.2 (Hermite expansion) . Consider a function f : R → R that is square integrable with weight the standard normal distribution p(x) = (1 /√2π) e−x2/2. Then, there exists a unique sequence of real numbers {ck}k∈N called Hermite coefficients, such that: 
+
+f (x) = 
+
+> ∞
+
+X
+
+> k=0
+
+ck
+
+k! hk(x) and ck(x) := Ex∼N (0 ,1) [f (x)hk(x)] ,
+
+where hi is the i-th probabilist’s Hermite polynomial. 
+
+Definition B.3 (Information exponent) . Consider a function f that can be expanded with Hermite polynomials with coefficients (ci)i ∈ N. Its information exponent k∗ = k∗(f ) is the smallest index 
+
+k ≥ 1 such that ck̸ = 0 .The following lemma from [51] provides a version of the integration by parts technique that is tailored for Hermite polynomials. 19 Lemma B.4 (Stein lemma) . Let f : Rd → Rd be a continuously differentiable k times function. Suppose that f and all of its partial derivatives up to the k-th are bounded by O(exp  |y|λ) for a λ ∈ (0 , 2) , then for any α ∈ Nd such that |α| ≤ k
+
+E  
+
+> y∼N (0 ,1d)
+
+[Hα(y)f (y)] = E  
+
+> y∼N (0 ,1d)
+
+[∂αf (y)] (B.7) 
+
+Proof. B.7 can be proved by doing induction on k using B.4, see [51] for details. 
+
+Corollary B.5. Let u1, u 2 ∈ Sd−1, then the following formula holds: 
+
+E 
+
+> x∼N (0 ,1d)
+
+[hi(u1 · x)hj (u2 · x)] = ( u1 · u2)ii!δi,j (B.8) 
+
+Proof. It follows from the application of lemma B.4 
+
+B.2 Derivation of the loss formula 
+
+We consider the setting of [34], modeling the diffusion process for t → x(t) ∈ Rd, with x(0) = a ∼ P0,the target distribution, that we want to learn how to sample from. The diffusion process has the following form: dx
+
+dt = −xdt + dWt, (B.9) where Wt ∈ Rd is a d dimensional Wiener process. The solution at time t can be written in distribution as: 
+
+x(t) = x(0) e−t + p1 − e−2tz (B.10) where z ∼ N (0 , 1d). So, defining ∆t = 1 − e−2t The density at time t is given by: 
+
+Pt(x) = 
+
+Z
+
+da P 0(a) 1(2 π∆t)d/ 2 exp 
+
+
+
+− 12(x − ae −t)2
+
+∆t
+
+
+
+. (B.11) A key quantity that needs to be introduced is the score of Pt, that appears in the equation for the backward process. Knowing the score, or being able to approximate it, allows to revert the process and, starting from samples of a standard Gaussian it gives the recipe on how to transform them into samples of P0. The score is defined as: 
+
+Fi(x, t ) = ∂ log Pt(x)
+
+∂x i
+
+= − xi − E [ai|x(t) = x]e−t
+
+∆t
+
+, (B.12) where the last equality, called Tweedie formula , is at the core of the feasibility of diffusion models. It gives a recipe on how to approximate the score via empirical averages of the noised process. The objective then becomes learning F. To do this it, one can build MSE for a collection of fixed time intervals, let us denote Swt (x) the approximated score that depends on weight w. The loss function at time t will be 
+
+Lt(w) = 12 E x
+
+"
+
+Swt (x) + x − E [a|x(t) = x]e−t
+
+∆t
+
+> 2
+
+# 
+
+> Eq. (B.10)
+
+= 12 E a,z 
+
+ Swt (x) + ae −t + √∆z − E [a|x(t) = x]e−t
+
+∆t
+
+> 2
+
+
+
+= 12 E a,z 
+
+"
+
+Swt (x) + z
+
+√∆t
+
+> 2
+
++ ae −t − E [a|x(t) = x]e−t
+
+∆t
+
+> 2
+
++ 2 z
+
+√∆t
+
+· ae −t − E [a|x(t) = x]e−t
+
+∆t
+
+#
+
+,
+
+20 where the double product with Swt does not appear because E x[Swt (x)E a|x [( a − E [a|x(t) = x])]] = 0 .Note that the second and third addend are independent of w, hence the troublesome term E [a|x(t) = x]
+
+does not appear in the gradient and the effective loss function is: 
+
+Lt(w) = 12 E a,z 
+
+"
+
+Swt (ae −t + p∆tz) + z
+
+√∆t
+
+> 2
+
+#
+
++ C. (B.13) This quantity can be well approximated having just samples from P0, which allow to estimate the integral over a.
+
+B.3 The example of the spiked cumulant model 
+
+To provide intuition on the forward and backward processes described in Section 4, we provide here the explicit formulas in the case in which P0 is the spiked cumulant model from [39]. We can choose the case x(0) = hv + z with h ∼ Rademacher (1 /2) , v is the norm 1 spike and z is a d − 1-standard Gaussian, in the space orthogonal to v, i.e. z ∼ N (0 , 1d − vv ⊤). Then from Eq. (B.11), Pt has the following expression: 
+
+Pt(x) = 1(2 π)(d−1) /2 exp 
+
+
+
+− 12 x⊤⊥vx⊥v
+
+ 12 (2 π∆t)1/2
+
+
+
+exp 
+
+
+
+− 12(xv − e−t)2
+
+∆t
+
+
+
++ exp 
+
+
+
+− 12(xv + e−t)2
+
+∆t
+
+ 
+
+= 1(2 π)(d−1) /2 exp 
+
+
+
+− 12 x⊤⊥vx⊥v
+
+ exp 
+
+
+
+− 12 
+
+> x2
+> v+e−2t
+> ∆t
+
+
+
+(2 π∆t)1/2 cosh 
+
+ xve−t
+
+∆t
+
+
+
+,
+
+were x = x · vv + ( x − x · vv ) = xvv + x⊥v.Hence the score is: 
+
+F(x, t ) = −x⊥v − xv
+
+∆t
+
+v + e−t
+
+∆t
+
+v tanh 
+
+ xve−t
+
+∆t
+
+
+
+= −x − e−t
+
+∆t
+
+v
+
+
+
+e−txv − tanh 
+
+ xve−t
+
+∆t
+
+ 
+
+. (B.14) 
+
+B.4 Projected SGD dynamics 
+
+We will now focus on the dynamics of projected SGD, so we can assume || w|| = 1 . Denoting for brevity by xw := x · w:
+
+−∇ sph Lt = −(1 − ww ⊤)E x,z 
+
+"
+
+σ′(xw)σ(xw)x + σ2(xw)w + σ(xw)x++ σ′(xw)xwx − 1
+
+√∆t
+
+ σ(xw)z + σ′(xw)zwx #
+
+= ( 1 − ww ⊤)E x
+
+x  σ′′ (xw) − σ′(xw)σ(xw) − σ(xw) − σ′(xw)xw
+
+ 
+
+where the second equality all the terms proportional to w have been canceled by the factor 1 − ww ⊤
+
+and the terms depending on z can be reduced to terms involving just x through Stein lemma (as detailed in lemma F.1 in [36]): 
+
+E z∼N (0 ,1),x 
+
+ 1
+
+√∆t
+
+σ(xw)z
+
+
+
+= E x
+
+σ′(xw)w
+
+E z∼N (0 ,1),x 
+
+ 1
+
+√∆t
+
+σ′(xw)zwx
+
+
+
+= E x
+
+σ′′ (xw)|| w|| 2x + σ′(xw)w
+
+21 Then introducing L(v · x) and defining 
+
+Fσ(xw) := σ′′ (xw) − σ′(xw)σ(xw) − σ(xw) − σ′(xw)xw
+
+we can expand in Hermite orthonormal basis: 
+
+L(v · x) = 
+
+> ∞
+
+X
+
+> i=0
+
+cLi hi(xv)
+
+Fσ(xw) = 
+
+> ∞
+
+X
+
+> j=0
+
+cFj hj (xw)
+
+and get: 
+
+−∇ sph Lt = ( 1 − ww ⊤) E 
+
+> x∼N (0 ,1)
+
+x
+
+> ∞
+
+X
+
+> i=0
+
+cLi hi(xv)
+
+! 
+
+> ∞
+
+X
+
+> j=0
+
+cFj hj (xw)
+
+
+
+= ( 1 − ww ⊤)
+
+
+
+> ∞
+
+X
+
+> i=1
+
+cLi cFi−1(v · w)i−1
+
+!
+
+v +
+
+
+
+> ∞
+
+X
+
+> j=1
+
+cFj cLj−1(v · w)j−1
+
+ w
+
+
+
+=
+
+> ∞
+
+X
+
+> i=1
+
+cLi cFi−1(v · w)i−1
+
+!
+
+(1 − v · w)v
+
+So, let α := v · w in the early stages of learning the dynamics to reach weak recovery are described by: 
+
+−∇ sph Lt = cLk∗ cFk∗−1αk∗−1v + O(αk∗
+
+) (B.15) where k∗ is the first non zero term of the series. In the following we consider some examples of applications of proposition 4.3. 
+
+Proof of proposition 4.3 and proposition 4.4. These propositions can be seen as corollaries of theorems 1.3 and 1.4 from [32]. Assumptions 4.1 and 4.2 verify the core requirements. The only catch is that all the assumptions are not verified on the loss function, but directly on the spherical gradient. However the whole reasoning detailed in [32] never relies on computations of the loss function, but only of its gradient, hence we can apply the proof to our setting. 
+
+B.4.1 Spiked Wishart 
+
+In the case of spiked Wishart model, k∗ = 2 , so we can take σ = −id :
+
+F (xw) = xw
+
+and we get that the projected SGD reaches weak recovery in d log d sample complexity 
+
+B.4.2 Spiked cumulant 
+
+We choose σ to match equation B.14: 
+
+σ(xv) = e−t
+
+∆t
+
+
+
+e−txv − tanh 
+
+ e−t
+
+∆t
+
+xv
+
+ 
+
+and simulations confirm that projected SGD works in this regime reaching weak recovery in d3 samples. Note that the coefficients depend exponentially on diffusion time cL 
+
+> 4
+
+= e−4t − 3e−2t
+
+22 B.5 Mixed cumulant model 
+
+Proof of proposition 4.6. The proof relies on verifying the precise hypothesis of propositions 3 and 4 in [17], so that all the argument can be replicated in the exact same way. The starting point is that the population loss expansion 
+
+−∇ sph L(αu, α v) = 
+
+> ∞
+
+X
+
+> k=1
+> k
+
+X
+
+> i=0
+
+cFk−1cLi,k −i
+
+
+
+αi−1 
+
+> u
+
+αk−iv u + αiuαk−i−1 
+
+> v
+
+v
+
+
+
+(B.16) coincides with the population loss from [17], eq. (25), with a different naming of the coefficients: in their notation kc σk corresponds to cFk−1 in our notation. Hence assumption 4.5 verifies the requirements of Assumption 1 in [17]. The only term that in principle could behave differently is the directional noise martingale Hd(x, w ) := L − L . However Lt is the likelihood ratio of a sub-Gaussian random variable, and H is a Lipshitz transformation, so H(x, w ), with || w|| = 1 and x ∼ Pt is sub-Gaussian. Hence requirements in assumption 4.2, which were the same as the ones needed in [17], are satisfied. Hence, we can apply propositions 3-4 from [17] and conclude the proof. 
+
+B.6 Additional details for SGD without projection 
+
+We now do not consider the restriction to || w|| = 1 and the spherical gradient, SGD gradient has the form 
+
+−∇L t = −E x,z 
+
+
+
+σ′(xw)σ(xw)|| w|| 2x + σ2(xw)w + σ(xw)x + σ′(xw)xwx − 1
+
+√∆t
+
+ σ(xw)z + σ′(xw)zwx
+
+= E x
+
+x
+
+σ′′ (xw)|| w|| 2 − σ′(xw)σ(xw)|| w|| 2 − σ(xw) − σ′(xw)xw
+
+| {z }
+
+> ˜Fσ
+
+ + w
+
+2σ′(xw) − σ2(xw)
+
+| {z }
+
+> Gσ
+
+
+
+More in general we can now expand the likelihood ratio L, ˜Fσ and Gσ in Hermite basis. Note that now || w|| is not anymore constant equal to 1, as in the projected SGD case, so we will expand with respect to ˆw = w/ || w|| and v to get: 
+
+−∇L t = E x
+
+h
+
+x ˜Fσ(xw, || w|| ) + wG σ(xw)
+
+i
+
+= E 
+
+> x∼N (0 ,1)
+
+"
+
+x
+
+> ∞
+
+X
+
+> i=0
+
+cLi
+
+i! hi(xv)
+
+! 
+
+> ∞
+
+X
+
+> j=0
+
+c ˜Fj (|| w|| )
+
+j! || w|| j hj (x ˆw)
+
+ ++ w
+
+> ∞
+
+X
+
+> i=0
+
+cLi
+
+i! hi(xv)
+
+! ∞X
+
+> k=0
+
+cGk (|| w|| )
+
+k! || w|| khk(x ˆw)
+
+! # 
+
+=
+
+
+
+> ∞
+
+X
+
+> i=1
+
+cLi c ˜Fi−1
+
+(i − 1)! (v · w)i−1
+
+!
+
+v +
+
+
+
+> ∞
+
+X
+
+> j=1
+
+c ˜Fj cLj−1
+
+(j − 1)! (v · w)j−1 +
+
+> ∞
+
+X
+
+> k=0
+
+cGk cLk
+
+k! (v · w)k
+
+ w
+
+
+
+Where we applied Stein’s lemma multiple times and the Hermite decomposition. The coefficients 
+
+(c ˜Fi )i∈N and (cGj )j∈N depend on || w|| and are defined as: 
+
+|| w|| kc ˜Fk (|| w|| ) = E[ ˜Fσ(w · x)hk( ˆ w · x)] Stein 
+
+= || w|| kE
+
+h
+
+∂k ˜Fσ(w · x)
+
+i
+
+(B.17) 
+
+|| w|| kcGk (|| w|| ) = E[Gσ(w · x)hk( ˆ w · x)] Stein 
+
+= || w|| kE
+
+h
+
+∂kGσ(w · x)
+
+i
+
+(B.18) We now approximate at leading order in α := w · v, which at the beginning of learning is small. Recalling that k∗ denotes the diffusion information exponent, and cL 
+
+> 0
+
+= 1 , we get 
+
+−∇L t(w) = 
+
+
+
+c ˜F 
+
+> 1
+
++ cG
+
+> 0
+
+
+
+w + O(α)w + cLk∗ c ˜Fk∗−1αk∗−1
+
+(k − 1)! v + O(αk∗
+
+) (B.19) 23 So the dynamics are governed by Λ := c ˜F 
+
+> 1
+
+(|| w|| )(1 + cL 
+
+> 2
+
+) + cG 
+
+> 0
+
+if Λ < 0 in a neighborhood of 0,then w = 0 is an attracting fixed point meaning that this analysis is already able to characterize GD dynamics starting from random initializations (provided the basin of attraction includes the initialization), otherwise if Λ > 0 it is a repulsive fixed point, and the dynamics push away from the region in which it is possible to expand the loss, hence analysis of this case cannot be done through this method. 
+
+Proof of proposition 4.7. An iteration of the SGD can be written as: 
+
+wτ +1 = wτ − η (∇L (wτ ) + ∇H(wτ , x τ )) 
+
+using the expansion Eq. (18) we get 
+
+(
+
+ατ +1 = ατ + η (ατ Λ( || wτ || ) + Eτ ατ + v · ∇ H(wτ , x τ )) 
+
+wτ +1 = (1 + ηΛ( || wτ || )) wτ + η⃗R τ + η∇H(wτ , x τ ) (B.20) where |Eτ | ≤ Lα τ for some constant L and ⃗ Rτ is a vectorized analogous from which we do not factor 
+
+ατ :⃗ Rτ ≤ Lα . Now call γτ := 1 + ηΛ( || wτ || ) + ηE τ and δτ = 1 + ηΛ( || wτ || ), then it can be easily verified by induction that the recursive relations equation B.20 implies the following explicit formulas: 
+
+(ατ = α0
+
+Qτ −1 
+
+> i=0
+
+γi + η Pτ −1 
+
+> i=0
+
+v · ∇ H(wi, x i) Qτ −1 
+
+> j=i+1
+
+γj
+
+wτ +1 = w0
+
+Qτ −1 
+
+> i=0
+
+δi + η Pτ −1
+
+> i=0
+
+⃗Ri + ∇H(wi, x i)
+
+ Qτ −1 
+
+> j=i+1
+
+δj
+
+(B.21) We will now prove the statement by induction: so assume that all wi and αi satisfy the statement up to i = t and we prove it for t + 1 . So we will use that γi, δ i ≤ 1 − ηk 0 and αi ≤ α0 →d 0. Now we estimate the noise terms that luckily in Eq. (B.21) appear as geometrically dampened martingale: h ⃗Mτ = η 
+
+> τ−1
+
+X
+
+> i=0
+
+∇H(wi, x i) 
+
+> τ−1
+
+Y
+
+> j=i+1
+
+γτ .
+
+Using Doob inequality, together with assumption we get: 
+
+P sup 
+
+> u∈Sd−1
+
+sup  
+
+> τ≤n
+
+u ·⃗ Mτ ≥ r
+
+!
+
+≤ Var (u · Mn)
+
+r2 = η2C1|| w0|| 2
+
+r2
+
+> n
+
+X
+
+> i=0
+
+(1 −ηk 0)2i = ηC 1|| w0|| 2
+
+r2
+
+1 − (1 − ηk 0)2n
+
+2k0 − ηk 20
+
+(B.22) where we used the fact that Var (∇H2(x, w ) ≤ C|| w|| 2 that can be quickly checked to be true. So pick a sequence of rd → 0 as d → ∞ and condition to the complementary event in Eq. (B.22) . Then, we can take d large enough so that α0 ≤ k0 
+
+> 2L
+
+, so that γτ ≤ 1 − η k0 
+
+> 2
+
+= ¯ γ, plugging into the first equation in Eq. (B.21) we find : 
+
+ατ +1 ≤ α0 ¯γτ +1 + rd
+
+So by taking d large so that rd becomes small enough we have verified the requirement on ατ +1 . We can turn now to verify the inductive statement for wτ +1 . Applying the inductive hypotheses on Eq. (B.21) we get: 
+
+|| wτ +1 || ≤ || w0|| ¯δτ +1 + η X
+
+> i=0
+
+Lα i ¯δτ −i + η 
+
+> τ−1
+
+X
+
+> i=0
+
+∇H(wi, x i)¯δτ −i (B.23) we can estimate the middle term by applying the inequality for αi and getting (taking again d large so that r is small enough): 
+
+η X
+
+> i=0
+
+Lα i ¯δτ −i ≤ ηLα 0(min ¯ γ, ¯δ)τ
+
+| {z }
+
+> →0
+
++L rk0
+
+24 Finally the last term in Eq. (B.23) can be estimate by Chebyshev inequality since Var η 
+
+> τ−1
+
+X
+
+> i=0
+
+∇H(wi, x i)¯δτ −i
+
+!
+
+≤ C η2
+
+1 − ¯δ2 ≤ C || w0|| 2ηk0
+
+which tends to 0 as d → ∞ . Note that we used the inductive hypothesis to estimate Var (∇H(x, w )) ≤
+
+C|| w0|| . So we can establish that: 
+
+P η 
+
+> τ−1
+
+X
+
+> i=0
+
+∇H(wi, x i)¯δτ −i ≥ rd
+
+!
+
+≤ C || w0|| 2ηr2
+
+> d
+
+k0
+
+(B.24) This concludes the verification of the inductive step. Note that up to now we were conditioning to be in the complementary of Eq. (B.22) and of Eq. (B.24), but note that if we take rd to go to 0 slowly enough so that ηr2 → 0, then the probability of the event in Eq. (B.22) and Eq. (B.24) goes to 0 and the proof is concluded. 
+
+B.7 Trainable intensity of the skip connection 
+
+Let us see what changes if we add a weight b that multiplies the intensity of the skip connection and train it. 
+
+− ∇ wLt = (B.25) 
+
+− = E x,z 
+
+
+
+σ′(xw)σ(xw)|| w|| 2x + σ2(xw)w + bσ (xw)x + bσ ′(xw)xwx − 1
+
+√∆t
+
+ σ(xw)z + σ′(xw)zwx
+
+(B.26) 
+
+= −E x
+
+x
+
+σ′′ (xw)|| w|| 2 − σ′(xw)σ(xw)|| w|| 2 − bσ (xw) − bσ ′(xw)xw
+
+| {z }
+
+> Fσ
+
+ + w
+
+2σ′(xw) − σ2(xw)
+
+| {z }
+
+> Gσ
+
+
+
+(B.27) We also have the derivative with respect to b:
+
+−∇ bLt = −E x,z 
+
+
+
+σ(xw)xw + b|| x|| 2 − 1
+
+√∆t
+
+
+
+x⊤z
+
+
+
+(B.28) 
+
+= −E x,z 
+
+σ(xw)xw + b|| x|| 2 − 1 (B.29) Since Var (x) = 1 , (w, b ) = (0 , 1) is an critical point, and around it the dynamics will be similar to the previously examined case: from Eq. (B.29) we can see that the dynamics attract towards b = 1 .25

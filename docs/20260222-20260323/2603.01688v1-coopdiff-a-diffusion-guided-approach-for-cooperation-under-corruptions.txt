@@ -1,0 +1,879 @@
+Title: CoopDiff: A Diffusion-Guided Approach for Cooperation under Corruptions
+
+URL Source: https://arxiv.org/pdf/2603.01688v1
+
+Published Time: Tue, 03 Mar 2026 03:19:01 GMT
+
+Number of Pages: 10
+
+Markdown Content:
+# CoopDiff: A Diffusion-Guided Approach for Cooperation under Corruptions 
+
+## Gong Chen 1 Chaokun Zhang 2* Pengcheng Lv 31School of Computer Science and Technology, Tianjin University 
+
+2School of Cybersecurity, Tianjin University 3School of Future Technology, Tianjin University 
+
+## Abstract 
+
+Cooperative perception lets agents share information to expand coverage and improve scene understanding. How-ever, in real-world scenarios, diverse and unpredictable corruptions undermine its robustness and generalization. To address these challenges, we introduce CoopDiff, a diffusion-based cooperative perception framework that mit-igates corruptions via a denoising mechanism. CoopDiff adopts a teacher-student paradigm: the Quality-Aware Teacher performs voxel-level early fusion with Quality of Interest weighting and semantic guidance, then produces clean supervision features via a diffusion denoiser. The Dual-Branch Diffusion Student first separates ego and co-operative streams in encoding to reconstruct the teacher’s clean targets. And then, an Ego-Guided Cross-Attention mechanism facilitates balanced decoding under degrada-tion by adaptively integrating ego and cooperative fea-tures. We evaluate CoopDiff on two constructed multi-degradation benchmarks, OPV2Vn and DAIR-V2Xn, each incorporating six corruption types, including environmen-tal and sensor-level distortions. Benefiting from the inher-ent denoising properties of diffusion, CoopDiff consistently outperforms prior methods across all degradation types and lowers the relative corruption error. Furthermore, it offers a tunable balance between precision and inference efficiency. 
+
+## 1. Introduction 
+
+Cooperative perception enables multiple agents to en-hance their environmental understanding through informa-tion sharing [18, 38], thereby extending the perceptual field and improving accuracy. Owing to its efficient data fusion and complementary perspectives, it has emerged as a key technology for improving the performance and safety of autonomous driving systems [5, 41]. However, while co-operative perception can greatly strengthen system robust-ness under ideal conditions, real-world deployment remains challenging due to various sources of environmental noise 
+
+> *
+
+Corresponding author. 0.44 
+
+> 0.40
+> 0.41
+> 0.39
+> 0.40
+> 0.43
+> 0.44
+> 0.53
+> 0.45
+> 0.47
+> 0.42
+> 0.44
+> 0.51
+> 0.53
+> 0.62
+> 0.50
+> 0.53
+> 0.46
+> 0.49
+> 0.59
+> 0.61
+> 0.71
+> 0.55
+> 0.59
+> 0.49
+> 0.53
+> 0.67
+> 0.70
+> 0.80
+> 0.59
+> 0.65
+> 0.53
+> 0.58
+> 0.75
+> 0.79
+> 0.44
+> 0.40
+> 0.41
+> 0.39
+> 0.40
+> 0.43
+> 0.44
+> 0.53
+> 0.45
+> 0.47
+> 0.42
+> 0.44
+> 0.51
+> 0.53
+> 0.62
+> 0.50
+> 0.53
+> 0.46
+> 0.49
+> 0.59
+> 0.61
+> 0.71
+> 0.55
+> 0.59
+> 0.49
+> 0.53
+> 0.67
+> 0.70
+> 0.80
+> 0.59
+> 0.65
+> 0.53
+> 0.58
+> 0.75
+> 0.79
+> 0.44
+> 0.40
+> 0.41
+> 0.39
+> 0.40
+> 0.43
+> 0.44
+> 0.53
+> 0.45
+> 0.47
+> 0.42
+> 0.44
+> 0.51
+> 0.53
+> 0.62
+> 0.50
+> 0.53
+> 0.46
+> 0.49
+> 0.59
+> 0.61
+> 0.71
+> 0.55
+> 0.59
+> 0.49
+> 0.53
+> 0.67
+> 0.70
+> 0.80
+> 0.59
+> 0.65
+> 0.53
+> 0.58
+> 0.75
+> 0.79
+> 0.44
+> 0.40
+> 0.41
+> 0.39
+> 0.40
+> 0.43
+> 0.44
+> 0.53
+> 0.45
+> 0.47
+> 0.42
+> 0.44
+> 0.51
+> 0.53
+> 0.62
+> 0.50
+> 0.53
+> 0.46
+> 0.49
+> 0.59
+> 0.61
+> 0.71
+> 0.55
+> 0.59
+> 0.49
+> 0.53
+> 0.67
+> 0.70
+> 0.80
+> 0.59
+> 0.65
+> 0.53
+> 0.58
+> 0.75
+> 0.79
+> 0.44
+> 0.40
+> 0.41
+> 0.39
+> 0.40
+> 0.43
+> 0.44
+> 0.53
+> 0.45
+> 0.47
+> 0.42
+> 0.44
+> 0.51
+> 0.53
+> 0.62
+> 0.50
+> 0.53
+> 0.46
+> 0.49
+> 0.59
+> 0.61
+> 0.71
+> 0.55
+> 0.59
+> 0.49
+> 0.53
+> 0.67
+> 0.70
+> 0.80
+> 0.59
+> 0.65
+> 0.53
+> 0.58
+> 0.75
+> 0.79
+> 0.44
+> 0.40
+> 0.41
+> 0.39
+> 0.40
+> 0.43
+> 0.44
+> 0.53
+> 0.45
+> 0.47
+> 0.42
+> 0.44
+> 0.51
+> 0.53
+> 0.62
+> 0.50
+> 0.53
+> 0.46
+> 0.49
+> 0.59
+> 0.61
+> 0.71
+> 0.55
+> 0.59
+> 0.49
+> 0.53
+> 0.67
+> 0.70
+> 0.80
+> 0.59
+> 0.65
+> 0.53
+> 0.58
+> 0.75
+> 0.79
+> 0.44
+> 0.40
+> 0.41
+> 0.39
+> 0.40
+> 0.43
+> 0.44
+> 0.53
+> 0.45
+> 0.47
+> 0.42
+> 0.44
+> 0.51
+> 0.53
+> 0.62
+> 0.50
+> 0.53
+> 0.46
+> 0.49
+> 0.59
+> 0.61
+> 0.71
+> 0.55
+> 0.59
+> 0.49
+> 0.53
+> 0.67
+> 0.70
+> 0.80
+> 0.59
+> 0.65
+> 0.53
+> 0.58
+> 0.75
+> 0.79
+
+clean 
+
+> beam
+> missing
+> motion
+> blur
+
+fog 
+
+EMI 
+
+> water
+> echo
+
+Single 
+
+Fcooper 
+
+V2X-ViT 
+
+Coalign 
+
+ERMVP 
+
+DSRC 
+
+MDD 
+
+Ours 
+
+Figure 1. Overall performance comparison of average results on eight state-of-art methods across six corruption types. 
+
+[3, 36] and communication interference [1, 15, 29]. These degradations significantly undermine cooperative perception. Generally, they can be broadly classified into two main categories. The first is environmental data quality degradation [29, 44], such as from fog or echo reflections. This issue broadly reduces the signal-to-noise ratio of each agent’s data. When this low-quality, dirty data is shared and fused across the network, noise can accumulate and poten-tially be amplified, thereby contaminating the final percep-tion result. The second category is communication failure [7, 39]. For instance, due to sensor malfunctions or elec-tromagnetic interference (EMI), the data stream from a spe-cific agent might be completely lost. This leads to the loss of critical viewpoint information during data fusion, or even degrades the original overall perception performance. To tackle these challenges, prior studies have introduced a series of robustness-oriented strategies, each crafted for a particular scenario. ERMVP [43] mitigates spatial inter-ference through consensus-driven sparse feature sampling. V2X-DG [16] enhances fusion stability by enforcing cross-
+
+> arXiv:2603.01688v1 [cs.CV] 2 Mar 2026
+
+agent feature consistency. MDD [10] integrates weather-invariant 4D radar to alleviate degradation caused by rain and snow. V2X-DGW [15] promotes generalization by simulating perception-range shrinkage and noise corruption during training. Although these methods show strong re-silience to the distortions they target, their scalability re-mains limited. In complex real-world settings, interference arises from diverse and unpredictable sources, and mod-els designed for a single corruption type often fail to adapt when new degradations appear. As illustrated in Fig. 1, their performance decreases sharply when facing unseen corrup-tions. For instance, MDD excels under water accumulation but declines markedly in the presence of EMI. To address the aforementioned robustness bottleneck, we propose CoopDiff, a diffusion-guided [6] cooperative per-ception framework that explicitly models denoising objec-tives within the feature space. CoopDiff follows a teacher-student paradigm, in which the teacher generates high-quality denoised targets, while the student learns to re-construct them through a generative denoising task. The Quality-Aware Early-Fusion Teacher performs voxel-level early fusion by computing Quality of Interest (QoI) weights across multi-vehicle features and injecting semantic pri-ors. The fused representation is then processed through a diffusion-based denoising module driven by Gated Con-ditional Modulation (GCM), producing a clean target fea-ture map as supervision. Meanwhile, the Dual-Branch Diffusion Student disentangles ego-centric and coopera-tive streams to model complementary denoising informa-tion. The local branch enhances the ego vehicle’s environ-mental understanding, while the cooperative branch lever-ages the ego prior and employs Cooperative Deformable Attention (CDA) to adaptively sample and fuse informa-tive features from other agents under degraded conditions. During decoding, Ego-Guided Cross-Attention (EGCA) en-ables interaction between local and cooperative representa-tions, guiding the diffusion process to reconstruct denoised features from these two complementary perspectives. To rigorously evaluate robustness under real-world degradations, we further construct two multi-corruption benchmarks, OPV2Vn and DAIR-V2Xn, which introduce six categories of corruption covering both environmental and sensor-level distortions. These datasets simulate real-istic perception degradations and allow systematic testing of model resilience. CoopDiff is trained on original data and evaluated under various corruption conditions. Exten-sive experiments on the OPV2Vn and DAIR-V2Xn bench-marks demonstrate that CoopDiff consistently surpasses ex-isting state-of-the-art methods. It achieves substantially lower mean Relative Corruption Error (mRCE) across cor-ruptions and exhibits minimal performance degradation in cross-domain tests, validating its strong generalization and robustness under distribution shifts and compound noise. Our contributions are summarized as follows: (1) We present CoopDiff, a corruption-agnostic, diffusion-guided cooperative perception framework that explicitly tackles data corruptions and noise accumulation in multi-agent fu-sion. (2) CoopDiff integrates a Quality-Aware early-fusion Teacher with a Dual-Branch Diffusion Student, enabling adaptive feature optimization from both ego and coopera-tive views via QoI-weighted aggregation and guided denois-ing. (3) Experiments on OPV2Vn and DAIR-V2Xn demon-strate consistent SOTA performance and superior cross-domain generalization across diverse corruption scenarios. 
+
+## 2. Related Work 
+
+Cooperative perception. Cooperative perception [20, 35, 37, 42] enables vehicles to exchange information and co-operate across different fusion stages, typically categorized into early, intermediate, and late fusion. Among them, in-termediate fusion has received the most attention due to its favorable balance between perception performance and communication bandwidth [2, 8, 32]. Several milestone works have emerged in this domain. For instance, V2X-ViT [36] employs a Transformer-based architecture to unify heterogeneous vehicle-infrastructure agents; Where2comm [8] optimizes the trade-off between accuracy and bandwidth by transmitting only spatially confident features; and Code-Filling [9] adopts a codebook-style representation to select information that best matches each agent’s demand. How-ever, most of these methods treat fusion as a structural prob-lem operating on clean features, which provides optimal results under ideal conditions. In degraded viewpoints or noisy sensing conditions, feature errors tend to accumu-late and become amplified through multi-agent fusion. To address this real-world gap, this work leverages a quality-aware early-fusion teacher to guide the student network in reconstructing noise-free features under noisy settings. 
+
+Robust fusion. Recent research has begun to address degradation in real-world cooperative perception. ER-MVP [43] enhances collaboration in complex environments through consensus-driven feature sampling; the temporally aware MRCNet [7] alleviates motion blur; and DSRC [44] learns density-insensitive and semantic-aware cooperative features, yielding improvements on both clean and cor-rupted datasets. V2X-DGW [15] further mitigates per-formance deterioration in adverse weather by simulating degradation during training. Despite these advances, most existing methods are designed for specific perturbations or single-domain shifts, resulting in substantial performance drops when multiple corruptions or unseen domains are en-countered. To fill this gap, we construct multi-degraded variants of OPV2V and DAIR-V2X to systematically evalu-ate model robustness under six individual corruption types. 
+
+Diffusion methods. Diffusion models [6, 22, 24, 28] have demonstrated remarkable denoising capability in 3D vision Diffusion Process 
+
+> Cooperative Encoder
+> Local Encoder
+> Cooperative Deformable Attention
+> Label
+> Head
+> Head
+> Ego-Guided Cross-Attention
+> Backbone
+> Backbone
+
++  
+
+> Xi
+> X1…
+> X1Xi
+> …
+> distill 
+> coop
+
+ 
+
+> diff stu
+> θ
+
+##  
+
+> qoi 
+> Quality-Weighted Fusion Diffusion Process
+> 0
+
+x
+
+> tx
+> tea
+> Ψ
+
+## 
+
+> Decoder
+
+t   
+
+> Label
+> Head
+> Condition C
+> shift
+> scale
+> gate
+> Noisy Feature x t
+> AdaLN
+> Down Up Down Up
+> Conv
+> Concat
+> Backbone
+> qoi 
+> V1
+> VN
+> …
+> diff
+
+  
+
+> Sj
+> Vw-agg
+> Encoder Decoder
+> sem V
+> GCM
+
+Figure 2. Overview of the proposed CoopDiff, which employs a Teacher-Student paradigm. The Quality-Aware Teacher model Dtea  
+
+> Ψ
+
+uses an early-fusion strategy to process multi-agent inputs and generate a clean target feature map. The Dual-Branch Denoising Student Dstu  
+
+> θ
+
+is trained to reconstruct the target by leveraging local and cooperative conditions. 
+
+tasks, with representative examples including diff-pc [21] and Mvdream [27]. DifFUSER[14] first applied diffusion to multimodal fusion by generating BEV features to handle noise; MDD [10] leveraged diffusion for multimodal inte-gration; and CoGMP [4] incorporated generative map pri-ors via diffusion to reduce transmission overhead. Building on these ideas, this work injects diffusion-driven denoising objectives directly into the feature space, enabling unified modeling of diverse and compound noise sources for multi-agent feature reconstruction and cooperative fusion. 
+
+## 3. Method 
+
+The goal of cooperative perception is to enable a group of 
+
+N connected agents A = {a1, . . . , a N }, to achieve compre-hensive scene understanding by sharing information. The system processes collective data X = {Xj }Nj=1 , where Xj
+
+represents the raw input from vehicle aj , to generate a uni-fied perception output Y. A critical challenge arises from diverse data corruptions, which introduce noise and artifacts into the input X . These corruptions severely degrade the quality of fusion and the accuracy of the output Y.To address this challenge, we propose CoopDiff, adiffusion-guided cooperative perception framework de-signed to enhance robustness against such corruptions. Fig. 2 illustrates the architecture of CoopDiff. Our method em-ploys a teacher-student paradigm featuring deep integra-tion during the training phase. The teacher model Dtea  
+
+> Ψ
+
+first performs quality-weighted fusion to suppress noisy inputs. Then, it applies a diffusion process to produce a denoised feature map. This map serves as the target x0 for the student model Dstu  
+
+> θ
+
+. The student model then executes its decoupled diffusion framework to construct the target x0 by incorpo-rating ego and cross-vehicle interaction information. 
+
+3.1. Quality-Aware Early Fusion Teacher 
+
+While the early-fusion teacher paradigm is powerful [16, 17], it falters under data corruptions. Naive point cloud ag-gregation accumulates noise from all agents, yielding a low signal-to-noise ratio feature map that is an inefficient super-visor. To this end, we design a quality-aware early fusion teacher, as illustrated in Fig. 3. Specifically, we first generate dynamic QoI scores for each agent’s voxelized features Vj ∈ RH×W ×Cin . A shared convolutional module Wqoi estimates voxel-wise quality, producing a score map Sj = Wqoi (Vj ), where Sj ∈
+
+RH×W ×1. These scores act as QoI-driven weights to sup-press corruption-prone regions during aggregation, thereby preserving stable geometric structures. The weighted ag-gregation Vw−agg is: 
+
+Vw−agg =
+
+> N
+
+X
+
+> j=1
+
+Sj ⊙ Vj (1) where ⊙ denotes element-wise multiplication. To enhance the teacher’s representation from geometric to semantic levels, we further inject category information. Classification labels Lcls are encoded into a dense semantic feature map Vsem ∈ RH×W ×Csem via an embedding func-tion Esem . This semantic prior is fused with the weighted geometric features via channel concatenation ( || ). 
+
+Vf used = Conv (Fw−agg || Vsem ) (2) We adopt the standard DDPM [6]. Specifically, a back-bone B processes the fused representation Vf used to extract a conditional feature F c = B(Vf used ); we then sample a timestep t ∼ U (1 , T ) and apply the forward Q-process to the target F c to obtain the noisy latent xt.
+
+xt = √¯αt, F c + √1 − ¯αt, ϵ, ϵ ∼ N (0 , I) (3) t   
+
+> Label
+> Head
+> Condition C
+> shift
+> scale
+> gate
+> Noisy Feature x t
+> AdaLN
+> Down Up Down Up
+> Conv
+> Concat
+> Backbone
+> qoi 
+> V1
+> VN
+> …
+> diff
+
+  
+
+> Sj
+> Vw-agg
+> Encoder Decoder
+> sem V
+> GCM
+
+Figure 3. Overview of the Quality-Aware Early Fusion Teacher. Multi-agent features are first fused via Quality of Interest (QoI) weighting and semantic guidance, after which the GCM-based diffusion network denoises the input. The right shows the architecture of GCM. 
+
+Fc is then injected into our denoising diffusion network to guide its generative process. Specifically, Fc is integrated with the noisy input xt at timestep t via Gated Conditional Modulation (GCM) blocks. As shown in the right of Fig. 3, our GCM is a FiLM-like [14, 23] operation: it passes the conditional feature through a small convolutional net-work to dynamically predict shift, scale, and gate param-eters. These parameters then modulate the main diffusion backbone feature x(l), allowing the condition to precisely control the denoising trajectory at each layer. Each layer l
+
+of the network executes the following formula to predict the clean feature map x0.
+
+x(l+1) , F c 
+
+> (l+1)
+
+= GCM (F c
+
+> (l)
+
+, x (l)) + x(l) (4) After all layers, the final output is denoted as x0, repre-senting the fully denoised feature map reconstructed from the noisy input xt. This clean feature x0 serves as the su-pervision target for training our student network Dstu  
+
+> θ
+
+.
+
+3.2. Dual-Branch Denoising Student 
+
+Feature fusion under data corruption presents two chal-lenges: retaining reliable ego features and extracting com-plementary information from collaborators. However, a naive encoder that merges the noisy inputs before refine-ment tends to contaminate ego information with coopera-tive noise, thereby degrading its quality. To address this, we reframe intermediate fusion as a generative denoising task. We propose a novel Dual-Branch Denoising Encoder that conditions the diffusion process to reconstruct the target x0.It disentangles these two information sources, guiding the denoising process with local and cooperative perspectives. Both conditional features are then injected into the decoder to guide the unified reconstruction. 
+
+Local Encoder. The student denoiser takes the noisy la-tent xt generated via x0 like Eq.3 and the timestep t as its primary inputs. The timestep t is passed through a time-embedding layer to yield γ(t). We then fuse γ(t) with the ego-agent feature Fi to form the initial, time-aware condi-tion cloc  
+
+> (0)
+
+= ϕlocal (Fi) ⊕ γ(t), where ϕlocal denotes a con-volutional mapping and ⊕ denotes channel-wise addition. MLP 
+
+> …
+
+=
+
+> Fuse
+> Deformable
+> Attention
+> `
+> Selection Head V
+> conf
+
+F
+
+> unc
+
+F
+
+> Offset Generater
+> Offset Generater
+> Q
+
+
+
+> ctx
+
+F  
+
+> V
+> p∆Q
+> iFnjF1jF
+
+Figure 4. Architecture of the Cooperative Deformable Attention (CDA) module. 
+
+The Local branch takes the noisy latent xt as its initial input. Let xloc  
+
+> (l)
+
+be the feature map of this local backbone at level l (xloc  
+
+> (0)
+
+= xt), and cloc  
+
+> (l)
+
+be the local condition. This branch consists of stacked GCM blocks that progressively refine the feature map by injecting the local condition: 
+
+xloc 
+
+> (l+1)
+
+, c loc  
+
+> (l+1)
+
+= GCM (l)(xloc  
+
+> (l)
+
+, c loc  
+
+> (l)
+
+) (5) thereby guiding the refinement of the local feature stream. 
+
+Cooperative Encoder. The Cooperative branch forms the multi-agent condition ccoop using a Cooperative De-formable Attention (CDA) module. First, the ego feature 
+
+Fi is enhanced via a MLP network [26] and decoupled into high-confidence Fconf and low-confidence Func components. Subsequently, as depicted in Fig. 4, Func is then concate-nated with features from collaborating agents to construct the cooperative context: 
+
+Fctx = Agg  { ϕcoop (Fj ) }j̸ =i
+
+ ⊙ Func , (6) where ϕcoop is a feature mapping, Agg aligns channels via convolution, and ⊙ is the element-wise multiplication. Individual offsets are predicted from Fconf and Fctx sepa-rately to capture position adjustments from the ego and co-operative contexts. These two offsets are fused through a convolutional layer to form the final offset ∆p, which is used by the deformable attention [34] for precise sampling. 
+
+Fcoop = DeformAttn  Q, V, ∆p, (7) 
+
+Q = CQ
+
+ Fconf || Fctx 
+
+, V = LV (Fctx ), (8) where CQ is a 1 × 1 convolution, LV is a linear projection. To optimize the fused representation, Fcoop is then pro-cessed by a selection head to retain only the most infor-mative tokens, yielding a sparse feature map ˜Fcoop . At each pyramid level l, ˜Fcoop is concatenated with the local prior cloc  
+
+> (l)
+
+via a convolution to form the cooperative condi-tion ccoop  
+
+> (l)
+
+. This encoder is also modulated by GCM at every level l and takes the latent xt as its initial input xcoop  
+
+> (0)
+
+.
+
+xcoop 
+
+> (l+1)
+
+, c coop  
+
+> (l+1)
+
+= GCM (l) xcoop  
+
+> (l)
+
+, c coop 
+
+> (l)
+
+ (9) This design allows the denoising process to simultane-ously preserve high-confidence ego features and integrate complementary cross-agent information. 
+
+Decoder. The refined outputs from the parallel encoder branches, xloc and xcoop , are then fused within the upsam-pling decoder for unified reconstruction. This design allows the decoder to balance ego-feature integrity with comple-mentary cooperative information using our proposed Ego-Guided Cross-Attention (EGCA) module. Specifically, We project the query Q exclusively from 
+
+xloc , while the key-value pairs are sourced from both branches: (Kloc , V loc ) from xloc and (Kcoop , V coop ) from 
+
+xcoop . A shared positional encoding P is then added to Q,
+
+Kloc , and Kcoop to maintain spatial correspondence. The unified key K and value V are constructed as K =[Kloc ∥Kcoop ] and V = [ Vloc ∥Vcoop ], where ∥ denotes se-quence concatenation. The attention output Fatt is com-puted via standard cross attention [31]: 
+
+Fatt = CrossAttn (Q, K, V ). (10) Finally, the representation Fatt is passed to the predic-tion head to generate the perception output Y.
+
+3.3. Loss 
+
+The student Dstu  
+
+> θ
+
+is trained to master two objectives: recon-structing the clean target x0 and the downstream perception task. The core detection loss, Ltask , is a standard compos-ite of classification [19] and regression [33] objectives. The full objective Ltotal adds three further constraints: diffusion (Ldiff ), knowledge distillation ( Ldistill ), and cooperative su-pervision ( Lcoop ). These four components are balanced by hyperparameters α, β, γ, δ .
+
+Ltotal = αLtask + βLdiff + γLdistill + δLcoop (11) 
+
+Diffusion Loss ( Ldiff ). The student Dstu  
+
+> θ
+
+is trained to predict the noise ˆyt based on the noisy input xt, timestep t, and conditions ( cloc , c coop ), targeting the ground-truth noise yt =
+
+ϵ. We further employ a heteroscedastic NLL [40] to enhance robustness, where the student model predicts a log-variance 
+
+st = log σ2 
+
+> t
+
+to quantify its noise prediction uncertainty. 
+
+Ldiff = Et,ϵ 
+
+ 12 e−st |yt − ˆyt|22 + 12 st
+
+
+
+(12) This formulation down-weights inherently ambiguous pixels and enhances numerical stability. 
+
+Knowledge Distillation Loss ( Ldistill ). To enhance seman-tic transfer at the decision level, we introduce an additional logits-based distillation term Ldistill . This complements the feature-level supervision already provided by the Ldiff ob-jective, which aligns the student’s denoised representation with the teacher’s target x0. We align the student’s out-put logits ( zstu ) with the teacher’s ( ztea ) by minimizing the Kullback-Leibler (KL) divergence [30]: 
+
+Ldistill = DKL 
+
+ σ(ztea /τ )|| σ(zstu /τ ), (13) where σ denotes the softmax function, and τ = 1 is the distillation temperature. This term complements the feature-level supervision by transferring the teacher’s deci-sion boundaries, encouraging corruption-robust and seman-tically consistent predictions. 
+
+Cooperative Supervision Loss ( Lcoop ). To guide the co-operative branch, we apply a supervision loss Lcoop to the spatial selection map Mcoop generated by its selection head (as mentioned in Sec. 3.2). This map Mcoop is trained to identify regions where collaboration is necessary by pre-dicting ground-truth cooperative masks Ygt . We adopt a bi-nary cross-entropy (BCE) [25] objective: 
+
+Lcoop = LBCE (Mcoop , Y gt ), (14) which drives the selection head to activate on necessary foreground regions. 
+
+## 4. Experiments 
+
+4.1. Datasets and Experimental Settings 
+
+Datasets. To validate the model’s effectiveness under se-vere corruptions, we considered the impact of multiple cor-ruption scenarios. We systematically augment the original datasets with six different types of corruption to simulate a wide range of real-world challenges. These corruptions are organized into two main categories. 1) External Envi-ronmental Corruptions , such as the effects of fog, rain and standing water, and electromagnetic interference. 2) Inter-nal Sensor Artifacts , such as motion blur, multi-path reflec-tions, and beam missing. Based on the widely-used datasets DAIR-V2X [42] and OPV2V [37], we created two point cloud corruptions benchmarks, DAIR-V2Xn and OPV2Vn, Table 1. Performance of different models on the OPV2V dataset under various conditions. 
+
+OPV2Vn Clean Data Beam Missing Motion Blur Fog EMI Water Echo AP 0.5 AP 0.7 AP 0.5 AP 0.7 AP 0.5 AP 0.7 AP 0.5 AP 0.7 AP 0.5 AP 0.7 AP 0.5 AP 0.7 AP 0.5 AP 0.7 Single 0.7381 0.5081 0.5591 0.3289 0.6050 0.2798 0.5378 0.4014 0.6046 0.3687 0.7197 0.4612 0.6701 0.4612 
+
+Intermediate 0.7223 0.5699 0.5411 0.3623 0.6139 0.3672 0.5164 0.4349 0.5682 0.3832 0.7026 0.5284 0.6773 0.5325 
+
+Late 0.8484 0.7694 0.7574 0.6204 0.7254 0.4781 0.6798 0.6152 0.7552 0.6239 0.8413 0.7580 0.8156 0.7382 
+
+Fcooper [2] 0.8800 0.7852 0.7460 0.6122 0.7121 0.4727 0.6440 0.5687 0.7563 0.6094 0.8676 0.7642 0.8519 0.7573 
+
+V2VNet [32] 0.8840 0.7613 0.7450 0.5681 0.7963 0.5522 0.6223 0.5091 0.7630 0.5794 0.8617 0.7117 0.8550 0.7313 
+
+V2X-ViT [36] 0.8740 0.7692 0.7421 0.5960 0.7101 0.4723 0.6184 0.5351 0.7647 0.6010 0.8496 0.7328 0.8586 0.7522 
+
+Where2Comm [8] 0.8757 0.7451 0.7567 0.5767 0.7823 0.5066 0.6702 0.5654 0.7470 0.5729 0.8614 0.7137 0.8598 0.7259 
+
+Coalign [20] 0.8878 0.7931 0.7657 0.6308 0.7785 0.5025 0.6778 0.6016 0.7741 0.6374 0.8690 0.7598 0.8642 0.7662 
+
+ERMVP [43] 0.8398 0.7211 0.6684 0.5225 0.6763 0.4365 0.5407 0.4613 0.6202 0.4645 0.7526 0.6102 0.8221 0.6997 
+
+MRCNet [7] 0.8529 0.7699 0.7190 0.6301 0.7107 0.5402 0.6424 0.5969 0.6891 0.6017 0.8050 0.6862 0.8545 0.7723 
+
+DSRC [44] 0.8941 0.8035 0.7894 0.6648 0.8062 0.5633 0.6763 0.6119 0.7714 0.6394 0.8649 0.7520 0.8816 0.7909 
+
+MDD [10] 0.7792 0.6356 0.6047 0.4513 0.6566 0.3566 0.5375 0.4472 0.5645 0.4261 0.7513 0.5949 0.6475 0.4961 
+
+Ours 0.9053 0.8357 0.7909 0.7020 0.8142 0.6184 0.6871 0.6297 0.7891 0.6897 0.8745 0.7963 0.8923 0.8200 
+
+Table 2. Performance of different models on the DAIR-V2X dataset under various conditions. 
+
+DAIR-V2Xn Clean Data Beam Missing Motion Blur Fog EMI Water Echo AP 0.5 AP 0.7 AP 0.5 AP 0.7 AP 0.5 AP 0.7 AP 0.5 AP 0.7 AP 0.5 AP 0.7 AP 0.5 AP 0.7 AP 0.5 AP 0.7 Single 0.6630 0.5152 0.3370 0.2598 0.5883 0.3713 0.3486 0.2557 0.3459 0.2629 0.5976 0.4966 0.6377 0.5024 
+
+Intermediate 0.6973 0.5111 0.3591 0.2305 0.6312 0.3653 0.3579 0.2507 0.3545 0.2483 0.6373 0.4291 0.6917 0.5012 
+
+Late 0.6505 0.5538 0.3322 0.2080 0.5423 0.3437 0.3777 0.2920 0.3713 0.2498 0.5827 0.4114 0.6107 0.4350 
+
+Fcooper [2] 0.7396 0.5612 0.3871 0.2628 0.6066 0.3547 0.3696 0.2775 0.3801 0.2766 0.6738 0.4916 0.7299 0.5539 
+
+V2VNet [32] 0.6392 0.3132 0.3582 0.1518 0.4533 0.1892 0.3144 0.1528 0.3422 0.1408 0.5800 0.2570 0.6264 0.3039 
+
+V2X-ViT [36] 0.7156 0.5464 0.3685 0.2400 0.6195 0.3829 0.3967 0.3037 0.3800 0.2599 0.6401 0.4616 0.6938 0.5193 
+
+Where2Comm [8] 0.6737 0.5319 0.3195 0.2477 0.5568 0.3823 0.3801 0.3067 0.3542 0.2699 0.6215 0.4731 0.6665 0.5244 
+
+Coalign [20] 0.7773 0.6284 0.4901 0.3395 0.6771 0.4559 0.4295 0.3528 0.4577 0.3415 0.7143 0.5626 0.7721 0.6190 
+
+ERMVP [43] 0.6738 0.5546 0.3216 0.2599 0.5616 0.4027 0.3837 0.3202 0.3535 0.2836 0.6217 0.4920 0.6680 0.5470 
+
+MRCNet [7] 0.6649 0.5388 0.3718 0.2653 0.6054 0.4204 0.3704 0.3118 0.3587 0.2757 0.5863 0.4578 0.6636 0.5373 
+
+DSRC [44] 0.7517 0.6164 0.4225 0.3117 0.6452 0.4453 0.4152 0.3478 0.4211 0.3184 0.6919 0.5453 0.7406 0.6061 
+
+MDD [10] 0.7507 0.5813 0.4448 0.3021 0.6647 0.4493 0.4179 0.3234 0.3750 0.2615 0.6702 0.5044 0.7321 0.5614 
+
+Ours 0.8069 0.6644 0.5243 0.3597 0.6830 0.4690 0.4359 0.3623 0.4734 0.3555 0.7380 0.5834 0.7972 0.6562 
+
+which are built upon Robo3D [12], to evaluate the resilience against environmental and sensor level corruptions. 
+
+Implementation Details. All the compared methods were retrained based on the OpenCOOD [37] framework. We adopted PointPillars [13] as the LiDAR encoder . During training, all models were trained on clean point cloud data for 30 epochs with batch size of 2 to evaluate generalization ability. The Adam optimizer [11] was used with an initial learning rate of 1e-3, and the number of cooperating vehi-cles was set to 2. In our method, both the diffusion encoder and decoder consist of 3 layers, and the selection ratio is set to 30%. We train the model using the DDPM[6] and employ the deterministic DDIM[28] during inference. Intermediate features are compressed by 16 ×, and the teacher model is utilized exclusively during training. 
+
+4.2. Quantitative evaluation 
+
+Benchmark Comparison. Tab. 1 and Tab. 2 present a comprehensive comparison between our proposed method and leading baselines across the OPV2Vn and DAIR-V2Xn, evaluated under both clean and corrupted conditions. Across all scenarios, our method consistently surpassing the current SOTA methods. (1) Under clean conditions, CoopDiff achieve performance gains of 1.12% / 3.22% and 2.96% / 3.60% in AP@0.5/AP@0.7 over the second-best method on OPV2Vn and DAIR-V2Xn. This confirms that the proposed diffusion-driven framework produces more stable feature representations, even when processing high-fidelity clean data. (2) in corrupted conditions, CoopDiff shows remarkable robustness. On average, across all six corruption types, CoopDiff outperforms the baseline aver-age by 8.40% / 13.16% on OPV2Vn and 10.24% / 10.13% on DAIR-V2Xn. This massive lead highlights its ability to maintain high performance across diverse corruption sce-narios. Notably, MDD exhibits clear performance degra-dation when limited to LiDAR-only inputs, highlighting the limitations of existing methods. This advantage stems from our diffusion-guided denoising paradigm and the dual-branch encoder, which jointly enable adaptive noise sup-pression and cross-agent information fusion. 
+
+Corruption Sensitivity Analysis. As shown in Fig. 5, we systematically evaluate the sensitivity of existing cooper-ative perception models on OPV2Vn and DAIR-V2Xn at varying severity levels. All baselines exhibit severe degra-dation under motion blur and fog conditions. For instance, under the strongest blur, Coalign on OPV2Vn drops from 0 1 2 3 4                               
+
+> 0.68
+> 0.74
+> 0.80
+> 0.86
+> 0.93 Beam Missing
+> 01234
+> 0.57
+> 0.66
+> 0.75
+> 0.84
+> 0.94 EMI
+> 01234
+> 0.07
+> 0.30
+> 0.52
+> 0.75
+> 0.98 Motion Blur
+> 01234
+> 0.83
+> 0.85
+> 0.87
+> 0.89
+> 0.91 Water
+> 01234
+> 0.51
+> 0.62
+> 0.72
+> 0.83
+> 0.94 Fog
+> 01234
+> 0.85
+> 0.86
+> 0.88
+> 0.89
+> 0.91 Echo
+> Fcooper V2VNet Coalign DSRC V2X-ViT Ours
+
+(a) Comparison on OPV2Vn. 0 1 2 3 4                                
+
+> 0.31
+> 0.45
+> 0.58
+> 0.72
+> 0.85 Beam Missing
+> 01234
+> 0.26
+> 0.41
+> 0.56
+> 0.71
+> 0.86 EMI
+> 01234
+> 0.09
+> 0.29
+> 0.48
+> 0.68
+> 0.87 Motion Blur
+> 01234
+> 0.51
+> 0.59
+> 0.67
+> 0.75
+> 0.83 Water
+> 01234
+> 0.18
+> 0.35
+> 0.52
+> 0.69
+> 0.86 Fog
+> 01234
+> 0.61
+> 0.66
+> 0.72
+> 0.77
+> 0.82 Echo
+> Fcooper V2VNet Coalign DSRC V2X-ViT Ours
+
+(b) Comparison on DAIR-V2Xn. 
+
+Figure 5. Robustness of our proposed method and compared benchmark to varying levels of corruption. Table 3. RCE comparison where mRCE is the average of RCE@0.5 and 0.7. The format is RCE@0.5 / RCE@0.7 / mRCE. Model OPV2V (% ↓) DAIR-V2X (% ↓)Fcooper 13.06 / 25.13 / 19.10 33.15 / 33.33 / 33.24 V2VNet 10.89 / 26.69 / 18.79 46.54 / 50.84 / 48.69 V2X-ViT 12.30 / 26.61 / 19.46 33.05 / 33.30 / 33.18 Coalign 11.95 / 23.36 / 17.66 28.89 / 28.91 / 28.90 ERMVP 19.38 / 31.91 / 25.65 29.35 / 29.87 / 29.61 MRCNet 13.78 / 21.04 / 17.41 30.73 / 30.56 / 30.65 DSRC 11.13 / 20.40 / 15.77 30.45 / 30.63 / 30.54 MDD 19.00 / 31.06 / 25.03 32.61 / 33.04 / 32.83 Ours 10.75 / 15.12 / 12.94 26.73 / 26.85 / 26.79 Table 4. Performance Comparison of Cooperative Perception Methods across Different Scenarios. 
+
+Model AP@0.5 AP@0.7 Default Culver Default Culver V2VNet 0.8840 0.8424 (04.71% ↓) 0.7613 0.6924 (09.05% ↓)V2X-ViT 0.8740 0.8328 (04.71% ↓) 0.7692 0.6884 (10.50% ↓)Coalign 0.8878 0.8418 (05.18% ↓) 0.7931 0.7121 (10.21% ↓)MRCNet 0.8529 0.7444 (12.72% ↓) 0.7699 0.6364 (17.34% ↓)DSRC 0.8941 0.8311 (07.05% ↓) 0.8035 0.7076 (11.94% ↓)Ours 0.9053 0.8641 (04.55% ↓) 0.8357 0.7563 (09.50% ↓)
+
+0.8878 to 0.1529, while DSRC on DAIR-V2X falls from 0.7517 to 0.2540. In contrast, CoopDiff consistently sur-passes all prior SOTA models across all corruption types and severity levels, demonstrating the lowest sensitivity. 
+
+Quantitative Robustness Analysis. Tab. 3 further reports the average relative performance drop across corruptions. CoopDiff achieves the lowest mRCE of 12.94% on OPV2V and 26.79% on DAIR-V2X, quantitatively confirming its superior resilience against diverse degradations. We at-tribute this resilience to two key factors: (1) the student network effectively inherits the teacher’s quality-aware su-pervision , suppressing noise accumulation during feature denoising; and (2) the dual-branch local/cooperative fea-
+
+Table 5. Ablation study of our proposed modules. 
+
+GCM Coop Teach EGCA OPV2V DAIR-V2X 0.8548 / 0.7431 0.7330 / 0.5530 
+
+✓ 0.8681 / 0.7765 0.7565 / 0.6092 
+
+✓ 0.8705 / 0.8014 0.7918 / 0.6361 
+
+✓ ✓ 0.8862 / 0.8192 0.8027 / 0.6591 
+
+✓ ✓ 0.8852 / 0.8162 0.7971 / 0.6517 
+
+✓ ✓ ✓ 0.8984 / 0.8294 0.8042 / 0.6610 
+
+✓ ✓ ✓ ✓ 0.9053 / 0.8357 0.8069 / 0.6644 
+
+ture interaction mitigates performance decay caused by cor-rupted collaboration, maintaining stable detection perfor-mance even under severe interference. 
+
+Generalization to Unseen Domains. Tab. 4 shows the models’ generalization capability when tested on the un-seen Culver City domain after being trained only on the default OPV2V dataset. Our approach achieves the highest AP scores and suffers the smallest performance drop (only 4.55% in AP@0.5), demonstrating superior domain gener-alization compared to all baselines. 
+
+4.3. Component Analysis 
+
+Contribution of Major Components. Tab. 5 summarizes the contribution of each proposed component. Integrat-ing the the GCM-driven diffusion mechanism into baseline yields 1.33%/3.34% gains on OPV2V and 2.35%/5.62% gains on DAIR-V2X. This confirms the diffusion-based mechanism enhances local feature representations. The Co-operative (Coop) branch further boosts performance (e.g., +5.3% AP@0.5 on DAIR-V2X), indicating cross-agent fu-sion provides complementary spatial cues. The Teacher (Teach) branch adds a stable gain, suggesting its fea-tures help suppress noise accumulation. Finally, the full model equipped with EGCA achieves the optimal accuracy: 0.9053/0.8357 on OPV2V and 0.8069/0.6644 on DAIR-V2X. This validation confirms that each component is in-dispensable for achieving the optimal performance. Table 6. Ablation study on Quality-Aware Early Fusion Teacher. 
+
+Teacher Model OPV2V DAIR-V2X Naive Early 0.8775 / 0.7717 0.7756 / 0.6011 + QoI 0.8927 / 0.8258 0.7976 / 0.6404 + QoI + SGM 0.9048 / 0.8325 0.8061 / 0.6533 + QoI + SGM + GCM 0.9053 / 0.8357 0.8069 / 0.6644 
+
+> Table 7. Ablation study on the number of diffusion steps.
+
+Number OPV2V FPS DAIR-V2X FPS 1 0.8602/0.8152 10.14 0.7753/0.6309 9.47 2 0.8970/0.8326 9.45 0.8000/0.6512 8.19 5 0.9046/0.8345 7.33 0.8028/0.6594 7.02 10 0.9053/0.8357 5.31 0.8069/0.6644 4.89 20 0.9060/0.8362 3.22 0.8073/0.6650 3.14 
+
+> Table 8. Performance with Varying Local Data Selection Ratios
+
+Ratio OPV2V DAIR-V2X 50% 0.9051/0.8354 0.8069/0.6642 30% 0.9053/0.8357 0.8069/0.6644 20% 0.9046/0.8349 0.8061/0.6380 10% 0.9040/0.8339 0.8059/0.6375 5% 0.9031/0.8325 0.8054/0.6344 
+
+Ablation on Teacher Model. Tab. 6 validates our teacher model design. Compared to a Naive Early baseline, incor-porating QoI weighting yields a performance boost, high-lighting the importance of suppressing interference dur-ing aggregation. Integrating the Semantic Guidance Mask (SGM) to inject category-level priors provides an additional gain. The teacher integrated with diffusion can better learn the feature distribution of the generation process, thereby providing more effective guidance for the student. 
+
+Number of Diffusion Steps. Tab. 7 analyzes the frame-work’s adjustable trade-off between accuracy and effi-ciency. Notably, our model is highly efficient, surpassing the previous state-of-the-art performance with only 2 dif-fusion steps while operating at 9.45 FPS on OPV2V. In-creasing the steps to 10 further refines geometric details and boosts accuracy. However, gains with more steps become negligible ( <0.1%). We use 10 steps to report its accuracy. 
+
+Ablation on Selection Ratio. Tab. 8 investigates the im-pact of the Top-K selection ratio in our cooperative branch. Performance on both datasets remains stable. This confirms our model’s ability to focus on vital cooperative cues, with 30% providing the optimal balance. 
+
+4.4. Qualitative Evaluation 
+
+Diffusion Process Visualization. Fig. 6 illustrates the de-noising trajectory of our diffusion process from t=0 (initial noise) to t=10 . As the iteration proceeds, the corrupted re-gions in the input are gradually restored, showing that our t=0  t=2  t=4        
+
+> t=6 t=8 t=10
+> corrupted
+> region
+> input
+> Figure 6. Visualization of the denoising process at inference time. (b) DSRC (c) MDD (a) V2X-ViT (d) Ours
+> (1)
+> (2)
+> (3)
+> (4)
+> Figure 7. Visualization of detection under various corruptions, where (1) beam missing , (2) fog , (3) motion blur , and (4) water .
+
+model can effectively remove structured noise while pre-serving underlying geometric details. 
+
+Detection Visualization. Fig. 7 presents qualitative com-parisons under four corruption types. Compared with other mthods, our method produces more complete and accu-rate bounding boxes, especially in heavily degraded re-gions where baselines either miss objects or yield false pos-itives. These results visually confirm the effectiveness of our diffusion-based framework in suppressing noise and re-covering reliable detections under diverse corruptions. 
+
+## 5. Conclusion 
+
+We presented a diffusion-guided cooperative perception framework that enhances robustness under diverse corrup-tions. By integrating a quality-aware teacher-student design and a dual-branch gated fusion mechanism, our method ef-fectively suppresses noise accumulation and preserves reli-able cross-agent information. Experiments on OPV2Vn and DAIR-V2Xn demonstrate consistent improvements over state-of-the-art baselines in both accuracy and stability. Fu-ture work will focus on mitigating the risk of diffusion mod-els generating geometries or objects that may not be per-fectly aligned with the ground truth. 
+
+Acknowledgement. The work is supported in part by the S&T Program of Hebei Province (Beijing-Tianjin-Hebei Collaborative Innovation Special Program) under Grant 25240701D. References 
+
+[1] Gong Chen, Chaokun Zhang, Pengcheng Lv, and Xiao-hui Xie. Cora: A collaborative robust architecture with hybrid fusion for efficient perception. arXiv preprint arXiv:2512.13191 , 2025. 1 [2] Qi Chen, Xu Ma, Sihai Tang, Jingda Guo, Qing Yang, and Song Fu. F-cooper: Feature based cooperative perception for autonomous vehicle edge computing system using 3d point clouds. In Proceedings of the 4th ACM/IEEE Symposium on Edge Computing , pages 88–100, 2019. 2, 6 [3] Shihang Du, Sanqing Qu, Tianhang Wang, Xudong Zhang, Yunwei Zhu, Jian Mao, Fan Lu, Qiao Lin, and Guang Chen. Rcp-bench: Benchmarking robustness for collaborative per-ception under diverse corruptions. In Proceedings of the Computer Vision and Pattern Recognition Conference , pages 11908–11918, 2025. 1 [4] Jiahui Fu, Yue Gong, Luting Wang, Shifeng Zhang, Xu Zhou, and Si Liu. Generative map priors for collaborative bev semantic segmentation. In Proceedings of the Computer Vision and Pattern Recognition Conference , pages 11919– 11928, 2025. 3 [5] Bolin Gao, Jiaxi Liu, Hengduo Zou, Jiaxing Chen, Lei He, and Keqiang Li. Vehicle-road-cloud collaborative perception framework and key technologies: A review. IEEE Transac-tions on Intelligent Transportation Systems , 2024. 1 [6] Jonathan Ho, Ajay Jain, and Pieter Abbeel. Denoising dif-fusion probabilistic models. Advances in neural information processing systems , 33:6840–6851, 2020. 2, 3, 6 [7] Shixin Hong, Yu Liu, Zhi Li, Shaohui Li, and You He. Multi-agent collaborative perception via motion-aware robust com-munication network. In Proceedings of the IEEE/CVF Con-ference on Computer Vision and Pattern Recognition , pages 15301–15310, 2024. 1, 2, 6 [8] Yue Hu, Shaoheng Fang, Zixing Lei, Yiqi Zhong, and Si-heng Chen. Where2comm: Communication-efficient collab-orative perception via spatial confidence maps. Advances in neural information processing systems , 35:4874–4886, 2022. 2, 6 [9] Yue Hu, Juntong Peng, Sifei Liu, Junhao Ge, Si Liu, and Si-heng Chen. Communication-efficient collaborative percep-tion via information filling with codebook. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pat-tern Recognition , pages 15481–15490, 2024. 2 [10] Xun Huang, Jinlong Wang, Qiming Xia, Siheng Chen, Bisheng Yang, Xin Li, Cheng Wang, and Chenglu Wen. V2x-r: Cooperative lidar-4d radar fusion with denoising diffusion for 3d object detection. In Proceedings of the Computer Vision and Pattern Recognition Conference , pages 27390–27400, 2025. 2, 3, 6 [11] Diederik P Kingma. Adam: A method for stochastic opti-mization. arXiv preprint arXiv:1412.6980 , 2014. 6 [12] Lingdong Kong, Youquan Liu, Xin Li, Runnan Chen, Wen-wei Zhang, Jiawei Ren, Liang Pan, Kai Chen, and Ziwei Liu. Robo3d: Towards robust and reliable 3d perception against corruptions. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pages 19994–20006, 2023. 6[13] Alex H Lang, Sourabh Vora, Holger Caesar, Lubing Zhou, Jiong Yang, and Oscar Beijbom. Pointpillars: Fast encoders for object detection from point clouds. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 12697–12705, 2019. 6 [14] Duy-Tho Le, Hengcan Shi, Jianfei Cai, and Hamid Rezatofighi. Diffusion model for robust multi-sensor fusion in 3d object detection and bev segmentation. In European Conference on Computer Vision , pages 232–249. Springer, 2024. 3, 4 [15] Baolu Li, Jinlong Li, Xinyu Liu, Runsheng Xu, Zhengzhong Tu, Jiacheng Guo, Qin Zou, Xiaopeng Li, and Hongkai Yu. V2x-dgw: Domain generalization for multi-agent percep-tion under adverse weather conditions. In 2025 IEEE In-ternational Conference on Robotics and Automation (ICRA) ,pages 974–980. IEEE, 2025. 1, 2 [16] Baolu Li, Zongzhe Xu, Jinlong Li, Xinyu Liu, Jianwu Fang, Xiaopeng Li, and Hongkai Yu. V2x-dg: Domain generaliza-tion for vehicle-to-everything cooperative perception. arXiv preprint arXiv:2503.15435 , 2025. 1, 3 [17] Yiming Li, Shunli Ren, Pengxiang Wu, Siheng Chen, Chen Feng, and Wenjun Zhang. Learning distilled collaboration graph for multi-agent perception. Advances in Neural Infor-mation Processing Systems , 34:29541–29552, 2021. 3 [18] Zhiqi Li, Wenhai Wang, Hongyang Li, Enze Xie, Chong-hao Sima, Tong Lu, Qiao Yu, and Jifeng Dai. Bevformer: learning bird’s-eye-view representation from lidar-camera via spatiotemporal transformers. IEEE Transactions on Pat-tern Analysis and Machine Intelligence , 2024. 1 [19] Tsung-Yi Lin, Priya Goyal, Ross Girshick, Kaiming He, and Piotr Doll´ ar. Focal loss for dense object detection. In Pro-ceedings of the IEEE international conference on computer vision , pages 2980–2988, 2017. 5 [20] Yifan Lu, Quanhao Li, Baoan Liu, Mehrdad Dianati, Chen Feng, Siheng Chen, and Yanfeng Wang. Robust collabora-tive 3d object detection in presence of pose errors. In 2023 IEEE International Conference on Robotics and Automation (ICRA) , pages 4812–4818. IEEE, 2023. 2, 6 [21] Shitong Luo and Wei Hu. Diffusion probabilistic models for 3d point cloud generation. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition ,pages 2837–2845, 2021. 3 [22] Alexander Quinn Nichol and Prafulla Dhariwal. Improved denoising diffusion probabilistic models. In International conference on machine learning , pages 8162–8171. PMLR, 2021. 2 [23] Ethan Perez, Florian Strub, Harm de Vries, Vincent Du-moulin, and Aaron C. Courville. Film: Visual reasoning with a general conditioning layer. In AAAI , 2018. 4 [24] Wentao Qu, Yuantian Shao, Lingwu Meng, Xiaoshui Huang, and Liang Xiao. A conditional denoising diffusion proba-bilistic model for point cloud upsampling. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 20786–20795, 2024. 2 [25] Usha Ruby, Vamsidhar Yendapalli, et al. Binary cross en-tropy with deep learning technique for image classification. 
+
+Int. J. Adv. Trends Comput. Sci. Eng , 9(10), 2020. 5 [26] David E Rumelhart, Geoffrey E Hinton, and Ronald J Williams. Learning representations by back-propagating er-rors. nature , 323(6088):533–536, 1986. 4 [27] Yichun Shi, Peng Wang, Jianglong Ye, Mai Long, Kejie Li, and Xiao Yang. Mvdream: Multi-view diffusion for 3d gen-eration. arXiv preprint arXiv:2308.16512 , 2023. 3 [28] Jiaming Song, Chenlin Meng, and Stefano Ermon. Denoising diffusion implicit models. arXiv preprint arXiv:2010.02502 , 2020. 2, 6 [29] Tao Tang, Chaokun Zhang, Gong Chen, et al. Rocooper: Ro-bust cooperative perception under vehicle-to-vehicle com-munication impairments. In IEEE INFOCOM 2025-IEEE Conference on Computer Communications , pages 1–10. IEEE, 2025. 1 [30] Tim Van Erven and Peter Harremos. R´ enyi divergence and kullback-leibler divergence. IEEE Transactions on Informa-tion Theory , 60(7):3797–3820, 2014. 5 [31] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszko-reit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. In Advances in neural information processing systems , pages 5998–6008, 2017. 5 [32] Tsun-Hsuan Wang, Sivabalan Manivasagam, Ming Liang, Bin Yang, Wenyuan Zeng, and Raquel Urtasun. V2vnet: Vehicle-to-vehicle communication for joint perception and prediction. In European conference on computer vision ,pages 605–621. Springer, 2020. 2, 6 [33] Shuang Wu, Guoqi Li, Lei Deng, Liu Liu, Dong Wu, Yuan Xie, and Luping Shi. l1-norm batch normalization for ef-ficient training of deep neural networks. IEEE transactions on neural networks and learning systems , 30(7):2043–2051, 2018. 5 [34] Zhuofan Xia, Xuran Pan, Shiji Song, Li Erran Li, and Gao Huang. Vision transformer with deformable attention. In 
+
+Proceedings of the IEEE/CVF Conference on Computer Vi-sion and Pattern Recognition (CVPR) , pages 4794–4803, 2022. 5 [35] Hao Xiang, Zhaoliang Zheng, Xin Xia, Runsheng Xu, Letian Gao, Zewei Zhou, Xu Han, Xinkai Ji, Mingxi Li, Zonglin Meng, et al. V2x-real: a largs-scale dataset for vehicle-to-everything cooperative perception. In European Conference on Computer Vision , pages 455–470. Springer, 2024. 2 [36] Runsheng Xu, Hao Xiang, Zhengzhong Tu, Xin Xia, Ming-Hsuan Yang, and Jiaqi Ma. V2x-vit: Vehicle-to-everything cooperative perception with vision transformer. In European conference on computer vision , pages 107–124. Springer, 2022. 1, 2, 6 [37] Runsheng Xu, Hao Xiang, Xin Xia, Xu Han, Jinlong Li, and Jiaqi Ma. Opv2v: An open benchmark dataset and fusion pipeline for perception with vehicle-to-vehicle communica-tion. In 2022 International Conference on Robotics and Au-tomation (ICRA) , pages 2583–2589. IEEE, 2022. 2, 5, 6 [38] Chenyu Yang, Yuntao Chen, Hao Tian, Chenxin Tao, Xizhou Zhu, Zhaoxiang Zhang, Gao Huang, Hongyang Li, Yu Qiao, Lewei Lu, et al. Bevformer v2: Adapting modern im-age backbones to bird’s-eye-view recognition via perspective supervision. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 17830– 17839, 2023. 1 [39] Dingkang Yang, Kun Yang, Yuzheng Wang, Jing Liu, Zhi Xu, Rongbin Yin, Peng Zhai, and Lihua Zhang. How2comm: Communication-efficient and collaboration-pragmatic multi-agent perception. Advances in Neural Information Process-ing Systems , 36:25151–25164, 2023. 1 [40] Hengshuai Yao, Dong-lai Zhu, Bei Jiang, and Peng Yu. Neg-ative log likelihood ratio loss for deep neural network clas-sification. In Proceedings of the future technologies confer-ence , pages 276–282. Springer, 2019. 5 [41] Melih Yazgan, Mythra Varun Akkanapragada, and J Marius Z¨ ollner. Collaborative perception datasets in autonomous driving: A survey. In 2024 IEEE Intelligent Vehicles Sym-posium (IV) , pages 2269–2276. IEEE, 2024. 1 [42] Haibao Yu, Yizhen Luo, Mao Shu, Yiyi Huo, Zebang Yang, Yifeng Shi, Zhenglong Guo, Hanyu Li, Xing Hu, Jirui Yuan, et al. Dair-v2x: A large-scale dataset for vehicle-infrastructure cooperative 3d object detection. In Proceed-ings of the IEEE/CVF conference on computer vision and pattern recognition , pages 21361–21370, 2022. 2, 5 [43] Jingyu Zhang, Kun Yang, Yilei Wang, Hanqi Wang, Peng Sun, and Liang Song. Ermvp: Communication-efficient and collaboration-robust multi-vehicle perception in challenging environments. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 12575– 12584, 2024. 1, 2, 6 [44] Jingyu Zhang, Yilei Wang, Lang Qian, Peng Sun, Zeng-wen Li, Sudong Jiang, Maolin Liu, and Liang Song. Dsrc: Learning density-insensitive and semantic-aware collabora-tive representation against corruptions. In Proceedings of the AAAI Conference on Artificial Intelligence , pages 9942– 9950, 2025. 1, 2, 6

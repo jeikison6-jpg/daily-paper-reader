@@ -1,0 +1,582 @@
+Title: Pessimistic Auxiliary Policy for Offline Reinforcement Learning
+
+URL Source: https://arxiv.org/pdf/2602.23974v1
+
+Published Time: Mon, 02 Mar 2026 01:50:48 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+> JOURNAL OF IEEE TRANSACTIONS 1
+
+# Pessimistic Auxiliary Policy for Offline Reinforcement Learning 
+
+Fan Zhang Member, IEEE, Baoru Huang, Xin Zhang 
+
+Abstract —Offline reinforcement learning aims to learn an agent from pre-collected datasets, avoiding unsafe and ineffi-cient real-time interaction. However, inevitable access to out-of-distribution actions during the learning process introduces ap-proximation errors, causing the error accumulation and consider-able overestimation. In this paper, we construct a new pessimistic auxiliary policy for sampling reliable actions. Specifically, we develop a pessimistic auxiliary strategy by maximizing the lower confidence bound of the Q-function. The pessimistic auxiliary strategy exhibits a relatively high value and low uncertainty in the vicinity of the learned policy, avoiding the learned policy sampling high-value actions with potentially high errors during the learning process. Less approximation error introduced by sampled action from pessimistic auxiliary strategy leads to the alleviation of error accumulation. Extensive experiments on offline reinforcement learning benchmarks reveal that utilizing the pessimistic auxiliary strategy can effectively improve the efficacy of other offline RL approaches. 
+
+Index Terms —Offline Reinforcement Learning, Error Exacer-bation, Overestimation, Pessimistic 
+
+I. I NTRODUCTION 
+
+# REinforcement Learning (DRL) utilizing high-capacity neural network approximators [1]–[3] has demonstrated exceptional performance across various decision-making do-mains, such as robotics [4]–[6], strategy games [7]–[10], and more. However, unsafe and inefficient interactions in the learning process impede the deployment of DRL. Currently, there exist two methodologies for resolving this issue: 1) constructing a world model to simulate the real world [11], [12], requiring complex knowledge of physics and so on, difficult to achieve; 2) learning the agent merely on pre-collected dataset, that is Offline RL [13], [14]. However, offline RL faces serious overestimation issues compared to online RL. Pre-collected dataset is impossible to cover all state-actions [15]. Consequently, in temporal difference (TD) update [r + γQ (s′, a ′) − Q(s, a )] 2 , out-of-distribution (OOD) actions a′ might be encountered, intro-ducing considerable approximation errors [15]. These inflated approximations of OOD actions a′ lead to overestimation of other state-actions (s, a ), eventually engendering policy degeneration [1], [2], [16], [17]. In order to inhibit error accumulation of OOD actions, many previous offline RL algorithms [18]–[21] prohibit the agent from extrapolating on OOD actions. Previous algorithms could 
+
+> Corresponding author : Xin Zhang (xinzhang cn@163.com) Fan Zhang are with Department of Mathematics, The Hong Kong University of Science and Technology, Hong Kong, China. Baoru Huang is with University of Liverpool, UK Xin Zhang is with Department of Mechanical and Aerospace Engineering, The Hong Kong University of Science and Technology, Hong Kong, China.
+
+be roughly divided into two categories: 1) value regularization approaches [15], [20], [22], which directly regularize the value of actions sampled by the learned policy; 2) policy constraint approaches regularize the learned policy to be close to the behavior policy, utilizing explicit divergence penalties [13], [23], or implicit divergence penalties [24], [25]. In contrast to previous methods impose constrain on learned policy, we propose to construct a new pessimistic auxiliary strategy to sample reliable actions. Specifically, new policy impedes exploration by applying the principle of pessimism in the face of uncertainty [26]. We utilize epistemic uncertainty estimate on the Q-function [27] to construct a lower confidence bound to the critic. By first-order Taylor expansion of the lower confidence bound, an appropriate pessimistic auxiliary policy within the neighborhood of current policy can be found. Intuitively, we achieve actions with small approximation error through end-to-end learning, without requiring additional data sparsity-based computations [17]. It is worth noting that the proposed pessimistic auxiliary policy can be adapted to the majority of offline RL methods. We theoretically provide the convergence guarantee of TD update with pessimistic auxiliary policy. To empirically verify the proposed method, we apply pessimistic auxiliary policy to the TD3BC [19] and Diffusion-QL [28]. Extensive experi-ments conducted on D4RL benchmark demonstrate pessimistic auxiliary policy can effectively improve the efficacy of TD3BC and Diffusion-QL. II. R ELATED WORK 
+
+Offline reinforcement learning (RL) aims to learn effec-tive policies from pre-collected datasets, avoiding unsafe and inefficient real-time interaction. However, data-driven offline RL also faces challenges: error accumulation [13] arises when inferring the value of unseen actions. To overcome the overestimation problem, previous offline RL algorithms intend to prevent agents from querying unseen samples. Previous algorithms related to our method could be divided into two categories: 1) Policy constraint approaches regularize the learned policy to be close to the behavior policy, utilizing explicit divergence penalties [13], [20], [23], or implicit divergence penalties [24], [25], [29]. Policy constraint approaches impose strict constrains and fail to learn optimal policies [14]. Moreover, in real-world applications, behavior policy might be difficult to be obtained. Recently, some related works have tried to relax the full-coverage assumption [30], [31], which is merely in theoretical analysis;  
+
+> arXiv:2602.23974v1 [cs.AI] 27 Feb 2026 JOURNAL OF IEEE TRANSACTIONS 2
+
+2) Value regularization approaches directly regularize the value function. BRAC-v [20] introduces the divergence penalty to temporal difference (TD) update. CQL [15] directly min-imizes the Q-values of OOD actions and maximizes the Q-values of in-distribution actions. Besides, there are uncertainty-based methods [22], [32] regularize the value function uncer-tainty estimated from value function or world model. There are many other attempts in offline RL domains, such as Model-based offline RL [33], [34], Transformer-based methods [35]. Despite effectiveness, these methods deviate from the paradigm of reinforcement learning. In contrast to prior works to constrain the learned policy, we propose a new pessimistic auxiliary strategy to sample more reliable actions. III. P RELIMINARIES 
+
+We consider a Markov Decision Process formulated en-vironment which is defined by a tuple (S, A, P, R, γ ) w.r.t. state space, action space, transition distribution, reward func-tion and discount factor respectively. The agent takes action 
+
+a ∈ A in state s ∈ S, and acquires a new state s′ ∈ S
+
+and immediate reward r(s, a ), in the light of the transition distribution P (s′|s, a ). The goal of reinforcement learning is to find an optimal policy π(a|s) that maximizes the cumulative discounted reward Eπ,P 
+
+P∞ 
+
+> t=0
+
+γtr(st, a t).
+
+Offline RL. Other from online learning paradigms learned with the experience from the environment, offline RL relies solely on a prior collected dataset D = {(s, a, r, s ′)i}. The end goal is still to obtain a policy from a value function, which consists of the following two steps. 1) Policy evaluation. The value function is learned by min-imizing the bellman residual: 
+
+JQ(θ) = E
+
+> (s,a,r,s ′)∼D
+
+[T Qθ (s, a ) − Qθ (s, a )] 2, (1) where θ is the parameters of Q-net, and T is the Bellman optimality operator: 
+
+T Qθ (s, a ) = r(s, a ) + γ E
+
+> a′∼π(·| s′)
+
+Qθ− (s′, a ′), (2) 
+
+θ is the parameters of Q-net, and θ− is the parameters of a separate target Q-net without gradient propagation [36]. 2) Policy extraction. The optimal policy under the value function is extracted as follows: 
+
+Jπ (ϕ) = − E
+
+> s∼D ,a ∼π(a|s)
+
+Qθ (s, a ), (3) where ϕ is the parameters of policy. 
+
+Uncertainty Quantification. Epistemic uncertainty is adopted to assess the reliability of the predictive model, which is widely applied in many domains [37]. Intuitively, ensemble regression functions yield similar estimations on the area with rich data. We introduce the uncertainty quantification δ with respect to the regression functions f on data xδ(x) = 1
+
+K
+
+> K
+
+X
+
+> i=1
+
+(f i − ¯f )2(s, a ), (4) where ¯f is the mean of f i.IV. A NALYSIS OF OVERESTIMATION 
+
+Overestimation in the field of offline reinforcement learning stems from immense approximation error which is caused by the distribution shift [18]. The distribution shift refers to the difference between the behavior policy and the current learned policy. The learned policy inevitably queries a strange action a′ on state s′. Value function infers the estimation on 
+
+(s′, a ′) with the generation capability of the neural network. Approximation error upwardly updates Q-values by standard temporal difference (TD) update [16], [18], inducing the consistent overestimation: 
+
+δ(s, a ) = Q∗(s, a ) − Qπ 
+
+> D
+
+(s, a )= Es′ [r(s, a ) + γEa′ Q∗(s′, a ′)] − Qπ 
+
+> D
+
+(s, a )= X
+
+> s′
+
+pM[r(s, a ) + γ X
+
+> a′
+
+π∗(a′|s′)Q∗(s′, a ′)] − Qπ 
+
+> D
+
+(s, a )= X
+
+> s′
+
+pM[r(s, a ) + γ X
+
+> a′
+
+π∗(a′|s′)Qπ 
+
+> D
+
+(s′, a ′) + δ(s′, a ′)] 
+
+− X
+
+> s′
+
+pD [r(s, a ) + γ X
+
+> a′
+
+π(a′|s′)Qπ 
+
+> D
+
+(s′, a ′)] = X
+
+> s′
+
+(pM − pD )r(s, a ) + γ X
+
+> s′
+
+X
+
+> a′
+
+[pMπ∗(a′|s′)
+
+− pD π(a′|s′)] Qπ 
+
+> D
+
+(s′, a ′) + γ X
+
+> s′
+
+X
+
+> a′
+
+pMπ∗(a′|s′)δ(s′, a ′).
+
+(5) Unfortunately, the paradigm of offline reinforcement learn-ing makes it difficult to solve the problem of overestimation. Estimation error will accumulate through the TD update. Due to the agent cannot interact with the environment, there are no new state-action pair (s′, a ′) and corresponding reward r
+
+to correct the estimation error. Furthermore, we conduct simulation study to delve into the causes of estimation error. Apart from the bootstrapping associated with temporal difference (TD) updates, the neural network of the agent engages in linear regression. Hence, we depict the linear regression based on different number of observations in Fig. 1. We can observe that as the number of observations increases, the estimates produced by linear regression (red line) converge more closely to the true un-derlying distribution (blue line). That’s why few-shot learning or data distribution is widely studied in many domains [38], [39].Meanwhile, the confidence level of the predictions also increases, corresponding to a reduction in the red shaded area. Return to the offline reinforcement learning scenario, the agent is prone to yield a larger epistemic uncertainty (lower confidence level) of estimation on the strange action a′.As consequence, these actions are more likely to introduce larger estimation errors, exacerbating the error accumulation and overestimation of offline RL methods. The proof and experiments inspire us that we can sample actions with lower uncertainty for TD update. More accurate value estimation will contribute to the learning of more effective policies. V. P ESSIMISTIC AUXILIARY POLICY 
+
+As shown in Eq. 5, encountering out-of-distribution actions 
+
+a′ would introduce high approximation error. In this section, we construct a pessimistic auxiliary policy to sample actions JOURNAL OF IEEE TRANSACTIONS 30.0 0.2 0.4 0.6 0.8 1.0                    
+
+> 1.5
+> 1.0
+> 0.5
+> 0.0
+> 0.5
+> 1.0
+> 1.5 num of obs: 5
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> 1.5
+> 1.0
+> 0.5
+> 0.0
+> 0.5
+> 1.0
+> 1.5 num of obs: 10
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> 1.5
+> 1.0
+> 0.5
+> 0.0
+> 0.5
+> 1.0
+> 1.5 num of obs: 20
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> 1.5
+> 1.0
+> 0.5
+> 0.0
+> 0.5
+> 1.0
+> 1.5 num of obs: 30
+> True
+> Estimation
+
+Fig. 1. Simulation study shows the causes of estimation error of linear regression. 
+
+with lower uncertainty, mitigating the error accumulation through TD update. Inspired by [40], when the agent reaches a new state, we maximize the lower confidence bound of the Q function which is constructed with epistemic uncertainty. Pessimistic auxiliary policy πp are used for computing Q(s′, π p(·| s′)) in TD updates and for policy learning Es∼D ,a ∼πp(·| s) Qθ (s, a ).The pessimistic auxiliary policy πp = δ(μp) can be formalized as follows: 
+
+μp = μ +
+
+√2σ
+
+|| [▽aQLB (s, a )] a=μ|| [▽aQLB (s, a )] a=μ, (6) where π = δ(μ) is the learned policy under Dirac distribution 
+
+δ, σ is the largest distance between pessimistic auxiliary policy 
+
+πp and the learned π.Concretely, starting from epistemic uncertainty, we obtain a low confidence bound of Q function. By constraining the difference between the pessimistic auxiliary policy and the cur-rent learned policy, a pessimistic auxiliary policy is obtained to suppress error accumulation. 
+
+Epistemic uncertainty. For efficient computation, we model the Epistemic uncertainty using Gaussian distribution, where the Q function is used to fit the mean and standard deviation. Due to common RL methods consist of two Q functions, the mean confidence can be defined as μQ(s, μ ) =  
+
+> 12
+
+(Q1(s, μ )+ Q2(s, μ )) , the standard deviation can be obtained by 
+
+δQ(s, μ ) = 
+
+s X
+
+> i∈1,2
+
+12 (Qi(s, μ ) − μQ(s, μ )) 2
+
+=
+
+r
+
+( 12 Q1(s, μ ) − 12 Q2(s, μ )) 2
+
+= 12
+
+p(Q1(s, μ ) − Q2(s, μ )) 2
+
+= 12 |Q1(s, μ ) − Q2(s, μ )|.
+
+(7) Note that, since existing offline reinforcement learning algorithms retain two Q functions, the computation of μQ and 
+
+δQ does not introduce excessive computational cost, nor does it introduce unnecessary network parameters. 
+
+Lower confidence bound. Through uncertainty estimation, a lower bound QLB (s, μ ) = μQ(s, μ ) − βδ Q(s, μ ) can be obtained. The parameter β is used to control the level of pessimism. Since the pessimistic policy replaces the agent’s learning policy in action sampling, excessive distribution de-viation can result in instability in agent learning. Thus, the pessimistic policy will be in proximity to the learning policy. Naturally, we employ a first-order Taylor expansion of QLB ,and the lower confidence bound of the Q function within the neighborhood of the current policy is obtained: 
+
+QLB (s, a ; μ) = ( a − μ)T [▽aQLB (s, a )] a=μ + Q(s, μ )= aT [▽aQLB (s, a )] a=μ + const (8) According to Taylor’s theorem, within a small enough neigh-borhood of μ, QLB (s, a ; μ) can provide an accurate linear approximation of Q(s, a ). Therefore, the choice of neighbor-hood size is important. 
+
+Pessimistic auxiliary policy. The pessimistic auxiliary pol-icy balances two criteria: 1) maximizing QLB (s, a ) to ensure JOURNAL OF IEEE TRANSACTIONS 4
+
+the selection of relatively optimal actions in pessimistic scenar-ios; 2) constraining the distance between the agent’s learned policy and the pessimistic auxiliary policy. This constraint limits the difference between the pessimistic auxiliary policy and the agent’s learned policy, preventing catastrophic actions during action sampling and promoting optimization stability. Additionally, when the gap between the pessimistic policy and the agent’s learning policy is sufficiently small, the approx-imate QLB (s, a ) is accurate. In conclusion, the pessimistic auxiliary policy addresses the following optimization problem, 
+
+μp = argmax 
+
+W (δ(μp),δ (μ)) ≤σ
+
+QLB (s, μ p), (9) here, we utilize wasserstein distance to calculate the distance of two deterministic policy πp and π.
+
+Proposition 1. Pessimistic auxiliary policy can be defined as 
+
+πp = δ(μp), where 
+
+μp = μ +
+
+√2σ
+
+|| [▽aQLB (s, a )] a=μ|| [▽aQLB (s, a )] a=μ. (10) 
+
+Proof. Consider the wasserstein distance two Dirac distribu-tion: 
+
+W (δ(μp), δ (μ)) = 12 || μp − μ|| 2. (11) Plug Eq. 12 into Eq. 10, we can obtain: 
+
+μp = argmax 
+
+μp
+
+QLB (s, μ p)
+
+subject to 12 (μp − μ)T (μp − μ) ≤ σ. 
+
+(12) To solve the Eq. 12, we construct the Lagrangian function: 
+
+L = QLB (s, μ p) − λ( 12 (μp − μ)T (μp − μ) − σ). (13) Differentiate both sides with respect to μp:
+
+▽μp L = [ ▽aQLB (s, a )] a=μ − λ(μp − μ). (14) Let ▽μp L equal to zero, we can get 
+
+μp = 1
+
+λ [▽aQLB (s, a )] a=μ + μ. (15) By KKT condition, we can know λ > 0 and 
+
+(μp − μ)T (μp − μ) = 2 δ. (16) Plug Eq. into Eq. 15, we can obtain 
+
+λ =
+
+s
+
+[▽aQLB (s, a )] Ta=μ[▽aQLB (s, a )] a=μ
+
+2σ
+
+= || ▽ a QLB (s, a )] a=μ|| √2σ ,
+
+(17) Plug λ into Eq. 15, we can derive the final conclusion: 
+
+μp = μ +
+
+√2σ
+
+|| [▽aQLB (s, a )] a=μ|| [▽aQLB (s, a )] a=μ. (18) 
+
+Summary. We construct a pessimistic auxiliary policy by maximizing the lower confidence bound of Q function. In-tuitively speaking, we find a new direction to construct the <latexit sha1_base64="3kG4meSh9RrQKum4VJcgrb4Q7w0=">AAACxHicjVHLSsNAFD2Nr1pfVZdugkVwVRLxtSwK4rIF+4BaJEmnNXTyYDIRStEfcKvfJv6B/oV3ximoRXRCkjPn3nNm7r1+ysNMOs5rwZqbX1hcKi6XVlbX1jfKm1utLMlFwJpBwhPR8b2M8TBmTRlKzjqpYF7kc9b2R+cq3r5jIguT+EqOU9aLvGEcDsLAk0Q1GjflilN19LJngWtABWbVk/ILrtFHggA5IjDEkIQ5PGT0dOHCQUpcDxPiBKFQxxnuUSJtTlmMMjxiR/Qd0q5r2Jj2yjPT6oBO4fQKUtrYI01CeYKwOs3W8Vw7K/Y374n2VHcb0983XhGxErfE/qWbZv5Xp2qRGOBU1xBSTalmVHWBccl1V9TN7S9VSXJIiVO4T3FBONDKaZ9trcl07aq3no6/6UzFqn1gcnO8q1vSgN2f45wFrYOqe1w9ahxWamdm1EXsYBf7NM8T1HCJOpra+xFPeLYuLG5lVv6ZahWMZhvflvXwARG8j2A=</latexit> 
+
+## Q 
+
+> <latexit sha1_base64="3kG4meSh9RrQKum4VJcgrb4Q7w0=">AAACxHicjVHLSsNAFD2Nr1pfVZdugkVwVRLxtSwK4rIF+4BaJEmnNXTyYDIRStEfcKvfJv6B/oV3ximoRXRCkjPn3nNm7r1+ysNMOs5rwZqbX1hcKi6XVlbX1jfKm1utLMlFwJpBwhPR8b2M8TBmTRlKzjqpYF7kc9b2R+cq3r5jIguT+EqOU9aLvGEcDsLAk0Q1GjflilN19LJngWtABWbVk/ILrtFHggA5IjDEkIQ5PGT0dOHCQUpcDxPiBKFQxxnuUSJtTlmMMjxiR/Qd0q5r2Jj2yjPT6oBO4fQKUtrYI01CeYKwOs3W8Vw7K/Y374n2VHcb0983XhGxErfE/qWbZv5Xp2qRGOBU1xBSTalmVHWBccl1V9TN7S9VSXJIiVO4T3FBONDKaZ9trcl07aq3no6/6UzFqn1gcnO8q1vSgN2f45wFrYOqe1w9ahxWamdm1EXsYBf7NM8T1HCJOpra+xFPeLYuLG5lVv6ZahWMZhvflvXwARG8j2A=</latexit>
+
+## Q 
+
+> <latexit sha1_base64="wKrTVNaci9tuwbHs1kFLxrECf74=">AAACyXicjVHLTsJAFD3UF+ILdemmkZi4Iq3xtSS4MdEFJPJIkJB2GLDSl+3UiISVP+BWf8z4B/oX3hlLohKj07Q9c+49Z+bea4euEwvDeM1oM7Nz8wvZxdzS8srqWn59ox4HScR4jQVuEDVtK+au4/OacITLm2HELc92ecMenMh445ZHsRP4F2IY8rZn9X2n5zBLEFWvdkbn5XEnXzCKhlr6NDBTUEC6KkH+BZfoIgBDAg8cPgRhFxZielowYSAkro0RcREhR8U5xsiRNqEsThkWsQP69mnXSlmf9tIzVmpGp7j0RqTUsUOagPIiwvI0XcUT5SzZ37xHylPebUh/O/XyiBW4IvYv3STzvzpZi0APx6oGh2oKFSOrY6lLoroib65/qUqQQ0icxF2KR4SZUk76rCtNrGqXvbVU/E1lSlbuWZqb4F3ekgZs/hznNKjvFc3D4kF1v1Aqp6POYgvb2KV5HqGEU1RQI+9rPOIJz9qZdqPdafefqVom1Wzi29IePgBUF5F3</latexit>
+
+## QLB  
+
+> <latexit sha1_base64="6MpU1I4lnQ1fG2nLodxPwx1yzTc=">AAACxnicjVHLSsNAFD2Nr1pfVZdugkVwVRLxtSy66bKifUBbJJlO69A0CclEKUXwB9zqp4l/oH/hnXEKahGdkOTMufecmXuvHwcilY7zmrPm5hcWl/LLhZXVtfWN4uZWI42yhPE6i4IoafleygMR8roUMuCtOOHeyA940x+eq3jzliepiMIrOY55d+QNQtEXzJNEXXZicV0sOWVHL3sWuAaUYFYtKr6ggx4iMGQYgSOEJBzAQ0pPGy4cxMR1MSEuISR0nOMeBdJmlMUpwyN2SN8B7dqGDWmvPFOtZnRKQG9CSht7pIkoLyGsTrN1PNPOiv3Ne6I91d3G9PeN14hYiRti/9JNM/+rU7VI9HGqaxBUU6wZVR0zLpnuirq5/aUqSQ4xcQr3KJ4QZlo57bOtNamuXfXW0/E3nalYtWcmN8O7uiUN2P05zlnQOCi7x+Wji8NS5cyMOo8d7GKf5nmCCqqooU7eAzziCc9W1QqtzLr7TLVyRrONb8t6+AB8BJBY</latexit>
+
+# ω
+
+High Value 
+
+but High Error 
+
+Low Value 
+
+but Low Error 
+
+New Sample 
+
+Direction 
+
+Old Sample 
+
+Direction 
+
+Fig. 2. Depiction of lower confidence bound of Q function and pessimistic auxiliary policy. 
+
+policy for sampling actions which is shown in Fig. 2. Due to the lower bound of Q function inversely proportional to the standard deviation δQ, the second term on the right-hand side is actually the new sample direction which points to regions of low uncertainty. As a consequence, pessimistic auxiliary policy can sample reliable actions with low uncertainty and low approximation error, compared to the π. Hence, pessimistic auxiliary policy can impede introduction of approximation error, mitigating the error accumulation. VI. O FFLINE RL WITH PESSIMISTIC AUXILIARY POLICY 
+
+Offline reinforcement learning algorithms with pessimistic auxiliary policy are divided into three stages: computing the pessimistic auxiliary policy, evaluating the value of state-action pairs with Q networks (policy evaluation), and learning the agent’s policy (policy extraction). 1) pessimistic auxiliary policy: according to the current learned policy μ, we can get 
+
+μp = μ +
+
+√2σ
+
+|| [▽aQLB (s, a )] a=μ|| [▽aQLB (s, a )] a=μ. (19) 2) policy evaluation: we utilize the pessimistic auxiliary policy to sample actions on state s′,
+
+JQ(θ) = E
+
+(s′|s,a )∼D 
+
+[TpQ − Qθ (s, a )] 2, (20) where TpQ = r(s, a ) + γQ θ− (s′, π p(s′)) is the new bellman operator with pessimistic auxiliary policy. 3) policy extraction: we leverage Q function to guide the policy extraction. In addition, like most offline reinforcement learning algorithms, the bias between the learning policy and the data collection policy is incorporated into the update process as a constraint, 
+
+Jπ (ϕ) = E
+
+(s,a )∼D 
+
+−Qθ (s, π (s)) − λlogπ β (π(s)|s), (21) To summarize, the procedure of offline RL with pessimistic auxiliary policy is outlined in Algorithm 1. Due to this algo-rithm merely replace the oral policy with pessimistic auxiliary policy to sample actions, we can adapt this learning procedure to the majority offline RL methods. JOURNAL OF IEEE TRANSACTIONS 5
+
+Algorithm 1 Offline RL with Pessimistic Auxiliary Policy 
+
+Require: θ, ψ, ϕ ▷ Initial parameters  
+
+> 1:
+
+D,λ, τ ▷ Initialize Dataset, learning rate and target smoothing coefficient  
+
+> 2:
+
+θ− ← θ ▷ Initialize target Q-net weights  
+
+> 3:
+
+for each training step do  
+
+> 4:
+
+μp ▷ obtain pessimistic auxiliary policy via Eq.19  
+
+> 5:
+
+θ ← θ − λθ ∇θ JQ(θ) ▷ train Q-net via Eq. 20  
+
+> 6:
+
+ϕ ← ϕ − λϕ∇ϕJπ (ϕ) ▷ train policy net via Eq. 21  
+
+> 7:
+
+θ− ← τ θ + (1 − τ )θ− ▷ Soft update target V-net  
+
+> 8:
+
+end for Output: θ, ψ, ϕ
+
+For reproducibility, we disclose the hyper-parameters used in the algorithm, i.e. β and δ. β controls the level of pessimism, we set β = 1 for all test environments. δ controls the distance between pessimistic auxiliary policy and learned policy. As the training steps increase, the learning strategy becomes more effective. The training process does not require more pessimism. Hence, we adopt cosine annealing to scale the 
+
+δ appropriately, ensuring a smooth transition from the initial value ( δinit = 1 ) to zero. VII. C ONVERGENCE ANALYSIS 
+
+Due to the new bellman operator in Eq. 20, we further provide the convergence analysis in this section. 
+
+Proposition 2. Boundedness. Suppose ∀s, a , R(s, a ) <Rmax , and initial Q0 ∈ [−Rmax , R max ], then for new bellman operator Tp, after k times update, Qk(s, a ) ∈ [− Rmax  
+
+> 1−γ
+
+, Rmax  
+
+> 1−γ
+
+].Proof. we use mathematical induction to prove Proposition 2, Qk(s, a ) ≤ Pki=0 γkRmax ≤ Rmax  
+
+> 1−γ
+
+. 1) when k = 1 ,
+
+Q1(s, a ) = TpQ0(s, a ) ≤ T Q0(s, a )
+
+≤ Rmax + γR max ≤
+
+> 1
+
+X
+
+> i=0
+
+γ1Rmax ; (22) 2) suppose k = j,Qj (s, a ) ≤ Pji=0 γj Rmax holds; 3) when k = j + 1 ,
+
+Qj+1 (s, a ) = TpQj (s, a ) ≤ T Qj (s, a ) ≤
+
+> j+1
+
+X
+
+> i=0
+
+γiRmax ; (23) Hence, Qk(s, a ) ≤ Pki=0 γiRmax < Rmax  
+
+> 1−γ
+
+holds. Meanwhile, Qk(s, a ) ≥ − Pki=0 γiRmax > − Rmax  
+
+> 1−γ
+
+can be proved. 
+
+Proposition 3. γ concentration. For two Q function Q1 and 
+
+Q2, the new bellman operator Tp has the following property, 
+
+||T pQ1 − T pQ2|| ≤ γ|| Q1 − Q2|| , (24) 
+
+Proof. Firstly, 
+
+||T pQ1 − T pQ2|| 
+
+= || R + γQ 1(s′, μ p(s′)) − R − γQ 2(s′, μ p(s′)) || 
+
+= γ|| Q1(s′, μ p(s′)) − Q2(s′, μ p(s′)) || .
+
+(25) Due to the uncertainty of μp is lower than μ, hence, 
+
+|| Q1(s′, μ p(s′)) − Q2(s′, μ p(s′)) || ≤ || Q1(s′, μ (s′)) −
+
+Q2(s′, μ (s′)) || . Plug the above equation into Eq. 25, we can obtain: 
+
+||T pQ1 − T pQ2|| = γ|| Q1(s′, μ p(s′)) − Q2(s′, μ p(s′)) || ≤ γ|| Q1(s′, μ (s′)) − Q2(s′, μ (s′)) || = γ|| Q1 − Q2|| .
+
+(26) Due to the bellman operator is a contractor under Ba-nach space, Boundedness (Proposition 2) and γ concentration guarantee the convergence of Tp. To sum up, introducing pessimistic auxiliary policy to offline RL does not change the convergence. VIII. E XPERIMENTS 
+
+A. Experiment Settings 
+
+In this section, we conduct experiments to answer the following research questions: left=2.5em 
+
+RQ1 Does our proposed pessimistic auxiliary policy improve the offline RL methods? 
+
+RQ2 Why does pessimistic auxiliary policy improve the offline RL methods? 
+
+Datasets. We appraise our method against the previous offline RL algorithms on the D4RL benchmarks, including following three domains: 1) Gym domain: includes three environments ( HalfChee-tah, Hopper , and Walker2d ) with three dataset types: 1) medium amasses 1M samples from a policy trained to approximately 1/3 the performance of the expert; 2) 
+
+medium-expert uses 50-50 split of medium and expert data; 3) m-r utilizes the replay buffer of a policy trained up to the performance of the medium agent; 2) Adroit domain: involves controlling a 24-DoF robotic hand, which are more challenging than the Gym do-main in task complexity. The Adroit domain we used includes one environment ( Pen ) with two dataset types: 1) human uses the 25 human demonstrations ; 2) cloned 
+
+mixes demonstration data and trajectories sampled from a behavioral cloned policy; 3) AntMaze domain: involves controlling an 8-DoF Ant quadruped robot to navigate to a particular goal state. Three maze layouts are used: umaze, medium and large .The ant is required to reach a specific goal from a fixed start location; reach a random goal from a random start location ( diverse dataset); reach a specific hand-picked locations from a different set of hand-picked start locations( play dataset). Additionally, we evaluate our method on NeoRL-2 [41], which focuses on the nature of datasets from real-world scenarios. It extends NeoRL by providing many challenges in the real world such as time delay, external factors and so on. 
+
+Baselines. Three types of model-free offline RL methods are selected : a) value regularization method, including CQL [15], IQL [42]; b) policy constraint method, e.g. AWAC [29], TD3BC [19], DQL [43]; c) other methods, such as trajectory optimization (DT [44]). JOURNAL OF IEEE TRANSACTIONS 6
+
+TABLE I COMPARISON OF TD3PA, DQLPA AND BASELINE METHODS IN TERMS OF NORMALIZED AVERAGE SCORE ON D4RL BENCHMARKS OVER THE FINAL 5
+
+> EVALUATIONS
+
+. T HE EXPERIMENTS ARE RUN ON MUJOCO-V2, A DROIT -V0 AND ANT MAZE -V0 DATASET OVER 10 RANDOM SEEDS .Gym Tasks CQL TD3BC IQL DT DQL TD3PA DQLPA halfcheetah-m 47.0 48.3 47.4 42.6 51.1 46.4 54.3 
+
+halcheetah-m-e 90.7 90.7 86.7 86.8 96.8 92.1 99.0 
+
+halfcheetah-m-r 44.6 44.6 44.2 36.6 47.8 44.7 52.3 
+
+hopper-m 53.0 59.3 66.2 67.6 90.5 65.8 96.3 
+
+hopper-m-e 98.0 98.0 91.5 107.6 111.1 104.3 110.4 hopper-m-r 60.9 60.9 94.7 82.7 101.3 74.2 102.3 
+
+walker2d-m 73.3 83.7 78.3 74.0 87.0 82.7 91.1 
+
+walker2d-m-e 110.1 109.6 110.2 108.1 110.1 110.3 109.1 walker2d-m-r 81.8 81.9 73.8 66.6 95.5 82.8 96.4 Gym total 659.4 677.5 692.4 672.6 791.2 703.3 811.2 
+
+Adroit Tasks CQL TD3BC IQL DT DQL TD3PA DQLPA pen-human 37.5 0.0 71.5 57.8 72.8 62.0 74.2 
+
+pen-cloned 39.2 9.9 37.3 23.2 57.3 62.6 65.1 Adroit total 76.7 9.9 108.8 81.0 130.1 124.6 139.3 
+
+AntMaze Tasks CQL TD3BC IQL DT DQL TD3PA DQLPA antmaze-u 74.0 78.6 87.5 59.2 93.4 95.0 97.1 
+
+antmaze-u-d 39.2 71.4 62.2 53.0 66.2 78.4 80.2 
+
+antmaze-m-p 61.2 10.6 71.2 0.0 76.6 87.4 89.1 
+
+antmaze-m-d 53.7 3.0 70.0 0.0 78.6 94.0 88.1 
+
+antmaze-l-p 15.8 0.2 39.6 0.0 46.4 65.2 63.6 antmaze-l-d 14.9 0.0 47.5 0.0 56.6 23.5 60.1 Antmaze total 258.8 163.8 378.0 112.2 417.7 425.6 478.2 All total 994.9 851.2 1179.2 865.8 1339.0 1253.5 1428.7 TD3-PA TD3-PA TD3-PA 
+
+Fig. 3. The distances between the action executed by policy and the action in the HalfCheetah dataset. TD3-PA TD3-PA TD3-PA 
+
+Fig. 4. The distances between the action executed by policy and the action in the AntMaze dataset. 
+
+B. Overall Performance (RQ1). 
+
+Implement Details. We apply pessimistic auxiliary policy to TD3BC and DQL, called TD3PA and DQLPA. 1) Our implement of TD3PA is based on the official TD3 implemen-tations 1. 2) Our implement of DQLPA is based on the official 
+
+> 1
+
+TD3BC: https://github.com/sfujim/TD3 BC 
+
+DQL implementations 2.From Table I, we can observe that: 1) TD3PA has improved by 3.8%, 14.5% and 159.5% com-pared to TD3BC on Gym, Adroit and AntMaze tasks respectively; 
+
+> 2
+
+DQL: https://github.com/Zhendong-Wang/Diffusion-Policies-for-Offline-RL JOURNAL OF IEEE TRANSACTIONS 7
+
+TABLE II COMPARISON OF IEEDS AND BASELINE METHODS ON NEO RL-2 
+
+> BENCHMARKS OVER THREE RANDOM SEEDS
+
+.Task Name CQL TD3-BC TD3PA Pipeline 81.08 81.95 82.31 Simglucose 10.99 74.21 74.42 RocketRecovery 74.32 79.74 76.21 RandomFrictionHopper 32.96 29.51 34.23 DMSD 70.24 60.01 71.21 Fusion 55.86 54.64 55.63 SafetyHalfCheetah 71.18 68.58 71.63 Total 396.63 448.64 465.64 
+
+TABLE III APPROXIMATION ERROR OF DIFFERENT ALGORITHMS .Task Name TD3BC CQL TD3PA halfcheetah-m 132.85 36.24 17.45 
+
+halfcheetah-m-e 341.42 32.76 16.43 
+
+halfcheetah-m-r 149.80 31.17 15.76 
+
+antmaze-umaze 86.42 54.59 54.23 
+
+antmaze-medium-play 110.08 86.08 79.42 
+
+antmaze-large-play 110.89 65.79 64.32 
+
+2) DQLPA has improved by 2.5%, 7.1% and 14.5% com-pared to DQL on Gym, Adroit and AntMaze tasks respectively; 3) Pessimistic auxiliary policy improves the efficacy of offline RL methods on almost all tasks; 4) DQLPA achieves substantial gains over baselines. We also evaluate our method on more complex, real-world scenarios. From Table II, we can observe that TD3PA achieves 3.79% improvement in terms of normalized score on NeoRL-2. Besides. TD3PA outperforms the baseline in overall performance across all 7 environments, demonstrating the adaptability and generalizability for real world applications. 
+
+C. Performance Analysis (RQ2). 
+
+Pessimistic auxiliary policy impedes the emergence of OOD actions in the learning process. Therefore, the use of the pessimistic auxiliary policy brings about the following two results: 1) Less approximation error can be brought in the TD update. Hence, the Q function is more accurate. 2) The reduction of overestimation leads to the avoidance of strange action. Hence, the agent will select more similar actions to the pre-collected dataset. Consequently, we investigate why pessimistic auxiliary policy achieves improvement from the following two perspectives. Due to TD3PA achieves larger improvement than DQLPA, we select TD3BC and TD3PA as examples to conduct experi-ments. 
+
+1) Value Estimation. We assess the difference between the Q estimation and actual discounted return of TD3BC, CQL and TD3PA, which is widely adopted to investigate the over-estimation [16]. We rollout episodes from 1000 random selected states. We calculate the average discounted returns of 1000 episodes as actual discounted returns. From Table III, we can notice that: TD3PA reduces overestimation across different tasks. Especially compared to TD3BC, the Q estimation error of TD3PA is decreased by 86.8%, 95.2%,89.5% on HalfChee-tah tasks and 37.2%, 27.9%, 42.0% on AntMaze tasks. 
+
+2) Policy Analysis. We conduct the experiment to compute the distance of sampled actions and the dataset actions. Specif-ically, we calculate E(s,a )∼D ,˜a∼π(·| s) || ˜a − a|| 22 for TD3BC, CQL and TD3PA. Besides, we devise a random policy for clearer comparison. Overall, TD3PA chooses more closely to the action in the dataset for complex tasks. IX. C ONCLUSION 
+
+In this paper, we construct a new pessimistic auxiliary policy for sampling reliable actions, this policy can be applied in other offline RL methods. Pessimistic auxiliary strategy allows for the selection of actions with decreased uncertainty and lower approximation error. Less approximation error intro-duced by sampled action leads to the alleviation of error accumulation, improving the efficacy of offline RL. Extensive experiments on offline reinforcement learning benchmarks reveal that utilizing the pessimistic auxiliary strategy can ef-fectively improves the efficacy of other offline RL approaches. REFERENCES [1] Q. Lan, Y. Pan, A. Fyshe, and M. White, “Maxmin q-learning: Control-ling the estimation bias of q-learning,” in International Conference on Learning Representations , 2019. [2] T. Haarnoja, A. Zhou, P. Abbeel, and S. Levine, “Soft actor-critic: Off-policy maximum entropy deep reinforcement learning with a stochastic actor,” in International conference on machine learning , pp. 1861–1870, PMLR, 2018. [3] D. Silver, A. Huang, C. J. Maddison, A. Guez, L. Sifre, G. Van Den Driessche, J. Schrittwieser, I. Antonoglou, V. Panneershelvam, M. Lanctot, et al. , “Mastering the game of go with deep neural networks and tree search,” nature , vol. 529, no. 7587, pp. 484–489, 2016. [4] X. Yang, Z. Ji, J. Wu, Y.-K. Lai, C. Wei, G. Liu, and R. Setchi, “Hierarchical reinforcement learning with universal policies for multi-step robotic manipulation,” IEEE Transactions on Neural Networks and Learning Systems , vol. 33, no. 9, pp. 4727–4741, 2022. [5] Y. Wen, J. Si, A. Brandt, X. Gao, and H. H. Huang, “Online rein-forcement learning control for the personalization of a robotic knee prosthesis,” IEEE Transactions on Cybernetics , vol. 50, no. 6, pp. 2346– 2356, 2020. [6] G. Xiang and J. Su, “Task-oriented deep reinforcement learning for robotic skill acquisition and control,” IEEE Transactions on Cybernetics ,vol. 51, no. 2, pp. 1056–1069, 2021. [7] C. Bai, L. Wang, Y. Wang, Z. Wang, R. Zhao, C. Bai, and P. Liu, “Addressing hindsight bias in multigoal reinforcement learning,” IEEE Transactions on Cybernetics , vol. 53, no. 1, pp. 392–405, 2023. [8] R. Akrour, D. Tateo, and J. Peters, “Continuous action reinforcement learning from a mixture of interpretable experts,” IEEE Transactions on Pattern Analysis and Machine Intelligence , vol. 44, no. 10, pp. 6795– 6806, 2022. [9] Z. Zhang, Y.-S. Ong, D. Wang, and B. Xue, “A collaborative multiagent reinforcement learning method based on policy gradient potential,” IEEE Transactions on Cybernetics , vol. 51, no. 2, pp. 1015–1027, 2021. [10] Y. Li, Y. Wang, and X. Tan, “Self-imitation guided goal-conditioned reinforcement learning,” Pattern Recognition , vol. 144, p. 109845, 2023. [11] H. Ma, J. Wu, N. Feng, C. Xiao, D. Li, H. Jianye, J. Wang, and M. Long, “Harmonydream: Task harmonization inside world models,” in Forty-first International Conference on Machine Learning , 2024. [12] R. Sun, H. Zang, X. Li, and R. Islam, “Learning latent dynamic robust representations for world models,” arXiv preprint arXiv:2405.06263 ,2024. [13] S. Fujimoto, D. Meger, and D. Precup, “Off-policy deep reinforcement learning without exploration,” in International conference on machine learning , pp. 2052–2062, PMLR, 2019. [14] J. Fu, A. Kumar, O. Nachum, G. Tucker, and S. Levine, “D4rl: Datasets for deep data-driven reinforcement learning,” arXiv preprint arXiv:2004.07219 , 2020. JOURNAL OF IEEE TRANSACTIONS 8
+
+[15] A. Kumar, A. Zhou, G. Tucker, and S. Levine, “Conservative q-learning for offline reinforcement learning,” Advances in Neural Information Processing Systems , vol. 33, pp. 1179–1191, 2020. [16] S. Fujimoto, H. Hoof, and D. Meger, “Addressing function approxi-mation error in actor-critic methods,” in International conference on machine learning , pp. 1587–1596, PMLR, 2018. [17] F. Zhang, M. Zhang, W. Chen, S. Wang, X. Zhang, J. Li, and Y. Yang, “Inhibiting error exacerbation in offline reinforcement learning with data sparsity,” IEEE Transactions on Neural Networks and Learning Systems ,pp. 1–15, 2025. [18] S. Levine, A. Kumar, G. Tucker, and J. Fu, “Offline reinforcement learning: Tutorial, review, and perspectives on open problems,” arXiv preprint arXiv:2005.01643 , 2020. [19] S. Fujimoto and S. S. Gu, “A minimalist approach to offline reinforce-ment learning,” Advances in neural information processing systems ,vol. 34, pp. 20132–20145, 2021. [20] Y. Wu, G. Tucker, and O. Nachum, “Behavior regularized offline reinforcement learning,” arXiv preprint arXiv:1911.11361 , 2019. [21] T. Pang, G. Wu, Y. Zhang, B. Wang, and Y. Yin, “Qfae: Q-function guided action exploration for offline deep reinforcement learning,” 
+
+Pattern Recognition , vol. 158, p. 111032, 2025. [22] M. Janner, J. Fu, M. Zhang, and S. Levine, “When to trust your model: Model-based policy optimization,” Advances in Neural Information Processing Systems , vol. 32, 2019. [23] A. Kumar, J. Fu, M. Soh, G. Tucker, and S. Levine, “Stabilizing off-policy q-learning via bootstrapping error reduction,” Advances in Neural Information Processing Systems , vol. 32, 2019. [24] X. B. Peng, A. Kumar, G. Zhang, and S. Levine, “Advantage-weighted regression: Simple and scalable off-policy reinforcement learning,” arXiv preprint arXiv:1910.00177 , 2019. [25] Z. Wang, A. Novikov, K. Zolna, J. S. Merel, J. T. Springenberg, S. E. Reed, B. Shahriari, N. Siegel, C. Gulcehre, N. Heess, et al. , “Critic regularized regression,” Advances in Neural Information Processing Systems , vol. 33, pp. 7768–7778, 2020. [26] R. I. Brafman and M. Tennenholtz, “R-max-a general polynomial time algorithm for near-optimal reinforcement learning,” Journal of Machine Learning Research , vol. 3, no. Oct, pp. 213–231, 2002. [27] I. Osband, C. Blundell, A. Pritzel, and B. Van Roy, “Deep exploration via bootstrapped dqn,” Advances in neural information processing systems ,vol. 29, 2016. [28] Z. Wang, J. J. Hunt, and M. Zhou, “Diffusion policies as an expres-sive policy class for offline reinforcement learning,” arXiv preprint arXiv:2208.06193 , 2022. [29] A. Nair, A. Gupta, M. Dalal, and S. Levine, “Awac: Accelerating online reinforcement learning with offline datasets,” arXiv preprint arXiv:2006.09359 , 2020. [30] T. Xie, N. Jiang, H. Wang, C. Xiong, and Y. Bai, “Policy finetuning: Bridging sample-efficient offline and online reinforcement learning,” 
+
+Advances in neural information processing systems , vol. 34, pp. 27395– 27407, 2021. [31] T. Xie, C.-A. Cheng, N. Jiang, P. Mineiro, and A. Agarwal, “Bellman-consistent pessimism for offline reinforcement learning,” Advances in neural information processing systems , vol. 34, pp. 6683–6694, 2021. [32] Y. Wu, S. Zhai, N. Srivastava, J. Susskind, J. Zhang, R. Salakhutdinov, and H. Goh, “Uncertainty weighted actor-critic for offline reinforcement learning,” arXiv preprint arXiv:2105.08140 , 2021. [33] R. Kidambi, A. Rajeswaran, P. Netrapalli, and T. Joachims, “Morel: Model-based offline reinforcement learning,” Advances in neural infor-mation processing systems , vol. 33, pp. 21810–21823, 2020. [34] T. Yu, G. Thomas, L. Yu, S. Ermon, J. Y. Zou, S. Levine, C. Finn, and T. Ma, “Mopo: Model-based offline policy optimization,” Advances in Neural Information Processing Systems , vol. 33, pp. 14129–14142, 2020. [35] K. Wang, H. Zhao, X. Luo, K. Ren, W. Zhang, and D. Li, “Bootstrapped transformer for offline reinforcement learning,” Advances in Neural Information Processing Systems , vol. 35, pp. 34748–34761, 2022. [36] V. Mnih, K. Kavukcuoglu, D. Silver, A. A. Rusu, J. Veness, M. G. Bellemare, A. Graves, M. Riedmiller, A. K. Fidjeland, G. Ostrovski, 
+
+et al. , “Human-level control through deep reinforcement learning,” 
+
+nature , vol. 518, no. 7540, pp. 529–533, 2015. [37] F. Zhang, H. Kung, F. Zhang, C. Yang, and J. Gan, “Ai-powered spatiotemporal imputation and prediction of chlorophyll-a concentration in coastal ecosystems,” Nature Communications , vol. 16, no. 1, p. 7656, 2025. [38] X. Zhang, J. Liu, X. Zhang, and Y. Lu, “Multiscale channel attention-driven graph dynamic fusion learning method for robust fault diagnosis,” 
+
+IEEE Transactions on Industrial Informatics , vol. 20, no. 9, pp. 11002– 11013, 2024. [39] P. You, L. Wang, A. Nguyen, X. Zhang, and B. Huang, “Channel-adaptive generative reconstruction and fusion for multi-sensor graph features in few-shot fault diagnosis,” Information Fusion , p. 103742, 2025. [40] C. Jin, Z. Allen-Zhu, S. Bubeck, and M. I. Jordan, “Is q-learning provably efficient?,” Advances in neural information processing systems ,vol. 31, 2018. [41] S. Gao, Z. Tu, R.-J. Qin, Y.-H. Sun, X.-H. Chen, and Y. Yu, “Neorl-2: Near real-world benchmarks for offline reinforcement learning with extended realistic scenarios,” arXiv preprint arXiv:2503.19267 , 2025. [42] I. Kostrikov, A. Nair, and S. Levine, “Offline reinforcement learning with implicit q-learning,” in International Conference on Learning Representations , 2021. [43] Z. Wang, J. J. Hunt, and M. Zhou, “Diffusion policies as an expressive policy class for offline reinforcement learning,” 2023. [44] L. Chen, K. Lu, A. Rajeswaran, K. Lee, A. Grover, M. Laskin, P. Abbeel, A. Srinivas, and I. Mordatch, “Decision transformer: Reinforcement learning via sequence modeling,” Advances in neural information pro-cessing systems , vol. 34, pp. 15084–15097, 2021.

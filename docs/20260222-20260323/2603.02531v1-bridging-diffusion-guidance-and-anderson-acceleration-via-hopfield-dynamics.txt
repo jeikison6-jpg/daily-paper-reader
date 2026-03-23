@@ -1,0 +1,686 @@
+Title: Bridging Diffusion Guidance and Anderson Acceleration via Hopfield Dynamics
+
+URL Source: https://arxiv.org/pdf/2603.02531v1
+
+Published Time: Wed, 04 Mar 2026 01:30:23 GMT
+
+Number of Pages: 24
+
+Markdown Content:
+# Bridging Diffusion Guidance and Anderson Acceleration via Hopfield Dynamics 
+
+Kwanyoung Kim 1
+
+Figure 1. Qualitative comparison with and without our proposed method. (Top): Various guidance sampling methods, such as CFG (Ho & Salimans, 2022) and APG (Sadat et al., 2024). (Middle): Step-distilled models (e.g., Hyper-SDXL (Ren et al., 2024) and DMD2 (Yin et al., 2024)). (Bottom): Additional backbone architecture (Flux.1 (Labs, 2024)). Our method is compatible with various guidance methods, distilled models, and different architectures without requiring additional training or computational overhead. 
+
+# Abstract 
+
+Classifier-Free Guidance (CFG) has significantly enhanced the generative quality of diffusion mod-
+
+> 1
+
+Department of AI Convergence, Gwangju Institute of Science and Technology (GIST), Gwangju, Korea. Correspondence to: Kwanyoung Kim <k0.kim @gist.ac.kr >.
+
+Preprint. March 4, 2026. 
+
+els by extrapolating between conditional and un-conditional outputs. However, its high inference cost and limited applicability to distilled or single-step models have shifted research focus toward attention-space extrapolation. While these meth-ods offer computational efficiency, their theoreti-cal underpinnings remain elusive. In this work, we establish a foundational framework for attention-1
+
+> arXiv:2603.02531v1 [cs.LG] 3 Mar 2026 Bridging Diffusion Guidance and Anderson Acceleration via Hopfield Dynamics
+
+space extrapolation by modeling attention dynam-ics as fixed-point iterations within Modern Hop-field Networks. We demonstrate that the extrapola-tion effect in attention space constitutes a special case of Anderson Acceleration applied to these dy-namics. Building on this insight and the weak con-traction property, we propose Geometry Aware Attention Guidance ( GAG ). By decomposing at-tention updates into parallel and orthogonal com-ponents relative to the guidance direction, GAG stabilizes the acceleration process and maximizes guidance efficiency. Our plug-and-play method seamlessly integrates with existing frameworks while significantly improving generation quality. 
+
+# 1. Introduction 
+
+The emergence of text-to-image (T2I) diffusion mod-els (Rombach et al., 2022b; Podell et al., 2023; Esser et al., 2024) has revolutionized the landscape of generative arti-ficial intelligence, achieving remarkable success in tasks ranging from static image synthesis (Xie et al., 2024; Labs, 2024) to dynamic video generation (Blattmann et al., 2023; Chen et al., 2024; Yang et al., 2024; Team, 2025). Despite their ubiquitous adoption, standard sampling processes in diffusion (Ho et al., 2020) and flow-matching models (Lip-man et al., 2022) often remain suboptimal. To address this, the field has entered a ”great guidance sampling era,” where various techniques are employed to refine the sampling tra-jectory. The cornerstone of this era is Classifier-Free Guid-ance (CFG) (Ho & Salimans, 2022), which enhances gen-eration quality by extrapolating between conditional and unconditional score estimates. By pushing the sampling di-rection toward the conditional distribution, CFG effectively improve generation quality, albeit at a significant cost. Despite its success, CFG is limited by dual-pass inference costs and the requirement for null-condition training, hinder-ing its use in few-step distilled or single-step models (Lin et al., 2024; Sauer et al., 2025; Wang et al., 2024). While recent training-free methods (Ahn et al., 2025; Hong, 2024; Rajabi et al., 2025; Kim, 2025) bypass training by perturb-ing internal representations, such as corrupting self-attention or token embeddings, they still require two forward passes. Consequently, these approaches are still difficult to integrate with few-step generation frameworks. To overcome this issue, attention-space extrapolation has emerged as a promising paradigm. Specifically, (Kim & Sim, 2025) viewing attention through the lens of sparse Hopfield networks, leverage noise-robustness to extrapo-late between sparse and dense maps. Similarly, (Chen et al., 2025) extrapolates attention signals from positive and nega-tive prompts. Despite these empirical gains in quality and efficiency, the underlying mechanics of attention-space ex-trapolation remain poorly understood. This lack of a formal theoretical framework leaves the field largely reliant on em-pirical heuristics. In this paper, we establish the missing link between empiri-cal heuristics and classical convergence theory for attention-space guidance in diffusion models. By framing attention dynamics in Modern Hopfield Networks (MHN) (Ram-sauer et al., 2020; Hu et al., 2024; Wu et al., 2023a) as a fixed-point iteration, we prove that attention-space extrap-olation is a special realization of Anderson Acceleration (AA) (Walker & Ni, 2011). This discovery provides the first principled explanation for the success of attention-space guidance, transforming empirical observations into a theo-retically grounded framework for diffusion sampling. Building on this foundation, we introduce a Geometry-
+
+Aware Attention Guidance ( GAG ). Inspired by geometric guidance principles (Sadat et al., 2024), we decompose at-tention updates into parallel and orthogonal components relative to the guidance direction. This decomposition al-lows us to stabilize the acceleration process by selectively amplifying beneficial updates while suppressing harmful fluctuations. We further provide a theoretical guarantee for this stability by analyzing the weak contraction property (Alber & Guerre-Delabriere, 1997) of attention dynamics. Extensive experiments across diverse diffusion backbones and guidance frameworks demonstrate that our plug-and-play approach consistently enhances generation quality and text alignment. Notably, our method exhibits superior perfor-mance in distilled and few-steps models, where traditional CFG is often inapplicable or suboptimal. Our main contri-butions are summarized as follows: • We bridge attention dynamics and Anderson Acceler-ation, framing attention extrapolation as a fixed-point acceleration process within MHN. • We introduce a novel attention extrapolation rule, called GAG, based on geometric decomposition that optimizes guidance trajectories by isolating beneficial updates, while rigorously establishing its stability via the weak contraction property of attention dynamics. • We demonstrate that our method achieves state-of-the-art performance across multiple diffusion backbones, showing high compatibility and effectiveness even in few-step generation regimes. 
+
+# 2. Preliminary 
+
+2.1. Conditional Diffusion Models 
+
+Diffusion models (DM) (Ho et al., 2020; Song et al., 2021b) learn to generate data by reversing a progressive Gaussian 2Bridging Diffusion Guidance and Anderson Acceleration via Hopfield Dynamics 
+
+noise process. Starting from the data distribution x0 ∼
+
+q(x0), the forward process iteratively perturbs the signal using a Markov chain: 
+
+q(xt|xt−1) := N (xt; p1 − βtxt−1, β tI) (1) This allows for a closed-form marginal distribution q(xt) = 
+
+N (xt; √¯αtx0, (1 − ¯αt)I), where αt = 1 − βt and ¯αt =Qti=1 αi. As t → T , the distribution converges to isotropic Gaussian noise q(xT ) ≈ N (0, I).The reverse process pθ is optimized via denoising score matching (Vincent, 2011), which simplifies the training objective to noise prediction. For conditional generation (Rombach et al., 2022a), where c denotes external context such as text embeddings, the objective is defined as: 
+
+min  
+
+> θ
+
+Ex0,ϵ,c
+
+∥ϵθ (√¯αtx0 + √1 − ¯αtϵ, t, c) − ϵ∥22
+
+ . (2) The sampling process follows the reverse diffusion trajec-tory starting from xT ∼ N (0, I). Using the DDIM (Song et al., 2021a) update rule, each step produces: 
+
+xt−1 = √¯αt−1 ˆx0(t) + p1 − ¯αt−1ϵθ (xt, t, c), (3) where ˆx0(t) := ( xt − √1 − ¯αtϵθ (xt, t, c)) /√¯αt repre-sents the denoised estimate of x0 at time t. This estima-tion, E[x0|xt, c], is derived from Tweedie’s formula (Efron, 2011; Kim & Ye, 2021). This iterative refinement is per-formed sequentially from t = T to 1 to recover x0.
+
+2.2. Guidance Sampling in Diffusion Models 
+
+To overcome the suboptimal performance of vanilla sam-pling in conditional generation, various guidance strategies have been proposed to enhance sample fidelity (Dhariwal & Nichol, 2021; Ho & Salimans, 2022; Ahn et al., 2025; Hong, 2024; Kim, 2025). For brevity, let ϵθ (xt, c) := 
+
+ϵθ (xt, t, c) and ϵθ (xt, ∅) denote the conditional and un-conditional score estimates, respectively. Classifier-Free Guidance (CFG) (Ho & Salimans, 2022) extrapolates the conditional probability relative to the unconditional base-line, ˆp(xt|c) ∝ p(xt|c)( p(xt|c)/p (xt|∅)) w, yielding the adjusted noise prediction: 
+
+ϵ′ 
+
+> θ
+
+(xt, c) = ϵθ (xt, c) + w(ϵθ (xt, c) − ϵθ (xt, ∅)) . (4) where w is the guidance scale. More recently, ”weak model” guidance has emerged, which utilizes the difference between a standard conditional model and a perturbed variant ˜ϵ:
+
+ϵ′′  
+
+> θ
+
+(xt, c) = ϵθ (xt, c) + w(ϵθ (xt, c) − ˜ϵθ (xt, c)) , (5) Heuristics for ˜ϵ range from architectural flaws to self-attention map perturbations (e.g., identity-mapping (Ahn et al., 2025), blurring (Hong, 2024), or Sinkhorn-based disruption (Kim, 2025)). However, these approaches are limited by their dependence on manual layer selection, in-creased computational overhead, and lack of support for step-distilled frameworks. To mitigate these issues, recent studies (Kim & Sim, 2025; Chen et al., 2025) propose extrapolating across the attention space of all layers. Similar to the CFG framework, these methods refine the attention output by contrasting a strong attention mechanism At with a weakened counterpart ˜At :
+
+At ′(Qt, Kt, Vt) = At (Qt, Kt, Vt)+ 
+
+λ(At (Qt, Kt, Vt) − ˜At (Qt, Kt, Vt)) ,
+
+(6) where Qt, Kt, Vt denote the query, key, and value matrices at time step t, and λ is the extrapolation scale. For instance, PLADIS (Kim & Sim, 2025) employs generalized sparse mapping for the strong attention and original dense atten-tion as the weakened reference. NAG (Chen et al., 2025) contrasts attention maps derived from positive and negative prompts. Despite their empirical success, the theoretical ra-tionale for why such attention-space extrapolation enhances generation remains largely unexplored. 
+
+2.3. Energy-Based Interpretations of Attention 
+
+Theoretical studies have established a link between the attention mechanism and Energy-Based Models (EBMs), specifically Hopfield energy functions (Ramsauer et al., 2020; Hu et al., 2024). In this framework, a query x ∈ Rd is associated with a pattern matrix Ξ = [ ξ1, . . . , ξ M ] ∈ Rd×M
+
+by minimizing an energy function E(x) through retrieval dynamics T . Modern Hopfield Networks(MHN) (Ramsauer et al., 2020) define these as: 
+
+E(x)Dense := −lse (β, Ξ⊤x) + 12 ⟨x, x⟩, (7) 
+
+TDense (x) := ΞSoftmax (βΞ⊤x) (8) where lse (β, z) := 1 
+
+> β
+
+log PMi=1 exp( βz i) is the log-sum-exponential function with inverse temperature β > 0. The equivalence between TDense (x) and softmax attention pro-vides a rigorous theoretical foundation for interpreting Transformers as associative memory systems. To leverage the efficiency and robustness of sparse attention (Martins & Astudillo, 2016; Peters et al., 2019), the Sparse Hopfield Network (SHN) (Hu et al., 2024; Wu et al., 2023a) was introduced. SHN extends the energy-based framework by incorporating α-Entmax into its retrieval dynamics: 
+
+Eα(x) := −Ψ⋆α(β, Ξ⊤x) + 12 ⟨x, x⟩, (9) 
+
+Tα(x) := Ξα-Entmax (βΞ⊤x), (10) 3Bridging Diffusion Guidance and Anderson Acceleration via Hopfield Dynamics 
+
+where Ψ⋆α is the convex conjugate of the Tsallis en-tropy (Tsallis, 1988) Ψα, defined as: 
+
+Ψα(p) := 
+
+( 1
+
+> α(α−1)
+
+PMi=1 (pi − pαi ), α̸ = 1 ,
+
+− PMi=1 (pi − log pi), α = 1 , (11) The α-Entmax operator, arg max p∈∆M [⟨p, z⟩ − Ψα(p)] ,allows α to control sparsity; α = 1 recovers softmax, while 
+
+α → 2 increases sparsity. Computationally, α = 2 and 
+
+α = 1 .5 admit exact, efficient solutions (Held et al., 1974; Michelot, 1986; Peters et al., 2019). Critically, SHN reduces retrieval errors and exhibits superior robustness to noise compared to dense dynamics. With β = 1 /√d, the retrieval dynamics TDense and Tα map directly to the following attention modules: 
+
+At (Qt, Kt, Vt) = Softmax (QtK⊤ 
+
+> t
+
+/√d)Vt (12) 
+
+At α(α, Qt, Kt, Vt) = α-Entmax (QtK⊤ 
+
+> t
+
+/√d)Vt
+
+(13) where At and At α denote the original dense and sparse attention layers, respectively. We focus exclusively on cross-attention, as sparse self-attention can degrade generation performance (Kim & Sim, 2025). Inheriting the properties of Hopfield dynamics, At α benefits from enhanced noise robustness and faster convergence. PLADIS (Kim & Sim, 2025) leverages these advantages by adopting sparse atten-tion as the relatively strong component in its extrapolation framework (Equation (6)) to improve generation quality. 
+
+2.4. Acceleration of Fixed-Point Iteration 
+
+For an operator F defined on a real Hilbert space H, a point x⋆ ∈ H is defined as a fixed point if x⋆ = F(x⋆).According to the Banach Fixed-Point Theorem (Banach, 1922), if F is a contraction mapping, the Picard iteration starting from any x0 ∈ H is guaranteed to converge to a unique fixed point: 
+
+xk+1 = F(xk), k = 0 , 1, . . . (14) However, if F is merely nonexpansive, the Picard iteration may fail to converge and instead result in limit cycles. To address this, various acceleration techniques have been de-veloped, such as the Krasnosel’skii–Mann (KM) iteration (Mann, 1953), which employs a convex relaxation, and the inertial KM iteration (Maing ´e, 2008), which incorporates first-order momentum. In this work, we focus on Anderson Acceleration (AA) (Walker & Ni, 2011), which leverages m previous iterates to find an optimal linear combination of function outputs: 
+
+xk+1 =
+
+> m
+
+X
+
+> i=0
+
+ω(k) 
+
+> i
+
+F(xk−m+i), s.t. 
+
+> m
+
+X
+
+> i=0
+
+ω(k) 
+
+> i
+
+= 1 , (15) where the coefficients ω(k) 
+
+> i
+
+are determined by minimizing the residual norm. Unlike KM-type methods, ω(k) 
+
+> i
+
+are not restricted to the range (0 , 1) , allowing for aggressive ex-trapolation. In the specific case where m = 1 , the iteration simplifies to a linear extrapolation between the current and previous function outputs: 
+
+xk+1 = F(xk) + ω (F(xk) − F (xk−1)) , (16) where ω acts as an extrapolation scale. This Nesterov-like acceleration (Nesterov, 1983) significantly reduces itera-tions (Shehu, 2018) and enables the sequence to bypass local plateaus or flat energy landscapes where standard KM might stagnate. Motivated by these properties, we link attention-space extrapolation with AA. 
+
+# 3. Main Contribution 
+
+In this section, we first formalize the retrieval dynamics of MHNs as a fixed-point iteration process. By addressing the inherent limitations of the standard Picard iteration in exist-ing MHN frameworks, we establish a theoretical foundation for attention extrapolation by framing it as an accelerated fixed-point process via the special case of AA ( Section 3.1). Building on this, we introduce a geometry-aware extrapo-lation rule( Section 3.3) and provide rigorous proofs for its stability and convergence( Section 3.4). 
+
+3.1. Retrieval Dynamics as Fixed-Point Iteration 
+
+We first revisit the retrieval dynamics T in MHNs (Ram-sauer et al., 2020; Hu et al., 2024), which are fundamentally Picard iterations, xk+1 = T (xk), designed to find a station-ary point x⋆ of the energy function that represents a stored memory. This relationship is formalized in the following: 
+
+Theorem 3.1. (Ramsauer et al., 2020; Hu et al., 2024; Wu et al., 2023a) (Generalized Sparse Hopfield Retrieval Dynamics). The retrieval dynamics of the generalized sparse Hopfield model is a monotonic one-step update: 
+
+xk+1 = T (xk) := Ξα-Entmax (βΞ⊤xk). (17) This implies that attention dynamics are the mechanism for finding fixed points, x⋆, in MHNs, where the standard attention layer performs exactly one iteration of this update rule. Within this framework, while previous works focus on im-proving the operator T via sparsity ( (Hu et al., 2024; Wu et al., 2023a), they remain restricted to the standard Picard iteration. We transcend this by framing the retrieval process through the lens of AA with m = 1 in Equation (16): 
+
+xk+1 = T (xk) + ω (T (xk) − T (xk−1)) , (18) where ω is the extrapolation coefficient. In practical one-step update scenarios of MHN, the true previous iterate T (xk−1)
+
+4Bridging Diffusion Guidance and Anderson Acceleration via Hopfield Dynamics       
+
+> Figure 2. Qualitative impact of geometric components.
+> Orthogonal-only fails to recover semantic structure; Full Resid-ual shows reduced fidelity due to interference; Parallel-only ( ζ=0) yields the highest quality, confirming the parallel component as the primary acceleration signal.
+
+is typically unavailable. However, we identify that the vary-ing convergence rates of different attention mechanisms provide a robust numerical proxy for this update direction. Specifically, as sparse attention ( α > 1) converges more rapidly toward x⋆ than dense attention ( α = 1 ) (Hu et al., 2024; Wu et al., 2023a), their discrepancy effectively serves as a surrogate for the retrieval trajectory’s progress. 
+
+Proposition 3.2. (Approximation of Retrieval Gradients). Let Tα and TDense be the sparse and dense retrieval opera-tors, respectively. Given that Tα achieves faster convergence toward x⋆ than TDense within a single iteration (Wu et al., 2023a), the discrepancy between them approximates the retrieval update direction: 
+
+T (xk) ≈ T α(xk), T (xk−1) ≈ T Dense (xk). (19) Consequently, the extrapolation, Tα(xk) + ω(Tα(xk) −TDense (xk)) , can be reinterpreted as the first-order AA de-fined in Equation (16). This perspective reveals that PLADIS essentially performs first-order AA within the attention space (see Equation (6)). By extension, this framework also elucidates the mechanism of NAG, where the discrepancy between contrasting prompt-based retrieval serves as a proxy for the iterative update direction. To our knowledge, this is the first work to uncover a unified mechanism behind attention-space extrapolation. 
+
+3.2. The Common Fixed-Point Preservation 
+
+To ensure that acceleration does not deviate from the seman-tic target, we prove that extrapolation preserves the original fixed-point structure. 
+
+Assumption 3.3 (Common Fixed Point) . There exists a shared fixed point x∗ ∈ H such that Tα(x∗) = x∗ and 
+
+TDense (x∗) = x∗.
+
+Lemma 3.4 (Fixed-Point Preservation) . Let M (x) be a state-dependent weight matrix or scalar. Define the cor-rected operator as T ′(x) = Tα(x) + M (x)( Tα(x) −TDense (x)) . Under 3.3, x∗ remains a fixed point of T ′(x).Proof. The proof is provided in the Appendix. Intuitively, the preservation stems from the fact that the discrepancy between the two operators vanishes exactly at the shared semantic target x∗.
+
+Remark 3.5 (Divergence in Non-Common Fixed Points) .
+
+It is crucial to note that the preservation of the fixed point holds only under Assumption 3.3. In methods like NAG, the operators are conditioned on contrasting prompts (e.g., positive vs. negative), naturally leading to distinct attractors. In such cases, the discrepancy between two operators does not vanish at any single x∗. While this non-vanishing term acts as a ”guidance” force, assigning a weight matrix or scalar M (x) without a shared attractor can lead to unin-tended trajectory shifts or instability, as the extrapolation never reaches a stationary state. 
+
+3.3. Geometry-Aware Attention Guidance 
+
+Building on the AA framework and the property of common fixed point, we introduce a geometry-aware extrapolation strategy that accounts for the geometric structure of the attention discrepancy. We reformulate attention update of PLADIS (Kim & Sim, 2025) as follow: 
+
+T ′(x) = Tα(x) + λr (x), (20) where the discrepancy r(x) := Tα(x) − T Dense (x) repre-sents the residual between sparse and dense attention layers (Equation (12), Equation (13)): 
+
+T(·)(x) → At (·)(Q, K, V). (21) Here, the state vector x acts as the query ( Q) and stored memories as key-value ( K, V) pairs. Consequently, r(x)
+
+captures the semantic divergence between the two attention kernels at a given state. To analyze the influence of this discrepancy on the sampling trajectory, we decompose r(x) relative to the sparse retrieval direction Tα(x), inspired by the projection framework in APG (Sadat et al., 2024). 
+
+Definition 3.6 (Geometric Decomposition of Residuals) .
+
+The parallel and orthogonal components of r(x) with re-spect to the sparse operator Tα(x), i.e., r(x) = r∥(x) + 
+
+5Bridging Diffusion Guidance and Anderson Acceleration via Hopfield Dynamics 
+
+r⊥(x), are defined as: 
+
+r∥(x) := ⟨r(x), Tα(x)⟩∥T α(x)∥2 Tα(x), r⊥(x) := r(x) − r∥(x).
+
+(22) 
+
+Hypothesis. Since both Tα and TDense aim for a shared fixed point x∗ (Assumption 3.3), r∥(x) acts as a constructive consensus that accelerates convergence along the retrieval manifold. This contrasts with APG (Sadat et al., 2024), which leverages the discrepancy between conditional and unconditional outputs, two operators that inherently target distinct semantic modes to provide guidance. In our framework, because the target is identical for both operators, any orthogonal component r⊥(x) is interpreted as ”off-manifold” noise rather than a guidance signal. This interference stems from the dense operator’s inferior noise robustness compared to its sparse counterpart, which main-tains superior fidelity in high-interference regimes (Hu et al., 2024; Kim & Sim, 2025). 
+
+Empirical Validation. To verify the impact of these com-ponents, we conducted an ablation study by isolating each term during the diffusion sampling process with PLADIS. As illustrated in Figure 2, we observe distinct qualitative dif-ferences: orthogonal-only extrapolation fails to recover the intended semantic structure, resulting in significant artifacts; the full residual ( r(x) = r∥ + r⊥) leads to slightly degraded visual quality due to the inclusion of harmful orthogonal noise; and parallel-only extrapolation ( r∥) yields the most high-fidelity generation, and robust text-alignment. 
+
+Interpretation and Refined Dynamics. These results confirm that the effective acceleration signal resides in the subspace aligned with the sparse retrieval direction, while the orthogonal component acts as a disruptive force. Con-sequently, we propose Geometry-Aware Attention Guid-ance (GAG) , defined as: 
+
+Tλ(x) = Tα(x) + λ
+
+
+
+min 
+
+
+
+1, η
+
+∥˜r(x)∥
+
+
+
+· ˜r(x)
+
+| {z }
+
+> Rescaled Geometry-Aware Term
+
+, (23) where ˜r(x) = r∥(x) + ζr ⊥(x) represents the geometry-filtered residual. Here, ζ ∈ [0 , 1] controls the orthogonal suppression, and the rescaling factor ensures the guidance norm does not exceed a stability threshold η. By simultane-ously refining the update direction ( ζ → 0) and regulating its magnitude, GAG achieves superior sampling reliability and visual fidelity. 
+
+3.4. Stability via Orthogonal Weak Contraction 
+
+To establish the structural stability of GAA, we analyze the convergence behavior of the state error in the orthogonal subspace. Let Π⊥(x) : H → H be the orthogonal projector onto (span {T α(x)})⊥.
+
+Assumption 3.7 (Orthogonal Weak Contraction) . For the common fixed point x∗ defined in Assumption 3.3, there exists a contraction coefficient c ∈ [0 , 1) and a strictly in-creasing forcing function ϕ : R≥0 → R≥0 such that for the operator Tλ with ζ = 0 , the following holds:         
+
+> ∥Π⊥(x)( Tλ(x)−x∗)∥ ≤ c∥Π⊥(x)( x−x∗)∥ − ϕ(∥Π⊥(x)( x−x∗)∥).
+
+(24) This condition generalizes the standard Banach contraction principle, ensuring that the error strictly decreases at each step (Rhoades, 2001; Alber & Guerre-Delabriere, 1997). 
+
+Theorem 3.8 (Asymptotic Convergence of Orthogonal Er-ror) . Suppose Assumptions 3.3 and 3.7 hold. Let {xt}t∈N
+
+be a sequence generated by xt+1 = Tλ(xt) with ζ = 0 .Then the magnitude of the orthogonal error, defined as 
+
+ut := ∥Π⊥(xt)( xt − x∗)∥, converges to zero asymptoti-cally: 
+
+lim  
+
+> t→∞
+
+ut = 0 . (25) 
+
+Proof. See Section D. 
+
+Remark 3.9 (Stability and Robustness) . Theorem 3.8 pro-vides the theoretical foundation for our strategy: • Structural Robustness: It clarifies why GAG remains stable even at high guidance scales ( λ). While standard extrapolation (ζ = 1) may amplify orthogonal residu-als, setting ζ = 0 strictly contracts off-manifold noise according to the weak contraction property. • Geometric Consistency: The exclusion of r⊥ serves as a sufficient condition to satisfy the contraction dy-namics in Assumption 3.7. By filtering out the disrup-tive orthogonal component, we maintain the trajectory within the convergence basin of the retrieval manifold. 
+
+# 4. Experiments 
+
+Setup. To ensure a fair comparison, we employ SDXL (Podell et al., 2023) and Flux (Labs, 2024) as our base models. We evaluate various guidance techniques, in-cluding CFG, CFG+PAG, and APG (Sadat et al., 2024), utilizing default sampling schedulers and step counts: 50 steps for SDXL, 28 steps for Flux-dev, and 4 steps for Flux-Schnell. For the distilled model benchmarks, we assess SDXL-DMD2 (Yin et al., 2024), Hyper-SDXL (Ren et al., 2024), and SDXL-Light (Lin et al., 2024)in 4-step settings. All experiments were conducted on a single NVIDIA H100 GPU. Further details are provided in the appendix. 6Bridging Diffusion Guidance and Anderson Acceleration via Hopfield Dynamics 
+
+Table 1. Quantitative comparisons of various guidance methods on GenEval and MS-COCO datasets with SDXL. The left sub-table shows results for high-NFE regimes, while the right sub-table presents results for low-NFE distillation-based models.                                                                                                                                         
+
+> Method NFE GE ↑CS ↑IR ↑PS ↑HPSv2 ↑
+> CFG 50 0.547 26.46 0.606 22.31 0.266 + PLADIS 50 0.597 26.99 0.801 22.31 0.268 +Ours 50 0.605 27.25 0.811 22.39 0.271
+> APG 50 0.557 26.78 0.702 22.36 0.269 + PLADIS 50 0.608 27.36 0.808 21.92 0.261 +Ours 50 0.613 27.55 0.851 22.24 0.274
+> CFG+PAG 100 0.528 25.98 0.640 22.30 0.277 + PLADIS 100 0.598 26.05 0.751 22.33 0.279 +Ours 100 0.619 26.11 0.822 22.36 0.281
+> Method NFE GE ↑CS ↑IR ↑PS ↑HPSv2 ↑
+> SDXL-DMD2 40.581 26.69 0.888 22.64 0.297 + PLADIS 40.585 27.06 0.965 22.65 0.297 +Ours 40.598 27.42 0.952 22.66 0.298
+> Hyper-SDXL 40.556 26.09 0.959 22.87 0.313 + PLADIS 40.589 27.11 1.060 22.91 0.315 +Ours 40.594 27.55 1.071 22.93 0.317 SDXL-Light 40.535 26.05 0.725 22.62 0.293 + PLADIS 40.570 26.70 0.835 22.62 0.290 +Ours 40.579 26.79 0.843 22.66 0.294
+
+Table 2. Quantitative results of various guidance methods on the GenEval and MS-COCO dataset with Flux.                                                  
+
+> Method NFE GE ↑CS ↑IR ↑PS ↑HPSv2 ↑
+> Flux-Schnell 40.671 26.28 1.059 22.62 0.295 + PLADIS 40.713 26.45 1.066 22.3 0.295 +Ours 40.739 26.56 1.114 22.79 0.301
+> Flux-Dev 28 0.666 25.71 1.093 23.00 30.42 + PLADIS 28 0.691 25.80 1.115 23.03 30.54 +Ours 28 0.737 25.76 1.127 23.14 30.94
+
+Evaluation Metrics. We evaluate our method across multiple dimensions, focusing on text-image alignment and human preference. To rigorously assess composi-tional text alignment and spatial reasoning, we employ GenEval (Ghosh et al., 2023), reporting the overall score averaged across various semantic domains. For broader eval-uation of human-aligned quality, we utilize a suite of es-tablished metrics: CLIPScore (CS) (Hessel et al., 2021) for general text-image similarity, and ImageReward (IR) (Xu et al., 2024), PickScore (Kirstain et al., 2023), and HPS v2.1 (Wu et al., 2023b) to proxy human preference stan-dards. These evaluations are conducted using prompts from the GenEval and a randomly sampled subset of 10K captions from the MSCOCO dataset (Lin et al., 2014). 
+
+4.1. Results on Conditional Generation Guidance Sampling. Table 1 (left) presents quantitative results using a default budget of 50 steps. For standard CFG, our method yields substantial gains in both GenEval and human preference metrics. Notably, all configurations, in-cluding advanced techniques like APG and PAG (jointly used with CFG), consistently surpass a 0.6 GenEval score. Crucially, while PAG typically enhances aesthetic quality at the expense of text alignment, our approach improves both dimensions simultaneously with minimal computational overhead. These results demonstrate superior robustness, achieving the best performance across all metrics. 
+
+Step-Distilled Models. Table 1 (right) demonstrates the broad applicability of our method across various dis-tilled models, including DMD2, Hyper-SDXL, and SDXL-Lightning. Our approach yields robust enhancements across these models, consistently outperforming both vanilla sam-pling and PLADIS. These gains, achieved with minimal overhead, confirm that our framework is highly effective across diverse few-step inference techniques, providing a practical solution for high-quality generation in resource-constrained settings. 
+
+Generalizability across Backbones. Beyond the UNet-based SDXL, we evaluate our framework on the more com-plex MMDiT architecture (Flux) in Table 2. Despite the inherent difficulty of applying guidance to pre-distilled mod-els like Flux-Schnell and Flux-Dev, our method yields con-sistent improvements in human preference metrics, while achieving remarkable GenEval scores of 0.739 and 0.737, respectively. This substantial leap in GenEval, in particu-lar, represents a significant advancement in compositional generation quality. These results confirm the universal effi-cacy of our framework across diverse guidance mechanisms, distillation techniques, and foundational backbones. Overall, related visual results are presented in Section E. 
+
+# 5. Ablation Study and Analysis 
+
+Decomposition Analysis To validate the efficacy of the parallel component, we conduct a decomposition analysis on 10K MS-COCO samples under CFG sampling, for a controlled comparison as shown in Table 3a. Results show that the orthogonal component inherently degrades quality, causing the full update to consistently underperform the standalone parallel component. This empirically supports our weak contraction theorem, identifying the parallel com-ponent as the primary driver of stable acceleration. Overall, this analysis provides a unified validation of our method’s theoretical and practical superiority. 7Bridging Diffusion Guidance and Anderson Acceleration via Hopfield Dynamics                                                                           
+
+> Table 3. Quantitative results and ablation studies on GenEval and MS-COCO with SDXL. We present (a) geometric decomposition analysis and (b) component-wise ablation on the left, and (c) a comprehensive comparison with existing methods on the right.
+> (a) Decomposition Analysis Method CS ↑IR ↑PS ↑
+> Full 26.54 0.732 22.10 Orthogonal 25.25 0.415 21.79 Parallel 27.25 0.811 22.39
+> (b) Ablation Study Method CS ↑IR ↑PS ↑
+> CFG 26.46 0.606 22.31 Ours (w/o rescaling) 26.68 0.715 22.34
+> Ours (w/ rescaling) 27.25 0.811 22.39
+> (c) Guidance Comparison on DMD2 Method NFE CS ↑IR ↑PS ↑
+> Hyper-SDXL 426.09 0.959 22.87 + PLADIS 427.11 1.060 22.91 + GAG (Ours) 427.55 1.072 22.93 + NAG 4>27.10 1.046 22.86 + GAG 4>26.64 0.971 22.88 + PLADIS 827.21 1.181 23.10 + GAG (Ours) 827.78 1.213 23.13
+
+Effect of Rescaling. We analyze the impact of rescal-ing in Table 3b. Thanks to the refined directionality of our Geometry-Aware decomposition, GAG exhibits inherently better stability than CFG, even without rescaling. However, at extreme scales (e.g., λ = 10 ), the update norm can still become excessive. OOur rescaling mitigates this drift, ensur-ing that GAG—inherently superior to CFG—remains robust even in high-guidance regimes. 
+
+Comparison with NAG As discussed, NAG employs an at-tention extrapolation scheme between positive and negative prompts, necessitating dual inference passes. This mecha-nism inherently incurs a higher computational overhead per step compared to our method. To ensure a fair comparison, we evaluated our 4-step GAG against NAG at the same step count in Table 3c. Even with NAG’s greater computational budget, its performance remains slightly below PLADIS, whereas our 4-step GAG significantly outperforms both. Due to space limitation, visual comparison is provided in Figure 11. Crucially, we observed that applying GAG to NAG results in performance degradation. This empirical failure validates our theoretical foundation (Assumption 3.3): while GAG leverages common fixed-point dynamics shared by sparse and dense attention under identical text prompts, NAG uti-lizes disparate positive and negative prompts. Since the common fixed-point condition is not satisfied in NAG, our acceleration mechanism is theoretically incompatible. Fur-thermore, our method exhibits robust scalability; when allo-cated a larger inference budget (e.g., 8 steps), GAG achieves further performance gains, thereby securing enhanced sta-bility and generation quality. 
+
+The Scale λ. As illustrated in Figure 3, our method ex-hibits remarkable robustness across a broad range of scales. In our empirical study, we evaluated 5K samples with λ
+
+ranging from 1.0 to 12.0 using CLIPScore, ImageReward, and PickScore. The results demonstrate that our approach achieves peak performance at λ = 10.0, consistently yielding   
+
+> Figure 3. The Analysis of Guidance Scale λ.
+
+superior scores across all metrics. Accordingly, we establish 
+
+λ = 10.0 as the default configuration for our experiments. 
+
+# 6. Conclusion 
+
+In this work, we uncover a missing link in diffusion guid-ance by establishing a rigorous theoretical foundation that connects attention-space extrapolation to MHN and AA. Building on this unification, we introduced a geometric de-composition method that stabilizes the acceleration process by decoupling updates into parallel and orthogonal compo-nents. Our plug-and-play approach significantly enhances generative quality across diverse models, including SDXL and Flux, without additional computational overhead. By bridging dynamical systems and diffusion guidance, this work not only provides a grounded framework for high-quality synthesis but also opens new horizons for viewing guidance as a fixed-point iteration problem. 
+
+# Impact Statement 
+
+This paper presents work whose goal is to advance the field of Machine Learning by unifying diffusion guidance and dynamical systems. There are many potential societal con-sequences of our work, such as the general ethical consider-ations regarding generative AI, none of which we feel must be specifically highlighted here as they are well-established within the research community. 8Bridging Diffusion Guidance and Anderson Acceleration via Hopfield Dynamics 
+
+# Acknowledgement 
+
+This work was partly supported by Institute of Informa-tion & Communications Technology Planning & Evaluation (IITP) grant funded by the Korean government (MSIT) (Ar-tificial Intelligence Graduate School Program (GIST)) (No. 2019-0-01842). 
+
+# References 
+
+Ahn, D., Cho, H., Min, J., Jang, W., Kim, J., Kim, S., Park, H. H., Jin, K. H., and Kim, S. Self-rectifying diffusion sampling with perturbed-attention guidance. In Euro-pean Conference on Computer Vision , pp. 1–17. Springer, 2025. Alber, Y. I. and Guerre-Delabriere, S. Principle of weakly contractive maps in hilbert spaces. In New results in oper-ator theory and its applications: The Israel M. Glazman memorial volume , pp. 7–22. Springer, 1997. Banach, S. Sur les op ´erations dans les ensembles abstraits et leur application aux ´equations int ´egrales. Fundamenta Mathematicae , 3(1):133–181, 1922. Barra, A., Beccaria, M., and Fachechi, A. A new mechanical approach to handle generalized hopfield neural networks. 
+
+Neural Networks , 106:205–222, 2018. Blattmann, A., Dockhorn, T., Kulal, S., Mendelevitch, D., Kilian, M., Lorenz, D., Levi, Y., English, Z., Voleti, V., Letts, A., et al. Stable video diffusion: Scaling latent video diffusion models to large datasets. arXiv preprint arXiv:2311.15127 , 2023. Chen, D.-Y., Bandyopadhyay, H., Zou, K., and Song, Y.-Z. Normalized attention guidance: Universal neg-ative guidance for diffusion model. arXiv preprint arXiv:2505.21179 , 2025. Chen, H., Zhang, Y., Cun, X., Xia, M., Wang, X., Weng, C., and Shan, Y. Videocrafter2: Overcoming data limitations for high-quality video diffusion models. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pp. 7310–7320, 2024. Demircigil, M., Heusel, J., L ¨owe, M., Upgang, S., and Ver-met, F. On a model of associative memory with huge storage capacity. Journal of Statistical Physics , 168:288– 299, 2017. Dhariwal, P. and Nichol, A. Diffusion models beat gans on image synthesis. Advances in neural information processing systems , 34:8780–8794, 2021. Efron, B. Tweedie’s formula and selection bias. Journal of the American Statistical Association , 106(496):1602– 1614, 2011. Esser, P., Kulal, S., Blattmann, A., Entezari, R., M ¨uller, J., Saini, H., Levi, Y., Lorenz, D., Sauer, A., Boesel, F., et al. Scaling rectified flow transformers for high-resolution image synthesis. In Forty-first international conference on machine learning , 2024. Ghosh, D., Hajishirzi, H., and Schmidt, L. Geneval: An object-focused framework for evaluating text-to-image alignment. Advances in Neural Information Processing Systems , 36:52132–52152, 2023. Held, M., Wolfe, P., and Crowder, H. P. Validation of sub-gradient optimization. Mathematical programming , 6: 62–88, 1974. Hessel, J., Holtzman, A., Forbes, M., Bras, R. L., and Choi, Y. Clipscore: A reference-free evaluation metric for image captioning. arXiv preprint arXiv:2104.08718 , 2021. Ho, J. and Salimans, T. Classifier-free diffusion guidance. 
+
+arXiv preprint arXiv:2207.12598 , 2022. Ho, J., Jain, A., and Abbeel, P. Denoising diffusion proba-bilistic models. Advances in neural information process-ing systems , 33:6840–6851, 2020. Hong, S. Smoothed energy guidance: Guiding diffusion models with reduced energy curvature of attention. arXiv preprint arXiv:2408.00760 , 2024. Hopfield, J. J. Neural networks and physical systems with emergent collective computational abilities. Proceedings of the national academy of sciences , 79(8):2554–2558, 1982. Hu, J. Y.-C., Yang, D., Wu, D., Xu, C., Chen, B.-Y., and Liu, H. On sparse modern hopfield model. Advances in Neural Information Processing Systems , 36, 2024. Kim, K. Toward the Frontiers of Reliable Diffusion Sam-pling via Adversarial Sinkhorn Attention Guidance. Pro-ceedings of The 40th Annual AAAI Conference on Artifi-cial Intelligence , 2025. Kim, K. and Sim, B. PLADIS: Pushing the Limits of Atten-tion in Diffusion Models at Inference Time by Leveraging Sparsity. Proceedings of the International Conference on Computer Vision , 2025. Kim, K. and Ye, J. C. Noise2Score: Tweedie’s Approach to Self-supervised Image Denoising Without Clean Images. 
+
+Advances in Neural Information Processing Systems , 34: 864–874, 2021. Kirstain, Y., Polyak, A., Singer, U., Matiana, S., Penna, J., and Levy, O. Pick-a-pic: An open dataset of user prefer-ences for text-to-image generation. Advances in Neural Information Processing Systems , 36:36652–36663, 2023. 9Bridging Diffusion Guidance and Anderson Acceleration via Hopfield Dynamics 
+
+Krotov, D. and Hopfield, J. J. Dense associative memory for pattern recognition. Advances in neural information processing systems , 29, 2016. Labs, B. F. Flux. https://github.com/ black-forest-labs/flux , 2024. Lin, S., Wang, A., and Yang, X. Sdxl-lightning: Progres-sive adversarial diffusion distillation. arXiv preprint arXiv:2402.13929 , 2024. Lin, T.-Y., Maire, M., Belongie, S., Hays, J., Perona, P., Ra-manan, D., Doll ´ar, P., and Zitnick, C. L. Microsoft coco: Common objects in context. In Computer Vision–ECCV 2014: 13th European Conference, Zurich, Switzerland, September 6-12, 2014, Proceedings, Part V 13 , pp. 740– 755. Springer, 2014. Lipman, Y., Chen, R. T., Ben-Hamu, H., Nickel, M., and Le, M. Flow matching for generative modeling. arXiv preprint arXiv:2210.02747 , 2022. Liu, J. and Ye, J. Efficient euclidean projections in linear time. In Proceedings of the 26th annual international conference on machine learning , pp. 657–664, 2009. Maing ´e, P.-E. A regularized fixed-point algorithm of Krasnosel’skii–Mann type. Journal of Mathematical Analysis and Applications , 341(2):1025–1036, 2008. Mann, W. R. Mean value methods in iteration. Proceedings of the American Mathematical Society , 4(3):506–510, 1953. Martins, A. and Astudillo, R. From softmax to sparsemax: A sparse model of attention and multi-label classification. In 
+
+International conference on machine learning , pp. 1614– 1623. PMLR, 2016. Michelot, C. A finite algorithm for finding the projection of a point onto the canonical simplex of ∝ n. Journal of Optimization Theory and Applications , 50:195–200, 1986. Nesterov, Y. E. A method for solving the convex program-ming problem with convergence rate O(1 /k 2). Soviet Mathematics Doklady , 27(2):372–376, 1983. Peters, B., Niculae, V., and Martins, A. F. Sparse sequence-to-sequence models. arXiv preprint arXiv:1905.05702 ,2019. Podell, D., English, Z., Lacey, K., Blattmann, A., Dockhorn, T., M ¨uller, J., Penna, J., and Rombach, R. Sdxl: Im-proving latent diffusion models for high-resolution image synthesis. arXiv preprint arXiv:2307.01952 , 2023. Rajabi, J., Mehraban, S., Sadat, S., and Taati, B. Token per-turbation guidance for diffusion models. arXiv preprint arXiv:2506.10036 , 2025. Ramsauer, H., Sch ¨afl, B., Lehner, J., Seidl, P., Widrich, M., Adler, T., Gruber, L., Holzleitner, M., Pavlovi ´c, M., Sandve, G. K., et al. Hopfield networks is all you need. 
+
+arXiv preprint arXiv:2008.02217 , 2020. Ren, Y., Xia, X., Lu, Y., Zhang, J., Wu, J., Xie, P., Wang, X., and Xiao, X. Hyper-sd: Trajectory segmented consis-tency model for efficient image synthesis. arXiv preprint arXiv:2404.13686 , 2024. Rhoades, B. E. Some theorems on weakly contractive maps. 
+
+Nonlinear Analysis: Theory, Methods & Applications ,47(4):2683–2693, 2001. doi: 10.1016/S0362-546X(01) 00388-1. Rombach, R., Blattmann, A., Lorenz, D., Esser, P., and Ommer, B. High-resolution image synthesis with latent diffusion models. In Proceedings of the IEEE/CVF con-ference on computer vision and pattern recognition , pp. 10684–10695, 2022a. Rombach, R., Blattmann, A., Lorenz, D., Esser, P., and Ommer, B. High-resolution image synthesis with latent diffusion models. In Proceedings of the IEEE/CVF con-ference on computer vision and pattern recognition , pp. 10684–10695, 2022b. Sadat, S., Hilliges, O., and Weber, R. M. Eliminating over-saturation and artifacts of high guidance scales in diffu-sion models. In The Thirteenth International Conference on Learning Representations , 2024. Sauer, A., Lorenz, D., Blattmann, A., and Rombach, R. Ad-versarial diffusion distillation. In European Conference on Computer Vision , pp. 87–103. Springer, 2025. Shehu, Y. Convergence rate analysis of inertial krasnoselskii–mann type iteration with applications. Nu-merical Functional Analysis and Optimization , 39(10): 1077–1091, 2018. Song, J., Meng, C., and Ermon, S. Denoising diffusion implicit models. In ICLR , 2021a. Song, Y., Sohl-Dickstein, J., Kingma, D. P., Kumar, A., Ermon, S., and Poole, B. Score-based generative mod-eling through stochastic differential equations. In In-ternational Conference on Learning Representations ,2021b. URL https://openreview.net/forum? id=PxTIG12RRHS .Team, W. Wan: Open and advanced large-scale video gener-ative models. 2025. 10 Bridging Diffusion Guidance and Anderson Acceleration via Hopfield Dynamics 
+
+Tsallis, C. Possible generalization of boltzmann-gibbs statis-tics. Journal of statistical physics , 52:479–487, 1988. Vincent, P. A connection between score matching and de-noising autoencoders. Neural computation , 23(7):1661– 1674, 2011. Wainwright, M. J., Jordan, M. I., et al. Graphical models, exponential families, and variational inference. Founda-tions and Trends® in Machine Learning , 1(1–2):1–305, 2008. Walker, H. F. and Ni, P. Anderson acceleration for fixed-point iterations. SIAM Journal on Numerical Analysis ,49(4):1715–1735, 2011. Wang, F.-Y., Huang, Z., Bergman, A. W., Shen, D., Gao, P., Lingelbach, M., Sun, K., Bian, W., Song, G., Liu, Y., et al. Phased consistency model. arXiv preprint arXiv:2405.18407 , 2024. Wu, D., Hu, J. Y.-C., Li, W., Chen, B.-Y., and Liu, H. Stan-hop: Sparse tandem hopfield model for memory-enhanced time series prediction. arXiv preprint arXiv:2312.17346 ,2023a. Wu, X., Hao, Y., Sun, K., Chen, Y., Zhu, F., Zhao, R., and Li, H. Human preference score v2: A solid benchmark for evaluating human preferences of text-to-image synthesis. 
+
+arXiv preprint arXiv:2306.09341 , 2023b. Xie, E., Chen, J., Chen, J., Cai, H., Tang, H., Lin, Y., Zhang, Z., Li, M., Zhu, L., Lu, Y., et al. Sana: Efficient high-resolution image synthesis with linear diffusion trans-formers. arXiv preprint arXiv:2410.10629 , 2024. Xu, J., Liu, X., Wu, Y., Tong, Y., Li, Q., Ding, M., Tang, J., and Dong, Y. Imagereward: Learning and evaluating hu-man preferences for text-to-image generation. Advances in Neural Information Processing Systems , 36, 2024. Yang, Z., Teng, J., Zheng, W., Ding, M., Huang, S., Xu, J., Yang, Y., Hong, W., Zhang, X., Feng, G., et al. Cogvideox: Text-to-video diffusion models with an expert transformer. 
+
+arXiv preprint arXiv:2408.06072 , 2024. Yin, T., Gharbi, M., Park, T., Zhang, R., Shechtman, E., Du-rand, F., and Freeman, W. T. Improved distribution match-ing distillation for fast image synthesis. arXiv preprint arXiv:2405.14867 , 2024. 11 Bridging Diffusion Guidance and Anderson Acceleration via Hopfield Dynamics 
+
+# Bridging Diffusion Guidance and Anderson Acceleration via Hopfield Dynamics 
+
+# Supplementary Material 
+
+# A. Overview 
+
+This supplementary document provides additional theoretical details, implementation specifics, and extended experimental results as follows: • Theoretical Foundations: Detailed background on (Sparse) Modern Hopfield Networks and an analysis of the noise robustness properties inherent in sparse attention (Section B). • Experimental Setup: Comprehensive descriptions of the evaluation metrics and implementation details used in our study (Section C). • Mathematical Proofs: Formal proofs for the fixed-point preservation (Lemma 3.4) and the asymptotic convergence of orthogonal error (Theorem 3.8) (Section D). • Extended Qualitative Results: Additional visual comparisons, including interactions with existing guidance sampling methods and evaluations of the guidance-distilled model (Section E). 
+
+# B. Theoretical Background 
+
+Notations. For a ∈ R, a+ := max {0, a }. For z, z′ ∈ Rd, ⟨z, z′⟩ = z⊤z′ is the inner product of two vectors. For 
+
+z = ( z1, . . . , z d) ∈ Rd, we denote the sorted coordinates of z as z(1) ≥ z(2) ≥ · · · ≥ z(d), where z(ν) is the ν-th largest element. ∆M −1 := {p ∈ RM |pi ≥ 0, P pi = 1 } denotes the (M − 1) -dimensional simplex. In this section, we provide the concept of the modern Hopfield network and its sparse extension in a simplified form to elucidate the motivation and intuition behind our method and encourage further research. Initially, the Hopfield model was introduced as an associative memory designed to store binary patterns (Hopfield, 1982). The model is optimized to store patterns in the local minima of an associated energy function; given a query input, the system retrieves the closest local minimum. Numerous extensions have been proposed to improve stability and capacity, such as exponential energy functions or continuous state models (Demircigil et al., 2017; Krotov & Hopfield, 2016; Barra et al., 2018). Ramsauer et al. proposed the modern Hopfield network (MHN), which can be integrated into deep learning architectures (Ramsauer et al., 2020). The network is equipped with a differentiable energy function E and retrieval dynamics T that enable pattern retrieval in a single update: 
+
+EDense : Rd → R, x 7 → − lse (β, Ξ⊤x) + 12 ⟨x, x⟩, (26) 
+
+TDense : Rd → Rd, x 7 → ΞSoftmax (βΞ⊤x) (27) where x ∈ Rd represents a query input, Ξ = [ ξ1 . . . ξM ] ∈ Rd×M consists of stored patterns ξi ∈ Rd, and lse (β, z) := log 
+
+PMi=1 exp( βz i)
+
+
+
+/β is the log-sum-exponential function for β > 0. Theoretical results regarding the energy function and the retrieval dynamics, including convergence and state properties, were established in (Ramsauer et al., 2020). 
+
+Connection with the Transformer Attention An important discovery in (Ramsauer et al., 2020) is the connection between the MHN update rule and the self-attention mechanism used in Transformer and BERT models. Following the derivation in (Ramsauer et al., 2020), we first extend TDense in Eq. 27 to accommodate multiple queries X := {xi}i∈[N ]. Given a raw query R and memory matrix Y, we define the query and key matrices as X⊤ = RW Q := Q and Ξ⊤ = YW K := K,using weight matrices WQ and WK . Consequently, the retrieval dynamics can be rewritten as K⊤Softmax (βKQ ⊤).By taking the transpose and projecting K to V via WV , we have: 
+
+TDense : X 7 → Softmax (βQK ⊤)KW V = Softmax (βQK ⊤)V, (28) 12 Bridging Diffusion Guidance and Anderson Acceleration via Hopfield Dynamics 
+
+which corresponds to standard Transformer self-attention with β = 1 /√d. Employing the notations in (Ramsauer et al., 2020), we obtain: 
+
+TDense : X 7 → Softmax (QK ⊤/√d)V := At (Q, K, V). (29) This interpretation can be extended to the cross-attention mechanism: 
+
+TDense : ( X, Y) 7 → Softmax 
+
+
+
+XW QW⊤ 
+
+> K
+
+Y⊤/√d
+
+
+
+YW V = At (WQX, WK Y, WV Y).
+
+Our work specifically focuses on this extension into the cross-attention framework. In the context of MHN, the input query is processed with an additional transformation WQ to increase network complexity, while inner products are computed with learned key patterns ( WK Y). The retrieved patterns (values) then serve as inputs for subsequent layers. Since different layers can store distinct patterns, MHNs facilitate the hierarchical storage and retrieval of information. Notably, while a basic Hopfield network outputs a single pattern, the attention mechanism yields multiple patterns; thus, attention acts as a stack of multi-valued Hopfield networks, forming a multi-level and multi-valued associative memory. 
+
+Sparse Hopfield Network Later, sparse extensions of the modern Hopfield network are proposed (Hu et al., 2024; Wu et al., 2023a). The energy function was modified to make sparse the computation of retrieval dynamics: 
+
+Eα : Rd → R, x 7 → − Ψ⋆α(β, Ξ⊤x) + 12 ⟨x, x⟩, (30) 
+
+Tα : Rd → Rd, x 7 → Ξα-Entmax (βΞ⊤x), (31) and Ψ⋆α is the convex conjugate of Tsallis entropy (Tsallis, 1988), Ψα, α -Entmax (z), represents the probability mapping: 
+
+Ψα(p) := 
+
+( 1
+
+> α(α−1)
+
+PMi=1 (pi − pαi ), α̸ = 1 ,
+
+− PMi=1 (pi − log pi), α = 1 , (32) 
+
+α-Entmax (z) := arg max 
+
+> p∈∆M
+
+[⟨p, z⟩ − Ψα(p)] , (33) where p ∈ RM . Here, α controls the sparsity. When α = 1 , it is equivalent to a dense probability mapping, 1-Entmax =
+
+Softmax , and as α increases towards 2, the outputs of α-Entmax become increasingly sparse, ultimately converging to 2-Entmax ≡ Sparsemax (z) := arg min 
+
+> p∈∆M
+
+∥p − z∥ (Martins & Astudillo, 2016). Notably, when α = 1 , Tα becomes equivalent to TDense ≡ T 1 (Wainwright et al., 2008). We have simple formula for α-Entmax (Martins & Astudillo, 2016). There is a unique threshold function τ : RM → R that satisfies 
+
+α-Entmax (z) = [( α − 1) z − τ (z)1]1/(α−1) + . (34) From this formula, we know that the entries less than τ / (α − 1) map to zero, so sparsity is achieved. We will denote the number of nonzero entries in α-Entmax as κ(z) for later use to derive theoretical results. For α = 2 , the exact solution can be efficiently computed using a sorting algorithm (Held et al., 1974; Michelot, 1986). For 1 < α < 2, inaccurate and slow iterative algorithm was used for computing α-Entmax (Liu & Ye, 2009). Interestingly, for 1.5-Entmax , an accurate and exact solution are derived in a simple form (Peters et al., 2019). Similar to TDense , Tα can be extended to attention mechanisms, establishing a strong connection with sparse attention. In other words, by following the derivation as provided in Equation (28), and Equation (29), we can obtain 
+
+Tα : X 7 → α-Entmax (QK ⊤/√d)V := At α(Q, K, V) (35) Furthermore, similar to the dense attention mechanism, we can also extend into a cross-attention mechanism with inputs X
+
+and Y:
+
+Tα : ( X, Y) 7 → α-Entmax 
+
+
+
+XW QW⊤ 
+
+> K
+
+Y⊤/√d
+
+
+
+YW V = At α(WQX, WK Y, WV Y)
+
+13 Bridging Diffusion Guidance and Anderson Acceleration via Hopfield Dynamics 
+
+Sparse Hopfield Network and α-Entmax. To introduce sparsity into the retrieval process, the modern Hopfield network can be extended by employing a sparse transformation. This sparse counterpart is characterized by an energy function Eα
+
+and the corresponding retrieval dynamics Tα:
+
+Eα : Rd → R, x 7 → − Ψα(β, Ξ⊤x) + 12 ⟨x, x⟩, (36) 
+
+Tα : Rd → Rd, x 7 → Ξα-Entmax (βΞ⊤x) (37) where α-Entmax is a sparsity-inducing mapping. Specifically, there exists a unique threshold function τ : RM → R such that: 
+
+α-Entmax (z) = [( α − 1) z − τ (z)1]1/(α−1) + . (38) From this formulation, entries less than τ (z)/(α − 1) are mapped to zero, thereby achieving sparsity in the retrieved patterns. For subsequent theoretical results, we denote the number of non-zero entries in α-Entmax (z) as κ(z).The computational efficiency of this mapping depends on the value of α. For α = 2 (corresponding to sparsemax ), the exact solution can be efficiently computed using sorting algorithms (Held et al., 1974; Michelot, 1986). For 1 < α < 2,while earlier approaches relied on slower iterative algorithms (Liu & Ye, 2009), an exact solution in a simple closed form has been derived specifically for 1.5-Entmax (Peters et al., 2019). 
+
+Extension to Sparse Attention Similar to the dense retrieval dynamics TDense , the sparse counterpart Tα can be extended to attention mechanisms, establishing a robust connection with sparse attention. Following the derivations provided in Eqs. 28 and 29, the sparse retrieval dynamics for multiple queries can be expressed as: 
+
+Tα : X 7 → α-Entmax (QK ⊤/√d)V := At α(Q, K, V). (39) Furthermore, this sparse attention mechanism can be naturally extended to a cross-attention framework with inputs X and 
+
+Y:
+
+Tα : ( X, Y) 7 → α-Entmax 
+
+
+
+XW QW⊤ 
+
+> K
+
+Y⊤/√d
+
+
+
+YW V = At α(WQX, WK Y, WV Y).
+
+This extension allows the network to selectively retrieve pertinent information from the memory matrix Y by filtering out irrelevant patterns through the sparsity-inducing α-entmax mapping. By integrating this into the cross-attention layers, our model benefits from the theoretical properties of sparse associative memories, enhancing both interpretability and robustness against noise. 
+
+Noise Robustness of Sparse Hopfield Network In SHN, sparsity not only reduces retrieval errors but also ensures faster convergence compared to dense retrieval dynamics (Hu et al., 2024; Wu et al., 2023a; Kim & Sim, 2025). While the sparse extension is an efficient counterpart to the dense Hopfield network, recent studies have revealed significant advantages beyond mere computational efficiency, particularly regarding noise robustness (Hu et al., 2024; Wu et al., 2023a). 
+
+Definition B.1 (Pattern Stored and Retrieved) . Suppose every pattern ξμ is contained within a ball Bμ. We say that ξμ
+
+is stored if there exists a unique fixed point x∗ 
+
+> i
+
+∈ Bμ to which all points x ∈ Bμ converge, provided Bμ are disjoint. Furthermore, we say ξμ is retrieved for an error ϵ if ∥T (x) − ξμ∥ ≤ ϵ for all x ∈ Bμ.For the following theorems, let m := max ν ∥ξν ∥.
+
+Theorem B.2 (Retrieval Error) . (Ramsauer et al., 2020; Hu et al., 2024; Wu et al., 2023a; Kim & Sim, 2025) Let Tα be the retrieval dynamics of a Hopfield model with α-Entmax . The retrieval error bounds are given by: For α = 1 , ∥T 1(x) − ξμ∥ ≤ 2m(M − 1) exp 
+
+
+
+−β
+
+
+
+⟨ξμ, x⟩ − max   
+
+> ν̸=μ
+
+⟨ξν , x⟩
+
+ 
+
+. (40) 
+
+For 1 < α ≤ 2, ∥T α(x) − ξμ∥ ≤ m + mκ 
+
+h
+
+(α − 1) β
+
+
+
+max  
+
+> ν
+
+⟨ξν , x⟩ − [Ξ⊤x](κ+1) 
+
+i 1
+
+> α−1
+
+. (41) 
+
+For α = 2 , ∥T 2(x) − ξμ∥ ≤ m + mβ 
+
+
+
+κ
+
+
+
+max  
+
+> ν
+
+⟨ξν , x⟩ − [Ξ⊤x](κ)
+
+
+
++ 1
+
+β
+
+
+
+. (42) 
+
+For α > α ′, ∥T α(x) − ξμ∥ ≤ ∥T α′ (x) − ξμ∥. (43) 
+
+Note: We employ the notation [Ξ⊤x](M +1) := [ Ξ⊤x](M ) − M 1−α/(α − 1) .
+
+14 Bridging Diffusion Guidance and Anderson Acceleration via Hopfield Dynamics 
+
+The results in Eq. 40, 41, 42, and 43 are established in (Ramsauer et al., 2020), (Kim & Sim, 2025), (Hu et al., 2024), and (Hu et al., 2024; Wu et al., 2023a), respectively. 
+
+Corollary B.3. (Noise Robustness) (Hu et al., 2024; Wu et al., 2023a; Kim & Sim, 2025). In the presence of noisy queries 
+
+˜x = x + η or noisy memory patterns ˜ξμ = ξμ + η, the impact of noise η on the sparse retrieval error ∥T 2(x) − ξμ∥ is 
+
+linear . For 1 < α ≤ 2, the error ∥T α(x) − ξμ∥ scales polynomially with order 1 
+
+> α−1
+
+. Conversely, the dense retrieval error 
+
+∥T 1(x) − ξμ∥ exhibits exponential growth relative to the noise. 
+
+These theoretical insights suggest that under noisy conditions, sparse attention mechanisms governed by Tα (α > 1)exhibit superior noise robustness compared to standard dense attention. Critically, increasing sparsity (via a higher α)further diminishes retrieval errors. Given that diffusion models inherently operate on noisy Gaussian queries throughout the generative process, the transition from dense to sparse attention is particularly advantageous. This robust information retrieval under high-noise regimes provides the fundamental motivation for the success of PLADIS in text-to-image generation. 
+
+# C. Implementation Details 
+
+For the quantitative evaluations presented in Table 1 (left), we perform conditional image sampling using 30,000 images generated by SDXL (Podell et al., 2023) on the MSCOCO dataset. The text prompts are randomly selected from the MSCOCO validation set to ensure a diverse range of conditional scenarios. For the GenEval benchmark, we utilize the official implementation provided by the authors and report the average overall score to evaluate the comprehensive performance across all categories. To evaluate the robustness of our method across various guidance scales, we conduct conditional generation using Classifier-Free Guidance (CFG) (Ho & Salimans, 2022) with a default scale of 5.0. For comparisons with PAG (Ahn et al., 2025) and APG (Sadat et al., 2024), we fix the guidance scales to 3.0 and 12.0, respectively, following the optimal configurations recommended in their original papers. For guidance-distilled models (Hyper-SDXL and DMD2) and Flux models (schnell and dev), we strictly adhere to the official implementations and baseline settings regarding hyperparameter configurations and noise scheduling. Regarding our rescaling parameter, we empirically set η = 15 across all experiments, which consistently yielded the best balance between visual quality and semantic alignment in our preliminary studies. 
+
+# D. Formal Proofs for Fixed-Point Preservation and Stability Analysis 
+
+Lemma 3.4 (Fixed-Point Preservation) Let M (x) be a state-dependent weight matrix or scalar. Define the corrected operator as T ′(x) = Tα(x) + M (x)( Tα(x) − T Dense (x)) . Under 3.3, x∗ remains a fixed point of T ′(x).Proof. Consider the residual operator r : H → H defined by the discrepancy between the sparse and dense attention mechanisms, r(x) := Tα(x) − T Dense (x). By Assumption 3.3, x∗ is a common fixed point for both operators, satisfying 
+
+Tα(x∗) = x∗ and TDense (x∗) = x∗. Consequently, the residual vector at the attractor vanishes identically: 
+
+r(x∗) = Tα(x∗) − T Dense (x∗) = x∗ − x∗ = 0. (44) Substituting this result into the definition of the GAG operator yields: 
+
+T ′(x∗) = Tα(x∗) + M (x∗)r(x∗) (45) 
+
+= x∗ + M (x∗) · 0 (46) 
+
+= x∗. (47) This confirms that the fixed-point property of the semantic attractor is invariant under the GAG transformation, regardless of the choice of M (x).
+
+Theorem 3.8 (Asymptotic Convergence of Orthogonal Error) . Suppose Assumptions 3.3 and 3.7 hold. Let {xt}t∈N be a sequence generated by xt+1 = Tλ(xt) with ζ = 0 . Then the magnitude of the orthogonal error, defined as ut := 
+
+∥Π⊥(xt)( xt − x∗)∥, converges to zero asymptotically: 
+
+lim  
+
+> t→∞
+
+ut = 0 . (25) 15 Bridging Diffusion Guidance and Anderson Acceleration via Hopfield Dynamics 
+
+Proof. Let {ut}t∈N be the sequence of orthogonal error norms. By the definition of the GAG operator with ζ = 0 , no additional orthogonal displacement r⊥ is introduced into the system state. Under the orthogonal weak contraction property (Assumption 3.7), we have: 
+
+ut+1 ≤ cu t − ϕ(ut), ∀t ≥ 0, (48) where c ∈ [0 , 1) and ϕ(·) is a strictly increasing forcing function with ϕ(0) = 0 . Since c < 1 and ϕ(ut) ≥ 0, it follows that 
+
+ut+1 < u t for all ut > 0. Thus, {ut} is a monotonically decreasing sequence bounded below by zero. By the Monotone Convergence Theorem, there exists a limit u∞ = lim t→∞ ut.Taking the limit on both sides of (48), we obtain u∞ ≤ cu ∞ − ϕ(u∞), which simplifies to: 
+
+(1 − c)u∞ + ϕ(u∞) ≤ 0. (49) Given that 1 − c > 0 and ϕ(u) > 0 for all u > 0, the inequality holds if and only if u∞ = 0 . This concludes the proof that the orthogonal error vanishes asymptotically. 
+
+# E. Additional Qualitative Results 
+
+In this section, we provide extended qualitative evaluations to demonstrate the effectiveness and versatility of our proposed method, GAG, across diverse generation tasks and in combination with various state-of-the-art guidance frameworks. 
+
+Synergy with Existing Guidance Methods. Figures 4, 5, and 6 illustrate the qualitative impact of integrating GAG with established guidance techniques, including CFG (Ho & Salimans, 2022), APG (Sadat et al., 2024), and PAG (Ahn et al., 2025). Compared to vanilla guidance sampling and the comparable PLADIS baseline, our GAG-enhanced results exhibit a significant improvement in image plausibility. This is particularly evident in enhanced text-to-image alignment, improved coherence in complex prompts, and superior performance in challenging tasks such as object counting and visual effect rendering. These results confirm that GAG acts as a robust plug-and-play enhancement, elevating generation quality without requiring any additional inference steps. 
+
+Application to Guidance-Distilled Models. Figures 7 and 8 present qualitative results from applying GAG to step-distilled models, such as DMD2 (Yin et al., 2024) and Hyper-SDXL (Ren et al., 2024), specifically in 4-step sampling regimes. We observe that GAG significantly mitigates unnatural artifacts and enhances semantic coherence between the text prompt and the generated image. Notably, GAG achieves these refinements while remaining nearly cost-free in terms of computational overhead, making it ideal for high-speed distilled architectures where inference efficiency is paramount. 
+
+Robustness across Architectures: Extension to Flux. In Figures 9 and 10, we demonstrate GAG’s applicability to large-scale backbone models, including Flux.1-schnell (4 steps) and Flux.1-dev (28 steps). Our method proves effective not only for standard SDXL backbones but also for complex MMDiT architectures, showcasing exceptional robustness and architectural compatibility. GAG successfully refines visual details and prompt adherence even in these massive models, underscoring its generalizability and effectiveness across different model scales and training objectives. 
+
+Comparative Analysis with NAG. Figure 11 provides a direct comparison between NAG (Chen et al., 2025), PLADIS, and GAG on the Hyper-SDXL framework for 4-step cases. While NAG offers enhanced guidance, it incurs substantial inference costs due to its additional computational requirements. In contrast, GAG delivers more visually pleasing results and superior text alignment without any additional inference overhead. This comparative analysis highlights GAG’s unique advantage in achieving the optimal balance between visual quality and computational efficiency, outperforming both NAG and PLADIS in terms of semantic robustness. 16 Bridging Diffusion Guidance and Anderson Acceleration via Hopfield Dynamics 
+
+Figure 4. Qualitative comparison of guidance methods: CFG (Ho & Salimans, 2022), CFG with PLADIS, and CFG with our GAG. While the combination of CFG and PLADIS improves upon the baseline, integrating GAG yields superior visual fidelity and significantly stronger text-to-image alignment. Notably, GAG achieves these improvements without incurring any additional computational overhead compared to the other methods. 
+
+17 Bridging Diffusion Guidance and Anderson Acceleration via Hopfield Dynamics 
+
+Figure 5. Qualitative comparison of guidance methods based on APG (Sadat et al., 2024): standalone APG, APG with PLADIS, and APG with our GAG. While the addition of PLADIS to the APG framework shows incremental improvements, integrating GAG results in superior visual fidelity and significantly enhanced text-to-image alignment. GAG achieves these gains without any additional computational overhead relative to the APG baseline. 
+
+18 Bridging Diffusion Guidance and Anderson Acceleration via Hopfield Dynamics 
+
+Figure 6. Qualitative comparison showing the synergistic effects of guidance methods: CFG jointly used with PAG (Ahn et al., 2025), and the further integration of PLADIS and our GAG. Although the joint usage of CFG and PAG with PLADIS improves structural stability, the addition of GAG further elevates visual quality and strengthens alignment with the text prompt. Notably, GAG enhances the CFG+PAG pipeline without incurring extra inference costs. 
+
+19 Bridging Diffusion Guidance and Anderson Acceleration via Hopfield Dynamics 
+
+Figure 7. Qualitative comparison of guidance methods on Hyper-SDXL (Ren et al., 2024): standalone Hyper-SDXL, Hyper-SDXL with PLADIS, and Hyper-SDXL with our GAG. While PLADIS provides marginal gains in detail, the integration of GAG significantly boosts both visual fidelity and text-to-image alignment. GAG achieves these superior results without compromising the high-speed inference characteristic of the few-steps distilled model. 
+
+20 Bridging Diffusion Guidance and Anderson Acceleration via Hopfield Dynamics 
+
+Figure 8. Visual evaluation of GAG on the DMD2 (Yin et al., 2024) framework: baseline DMD2, DMD2 with PLADIS, and DMD2 with our GAG. Although PLADIS improves upon the base distilled model, our GAG yields more plausible textures and sharper semantic boundaries. Notably, GAG enhances the generation quality and prompt adherence without incurring any additional computational overhead in the distillation-based sampling process. 
+
+21 Bridging Diffusion Guidance and Anderson Acceleration via Hopfield Dynamics 
+
+Figure 9. Qualitative comparison of guidance strategies on Flux.1-schnell: standalone Flux-schnell, Flux-schnell with PLADIS, and Flux-schnell with our GAG. As a state-of-the-art distilled model, Flux-schnell’s performance is further elevated by GAG, which delivers noticeably better text alignment and overall image coherence compared to the PLADIS baseline, all while maintaining original inference efficiency. 
+
+22 Bridging Diffusion Guidance and Anderson Acceleration via Hopfield Dynamics 
+
+Figure 10. Visual comparison of guidance methods on Flux.1-dev: baseline Flux-dev, Flux-dev with PLADIS, and Flux-dev with our GAG. While Flux-dev already exhibits high-quality generation, integrating our GAG provides a critical refinement in complex prompt following and visual detail. GAG outperforms the PLADIS integration in semantic robustness without requiring extra inference steps, demonstrating its efficacy on large-scale models. 
+
+23 Bridging Diffusion Guidance and Anderson Acceleration via Hopfield Dynamics 
+
+Figure 11. Qualitative comparison of guidance strategies on Hyper-SDXL (Ren et al., 2024) using NAG (Chen et al., 2025), PLADIS, and our GAG. While NAG provides enhanced guidance, it incurs a higher inference cost due to additional computational requirements. In contrast, GAG not only maintains superior efficiency but also delivers more visually pleasing results and significantly better text alignment, outperforming both NAG and PLADIS without any extra inference overhead. 
+
+24

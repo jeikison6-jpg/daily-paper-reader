@@ -1,0 +1,2530 @@
+Title: C$^2$FG: Control Classifier-Free Guidance via Score Discrepancy Analysis
+
+URL Source: https://arxiv.org/pdf/2603.08155v1
+
+Published Time: Tue, 10 Mar 2026 02:01:29 GMT
+
+Number of Pages: 30
+
+Markdown Content:
+# C2FG: Control Classifier-Free Guidance via Score Discrepancy Analysis 
+
+## Jiayang Gao 1,∗, Tianyi Zheng 2,∗, Jiayang Zou 1, Fengxiang Yang 2, Shice Liu 2, Luyao Fan 1,Zheyu Zhang 2, Hao Zhang 2, Jinwei Chen 2, Peng-Tao Jiang 2, Bo Li 2,†, Jia Wang 1,† 
+
+> 1
+
+## Shanghai Jiao Tong University, Shanghai, China 
+
+> 2
+
+## vivo BlueImage Lab, vivo Mobile Communication Co., Ltd., China    
+
+> {gjy0515, jiawang}@sjtu.edu.cn, {zhengtianyi, libra}@vivo.com
+
+## Abstract 
+
+Classifier-Free Guidance (CFG) is a cornerstone of modern conditional diffusion models, yet its reliance on the fixed or heuristic dynamic guidance weight is predominantly empir-ical and overlooks the inherent dynamics of the diffusion process. In this paper, we provide a rigorous theoretical analysis of the Classifier-Free Guidance. Specifically, we establish strict upper bounds on the score discrepancy be-tween conditional and unconditional distributions at differ-ent timesteps based on the diffusion process. This finding explains the limitations of fixed-weight strategies and estab-lishes a principled foundation for time-dependent guidance. Motivated by this insight, we introduce Control Classifier-Free Guidance (C 2FG) , a novel, training-free, and plug-in method that aligns the guidance strength with the diffusion dynamics via an exponential decay control function. Exten-sive experiments demonstrate that C 2FG is effective and broadly applicable across diverse generative tasks, while also exhibiting orthogonality to existing strategies. 
+
+## 1. Introduction 
+
+Diffusion models [ 44 – 47 ] have received widespread atten-tion due to their remarkable generative capabilities and have been successfully applied in image synthesis [ 13 , 38 ], speech generation [ 11 ], and 3D generation [ 52 ]. With the advent of conditional diffusion models, researchers have explored guiding generation using additional information, such as class labels [ 13 ] or textual descriptions [ 4, 37 ]. Among these, classifier-free guidance (CFG) [ 20 ] has emerged as a popu-lar approach to improve sample quality. How to effectively incorporate conditional information remains a central chal-lenge in conditional diffusion model design. Diffusion models [ 43 – 47 , 55 ] are grounded in the prin-ciple of gradually transforming noise into data through a   
+
+> ∗These authors contributed equally to this work.
+> †Corresponding authors.
+
+reverse denoising process, where conditional generation requires effective mechanisms for incorporating guidance. Most of the conditional diffusion models are based on Bayes’ theory: Early approaches such as Classifier Guidance (CG) [13 ] introduced an auxiliary classifier to steer the sampling trajectory toward the target condition. While effective, this approach is often unstable and relies on training an addi-tional classifier, which can be difficult and computationally expensive [ 48 ]. To address these limitations, Classifier-Free Guidance (CFG) was proposed as a more practical solu-tion, enabling conditional generation without the need for an external classifier. The key motivation of CFG lies in its ability to interpolate between unconditional and conditional score estimates, thus providing a flexible and straightforward mechanism for conditional control. Despite its success, the original design of CFG fixes guid-ance in the time domain, which may not be optimal. Sub-sequent works have extended CFG by exploring alternative strategies: Interval Guidance [ 26 ] propose restricting guid-ance to a limited interval of noise levels, FDG [ 40 ] choose a low cfg-scale for low frequencies and a high cfg-scale for high frequencies, CFG++ [ 10 ] and TFG [ 53 ] constrain classifier-free guidance to the data manifold, β-CFG [ 34 ] and RAAG [ 56 ] adjust guidance strength via a time-dependent distribution. While these efforts deepen the community’s un-derstanding and lead to tangible improvements in generative performance, they remain largely heuristic and motivated by empirical observations rather than rigorous theory. More importantly, they often overlook a fundamental aspect of CFG’s design: the inherent difference between the condi-tional and unconditional data distributions. Consequently, these methods remain sub-optimal, lacking the principled and theoretically-grounded solutions necessary to combine the conditional and unconditional scores effectively across different diffusion stages. 
+
+In this paper, we aim to provide a theoretical understand-ing of the difference between conditional and unconditional outputs in classifier-free guidance. Specifically, we analyze the problem from the perspective of differences between 
+
+> arXiv:2603.08155v1 [cs.LG] 9 Mar 2026
+
+score functions of conditional and unconditional distribu-tions in Theorems 1 and 2. Moreover, we explore the rela-tionship of distributions at different timesteps and locations in Theorems 3 and 4. Theoretically, Theorems 1 and 2 es-tablish rigorous bounds on the score discrepancies, which in turn reveal intrinsic limitations in existing approaches that rely on unconditional guidance alone. Furthermore, we em-pirically validate our theoretical findings (Figure 1), showing that the derived upper bounds on score MSE hold in practice. Besides, Theorems 3 and 4 show that it’s hard to bound the probability density function (PDF) when the timestep tends to 0. By integrating these theoretical and empirical insights, we confirm that the difference between conditional and un-conditional outputs is strictly monotonically decreasing in the forward process. This insight inspires us to design a time-decaying weighting for CFG, which optimally balances the unconditional and conditional guidance throughout the generation process, thereby enhancing generation quality. 
+
+Building on our theoretical analysis and empirical valida-tions, we propose Control Classifier-Free Guidance (C 2FG), a novel guidance strategy in conditional diffusion models. The key design of our approach is to replace the fixed guid-ance weight with a time-dependent control function, which aligns strictly with our theoretical conclusions. Meanwhile, our method offers greater controllability and provides more flexible choices for balancing fidelity and diversity. Impor-tantly, it is a training-free approach, requiring no additional classifier training, and can be seamlessly applied to a wide range of advanced diffusion frameworks, such as Stable Dif-fusion (SD) [ 38 ], EDM2 [ 24 ], U-ViT [ 5], DiT [ 35 ], and SiT [33 ]. Besides, C 2FG is not only generalizable across various generative tasks but also orthogonal to existing strategies (e.g., autoguidance [ 23 ]). Moreover, our approach can the-oretically explain and integrate the interval guidance strat-egy [ 26 ] and can be seamlessly applied to the exceptionally strong SiT-XL/2 (REPA), a strong baseline already difficult to improve. Even in this setting, C 2FG yields further gains in both FID and IS scores while maintaining other metrics. Overall, our main contributions can be summarized as: 1. Theoretical analysis: We provide a rigorous theoretical analysis of the discrepancy in CFG, revealing that the difference between conditional and unconditional scores dynamically decays over time. This insight establishes a principled foundation for time-dependent scaling and exposes the fundamental limitations of a fixed guidance weight. 2. Method design: Guided by our analysis, we pro-pose Control Classifier-Free Guidance (C 2FG) , a theoretically-grounded, training-free method that imple-ments a time-dependent exponential decay control func-tion. This design enhances controllability over the gen-eration process by aligning guidance strength with the underlying diffusion dynamics. 3. Experimental validation: We demonstrate that C 2FG achieves SOTA performance across various conditional generation benchmarks. Moreover, C 2FG can be applied to various sampling designs, including stochastic and or-dinary differential equations, demonstrating its versatility. Notably, C 2FG’s orthogonal design enhances even ex-ceptionally strong baselines like SiT-XL/2 (REPA) with interval guidance [ 26 ]. It provides further gains in FID and IS scores while maintaining other key metrics. 
+
+## 2. Background 
+
+2.1. Diffusion Models 
+
+Diffusion models [ 44 –47 ] learn complex data distributions through a two-stage procedure. The forward process adds noise to the data step by step, while the reverse process removes the noise to recover the target distribution. 
+
+Stochastic Differential Equations (SDEs). Mathematically, diffusion models can be described using stochastic differen-tial equations. The forward process can be expressed as an SDE [47]: 
+
+dxt = f (xt, t ) d t + g(t) d wt, (1) where f (xt, t ) is the drift coefficient, g(t) is the diffusion coefficient, and wt is a standard Wiener process. Meanwhile, the corresponding reverse-time SDE [2] is: 
+
+dxt =
+
+
+
+f (xt, t ) − 12
+
+ g2(t) + σ2(t) ∇xt log p(xt, t )
+
+
+
+dt
+
++ σ(t) d ¯ wt, (2) where ¯wt is a standard reverse-time Wiener process, and 
+
+σ(t) is a user-specified noise scale. Common choices include 
+
+σ(t) = g(t) as in DDPM [ 21 ] , or σ(t) = 0 as in DDIM [45] and Probability Flow ODEs [30–32]. 
+
+Fokker–Planck Equation (FPE). The SDE equation 1 is governed by the FPE [17]: 
+
+∂p (x, t )
+
+∂t = −∇ x · (f (x, t )p(x, t )) + 12 ∆x
+
+ g2(t)p(x, t ) ,
+
+(3) where p(x, t ) denotes the probability density function (PDF) of equation 1 at time t. The FPE equation 3 describes the time evolution of the probability density function (PDF), where the first term (drift term) describes deterministic transport of probability mass, and the second term (diffusion term) models stochastic spreading due to noise. 
+
+2.2. Classifier-Free Guidance 
+
+For conditional diffusion, we incorporate conditioning vari-ables y into the generative process. To remove the need for an external classifier like Classifier Guidance (CG) [ 13 ], Classifier-Free Guidance (CFG) [ 20 ] proposes a method de-rived from Bayes’ theorem 
+
+∇ log p(y | xt) = ∇ log p(xt | y) − ∇ log p(xt). (4) Specifically, CFG incorporates conditional information into the denoising network based on Bayes’ theorem, and the generation process is given by 
+
+ˆϵ(xt, t, y ) = ω [ϵθ (xt, t, y ) − ϵθ (xt, t, ∅)] + ϵθ (xt, t, ∅),
+
+(5) where ϵθ (xt, t, y ) is trained with conditional information and ϵθ (xt, t, ∅) is trained without it. The parameter ω con-trols the strength of conditional guidance. In most previ-ous work [ 20 , 32 ], ω is fixed during the generation process. While recent studies [ 26 , 39 , 40 , 51 , 56 ] find that a fixed ω
+
+is sub-optimal, the dynamic strategies they propose are often based on heuristic designs and lack clear theoretical guide-lines. Other methods [ 6 , 9 , 22 ], designed for multimodal tasks, suffer from a lack of generality, as they often rely on task-specific properties such as large guidance scales ( ω)or external reward models. Thus, most current approaches are either heuristic or not sufficiently general. We provide a detailed discussion about these works in Appendix A. 
+
+## 3. Method 
+
+3.1. Theoretic Analysis of Diffusion Process 
+
+In diffusion models, the forward diffusion process is formu-lated as the Ornstein–Uhlenbeck (OU) process. i.e, dxt = f (t)xtdt + g(t)dwt. (6) Two widely used parameterizations are the Variance-Preserving SDE (VP-SDE) and the Variance-Exploding SDE (VE-SDE) [47]. 
+
+VP-SDE. VP-SDE is designed to keep the marginal vari-ance of xt bounded during the forward process, typically matching the discrete-time DDPM formulation. A common choice is f (t) = − 12 βt, g(t) = √βt, where βt controls the noise schedule. The process gradually drives xt towards an isotropic Guassion with fixed variance. Therefore, equa-tion 6 becomes d xt = − 12 βtxtdt + √βtdwt.
+
+VE-SDE. The VE formulation increases the variance of xt
+
+over time, corresponding to a pure diffusion process. A typi-cal parameterization is f (t) = 0 , g(t) = 
+
+q dσ2 
+
+> t
+> dt
+
+, leading to d xt =
+
+q dσ2 
+
+> t
+> dt
+
+dwt.
+
+The forward diffusion process aims to transform unknown data distributions into predefined ones (e.g., Gaussian). Al-though the initial distributions under different conditions differ in the early stages, they become increasingly similar as the process progresses. As shown by our mathematical anal-ysis, this convergence is non-uniform, meaning that the rate at which conditional information is lost also varies over time. This property challenges the commonly used fixed guidance strategy, indicating that a constant guidance strength is not consistent with the mathematical properties of diffusion. To guide the design of a time-dependent weighting func-tion w(t), we consider the mean-square error between the scores of distributions induced by different initial conditions. 
+
+Score MSE Bounds. Denote ˜p(xt, t ) = p(xt, t |y) for the conditional distribution given y, then we aim to estimate upper bound of mean square loss of scores between p(xt, t )
+
+and ˜p(xt, t ):
+
+Theorem 1 (VP-SDE Score MSE Bound) . Assume that the sample space is bounded and closed. Then we consider the VP-SDE 
+
+dxt = − 12 β(t)xt dt + pβ(t) d wt, (7) 
+
+let p(x, t ) and ˜p(x, t ) denote the probability densities at time t, induced by initial distributions p(x0) and ˜p(x0),respectively. Then, the mean-square error (MSE) between the scores satisfies the uniform bound 
+
+∥∇ log p(x, t ) − ∇ log ˜ p(x, t )∥ ≤ α(t)
+
+σ2(t) C, 
+
+∀x ∈ supp , t ≥ 0, (8) 
+
+where C is a constant, α(t) = exp ( − 12
+
+R t 
+
+> 0
+
+βsds), and 
+
+σ(t) = α(t)
+
+qR t 
+
+> 0
+> βs
+> α2(s)
+
+ds.Proof. See in Appendix B.1. To make the result more intuitive, we reparameterize time by t′ = 12
+
+R t 
+
+> 0
+
+βsds, under which the SDE becomes dxt′ = −xt′ dt′ + √2dwt′ ,
+
+so that α(t′) = e−t′
+
+and σ2(t′) = 1−e−2t 
+
+> 2
+
+.By Theorem 1, we obtain 
+
+∥∇ log p(x, t ) − ∇ log p(x, t |y)∥ ≤ e−t
+
+1 − e−2t C, (9) which admits an asymptotic upper bound of order O(e−t)
+
+decay rate when t is large. 
+
+Theorem 2 (VE-SDE Score MSE Bound) . Assume that the sample space is bounded and closed. Then we consider the VE-SDE 
+
+dxt =
+
+r dσ2
+
+> t
+
+dt dwt, (10) let p(x, t ) and ˜p(x, t ) denote the probability densities induced by initial distributions p(x0) and ˜p(x0), respectively. Assume that the sample space is bounded and closed. Then, the mean-square error (MSE) between the condi-tional and unconditional scores satisfies the uniform bound 
+
+∥∇ log p(x, t ) − ∇ log ˜ p(x, t )∥ ≤ Cσ2(t) ,
+
+∀ x ∈ supp , t ≥ 0, (11) 
+
+where C is a constant. Proof. See in Appendix B.2. From Theorems 1 and 2, we obtain a relatively precise characterization of how the discrepancy between the condi-tional and unconditional score functions decays for both VP-SDE and VE-SDE. This implies that, as the diffusion process evolves, the effect of conditioning information gradually di-minishes. Nevertheless, the theoretical bounds in equation 8 and equation 11 become singular as t → 0, , which makes them unsuitable for direct use in practical weighting schemes. However, as noted in [ 47 ], estimating the score function near 
+
+t = 0 is also inherently difficult. In practice, we simply dis-regard this regime, since the function is hard to fit and the score estimates are unreliable. Consequently, on the interval 
+
+t ∈ [t0, T ] with t0 > 0, we instead try to employ a continu-ous, time-decaying, and non-singular function that provides a uniform upper bound on the score discrepancy. In practical implementations, this surrogate function can be smoothly and approximately extrapolated toward t → 0, allowing for stable and convenient engineering-level hyperparameter tuning. In addition, we can estimate the bound between p(x1, t 1)
+
+and p(x2, t 2), t1 < t 2 in Theorem 3 and 4, which claim that when fixing p(x2, t 2), the upper bound of p(x1, t 1) becomes larger as t1 tends to 0 and x1 deviates further from x2. Via these estimations, we can take an insight into the difference of PDF when t → 0.
+
+Harnack-type PDF Inequalities. The probability den-sity functions themselves satisfy the following inequalities, which provide further insight into the evolution of the distri-butions over time: 
+
+Theorem 3 (Harnack-type Inequality of VP-SDE) . Let 
+
+p(xt, t ) ∈ C2,1(Rn × [0 , +∞)) denote the probability den-sity function of the VP-SDE equation 7, and define 
+
+s(t) = 12
+
+Z t
+
+> 0
+
+βr dr, t(s) = s−1(t).
+
+Then for any α > 1, x 1, x 2 ∈ Rn, 0 < s 1 < s 2 < +∞,the following inequality holds: 
+
+p(x1, t (s1)) ≤ p(x2, t (s2)) 
+
+ s2
+
+s1
+
+ mα 
+
+> 2
+
+× exp 
+
+ α2∥x1 − x2∥2
+
+4( s2 − s1) + ∥x2∥2 − ∥ x1∥2
+
+2
+
+
+
+,
+
+(12) 
+
+where m ≥ n and ∥ · ∥ denotes the Euclidean distance. Proof. See in Appendix B.3. 
+
+Theorem 4 (Harnack-type Inequality of VE-SDE) . Simi-larly, let p(xt, t ) ∈ C2,1(Rn × [0 , +∞)) denote the prob-ability density function of the VE-SDE equation 10, and define 
+
+s(t) = σ2 
+
+> t
+
+, t(s) = s−1(t).
+
+Then for any α > 1, x 1, x 2 ∈ Rn, 0 < s 1 < s 2 < +∞, the following inequality holds for p:
+
+p(x1, t (s1))) ≤ p(x2, t (s2)) 
+
+ s2
+
+s1
+
+ nα 
+
+> 2
+
+× exp 
+
+ α2∥x1 − x2∥2
+
+4( s2 − s1)
+
+
+
+. (13) 
+
+Proof. See in Appendix B.4. We take VP-SDE for example, fix x2 = x, s 2 = s, and assume p(x, t (s)) > 0, then we can see that the upper bound of p(x1, t (s1)) is increasing as s1 decreases and d(x1, x )
+
+increases. When t → 0, it becomes harder to bound the PDF, which indicates that the ‘magnitude’ or ‘amplitude’ of the PDF at early times (small s1) can be much larger than at later times. Moreover, the closer we are to the initial time, the greater the diversity of the PDF, which amplifies the differences between different initial distributions. We can obtain similar conclusion from VE-SDE using the same method. These inequalities complement the score MSE bounds, of-fering a detailed view of how the densities evolve and spread over time, further supporting the design of the exponentially decaying weighting function ω(t).
+
+Relationship between Harnack-type Inequalities and MSE Bound. Moreover, Appendix C provides a deeper in-sight into the connection between Theorems 1 and 3: they re-spectively lead to Theorems 12 and 10 in the Appendix C. In essence, these two results offer complementary perspectives on the evolution of the KL divergence. Specifically, Theorem 10 provides an O(1 /t ) upper bound on the KL divergence, while Theorem 12 establishes an O(e−2t/(1 − e−2t)) upper bound decay rate. The former offers a sharper characteriza-tion in the short-time regime, whereas the latter dominates in the long-time limit. Together, they delineate a coherent picture of how discrepancies dissipate over time. 3.2. Control Classifier-Free Guidance (C 2FG) 
+
+Intuitive Motivation. We established a core fact in Sec-tion 3.1 (Theorems 1 and 2): during the forward diffusion process ( t : 0 → T ), the conditional and unconditional dis-tributions gradually converge, and the uniform upper bound of score discrepancy discrepancy (t) ≥ ∥∇ log p(xt|y) − ∇ log p(xt)∥,
+
+∀t > 0, x t ∈ Supp , y ∈ N,
+
+decays as t increases. In equation 9, after reparameterizing 
+
+t to t′, the theoretical bound takes the form e−t′ 
+
+> 1−e−2t′
+
+· C ∼
+
+O(e−t′
+
+). This shows that in the reparameterized time scale, the conditional–unconditional score discrepancy decays ex-ponentially. Since t′ is a monotone function of the original time t, this result implies that in the practical diffusion clock 
+
+t ∈ [0 , T ], the score discrepancy exhibits an approximately exponential trend , with the precise rate governed by the effective diffusion coefficient βt. Hence, the key insight is that the conditional discrepancy evolves roughly as discrepancy (t) ∝ e−t.
+
+This property has direct implications for the reverse sam-pling process ( t : T → 0): • Early generation (high t, near pure noise): the con-ditional score ∇ log p(xt|y) and unconditional score 
+
+∇ log p(xt) are highly similar .• Late generation (low t, near data): the two score func-tions diverge significantly .Our empirical validation (Figure 1) strongly supports this theoretical prediction. During reverse sampling, we observe that as t → 0, the mean-square error (MSE) between con-ditional and unconditional scores (Figure 1a) grows expo-nentially , while the cosine similarity (Figure 1b) decreases ,indicating divergence in both magnitude and direction. More-over, we visualize these discrepancies as heatmaps of the logarithmic ratio between the two score functions on various timesteps (See Appendix E, Figure 6). These trends explain why a fixed guidance factor ( ω con-stant) cannot fully capture the true diffusion dynamics: it treats intrinsic differences at all timesteps uniformly .• Early generation (high t): when the score discrepancy is already small, a fixed (or large) ω may introduce un-necessary, excessive guidance , potentially disrupting the natural structure formation (as discussed in [26]). • Late generation (low t): As the diffusion process ap-proaches the data manifold, the discrepancy between con-ditional and unconditional scores reaches its maximum. In this stage, a fixed (or small) ω may be insufficient , failing to pull the sample trajectory towards the target conditional manifold, thereby reducing fidelity. Therefore, an ideal guidance schedule ω(t) should 
+
+align the exponential law that governs the condi-tional–unconditional score discrepancy: 
+
+ω(t) = λe −t ∝ discrepancy (t),
+
+under this setting, the guidance schedule ω(t) should follow a exponentially decreasing trend over time. Furthermore, the Harnack-type inequalities (Theorems 3 and 4) provide additional support from the probability den-sity function (PDF) perspective. They indicate that as t → 0,the magnitude and diversity of the PDF become difficult to control (i.e., the upper bound diverges). In this high-discrepancy, high-diversity “critical region” ( t → 0), a strong guidance signal ω(t) is necessary to steer the gen-eration process, ensuring precise convergence to the target conditional distribution. Both the score-MSE discrepancy and Harnack-type in-equality indicate an exponential upper bound. Therefore, we design an exponentially decreasing ω(t) that is calibrated to match the exponential upper bound. 
+
+Methodology Design. To embody this intuition, we pro-pose the Control Classifier-Free Guidance (C 2FG) , which replaces the fixed guidance ω in standard CFG with a time-varying control function based on previous analysis: 
+
+ω(t) = ω0 exp 
+
+
+
+λ
+
+
+
+1 − ttmax 
+
+ 
+
+, (14) where tmax is the maximum diffusion time determined by the forward process, λ > 0 controls the growth rate, determining how much the guidance increases from ω0 at t = tmax to 
+
+ω0eλ at t = 0 , directly capturing the theoretically proven exponential growth of score discrepancy during the reverse process. This design has several benefits: 1. Consistency with both theory and observation. Theo-retical bound α(t) 
+
+> σ2(t)
+
+C in Theorem 1 and MSE bound in Figure 1a suggest exponential-like decay of conditional discrepancy, which aligns naturally with this schedule. 2. Smoothness and stability. Unlike step-wise or linear schedules, the exponential function is continuously dif-ferentiable, reducing numerical instability. 3. Easy to tune. Only two hyperparameters are introduced: 
+
+ω0 (maximum guidance strength, same as standard CFG) and λ (control decay rate). 4. Interpretability. ω0 sets the guidance strength, and λ
+
+directly controls the speed of conditional information de-cay, providing an intuitive trade-off between faithfulness 
+
+and diversity . More detailed analysis see Appendix E. 
+
+Integration into Sampling. At each timestep t during generation, the C 2FG update replaces the standard CFG as follows: 
+
+ˆϵω 
+
+> c
+
+(xt) = ˆ ϵ∅(xt) + ω(t)ˆϵc(xt) − ˆϵ∅(xt).50 100 150 200 250      
+
+> Time
+> 0.000
+> 0.005
+> 0.010
+> 0.015
+> 0.020
+> 0.025
+> 0.030
+> Similarity Score
+> Similarity vs. Time of 32 Samples
+> Upper bound (a) MSE of cond and uncond 50 100 150 200 250
+> Time
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Similarity Score
+> Similarity vs. Time of 32 Samples (b) Cosine similarity between cond and uncond
+
+Figure 1. Following [ 47 ], (a) and (b) present results for t ≥ t0 > 0. (a) shows that the MSE of conditional score and unconditional score can be bounded by a function which tends to 0 when t → +∞; (b) shows that the normalized cosine similarity between the two vectors decreases over reverse time, indicating that their directions gradually diverge in the reasoning process. t = T t = 0                              
+
+> Diffusion Dynamics For VP and VE
+> VP: |∇log 𝑝 𝑥 ,𝑡 −∇log 𝑝 𝑥 ,𝑡 |𝑦 |≤!(#)
+> %!(#)𝐶 VE: |∇log 𝑝 𝑥 ,𝑡 −∇log 𝑝 𝑥 ,𝑡 |𝑦 |≤&
+> %!(#)
+
+Figure 2. Noise to Image Process of C2FG : Dynamic guidance weight ω(t) adaptively balances conditional and unconditional outputs at each timestep t during generation, guided by theoretical bounds on the score function. Moreover, we can choose to add the method of [ 26 ], where we fix the ω(t) = 1 at the beginning of generation or when t tends to 0. 
+
+Furthermore, our framework also provides a theoretical interpretation of the interval-based strategy proposed in [ 26 ]. Specifically, during the early generation stage , the discrep-ancy between conditional ( ϵc) and unconditional ( ϵ∅) scores becomes negligible. Thus, only the conditional network is necessary in this regime, as the crucial information distin-guishing between different conditions (e.g., c1 vs. c2) only resides within this network. Accordingly, the method of [ 26 ]employs a piecewise-constant guidance schedule: ω(t) is set to a fixed value ω0 > 1 within a selected interval [tl, t h], and reverts to 1 outside this region. Its underlying motivation can in fact be interpreted as a special case of our theoreti-cal framework. Moreover, as shown in Figure 2, combining our C 2FG with their interval-based strategy further reduces model evaluation overhead, since the guidance is applied only where it is most effective. 
+
+## 4. Experiments 
+
+4.1. Experimental Setup 
+
+Models and Datasets. We evaluate our method on multiple generative tasks, including conditional image and text-to-image generation. Experiments are conducted on ImageNet [12 ] and MS-COCO [ 29 ] text-to-image datasets. All models are based on advanced diffusion backbones, including U-ViT [ 5], DiT [ 35 ], Stable Diffusion [ 38 ] and SiT [ 33 ], using pre-trained weights where applicable. 
+
+Evaluation Metrics. Quantitative evaluation uses FID [ 19 ], IS [ 41 ], and Precision/Recall [ 25 ] score to assess both fidelity and conditional alignment. All experiments are implemented in PyTorch and TensorFlow and run on NVIDIA 4090 GPUs. 
+
+4.2. Experimental Result 
+
+Toy Example. Figure 3 presents a 2D toy example compar-ing three conditional sampling methods: EDM2 [ 24 ], β-CFG [34 ], and our proposed method. The figure demonstrates that our method produces a more adaptive weighting strategy, re-sulting in fewer outliers and better alignment with the target distribution compared to the baselines. 
+
+Results on DiT. In Table 1, we quantitatively evaluate our C2FG on the different ImageNet (256 × 256, 512 × 512, class-conditional) benchmarks based on DiT diffusion archi-tectures. We also compare with the recent SOTA Rectified Diffusion [ 49 ] methods. As shown in the Table 1, C 2FG shows comprehensive improvements across all metrics, ex-hibiting particularly significant gains in FID and IS scores. Additionally, C 2FG is validated on the higher-resolution ImageNet-512 dataset, demonstrating that it remains effec-tive for high-resolution data. 
+
+Results on SiT. For the SiT baselines, we utilize REPA as our pre-trained guidance model. During training, REPA aligns the noisy latent features of the diffusion model with representations from pre-trained visual encoders (e.g., MAE [ 18 ], DINO [ 7 ]), thereby enhancing its generative capabili-ties. At inference, REPA employs both full [ 54 ] and interval [ 26 ] guidance strategies within the timestep range (tl, t h).Figure 3. A two-dimensional distribution featuring two classes represented by gray and orange regions. Approximately 99% of the probability mass is inside the shown contours. (a) Ground truth samples from the orange class. (b) EDM2 ( ω = 1 ) produces some outliers. (c) β-CFG (α = β = 2 , ω = 1 ) produces more outliers. (d) C 2FG ( ω0 = 1 , λ = 0 .6) generates fewer outliers and better matches the target distribution. Table 1. Quantitative Comparison. Comparison of different evaluation metrics on Class-Conditional ImageNet datasets with different diffusion architectures and inference steps.                                                                                                   
+
+> ImageNet Model ( 256 ×256 ), 50k samples, 250 inference timesteps FID ↓IS ↑sFID ↓Prec ↑Rec ↑
+> DiT-XL/2 ( ω= 1 .5, ODE sampler) 2.29 276.8 4.6 0.83 0.57 DiT-XL/2 (Rectified Diffusion, ω= 1 .5, ODE) 2.13 //0.83 0.58
+> DiT-XL/2 + Ours (ω0= 1 , λ = ln 2 , ODE) 2.07 291.5 4.6 0.83 0.59
+> SiT-XL/2 (REPA)( ω= 1 .35 , SDE) 1.80 284.0 4.5 0.81 0.61
+> SiT-XL/2 (REPA) + Ours (ω0= 1 , λ = 1 , SDE) 1.51 315.0 4.6 0.80 0.62
+> SiT-XL/2 (REPA, Interval) ( ω= 1 .8, t l= 0 , t h= 0 .7, SDE) 1.42 305.7 4.7 0.80 0.65
+> SiT-XL/2 (REPA, Interval) + Ours (ω0= 1 .8, λ = 0 .03 , SDE) 1.41 308.0 4.7 0.80 0.65 SiT-XL/2 (REPA)( ω= 1 .8, ODE) 3.64 366.0 4.9 0.86 0.54
+> SiT-XL/2 (REPA)+Ours (ω0= 1 .7, λ = 0 .15 , ODE) 3.40 364.2 4.7 0.86 0.55
+> SiT-XL/2 (REPA, Interval) ( ω= 1 .8, t l= 0 , t h= 0 .7, ODE) 1.56 283.1 4.6 0.78 0.66
+> SiT-XL/2 (REPA, Interval) + Ours (ω0= 1 .8, λ = 0 .03 , ODE) 1.54 286.0 4.6 0.78 0.66
+> Model ( 512 ×512 ), 10k samples, 100 inference timesteps
+> DiT-XL/2 ( ω= 1 .5, SDE) 6.81 229.5 20.0 0.82 0.62
+> DiT-XL/2 + Ours (ω0= 1 , λ = ln 2 , SDE) 6.54 280.9 19.7 0.83 0.60
+
+We evaluate both strategies for a fair comparison. As shown in Table 1, our proposed C 2FG achieves comprehensive performance improvements at no additional overhead. This effectiveness extends to evaluations using ODE samplers, where C 2FG also boosts model performance. Collectively, these results demonstrate the effectiveness of C 2FG and its robustness across different samplers. 
+
+Results on other models and datasets. To further validate the generality of C 2FG, we further extend our evaluation to text-to-image generation in Table 2, another representative conditional generation task. On MS-COCO, we validate the effectiveness of C 2FG on both U-ViT [ 5] and Stable Diffu-sion 1.5 [ 38 ], as reported in Table 2. Our method consistently improves performance across architectures, lowering the FID of U-ViT from 5.37 to 5.28, and achieving a gain in CLIP-Score on Stable Diffusion. In addition, we test C 2FG on ImageNet-64 by applying it to another exceptionally strong baseline: the EDM2 [ 24 ]combined with autoguidance [ 23 ], where the model oper-ates directly in the pixel domain rather than a latent space. Notably, EDM2-S with autoguidance already achieves an ex-ceptionally strong FID of 1.04, representing a near-saturation performance for pixel-space diffusion models. Remarkably, 
+
+Table 2. Evaluation of C 2FG on MS-COCO (U-ViT) in latent space and ImageNet-64 (EDM2) in pixel space. 
+
+Latent Space (MS-COCO) 
+
+Model FID ↓
+
+U-ViT( ω = 2 ) 5.37 
+
+U-ViT+Ours (ω0 = 2 , λ = 0 .2) 5.28 
+
+Model CLIP ↑
+
+SD15( ω = 5 ) 31.8 
+
+SD15+Ours (ω0 = 5 , λ = 0 .2) 31.9 Pixel Space (ImageNet-64) 
+
+Model FID ↓
+
+EDM2-S(no autoguidance) 1.58 EDM2-S-autog( ω = 1 .7) 1.04 
+
+EDM2-S-autog+Ours (ω0 = 1 .7, λ = 0 .05 ) 1.03 DiT (ODE -250) +E -CFG SiT (ODE -250) SiT (SDE -50) +E -CFG +E -CFG Figure 4. Qualitative Comparison. Qualitative comparison on Class-Conditional ImageNet datasets with different architectures and samplers. The sampler used and the number of inference steps are indicated in parentheses. Table 3. Ablation Comparison. Comparison of different evaluation metrics on Class-Conditional ImageNet datasets with different architectures and fewer timesteps.                                                    
+
+> ImageNet( 256 ×256 ) Model 50 inference timesteps FID ↓sFID ↓Prec ↑Rec ↑
+> SiT-XL/2 (REPA)( ω= 1 .8, SDE) 3.36 4.5 0.86 0.54
+> SiT-XL/2 (REPA) + Ours (ω0= 1 .7, λ = 0 .15 , SDE) 3.20 4.6 0.86 0.54 SiT-XL/2 (REPA)( ω= 1 .8, ODE) 3.46 4.5 0.86 0.54
+> SiT-XL/2 (REPA)+Ours (ω0= 1 .7, λ = 0 .15 , ODE) 3.25 4.4 0.86 0.55 Model 20 inference timesteps
+> SiT-XL/2 (REPA)( ω= 1 .8, SDE) 4.38 11.8 0.79 0.53
+> SiT-XL/2 (REPA) + Ours (ω0= 1 .7, λ = 0 .15 , SDE) 4.30 12.1 0.79 0.54
+> SiT-XL/2 (REPA)( ω= 1 .8, ODE) 3.29 4.6 0.85 0.54
+> SiT-XL/2 (REPA)+Ours (ω0= 1 .7, λ = 0 .15 , ODE) 3.10 4.5 0.85 0.54
+
+our C 2FG further reduces this number to 1.03. These results highlight that C 2FG serves as a plug-and-play design. More results and visualized analyses are provided in Appendix E. 
+
+4.3. More Analysis 
+
+Robustness of the Sampler. As shown in Table 3, integrat-ing C 2FG with SiT-XL/2 (REPA) yields consistent perfor-mance gains across various timesteps and sampling schemes. At 50 inference steps, the FID score improves from 3.36 to 3.20 for SDE sampling and from 3.46 to 3.25 for ODE sam-pling. These improvements become even more pronounced at 20 steps, particularly with the ODE sampler. This indicates that C 2FG is robust to the samplers. 
+
+Qualitative Comparison. Figure 4 presents a qualitative comparison. The examples highlighted in the red box show that C 2FG significantly enhances generation quality. Specifi-cally, samples generated by C 2FG can effectively mitigate issues such as distortion and blurred texture in generated im-ages. Moreover, this improvement remains consistent across various samplers and sampling steps, demonstrating the ef-fectiveness and generalizability of C 2FG. 
+
+## 5. Conclusion 
+
+In this work, we theoretically analyze Classifier-Free Guid-ance by bounding the score discrepancy, revealing the limitations of fixed-weight strategies and motivating time-dependent scaling. Based on this, we propose C 2FG, a training-free method that adapts guidance strength via an ex-ponential control function. C 2FG consistently improves con-trollability and achieves state-of-the-art performance across diverse diffusion frameworks, tasks, and inference strate-gies. Our framework enables principled guidance design and may inspire theoretically grounded methods for conditional diffusion models. Acknowledgment. This work was supported by the Na-tional Natural Science Foundation of China (NSFC) under Grant U24A20220, by the Shanghai Municipal Commission of Science and Technology under Grant 22DZ2229005, and by the Shanghai Municipal Commission of Economy and Informatization under Grant 2024-GZL-RGZN-01008. 
+
+## References 
+
+[1] Junyeong Ahn. FD-DINOv2: FD Score via DINOv2. https: //github.com/justin4ai/FD-DINOv2 , 2024. Ver-sion 0.1.0. 28 [2] Brian D.O. Anderson. Reverse-time diffusion equation mod-els. Stochastic Processes and their Applications , 12(3):313– 326, 1982. 2 [3] Dominique Bakry and Michel Émery. Diffusions hypercon-tractives. In Séminaire de Probabilités XIX 1983/84: Proceed-ings , pages 177–206. Springer, 2006. 14, 19 [4] Yogesh Balaji, Seungjun Nah, Xun Huang, Arash Vahdat, Jiaming Song, Qinsheng Zhang, Karsten Kreis, Miika Ait-tala, Timo Aila, Samuli Laine, et al. ediff-i: Text-to-image diffusion models with an ensemble of expert denoisers. arXiv preprint arXiv:2211.01324 , 2022. 1 [5] Fan Bao, Shen Nie, Kaiwen Xue, Yue Cao, Chongxuan Li, Hang Su, and Jun Zhu. All are worth words: A vit backbone for diffusion models. In CVPR , 2023. 2, 6, 7 [6] Arwen Bradley and Preetum Nakkiran. Classifier-free guid-ance is a predictor-corrector. Transactions on Machine Learn-ing Research , 2025. 3, 12 [7] Mathilde Caron, Hugo Touvron, Ishan Misra, Hervé Jégou, Julien Mairal, Piotr Bojanowski, and Armand Joulin. Emerg-ing properties in self-supervised vision transformers. In Pro-ceedings of the International Conference on Computer Vision (ICCV) , 2021. 6 [8] Ao Chen, Lihe Ding, and Tianfan Xue. Diffier: Optimizing diffusion models with iterative error reduction, 2025. 11 [9] Chubin Chen, Jiashu Zhu, Xiaokun Feng, Nisha Huang, Meiqi Wu, Fangyuan Mao, Jiahong Wu, Xiangxiang Chu, and Xiu Li. S 2-guidance: Stochastic self guidance for training-free enhancement of diffusion models, 2025. 3, 12 [10] Hyungjin Chung, Jeongsol Kim, Geon Yeong Park, Hyelin Nam, and Jong Chul Ye. CFG++: Manifold-constrained clas-sifier free guidance for diffusion models. In The Thirteenth International Conference on Learning Representations , 2025. 1, 11, 29 [11] Danilo de Oliveira, Julius Richter, Tal Peer, and Timo Gerk-mann. Lipdiffuser: Lip-to-speech generation with conditional diffusion models. arXiv preprint arXiv:2505.11391 , 2025. 1 [12] Jia Deng, Wei Dong, Richard Socher, Li-Jia Li, Kai Li, and Li Fei-Fei. Imagenet: A large-scale hierarchical image database. In 2009 IEEE Conference on Computer Vision and Pattern Recognition , pages 248–255, 2009. 6 [13] Prafulla Dhariwal and Alex Nichol. Diffusion models beat gans on image synthesis. ArXiv , abs/2105.05233, 2021. 1, 2, 11 [14] M. D. Donsker and S. R. S. Varadhan. Asymptotic evaluation of certain markov process expectations for large time, i. Com-munications on Pure and Applied Mathematics , 28(1):1–47, 1975. 22 [15] Patrick Esser, Sumith Kulal, Andreas Blattmann, Rahim En-tezari, Jonas Müller, Harry Saini, Yam Levi, Dominik Lorenz, Axel Sauer, Frederic Boesel, Dustin Podell, Tim Dockhorn, Zion English, Kyle Lacey, Alex Goodwin, Yannik Marek, and Robin Rombach. Scaling rectified flow transformers for high-resolution image synthesis, 2024. 29 [16] L.C. Evans. Partial Differential Equations . American Mathe-matical Society, 1998. 14 [17] Crispin W Gardiner. Handbook of stochastic methods for physics, chemistry and the natural sciences. Springer series in synergetics , 1985. 2 [18] Kaiming He, Xinlei Chen, Saining Xie, Yanghao Li, Piotr Dollár, and Ross Girshick. Masked autoencoders are scalable vision learners. arXiv:2111.06377 , 2021. 6 [19] Martin Heusel, Hubert Ramsauer, Thomas Unterthiner, Bern-hard Nessler, and Sepp Hochreiter. Gans trained by a two time-scale update rule converge to a local nash equilibrium. 
+
+Advances in neural information processing systems , 30, 2017. 6[20] Jonathan Ho. Classifier-free diffusion guidance. ArXiv ,abs/2207.12598, 2022. 1, 3, 11 [21] Jonathan Ho, Ajay Jain, and P. Abbeel. Denoising diffusion probabilistic models. ArXiv , abs/2006.11239, 2020. 2 [22] Cheng Jin, Qitan Shi, and Yuantao Gu. Stage-wise dynamics of classifier-free guidance in diffusion models, 2025. 3, 12 [23] Tero Karras, Miika Aittala, Tuomas Kynkäänniemi, Jaakko Lehtinen, Timo Aila, and Samuli Laine. Guiding a diffusion model with a bad version of itself. In Proc. NeurIPS , 2024. 2, 7, 28 [24] Tero Karras, Miika Aittala, Jaakko Lehtinen, Janne Hellsten, Timo Aila, and Samuli Laine. Analyzing and improving the training dynamics of diffusion models. In Proc. CVPR , 2024. 2, 6, 7, 28 [25] Tuomas Kynkäänniemi, Tero Karras, Samuli Laine, Jaakko Lehtinen, and Timo Aila. Improved precision and recall metric for assessing generative models. Advances in neural information processing systems , 32, 2019. 6 [26] Tuomas Kynkäänniemi, Miika Aittala, Tero Karras, Samuli Laine, Timo Aila, and Jaakko Lehtinen. Applying guidance in a limited interval improves sample and distribution quality in diffusion models. Advances in Neural Information Processing Systems , 37:122458–122483, 2024. 1, 2, 3, 5, 6, 11, 12 [27] Black Forest Labs, Stephen Batifol, Andreas Blattmann, Fred-eric Boesel, Saksham Consul, Cyril Diagne, Tim Dockhorn, Jack English, Zion English, Patrick Esser, Sumith Kulal, Kyle Lacey, Yam Levi, Cheng Li, Dominik Lorenz, Jonas Müller, Dustin Podell, Robin Rombach, Harry Saini, Axel Sauer, and Luke Smith. Flux.1 kontext: Flow matching for in-context image generation and editing in latent space, 2025. 29 [28] Shanchuan Lin, Bingchen Liu, Jiashi Li, and Xiao Yang. Com-mon diffusion noise schedules and sample steps are flawed. In Proceedings of the IEEE/CVF winter conference on appli-cations of computer vision , pages 5404–5411, 2024. 11 [29] Tsung-Yi Lin, Michael Maire, Serge Belongie, James Hays, Pietro Perona, Deva Ramanan, Piotr Dollár, and C Lawrence Zitnick. Microsoft coco: Common objects in context. In 
+
+European conference on computer vision , pages 740–755. Springer, 2014. 6 [30] Yaron Lipman, Ricky T. Q. Chen, Heli Ben-Hamu, Maxi-milian Nickel, and Matt Le. Flow matching for generative modeling. ArXiv , abs/2210.02747, 2022. 2 [31] Qiang Liu. Rectified flow: A marginal preserving approach to optimal transport. ArXiv , abs/2209.14577, 2022. [32] Xingchao Liu, Chengyue Gong, and Qiang Liu. Flow straight and fast: Learning to generate and transfer data with rectified flow. ArXiv , abs/2209.03003, 2022. 2, 3 [33] Nanye Ma, Mark Goldstein, Michael S Albergo, Nicholas M Boffi, Eric Vanden-Eijnden, and Saining Xie. Sit: Exploring flow and diffusion-based generative models with scalable in-terpolant transformers. In European Conference on Computer Vision , pages 23–40. Springer, 2024. 2, 6 [34] Dawid Malarz, Artur Kasymov, Maciej Zi˛ eba, Jacek Tabor, and Przemysław Spurek. Classifier-free guidance with adap-tive scaling. arXiv preprint arXiv:2502.10574 , 2025. 1, 6, 11, 27, 29 [35] William Peebles and Saining Xie. Scalable diffusion models with transformers. arXiv preprint arXiv:2212.09748 , 2022. 2, 6, 26 [36] Mateusz Poleski, Jacek Tabor, and Przemysław Spurek. Ge-oguide: Geometric guidance of diffusion models. In 2025 IEEE/CVF Winter Conference on Applications of Computer Vision (WACV) , pages 297–305. IEEE, 2025. 11 [37] Aditya Ramesh, Prafulla Dhariwal, Alex Nichol, Casey Chu, and Mark Chen. Hierarchical text-conditional image genera-tion with clip latents. arXiv preprint arXiv:2204.06125 , 1(2): 3, 2022. 1 [38] Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Björn Ommer. High-resolution image synthesis with latent diffusion models. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 10684–10695, 2022. 1, 2, 6, 7, 29 [39] Seyedmorteza Sadat, Manuel Kansy, Otmar Hilliges, and Romann M. Weber. No training, no problem: Rethinking classifier-free guidance for diffusion models, 2025. 3, 12 [40] Seyedmorteza Sadat, Tobias Vontobel, Farnood Salehi, and Romann M. Weber. Guidance in the frequency domain enables high-fidelity sampling at low cfg scales. ArXiv ,abs/2506.19713, 2025. 1, 3, 11, 29 [41] Tim Salimans, Ian Goodfellow, Wojciech Zaremba, Vicki Cheung, Alec Radford, and Xi Chen. Improved techniques for training gans. Advances in neural information processing systems , 29, 2016. 6 [42] Dazhong Shen, Guanglu Song, Zeyue Xue, Fu-Yun Wang, and Yu Liu. Rethinking the spatial inconsistency in classifier-free diffusion guidance. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,pages 9370–9379, 2024. 11 [43] Yirong Shen, Lu GAN, and Cong Ling. Information theoretic learning for diffusion models with warm start. In The Thirty-ninth Annual Conference on Neural Information Processing Systems , 2025. 1 [44] Jascha Narain Sohl-Dickstein, Eric A. Weiss, Niru Ma-heswaranathan, and Surya Ganguli. Deep unsupervised learning using nonequilibrium thermodynamics. ArXiv ,abs/1503.03585, 2015. 1, 2 [45] Jiaming Song, Chenlin Meng, and Stefano Ermon. Denoising diffusion implicit models. ArXiv , abs/2010.02502, 2020. 2 [46] Yang Song and Stefano Ermon. Generative modeling by estimating gradients of the data distribution. In Neural Infor-mation Processing Systems , 2019. [47] Yang Song, Jascha Narain Sohl-Dickstein, Diederik P. Kingma, Abhishek Kumar, Stefano Ermon, and Ben Poole. Score-based generative modeling through stochastic differ-ential equations. ArXiv , abs/2011.13456, 2020. 1, 2, 3, 4, 6[48] Philipp Vaeth, Alexander M Fruehwald, Benjamin Paassen, and Magda Gregorova. Gradcheck: Analyzing classifier guid-ance gradients for conditional diffusion sampling. arXiv preprint arXiv:2406.17399 , 2024. 1 [49] Fu-Yun Wang, Ling Yang, Zhaoyang Huang, Mengdi Wang, and Hongsheng Li. Rectified diffusion: Straightness is not your need in rectified flow. arXiv preprint arXiv:2410.07303 ,2024. 6 [50] Fu-Yun Wang, Yunhao Shui, Jingtan Piao, Keqiang Sun, and Hongsheng Li. Diffusion-npo: Negative preference optimiza-tion for better preference aligned generation of diffusion mod-els. arXiv preprint arXiv:2505.11245 , 2025. 11 [51] Xi Wang, Nicolas Dufour, Nefeli Andreou, Marie-Paule Cani, Victoria Fernández Abrevaya, David Picard, and Vicky Kalo-geiton. Analysis of classifier-free guidance weight schedulers. 
+
+arXiv preprint arXiv:2404.13040 , 2024. 3, 11, 26 [52] Sangmin Woo, Byeongjun Park, Hyojun Go, Jin-Young Kim, and Changick Kim. Harmonyview: Harmonizing consis-tency and diversity in one-image-to-3d. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 10574–10584, 2024. 1 [53] Haotian Ye, Haowei Lin, Jiaqi Han, Minkai Xu, Sheng Liu, Yitao Liang, Jianzhu Ma, James Zou, and Stefano Ermon. Tfg: Unified training-free guidance for diffusion models. 2024. 1, 12 [54] Sihyun Yu, Sangkyung Kwak, Huiwon Jang, Jongheon Jeong, Jonathan Huang, Jinwoo Shin, and Saining Xie. Representa-tion alignment for generation: Training diffusion transformers is easier than you think. In International Conference on Learning Representations , 2025. 6, 29 [55] Tianyi Zheng, Jiayang Zou, Peng-Tao Jiang, Hao Zhang, Jin-wei Chen, Jia Wang, and Bo Li. Bidirectional beta-tuned diffusion model. IEEE Transactions on Pattern Analysis and Machine Intelligence , 48(1):359–373, 2026. 1 [56] Shangwen Zhu, Qianyu Peng, Yuting Hu, Zhantao Yang, Han Zhang, Zhao Pu, Ruili Feng, and Fan Cheng. Raag: Ratio aware adaptive guidance, 2025. 1, 3, 12, 27 Appendix Overview 
+
+This appendix provides additional details and supplementary results to support the main paper. In Section A, we review related literature to place our work in a broader context. Section B presents the detailed proofs of the theoretical results introduced in the main text. In Section C, we further explore the connection between our MSE bound and Harnack-type inequalities, highlighting their theoretical implications. In Section D, we show the difference between standard CFG and our method. Finally, Section E reports additional experimental results and visualizations. 
+
+## A. Related Work 
+
+A scaling factor for conditional diffusion models was first introduced in CG [ 13 ], which controls the trade-off between fidelity and diversity: 
+
+ˆμ = μθ, uncond + γ Σθ (xt, t )∇ log pt(y | xt), (15) where μθ, uncond denotes the predicted mean of the unconditional denoiser, Σθ (xt, t ) is the predicted covariance (or noise scale) at step t, and ∇ log pt(y | xt) represents the conditional score function with respect to the label y. The hyperparameter γ is the classifier-free guidance scale: γ > 1 strengthens conditioning at the cost of diversity, while γ < 1 weakens conditioning but increases sample diversity. This scaling modifies the reverse sampling distribution as: 
+
+˜p(xt−1 | xt, y ) = p(xt−1 | xt) pγ (y | xt−1)
+
+Z(xt, y ) , Z(xt, y ) = X
+
+> xt−1
+
+p(xt−1 | xt) pγ (y | xt−1). (16) Then CFG [ 20 ] eliminates the need for an external classifier by jointly training the network for both conditional and unconditional predictions: 
+
+ϵθ (xt, t, y ) = μθ, uncond + Σ θ (xt, t )∇ log pt(y | xt), ϵθ (xt, t, ϕ ) = μθ, uncond . (17) where ϵθ is the neural network’s output for noise prediction. Substituting these into equation 15 and setting γ = ω yields the CFG formulation: 
+
+ˆϵ(xt, t, y ) = ω [ϵθ (xt, t, y ) − ϵθ (xt, t, ϕ )] + ϵθ (xt, t, ∅), (18) We see that CFG and CG are using the same scaling factor. And for now CFG with this scaling technique that has been widely adopted in mainstream diffusion models, typically with a fixed CFG-scale. However, recent studies have pointed out that using a constant guidance weight is not necessarily optimal and may lead to limitations in balancing fidelity and diversity. Specifically, several works have proposed various forms of dynamic or time-dependent scaling strategies to improve generation quality. [ 40 ] proposes Frequency-Decoupled Guidance (FDG), an improved version of classifier-free guidance that operates in the frequency domain, which chooses a low cfg-scale for low frequencies and a high cfg-scale for high frequencies. [ 26 ] observe that applying a constant classifier-free guidance (CFG) weight across all noise levels is suboptimal: guidance harms diversity in the high-noise regime, has little effect in the low-noise regime, and is only beneficial in the middle. They propose restricting guidance to a limited interval of noise levels, which both improves sample fidelity and diversity while reducing computational cost. [ 36 ] propose a geometric guidance method for CG to address the vanishing gradient issue in late denoising stages of probabilistic approaches. Its core innovation enforces fixed-length gradient updates ( ∥∇ p∥-normalized) proportional to data dimension ( √D/T ), maintaining consistent guidance strength throughout sampling. [ 28 ] rescale classifier-free guidance to prevent over-exposure. [ 34 ] propose β-adaptive scaling to address the trade-off between image quality and prompt alignment in standard CFG. It dynamically adjusts guidance strength via a time-dependent β-distribution β(t), enforcing weak guidance at initial/final steps and strong guidance during critical mid-denoising phases. [ 51 ] investigate different time-dependent schedulers for the guidance weight. Their analysis and experiments confirm that dynamic weighting strategies outperform fixed weights, with high weights being beneficial in the mid-noise regime but detrimental at the extremes. [ 10 ] and [ 8] improve diffusion model performance by constraining CFG to the data manifold, enabling higher-quality generation, better inversion, and smoother interpolation at lower guidance scales. [ 42 ] mitigate spatial inconsistency in classifier-free guidance by introducing Semantic-aware CFG, which segments latent images into semantic regions via attention maps and adaptively assigns region-specific guidance scales, leading to more balanced semantics and higher-quality generations. [ 50 ] propose Diffusion-NPO, which incorporates non-parametric optimization into diffusion sampling via nearest-neighbor matching, improving sample diversity and quality without retraining and working across different models and datasets. [ 6] investigate PCG, a theoretical foundations of CFG, and reveal the differrence and relationship between DDPM and DDIM, embedding CFG in a broader design space of principled sampling methods. [ 53 ] introduce TFG, a framework which encompasses existing methods as special cases. In their framework, they defined a hyper-parameter space for their algorithm and analyze the underlying theoretical motivation of each hyper-parameter. As for recent work, RAAG [ 56 ] recompute ω at every reverse step via a lightweight exponential map of the current RATIO: 
+
+ω(ρ) = 1 + ( ωmax − 1) exp( −αρ ), which is similar to the form of our C 2FG. However, RAAG is primarily designed for text-to-image generation under strong conditioning, whereas our analysis highlights intrinsic properties of diffusion dynamics, making the applicability of our framework broader and not restricted to text-to-image tasks. Besides, their exponential design is motivated by empirical intuition, while ours is supported by formal theorems, providing a stronger theoretical grounding. 
+
+Stage-wise Dynamic of CFG [ 22 ] analyze CFG under multimodal conditionals and show that the sampling process can be seen as three successive stages: early direction drift , mid mode separation and late constration . And then propose a stage-wise guidance schedule. However, their dynamic guidance schedule can actually be seen as a piece-wise CFG guidance ω(t) just like [ 26 ]. Moreover, their method seems relies on task-specific properties such as large guidance scales ω(t), suffering from a lack of generality. S2-Guidance [9] propose a novel method in which network parameters are stochastically masked to form a latent subnetwork during each forward pass, guiding the model away from potential low-quality predictions and toward higher-quality outputs. However, their approach also relies on task-specific settings, such as text-to-image and text-to-video generation. [ 39 ] introduce an extension of CFG called TSG , whose motivation is based on the structure of diffusion network. They compute the model outputs for the clean time-step embedding and a perturbed embedding and use their difference to guide the sampling. Importantly, the motivation behind TSG arises from the interaction between conditional and timestep embeddings within the network architecture, rather than from a theoretical analysis of the diffusion framework itself. While these approaches have shown promising improvements, they are still largely heuristic in nature and often lack rigorous theoretical justification, leaving the principles of adaptive weight design not fully understood. To address this gap, our work provides a theoretical foundation for adaptive guidance. By establishing a sequence of results (Theorems 1–4), we uncover structural properties of diffusion processes under different initial distributions. These insights naturally motivate the design of adaptive, theoretically grounded scaling functions. In this way, our framework offers a more robust and general basis for conditional generation. 
+
+## B. Proof of Theorems 
+
+In this section we give the proof of theorems: 
+
+B.1. Proof of Theorem 1 
+
+Proof of Theorem 1. For VP-SDE dxt = − 12 βtxtdt + pβtdwt, (19) we can represent xt with x0:
+
+xt = α(t)x0 + σ(t)ξt, (20) where α(t) = exp ( − 12
+
+R t 
+
+> 0
+
+βsds), σ (t) = α(t)
+
+qR t 
+
+> 0
+> βs
+> α2(s)
+
+ds, and ξt ∼ N (0 , I ).Hence we can get the p(xt, t |x0):
+
+p(x, t |x0) = 1(2 πσ 2(t)) n/ 2 exp 
+
+
+
+− || x − α(t)x0|| 2
+
+2σ2(t)
+
+
+
+, (21) by using Bayes formula, we can get theprobablity density function : 
+
+p(x, t ) = 
+
+Z
+
+> Rn
+
+1(2 πσ 2(t)) n/ 2 exp 
+
+
+
+− || x − α(t)x0|| 2
+
+2σ2(t)
+
+
+
+p(x0)dx0, (22) then we can get the score: 
+
+∇ log p(x, t ) = ∇p(xt, t )
+
+p(xt, t ) (23) 
+
+=
+
+R 
+
+> Rn
+> α(t)x0−xσ2(t)
+
+exp 
+
+
+
+− || x−α(t)x0|| 2
+
+> 2σ2(t)
+
+
+
+p(x0)dx0
+
+R 
+
+> Rn
+
+exp 
+
+
+
+− || x−α(t)x0|| 2
+
+> 2σ2(t)
+
+
+
+p(x0)dx0
+
+(24) 
+
+= 1
+
+σ2(t)
+
+
+
+α(t)E[x0|xt = x] − x
+
+
+
+. (25) Denote that p(x0|y) = ˜ p(x0), consider the MSE: 
+
+∥∇ log p(x, t ) − ∇ log ˜ p(x, t )∥ = α(t)
+
+σ2(t) ∥Ex0∼p[x0|xt = x] − Ex′ 
+
+> 0∼˜p
+
+[x′
+
+> 0
+
+|xt = x]∥, (26) then we try bounding f (t, x ) = ∥Ext∼pt [x0|xt = x] − Ex′  
+
+> t∼˜pt
+
+[x′
+
+> 0
+
+|x′ 
+
+> t
+
+= x]∥ term. Assume that f (t, x ) is a smooth function on Rn × [0 , +∞), it’s easy to find that 
+
+f (0 , x ) = 0 , f (+ ∞, x ) = ∥Ex0∼p[x0] − Ex′ 
+
+> 0∼˜p
+
+[x′
+
+> 0
+
+]∥,
+
+hence f (t, x ) is a bounded function on t, and we denote its bound by C(x).Note that we cannot say that when t → 0, 
+
+> α(t)
+> σ2(t)
+
+∥Ex0∼p[x0|xt = x] − Ex′ 
+
+> 0∼˜p
+
+[x′
+
+> 0
+
+|xt = x]∥ → 0, because σ(t) → 0, too. In practical engineering applications of diffusion models, the sample space is often assumed to be compact, reflecting the fact that physical quantities are naturally limited and numerical simulations are performed on finite domains. So C(x) can be bounded by C without loss of convince.Assume that we talk about x0 on any bounded domain K with sup z∈K |z| ≤ R. Let total variation distance be TV (μ, ν ) = 12
+
+R |μ(dx) − ν(dx)|
+
+f (t, x ) = Ext∼pt
+
+X0 | xt = x − Ext∼ ˜pt
+
+X0 | xt = x
+
+=
+
+Z
+
+x0
+
+ p(x0 | xt = x) − ˜p(x0 | xt = x) dx0
+
+≤ 2M · TV  p(· | xt = x), ˜p(· | xt = x)
+
+≤ 2R = C. 
+
+Then we can rewrite equation 26 
+
+∥∇ log p(x, t ) − ∇ log ˜ p(x, t )∥ ≤ 2α(t)
+
+σ2(t) R. (27) 
+
+B.2. Proof of Theorem 2 
+
+Proof of Theorem 2. For VE-SDE dxt =
+
+r dσ2
+
+> t
+
+dt dwt. (28) we can represent xt with x0:
+
+xt = x0 + σ(t)ξt, (29) where ξt ∼ N (0 , I ).Like the proof of Theorem 1, we have 
+
+∥∇ log p(x, t ) − ∇ log ˜ p(x, t )∥ ≤ 1
+
+σ2(t) C. (30) B.3. Proof of Theorem 3 
+
+First we give Lemma 1 and Lemma 2 without proof as below: 
+
+Lemma 1 (Cut-off Function [ 16 ]) . There exists a cut-off function η ∈ C∞ 
+
+> c
+
+(BR) with 0 ≤ η ≤ 1, such that η ≡ 1 on B R
+
+> 2
+
+, and for any x ∈ Rn,
+
+|∇ η|(x) ≤ CR η 12 , ∆η(x) ≥ − CR2 (31) 
+
+where C > 0 depends only on the dimension n.
+
+Lemma 2 (Bochner formula and Bakry–Émery Inequality of Heat equation with Witten Laplacian [ 3]) . Define linear operator 
+
+L = ∆ − ∇ ϕ · ∇ , and ∇2ϕ is positive semi-definite, then for any g ∈ C3, we have 
+
+12 L|∇ g|2 = |∇ 2g|2 + ⟨∇ g, ∇Lg⟩ + ∇gT ∇2ϕ∇g, (32) 
+
+and furthermore 
+
+12 L|∇ g|2 ≥ |Lg|2
+
+m + ⟨∇ g, ∇Lg⟩ + ∇gT ∇2ϕ∇g (33) 
+
+where |∇ 2g|2 = Σ ni,j =1 (∂ij g)2 and m ≥ n denotes the virtual dimension .
+
+Then we first prove such lemma: 
+
+Lemma 3 (Cut-off Function for Heat Equation with Witten Laplacian) . There exists a cut-off function η ∈ C∞ 
+
+> c
+
+(BR) with 
+
+0 ≤ η ≤ 1, such that η ≡ 1 on B R
+
+> 2
+
+, and for any x ∈ Rn, ϕ = k(|x|)x, k ≥ 0 on BR,
+
+|∇ η|(x) ≤ CR η 12 , ∆η(x) ≥ − CR2 , ∇ϕ · ∇ η(x) ≤ 0, (34) 
+
+C > 0 depends only on the dimension n.Proof. Step 1. Construction of the cutoff. We construct a radial cutoff function by setting 
+
+η(x) = ψ
+
+ |x|
+
+> R
+
+
+
+,
+
+where ψ ∈ C∞ 
+
+> c
+
+([0 , ∞)) satisfies: 
+
+ψ ≡ 1 on [0 , 1/2] , ψ ≡ 0 on [1 , ∞), ψ′ ≤ 0,
+
+together with the standard cutoff estimates 
+
+|ψ′| ≤ Cpψ, |ψ′′ | ≤ C. 
+
+Step 2. Gradient estimate. Writing r = |x|, we compute 
+
+∇η(x) = 1
+
+R ψ′  rR
+
+ xr .
+
+Hence 
+
+|∇ η(x)| ≤ 1
+
+R ψ′  rR
+
+ ≤ CR
+
+pη(x).
+
+Step 3. Laplacian estimate. Using the radial Laplacian formula, we have 
+
+∆η(x) = 1
+
+R2 ψ′′   rR
+
+ + n − 1
+
+rR ψ′  rR
+
+ .The first term is bounded by C/R 2 since |ψ′′ | ≤ C. For the second term, note that ψ′ = 0 when r ≤ R/ 2, and for r ∈ [R/ 2, R ],we have 
+
+n − 1
+
+rR ψ′  rR
+
+ ≤ CR2 .
+
+Therefore 
+
+|∆η(x)| ≤ CR2 , ∆η(x) ≥ − CR2 .
+
+Step 4. Witten Laplacian estimate. Finally, Lη(x) = ∆ η(x) − kx · ∇ η(x).
+
+Since 
+
+x · ∇ η(x) = rR ψ′  rR
+
+ ,
+
+and ψ′ ≤ 0, the term k(x)x · ∇ η(x) ≤ 0.Based on this we give proof of Theorem 5: 
+
+Theorem 5 (Gradient Estimate of Heat Equation with Witten Laplacian) . Let u be a positive solution to the heat equation 
+
+∂tu = (∆ − ∇ ϕ · ∇ )u, (35) 
+
+on (0 , T ] × BR. Assume that ∇2ϕ is positive semi-definite, ϕ = k(|x|)x, k ≥ 0 on BR, then for any (t, x ) ∈ (0 , T ] × B R
+
+> 2
+
+, the following inequality holds: 
+
+|∇ u|2
+
+u2 − α ∂tuu ≤ mα 2
+
+2t + Cα 2
+
+R2
+
+
+
+1 + α2
+
+α − 1
+
+
+
+, (36) 
+
+where m ≥ n denotes the virtual dimension, C(m, n ) is a constant depends on (m, n ).Proof. We define linear operator L = ∆ − ∇ ϕ · ∇ , and function f = log u, F = t(|∇ f |2 − α∂ tf ), then applying it into equation 35, we have 
+
+∂tf = Lf + |∇ f |2, (37) Lf = −|∇ f |2 + ∂tf = − Fαt − α − 1
+
+α |∇ f |2, (38) 
+
+∆f = Lf + ⟨∇ ϕ, ∇f ⟩ = − Fαt +
+
+
+
+∇ϕ − α − 1
+
+α ∇f, ∇f
+
+
+
+. (39) Based on Lemma 2 and equation 37,equation 38, equation 39, we can get LF = t((∆ − ∇ ϕ · ∇ )|∇ f |2 − α∂ t((∆ − ∇ ϕ · ∇ )f )) = t  2|∇ 2f |2 + 2 ⟨∇ f, ∇Lf ⟩ − α∂ t(Lf ) + 2 ∇f T ∇2ϕ∇f 
+
+≥ t
+
+ 2
+
+m |Lf |2 + 2 ⟨∇ f, ∇Lf ⟩ − α∂ t(Lf ) + 2 ∇f T ∇2ϕ∇f
+
+
+
+≥ t 2| − Fαt + − α−1 
+
+> α
+
+∇f, ∇f |2
+
+m
+
++ t
+
+
+
+2
+
+
+
+∇f, ∇
+
+
+
+− Fαt − α − 1
+
+α |∇ f |2
+
+ 
+
+− α∂ t(− Fαt − α − 1
+
+α |∇ f |2)
+
+
+
+=
+
+ 2
+
+mα 2
+
+ F 2
+
+t + 2( α − 1) F |∇ f |2 + ( α − 1) 2t|∇ f |4
+
+ 
+
+− 2
+
+α ⟨∇ f, ∇F ⟩− 2( α − 1) 
+
+t α ∇f, ∇|∇ f |2 − Ft + ∂tF + 2( α − 1) t ⟨∇ f, ∂ t∇f ⟩≥
+
+ 2
+
+mα 2
+
+ F 2
+
+t + 2( α − 1) F |∇ f |2
+
+ 
+
+− 2
+
+α ⟨∇ f, ∇F ⟩ − Ft + ∂tF
+
++ 2( α − 1) 
+
+t α ∇f, ∇(−|∇ f |2 + α∂ t∇f )
+
+=
+
+ 2
+
+mα 2
+
+ F 2
+
+t + 2( α − 1) F |∇ f |2
+
+ 
+
+− 2 ⟨∇ f, ∇F ⟩ − Ft + ∂tF, 
+
+hence we have 
+
+(∂t − L)F ≤ − 
+
+ 2
+
+mα 2
+
+ F 2
+
+t + 2( α − 1) F |∇ f |2
+
+ 
+
++ Ft + 2 ⟨∇ f, ∇F ⟩ . (40) Let us consider the cut-off function η which satisfies ⟨∇ ϕ, ∇η⟩ ≥ 0(Lemma 3). We use the Bochner technique to estimate its upper bound, ∀T ′ ∈ (0 , T ], suppose ηF attains its maximum over (0 , T ′] × ¯BR at (t0, x 0). Without loss of generality, assume 
+
+(ηF )( t0, x 0) > 0; otherwise, the conclusion of the theorem holds trivially. Consequently, we have η(x0), F (t0, x 0) > 0,which implies x0 /∈ ∂B R, t 0 > 0. Thus, (t0, x 0) lies in the interior of (BR)T . Then we consider 
+
+(∂t − L)( ηF ) = −F · Lη − 2 ⟨∇ η, ∇F ⟩ + η(∂t − L)F
+
+= −F · ∆η + F · ⟨∇ ϕ, ∇η⟩ − 2 ⟨∇ η, ∇F ⟩ + η(∂t − L)F
+
+≤ CR2 F − 2 ⟨∇ η, ∇F ⟩ + F · ⟨∇ ϕ, ∇η⟩
+
++ η
+
+
+
+−
+
+ 2
+
+mα 2
+
+ F 2
+
+t + 2( α − 1) F |∇ f |2
+
+ 
+
++ Ft + 2 ⟨∇ f, ∇F ⟩
+
+
+
+.
+
+Applying ∇F = ∇(ηF ) 
+
+> η
+
+− ∇ηη F , we have 
+
+(∂t − L)( ηF )( t0, x 0) ≤ CR2 F − 2
+
+η ⟨∇ η, ∇(ηF )) ⟩ + 2 |∇ η|2
+
+η F + F · ⟨∇ ϕ, ∇η⟩
+
++ η
+
+
+
+−
+
+ 2
+
+mα 2
+
+ F 2
+
+t0
+
++ 2( α − 1) F |∇ f |2
+
+ 
+
++ Ft0
+
++ 2 ⟨∇ f, ∇F ⟩
+
+
+
+Using the properties of maximum 
+
+∇(ηF )( t0, x 0) = 0 , ∆( ηF )( t0, x 0) ≤ 0, ∂ t(ηF )( t0, x 0) = 0 ,and applying Lemma 1 so that 
+
+0 ≤ C + 2 C2
+
+R2 F − 2
+
+mα 2
+
+ηF 2
+
+t0
+
+− 4( α − 1) 
+
+mα 2 ηF |∇ f |2 + ηF t0
+
+(41) 
+
++ 2 η ⟨∇ f, ∇F ⟩ + F · ⟨∇ ϕ, ∇η⟩ (42) 
+
+= C + 2 C2
+
+R2 F − 2
+
+mα 2
+
+ηF 2
+
+t0
+
+− 4( α − 1) 
+
+mα 2 ηF |∇ f |2 + ηF t0
+
+(43) 
+
++ 2 ⟨∇ f, ∇(ηF )) ⟩ − 2F ⟨∇ f, ∇η⟩ + F · ⟨∇ ϕ, ∇η⟩ (44) 
+
+= C + 2 C2
+
+R2 F − 2
+
+mα 2
+
+ηF 2
+
+t0
+
+− 4( α − 1) 
+
+mα 2 ηF |∇ f |2 + ηF t0
+
+(45) 
+
+− 2F ⟨∇ f, ∇η⟩ + F · ⟨∇ ϕ, ∇η⟩ , (46) then let us consider two of the terms 4( α−1)  
+
+> mα 2
+
+ηF |∇ f |2 + 2 F ⟨∇ f, ∇η⟩,
+
+4( α − 1) 
+
+mα 2 ηF |∇ f |2 + 2 F ⟨∇ f, ∇η⟩ ≥ 4( α − 1) 
+
+mα 2 ηF |∇ f |2 − 2F |∇ f ||∇ η|≥ 4( α − 1) 
+
+mα 2 ηF |∇ f |2
+
+− F ( 4( α − 1) R2
+
+mα 2C2 |∇ f |2|∇ η|2 + mα 2C2
+
+4( α − 1) R2 )
+
+≥ − mα 2C2
+
+4( α − 1) R2 F
+
+then inequality 46 can be turn into 
+
+0 ≤
+
+ mα 2C2
+
+4( α − 1) R2 + C + 2 C2
+
+R2
+
+
+
+F − 2
+
+mα 2
+
+ηF 2
+
+t0
+
++ ηF t0
+
++ F · ⟨∇ ϕ, ∇η⟩ ,
+
+then we divide F and then get 
+
+ηF (t0, x 0) ≤ mα 2
+
+2 t0
+
+ mα 2C2
+
+4( α − 1) R2 + C + 2 C2
+
+R2 + ηt0
+
++ ⟨∇ ϕ, ∇η⟩
+
+
+
+≤ mα 2
+
+2 t0
+
+ mα 2C2
+
+4( α − 1) R2 + C + 2 C2
+
+R2 + 1
+
+t0
+
+
+
+≤ mα 2
+
+2 + mα 2
+
+2
+
+ mα 2C2
+
+4( α − 1) R2 + C + 2 C2
+
+R2
+
+
+
+t0
+
+≤ mα 2
+
+2 + C1α2
+
+R2
+
+ α2
+
+α − 1 + 1 
+
+
+
+T ′,
+
+(C1 = max {m2C2/8, C 2 + C/ 2}),
+
+On B R
+
+> 2
+
+, η = 1 , ∇η = 0 , so for all (t, x ) ∈ (0 , T ′] × B R
+
+> 2
+
+t(|∇ f |2 − α∂ tf )|t=T ′ = F (T ′, x ) = ηF (T ′, x ) ≤ ηF (t0, x 0)
+
+≤ mα 2
+
+2 + C1α2
+
+R2
+
+ α2
+
+α − 1 + 1 
+
+
+
+T ′,T ′ is arbitrary, so 
+
+(|∇ f |2 − α∂ tf ) ≤ mα 2
+
+2t + C1α2
+
+R2
+
+ α2
+
+α − 1 + 1 
+
+
+
+. (47) From Theorem 5 we can conclude Theorem 6 
+
+Theorem 6 (Harnack-type Inequality of Heat Equation with Witten Laplacian ) . Let u be a positive solution of the heat equation ∂tu = Lu in (0 , T ] × BR, where α > 1. For any x1, x 2 ∈ B R
+
+> 2
+
+and 0 < t 1 < t 2 ≤ T , the following inequality holds: 
+
+u(x1, t 1) ≤ u(x2, t 2)
+
+ t2
+
+t1
+
+ mα 
+
+> 2
+
+exp 
+
+ α2∥x1 − x2∥2
+
+4( t2 − t1) + Cα R2
+
+
+
+1 + α2
+
+α − 1
+
+
+
+(t2 − t1)
+
+
+
+, (48) 
+
+where C = C(m, n ).Proof. Let f = log u. Consider the line segment 
+
+L(s) = (1 − s)( t2, x 2) + s(t1, x 1).
+
+We have 
+
+log u(x1, t 1)
+
+u(x2, t 2) =
+
+Z 10
+
+dds f (L(s)) ds 
+
+=
+
+Z 10
+
+[∇f (L(s)) · (x1 − x2) + ∂tf (L(s))( t1 − t2)] ds. 
+
+Moreover, using the inequality 
+
+−∂tf ≤ − 1
+
+α |∇ f |2 + mα 
+
+2t +
+
+ Cα R2
+
+ α2
+
+α − 1 + 1 
+
+ 
+
+,
+
+we get 
+
+log u(x1, t 1)
+
+u(x2, t 2) ≤
+
+Z 10
+
+h
+
+|∇ f (L(s)) | | x1 − x2|
+
++
+
+
+
+− 1
+
+α |∇ f |2(L(s)) + mα 
+
+2[(1 − s)t2 + st 1]+ Cα R2
+
+ α2
+
+α − 1 + 1 
+
+ 
+
+(t2 − t1)
+
+i
+
+ds. 
+
+Using the inequality 
+
+|∇ f (L(s)) | | x1 − x2| − t2 − t1
+
+α |∇ f |2(L(s)) ≤ α d 2(x1, x 2)4( t2 − t1) ,
+
+we obtain 
+
+log u(x1, t 1)
+
+u(x2, t 2) ≤ α d 2(x1, x 2)4( t2 − t1) + mα 
+
+2 ln t2
+
+t1
+
++ Cα R2
+
+ α2
+
+α − 1 + 1 
+
+
+
+(t2 − t1).
+
+Finally, we can prove Theorem 3: 
+
+Proof of Theorem 3. The VP-SDE is given by dxt = − 12 βtxtdt + pβtdWt, (49) and its corresponding Fokker-Planck equation (FPE) is 
+
+∂p t(x)
+
+∂t = 12 βt (∇x · [xp t(x)] + ∆ xpt(x)) . (50) We can reparameterize t by letting ds = 12 βtdt . Then, 
+
+s(t) = 12
+
+Z t
+
+> 0
+
+βr dr, (51) ddt = 12 βt
+
+dds . (52) Thus, 
+
+∂p t(s)(x)
+
+∂s = ∂p t
+
+∂t 
+
+dt
+
+ds = ∂p t(x)
+
+∂t · 1 
+
+> 12
+
+βt
+
+= ∇x · [xp t(x)] + ∆ xpt(x). (53) For this new FPE ∂p t(s)(x)
+
+∂s = ∇x · [xp t(s)(x)] + ∆ xpt(s)(x), (54) the corresponding SDE is dxt(s) = −xt(s)ds + √2dWs. (55) Assume p(x, t ) is a positive solution to this FPE, and let u(x, t ) = p(x, t )e|x|2/2. Computing the right-hand side: 
+
+∇(xp ) = x∇p + np = ( nu + x∇u − | x|2u)e−| x|2/2, (56) 
+
+∆p = ∇ · [( ∇u − xu )e−x2/2] = [∆ u − nu − 2x∇u + |x|2u]e−| x|2/2, (57) 
+
+∇(xp ) + ∆ p = [∆ u − x∇u]e−| x|2/2. (58) Thus, the FPE for u is 
+
+∂u t(s)(x)
+
+∂s = ∆ u − x · ∇ u = ∆ u − ∇ ϕ · ∇ u, ϕ = |x|2
+
+2 , (59) which satisfies the equation in Theorem 6 , and we can easily figure out that k(|x|) = 1 > 0.Therefore, for any α > 1, x 1, x 2 ∈ M, 0 < s 1 < s 2 < +∞, and let R → ∞ , the following inequality holds: 
+
+u(x1, t (s1)) ≤ u(x2, t (s2)) 
+
+ s2
+
+s1
+
+ mα 
+
+> 2
+
+exp 
+
+ α2∥x1 − x2∥2
+
+4( s2 − s1)
+
+
+
+. (60) Rewriting it in terms of p, we obtain 
+
+p(x1, t (s1)) ≤ p(x2, t (s2)) 
+
+ s2
+
+s1
+
+ mα 
+
+> 2
+
+exp 
+
+ α2∥x1 − x2∥2
+
+4( s2 − s1) + ∥x2∥2 − ∥ x1∥2
+
+2
+
+
+
+. (61) 
+
+B.4. Proof of Theorem 4 
+
+First we give Lemma 4 without proof as below: 
+
+Lemma 4 (Bochner Formula and Bakry–Émery Inequality [3]) . For any g ∈ C3, we have 
+
+12 ∆|∇ g|2 = |∇ 2g|2 + ⟨∇ g, ∇∆g⟩ , (62) 
+
+and furthermore 
+
+12 ∆|∇ g|2 ≥ |∆g|2
+
+n + ⟨∇ g, ∇∆g⟩ (63) 
+
+where |∇ 2g|2 = Σ ni,j =1 (∂ij g)2.
+
+Based on this we give proof of Theorem 7: Theorem 7 (Gradient Estimate of Heat equation) . Let u be a positive solution to the heat equation 
+
+∂tu = ∆ u, (64) 
+
+on (0 , T ] × BR. Then for any (t, x ) ∈ (0 , T ] × B R
+
+> 2
+
+, the following inequality holds: 
+
+|∇ u|2
+
+u2 − α ∂tuu ≤ nα 2
+
+2t + Cα 2
+
+R2
+
+
+
+1 + α2
+
+α − 1
+
+
+
+, (65) 
+
+where C(n) is a constant depends on n.Proof. Like the proof of Theorem 5, just turn L into ∆ and then we can get the conclusion. From Theorem 7 we can conclude Theorem 8: 
+
+Theorem 8 (Harnack-type Inequality of Heat Equation) . Let u be a positive solution of the heat equation ∂tu = ∆ u in 
+
+(0 , T ] × BR, where α > 1. For any x1, x 2 ∈ B R
+
+> 2
+
+and 0 < t 1 < t 2 ≤ T , the following inequality holds: 
+
+u(x1, t 1) ≤ u(x2, t 2)
+
+ t2
+
+t1
+
+ mα 
+
+> 2
+
+exp 
+
+ α2∥x1 − x2∥2
+
+4( t2 − t1) + Cα R2
+
+
+
+1 + α2
+
+α − 1
+
+
+
+(t2 − t1)
+
+
+
+, (66) 
+
+where C = C(n).Proof. Like the proof of 6. Finally, we can prove Theorem 4: 
+
+Proof of Theorem 4. The VE-SDE form is given by d xt =
+
+q dσ2 
+
+> t
+> dt
+
+dWt, and its corresponding FPE form is 
+
+∂p t(x)
+
+∂t = 12
+
+dσ2
+
+> t
+
+dt ∆x(pt(x)) .
+
+We can reparameterize t by letting s = 12 σ2 
+
+> t
+
+, which gives ds 
+
+> dt
+
+= 12 
+
+> dσ2
+> dt
+
+. Therefore, 
+
+∂p t(s)(x)
+
+∂s = ∂p t
+
+∂t 
+
+dt
+
+ds = ∂p t(x)
+
+∂t 
+
+1
+
+> 12
+> dσ2
+> dt
+
+= ∆ x(pt(x)) .
+
+For this new FPE ∂p t(s)(x) 
+
+> ∂s
+
+= ∆ x(pt(x)) , its corresponding SDE form is: dxt(s) = √2dWs.
+
+Assume p(x, t ) is the fundamental solution of this FPE, satisfying Theorem 8. Thus, for any α > 1, x1, x 2 ∈ M , and 0 < s 1 < s 2 < +∞, let R → ∞ , the following inequality holds: 
+
+u(x1, t (s1))) ≤ u(x2, t (s2)) 
+
+ s2
+
+s1
+
+ nα 
+
+> 2
+
+exp 
+
+ α2∥x1 − x2∥2
+
+4( s2 − s1)
+
+
+
+. (67) 
+
+## C. Relationship Between MSE Bound and Harnack-type Inequality 
+
+In this section we provide a deeper insight into the connection between Theorems 1 and 3: they respectively lead to Theorems 12 and 10. In essence, these two results offer complementary perspectives on the evolution of the KL divergence. C.1. Harnack-type inequality to KL-divergence 
+
+Starting from Harnack-type inequality, we can arrive at log-Harnack inequality. Consider SDE dXt = −Xtdt + √2dWt,
+
+we obtain Theorem 9: 
+
+Theorem 9 (log-Harnack inequality) . Let u(t, x ) = Ptf (x) = R φt(x, y )f (y)dy with the OU Mehler kernel φt(x, y ) = (2 πs t)−n/ 2 exp   − |y−e−tx|2
+
+> 2st
+
+, st = 1 − e−2t. Assume supp( f ) ⊂ B(0 , R ). Then for every t > 0 and every x, y ∈ Rn,
+
+Pt log f (y) ≤ log Ptf (x)+ | x − y | sup 
+
+> z∈[x,y ]
+
+s
+
+mα 2
+
+2t + α
+
+ e−t
+
+st
+
+S′(z, t )
+
+
+
+,
+
+where S′(x, t ) = (( R2 + e−2t | x |2 +2 e−tR | x |)2+ | x | R + e−t | x |2 −ne −t), [x, y ] := {x + θ(y − x) : θ ∈ [0 , 1] }. In particular, on any bounded domain K with sup z∈K |z| ≤ M one has 
+
+Pt log f (y) ≤ log Ptf (x)+ | x − y |
+
+s
+
+mα 2
+
+2t + α
+
+ e−t
+
+st
+
+S′(| x |= M, t )
+
+
+
+(68) 
+
+= log Ptf (x) + SK (t) | x − y | . (69) 
+
+Proof. From Theorem 5 we conclude that a Gradient estimate holds on Rn:
+
+|∇ u|2
+
+u2 − α ∂tuu ≤ mα 2
+
+2t ,
+
+where α > 1, m > n . For φt, we have 
+
+∇x log φt(x, y ) = e−t
+
+st
+
+(y − e−tx), (70) 
+
+∆x log φt(x, y ) = − ne −2t
+
+st
+
+. (71) Thus 
+
+∂t log u = Lxuu (72) 
+
+=
+
+R (∆ xφt(x, y ) − x · ∇ xφt(x, y )) f (y)d y
+
+R φt(x, y )f (y)d y (73) 
+
+=
+
+R (∆ x log φt(x, y ) + ∥∇ x log φt(x, y )∥2 − x · ∇ x log φt(x, y )) φt(x, y )f (y)d y
+
+R φt(x, y )f (y)d y (74) 
+
+= EY ∼πt,x 
+
+∆x log φt(x, Y ) + ∥∇ x log φt(x, Y )∥2 − x · ∇ x log φt(x, Y ) , (75) 
+
+= EY ∼πt,x 
+
+
+
+− ne −2t
+
+st
+
++ e−2t
+
+s2
+
+> t
+
+∥Y − e−tx∥2 − e−t
+
+st
+
+(x · Y − e−tx2)
+
+
+
+, (76) where πt,x = φt(x,y )f (y)R φt(x,y )f (y)dy . As supp( f ) ⊂ B(0 , R ),
+
+∂t log u = EY ∼πt,x 
+
+
+
+− ne −2t
+
+st
+
++ e−2t
+
+s2
+
+> t
+
+∥Y − e−tx∥2 − e−t
+
+st
+
+(x · Y − e−t | x |2)
+
+
+
+≤ − ne −2t
+
+st
+
++ e−2t
+
+s2
+
+> t
+
+(R2 + e−2t | x |2 +2 e−tR | x |)2
+
++ e−t
+
+st
+
+(| x | R + e−t | x |2)
+
+≤ e−t
+
+st
+
+(( R2 + e−2t | x |2 +2 e−tR | x |)2+ | x | R + e−t | x |2 −ne −t)= e−t
+
+st
+
+S′(x, t ).Thus 
+
+∥∇ log u∥2 ≤ mα 2
+
+2t + α
+
+ e−t
+
+st
+
+S′ 
+
+> K
+
+(x, t )
+
+
+
+, (77) 
+
+∥∇ log u∥ ≤ 
+
+s
+
+mα 2
+
+2t + α
+
+ e−t
+
+st
+
+S′(x, t )
+
+
+
+, (78) we can easily get that 
+
+log u(t, y ) − log u(t, x ) ≤| x − y | sup 
+
+> z∈[x,y ]
+
+s
+
+mα 2
+
+2t + α
+
+ e−t
+
+st
+
+S′(z, t )
+
+
+
+, (79) by Jesen’s inequality, we have 
+
+Pt log f (y) ≤ log Ptf (x)+ | x − y | sup 
+
+> z∈[x,y ]
+
+s
+
+mα 2
+
+2t + α
+
+ e−2t
+
+st
+
+S′(z, t )
+
+
+
+, (80) as desired. Thus we obtain theorem below. 
+
+Theorem 10 (entropy–cost inequality) . Let K ⊂ Rn be compact, and assume the transition kernels Pt(x, ·) = φt(x, ·)dy
+
+satisfy the pointwise log-Harnack inequality 68 above for all x, y ∈ K. Then for any two probability measures μ, ν supported in K and any coupling π ∈ Π( μ, ν ),
+
+KL( Ptν ∥ Ptμ) ≤
+
+Z Z 
+
+|x − y| SK (t) π(dx, dy ) = SK (t) Eπ [|X − Y |].
+
+Taking the infimum over couplings, 
+
+KL( Ptν ∥ Ptμ) ≤ SK (t) W1(μ, ν ) ≤ SK (t) W2(μ, ν ), (81) 
+
+so in particular the KL at time t is bounded by a compact-set constant SK (t) times the initial Wasserstein distance. Proof. Recall the variational (Donsker–Varadhan) formula for relative entropy of two probability densities ρ, μ [14]: 
+
+KL( Ptν ∥ Ptμ) = sup 
+
+> ϕ∈Bb
+
+n Z
+
+ϕ(z) Ptν(dz ) − log 
+
+Z
+
+eϕ(z) Ptμ(dz )
+
+o
+
+,
+
+where Bb denotes bounded measurable functions, Ptν(dz ) = R 
+
+> y
+
+φt(y, z ) ν(dy ) dz, Ptμ(dz ) = R 
+
+> x
+
+φt(x, z ) μ(dx ) dz. 
+
+For an arbitrary bounded ϕ set f = eϕ ≥ 1. Then 
+
+Z
+
+ϕ(z) φt(y, z ) dz ≤ log 
+
+Z
+
+eϕ(z) φt(x, z ) dz + |x − y| SK (t).
+
+Taking the supremum over all bounded ϕ yields exactly 
+
+KL 
+
+
+
+φt(y, ·) φt(x, ·)
+
+
+
+≤ | x − y| SK (t).
+
+Now fix any coupling π ∈ Π( μ, ν ). By convexity of KL under mixtures (or the standard coupling inequality), 
+
+KL( Ptν ∥ Ptμ) = KL 
+
+ Z
+
+φt(y, ·) ν(dy )
+
+Z
+
+φt(x, ·) μ(dx )
+
+
+
+≤
+
+Z Z 
+
+KL( φt(y, ·) ∥ φt(x, ·)) π(dx, dy ).
+
+Using the kernel bound and factoring SK (t) yields 
+
+KL( Ptν ∥ Ptμ) ≤
+
+Z Z 
+
+|x − y|SK (t) π(dx, dy ) = SK (t)Eπ [|X − Y |].
+
+Taking infimum over π gives the W1 form. Finally the monotonicity W1 ≤ W2 yields the stated W2-bound. C.2. Score MSE bound to KL-divergence 
+
+Definition 1 (Relative Fisher Information) . Let ν and μ be two probability measures on Rn such that ν is absolutely continuous with respect to μ. The relative Fisher information of ν with respect to μ is defined by 
+
+I(ν ∥ μ) := 
+
+Z
+
+> Rn
+
+∇ log dν dμ (x) 2
+
+dν (x),
+
+where dν dμ denotes the Radon–Nikodym derivative of ν with respect to μ, and ∇ log dν dμ is the score function of ν relative to μ.Intuitively, I(ν ∥ μ) measures the squared L2(ν)-distance between the score functions of ν and μ.
+
+Theorem 11. Let Xt ∈ Rn be the output of the SDE 
+
+dXt = a(Xt, t )dt + g(t)dWt. (82) 
+
+Then for the above KL-divergence, we have 
+
+ddt KL( Ptν ∥ Ptμ) = − 12 g2(t)I(Ptν ∥ Ptμ). (83) 
+
+For OU process 
+
+dXt = −Xtdt + √2Wt,
+
+we have the form: 
+
+ddt KL( Ptν ∥ Ptμ) = −I(Ptν ∥ Ptμ). (84) 
+
+Proof. We note Ptν = pt, P tμ = qt for convenience. FPE of equation 82 is 
+
+∂tpt = −∇ · (ap t) + 12 σ2(t)∆ pt,
+
+as for differential entropy H(Xt) = − R pt log ptdx, we obtain ddt H(Xt) = −
+
+Z
+
+∂tpt log ptdx −
+
+Z
+
+∂tptdx
+
+= −
+
+Z
+
+∂tpt log ptdx
+
+=
+
+Z
+
+∇ · (ap t) log ptdx −
+
+Z 12 g2(t)∆ pt log ptdx, 
+
+then we calculate the terms in the above equation, 
+
+Z
+
+∇ · (ap t) log ptdx = ( −1) 
+
+Z 
+
+atpt, ∇pt
+
+pt
+
+
+
+= −
+
+Z
+
+⟨at, ∇pt⟩
+
+= Ept [∇ · at],
+
+using ∆ log p = ∆ p/p − (∇ log p)2,
+
+Z 12 g2(t)∆ pt log ptdx = 12 g2(t)
+
+Z
+
+pt∆ log pt
+
+= 12 g2(t)
+
+Z
+
+pt(∆ pt/p t − (∇ log pt)2)= − 12 g2(t)
+
+Z
+
+pt(∇ log pt)2,so we obtain ddt H(Xt) = 12 g2(t)
+
+Z
+
+pt(∇ log pt)2 + Ept [∇ · at].
+
+Then we consider the term S(pt, q t) = − R pt log qtdx,ddt S(pt, q t) = −
+
+Z
+
+∂tpt log qtdx −
+
+Z pt
+
+qt
+
+∂tqtdx
+
+=
+
+Z
+
+∇ · (ap t) log qtdx −
+
+Z 12 g2(t)∆ pt log qtdx
+
++
+
+Z
+
+∇ · (aq t) pt
+
+qt
+
+dx −
+
+Z 12 g2(t)∆ qt
+
+pt
+
+qt
+
+dx, 
+
+then we calculate the terms in the above equation, 
+
+Z
+
+∇ · (ap t) log qtdx = ( −1) 
+
+Z 
+
+atpt, ∇qt
+
+qt
+
+
+
+= −
+
+Z
+
+⟨at, ∇ log qt⟩ pt,
+
+Z
+
+∇ · (aq t) pt
+
+qt
+
+dx = ( −1) 
+
+Z 
+
+atqt, qt∇pt − pt∇qt
+
+q2
+
+> t
+
+
+
+= −
+
+Z 
+
+at, ∇pt − pt∇qt
+
+qt
+
+
+
+= Ept [∇ · at] + 
+
+Z
+
+⟨at, ∇ log qt⟩ pt,
+
+Z 12 g2(t)∆ qt
+
+pt
+
+qt
+
+dx = − 12 g2(t)
+
+Z 
+
+∇qt, qt∇pt − pt∇qt
+
+q2
+
+> t
+
+
+
+= − 12 g2(t)
+
+Z
+
+⟨∇ log qt, ∇ log pt − ∇ log qt⟩ pt,
+
+Z 12 g2(t)∆ pt log qtdx = − 12 g2(t)
+
+Z Z
+
+⟨∇ log pt, ∇ log qt⟩ pt,
+
+so we obtain ddt S(pt, q t) = − 12 g2(t)
+
+Z
+
+pt[( ∇ log qt)2 − 2 ⟨∇ log pt, ∇ log qt⟩] + Ept [∇ · at].
+
+Then we have ddt KL( pt∥qt) = − 12 g2(t)I(pt ∥ qt).
+
+Still, we consider SDE dXt = −Xtdt + √2Wt,
+
+then we obtain conclusion below via Theorem 11 and 1: Theorem 12 (KL Bound for Ornstein–Uhlenbeck SDE) . Consider the Ornstein–Uhlenbeck SDE 
+
+dXt = −Xt dt + √2 d Wt,
+
+by Theorem 1 we obtain 
+
+I(pt ∥ qt) ≤ 4R2 e−2t
+
+(1 − e−2t)2 ,
+
+and let pt and qt be the distributions of two solutions with different initial conditions. Then, there exists a constant C > 0 such that for all t ≥ 0,
+
+KL( pt ∥ qt) = 
+
+Z ∞
+
+> t
+
+I(ps ∥ qs) d s ≤
+
+Z ∞
+
+> t
+
+4R2 e−2s
+
+(1 − e−2s)2 ds ≤ 2R2 e−2t
+
+1 − e−2t ,
+
+where I(ps ∥ qs) denotes the relative Fisher information (or score MSE) of ps with respect to qs.In particular, this provides an explicit upper bound for the KL divergence between pt and qt in terms of t.
+
+C.3. Conclusion 
+
+Via Theorem 1 and 3, we can get Theorem 12 and 10, which both bound the KL-divergence KL( pt ∥ qt).We can observe that these two approaches are closely related in spirit: • The MSE-bound approach (Theorem 12) directly controls the relative Fisher information 
+
+I(pt ∥ qt) = Ept [ |spt − sqt |2 ],
+
+and then integrates it over time to obtain an explicit upper bound for the KL-divergence. • The Harnack inequality approach (Theorem 10) instead provides a pointwise control on the semigroup, which, via coupling and Wasserstein distances, leads to a KL upper bound of the form 
+
+KL( Ptν ∥ Ptμ) ≤ SK (t) W1(μ, ν ) ≤ SK (t) W2(μ, ν ).
+
+• In essence, both methods link the KL divergence at time t to some notion of discrepancy at the initial time: MSE-bound does it via the score difference (relative Fisher information), while Harnack-bound does it via transport distances ( W1 or 
+
+W2). The MSE bound can be seen as a “local-in-space” version of the Harnack control: if the pointwise kernel control from Harnack implies a bound on ∇ log pt, then integrating it yields a Fisher-information-type bound. Thus, the two approaches are complementary perspectives on how initial differences propagate under the dynamics of the SDE. This observation highlights that controlling either the score differences or the pointwise semigroup can provide rigorous quantitative bounds on the evolution of KL divergence in diffusion processes. 
+
+## D. Algorithm Comparison 
+
+Figure 5 compares standard CFG and C 2FG. At each timestep t during generation, the C 2FG update replaces the standard CFG as follows: 
+
+ˆϵω 
+
+> c
+
+(xt) = ˆ ϵ∅(xt) + ω(t)ˆϵc(xt) − ˆϵ∅(xt).
+
+Algorithm 1 Reverse Diffusion with CFG 
+
+Require: xT ∼ N (0 , Id), 0 ≤ ω ∈ R 
+
+> 1:
+
+for i = T to 1 do  
+
+> 2:
+
+ˆϵω 
+
+> c
+
+(xt) = ˆ ϵ∅(xt) + ω[ˆ ϵc(xt) − ˆϵ∅(xt)]  
+
+> 3:
+
+ˆxω 
+
+> c
+
+(xt) ← (xt − √1 − ¯αt ˆϵω 
+
+> c
+
+(xt)) /√¯αt 
+
+> 4:
+
+xt−1 = √¯αt−1 ˆxω 
+
+> c
+
+(xt) + √1 − ¯αt−1 ˆϵω 
+
+> c
+
+(xt) 
+
+> 5:
+
+end for  
+
+> 6:
+
+return x0
+
+Algorithm 2 Reverse Diffusion with Our Method 
+
+Require: xT ∼ N (0 , Id), ω (t) ∈ C[0 , +∞) 
+
+> 1:
+
+for i = T to 1 do  
+
+> 2:
+
+ˆϵω 
+
+> c
+
+(xt) = ˆ ϵ∅(xt) + ω(t)[ˆ ϵc(xt) − ˆϵ∅(xt)]  
+
+> 3:
+
+ˆxω 
+
+> c
+
+(xt) ← (xt − √1 − ¯αt ˆϵω 
+
+> c
+
+(xt)) /√¯αt 
+
+> 4:
+
+xt−1 = √¯αt−1 ˆxω 
+
+> c
+
+(xt) + √1 − ¯αt−1 ˆϵω 
+
+> c
+
+(xt) 
+
+> 5:
+
+end for  
+
+> 6:
+
+return x0
+
+Figure 5. Comparison between reverse diffusion process by CFG and C 2FG. Our C 2FG guidance weight ω(t) is a time-decay function. E. Additional Experiments 
+
+More Visualized Analysis on Theorem 1. In Figure 6, each pixel in the heatmap corresponds to the logarithmic ratio of the conditional prediction to the unconditional prediction at a specific spatial location and channel. A value of zero (shown as white) indicates no difference (ratio=1). Positive values (red) indicate amplification of the conditional prediction relative to the unconditional one, while negative values (blue) indicate suppression. Importantly, the further a pixel’s value deviates from zero—whether red or blue—the larger the discrepancy between the two predictions. Thus, both strong red and strong blue regions highlight locations where the conditional and unconditional outputs differ most significantly. Building on Theorem 1, these heatmaps provide a visual representation of how the score discrepancy evolves over time and across spatial locations. In particular, the early timesteps (larger t indices in the backward diffusion process) show relatively mild color variations, consistent with the theoretical bound ∥∇ log p − ∇ log ˜ p∥ ∝ α(t)/σ 2(t), which predicts smaller score differences at well-mixed later times. Conversely, at timesteps closer to the end of the reverse diffusion (smaller t indices), the heatmaps exhibit more pronounced red and blue regions, indicating larger deviations between conditional and unconditional predictions. This aligns with the theoretical observation that the MSE between scores can be large near small diffusion times, where initial distribution differences are amplified. Therefore, the heatmaps not only highlight spatially localized discrepancies but also corroborate the temporal trend predicted by Theorem 1, illustrating that both strong positive (red) and negative (blue) regions correspond to locations and timesteps with significant score mismatch. t250 t123 t60 t29    
+
+> t14 t7t3t1
+> 8
+> 6
+> 4
+> 2
+> 0
+> 2
+> 4
+> 6
+> 8
+> log2(ratio)
+> Ratio (log2) Heatmaps at Different Timesteps
+> Figure 6. Heatmaps of the logarithmic ratio ( log 2) between conditional and unconditional predictions at selected timesteps. White indicates no difference (ratio=1), while red and blue highlight amplification and suppression, respectively. Stronger colors denote larger deviations between the two predictions.
+
+Comparisons of various forms of ω(t). As shown in Figure 7, we compare the performance of our method with the DiT-XL/2 baseline [ 35 ] under a fixed parameter λ = 1 .0. We observe that the curve corresponding to our method consistently lies below that of the baseline, indicating a strictly better IS–FID trade-off. In Figure 8b, we further evaluate several alternative choices of the scheduling function ω(t) in [ 51 ], including sin  (t/t m)π, t/t m, 1 − t/t m, together with our proposed formulation( exp(1 − t/t m)), whose trends are shown in Figure 8a. We observe that certain choices such as sine-based ω(t)
+
+perform even worse than the DiT baseline. Besides, although some of these functions share a broadly similar decreasing trend with our design, they are not aligned with the approximate exponential upper bound derived from our framework. Consequently, their empirical IS–FID trade-off performance is consistently inferior to ours. These results highlight that the improvement does not merely come from tuning the scaling magnitude, but primarily from how the temporal modulation interacts with the diffusion dynamics. In particular, our schedule suppresses error amplification in early steps while preserving semantic consistency in later denoising stages, yielding more stable and efficient generation across the entire sampling trajectory. 150 200 250 300 350 400 450 
+
+IS (Inception Score) better 
+
+2.00 
+
+4.00 
+
+6.00 
+
+8.00 
+
+10.0 
+
+12.0 
+
+14.0 
+
+16.0 
+
+18.0 
+
+> FID (Fréchet Inception Distance)  better
+
+IS FID Performance: CFG vs Ours 
+
+CFG 
+
+Ours Figure 7. Impact of the initial schedule weight ω0 on IS–FID performance (with fixed λ = 1 .0, 250 inference steps). 0.0 0.2 0.4 0.6 0.8 1.0   
+
+> t/tm
+> 0.00
+> 0.25
+> 0.50
+> 0.75
+> 1.00
+> 1.25
+> 1.50
+> 1.75
+> (t)
+> Trend of different (t) functions
+> sin
+> t
+> 1t
+> ours
+
+(a) Trend of various ω(t)100 200 300 400 500   
+
+> IS (Inception Score) better
+> 5.00
+> 10.00
+> 20.00
+> 40.00
+> 80.00
+> FID  better
+> IS FID Comparison Across Schedules (FID-10K)
+> baseline
+> sine
+> ours
+> 1-t
+> t
+
+(b) Effect of guidance scale ω0 on IS–FID curves (50 steps, 10K samples) 
+
+Figure 8. Comparison of IS–FID performance under different hyperparameter settings on DiT-XL/2 and ImageNet-256. 
+
+ImageNet( 256 ×256 ) Model 25 inference timesteps FID ↓ IS ↑ Prec ↑ Rec ↑
+
+DiT-XL/2 (baseline, ω = 1 .5) 11.88 192.13 0.7176 0.6651 
+
+DiT-XL/2+ β-CFG ( ω = 1 .5, a = b = 2 .0) 8.42 254.42 0.8038 0.6026 DiT-XL/2 + RAAG ( ωmax = 18 .0, α = 12 .0) 21.57 444.57 0.8360 0.2636 
+
+DiT-XL/2 + Ours (ω0 = 1 .0, λ = 1 .0) 7.70 294.03 0.7994 0.6357 
+
+Table 4. Performance comparison between our method and existing adaptive CFG approaches on ImageNet-256. 
+
+To further validate our approach, we compare it against recent time-varying strategies, specifically RAAG [ 56 ] and β-CFG [ 34 ]. We follow the official hyperparameters from the original papers ( β-CFG: a = b = 2 .0; RAAG: ωmax = 18 .0, α =12 .0). These comparisons are conducted on the DiT-XL/2 model using ImageNet-256, with the results summarized in Table 4. The quantitative comparison reveals that, under identical settings, our approach achieves superior overall performance, particularly in term of FID (7.70). While β-CFG yields marginally higher Precision, it significantly lags in all other metrics. Furthermore, we observe that though RAAG obtains the highest IS score (444.57) and the highest Precision, it suffers from severely degraded FID (21.57) and Recall (0.2636). In other word, its guidance mechanism emphasizes semantic alignment (IS) rather than accurate distribution fitting (FID), leading to degraded performance. We attribute this to its design focus on text-to-image generation, which appears to generalize poorly to class-conditional settings. In contrast, our method demonstrates superior generalization capabilities, proving robust across diverse tasks and model architectures. 
+
+Analysis of Parameters in C 2FG. As shown in Figure 9a and 9b, ω0 sets the initial or maximum guidance strength, and λ
+
+controls the rate of exponential decay. Moreover, Table 5 presents an ablation study on the hyperparameter λ. While the results demonstrate that various λ values are effective for enhancing performance, the best outcome is achieved with λ = log e = 1 .0.The results indicate that this C 2FG design is effective. 0.0 0.2 0.4 0.6 0.8 1.0                       
+
+> Time ( t/tm)
+> 0.5
+> 1.0
+> 1.5
+> 2.0
+> w(t/tm)
+> Effect of w0(Fixed =1.0)
+> 1.0
+> 1.2
+> 1.4
+> 1.6
+> 1.8
+> 2.0
+> w0 values
+> (a) Effect of ω0(Fixed λ= 1 .0)0.0 0.2 0.4 0.6 0.8 1.0
+> Time ( t/tm)
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> w(t/tm)
+> Effect of (Fixed w0=1.0)
+> 0.5
+> 0.6
+> 0.7
+> 0.8
+> 0.9
+> 1.0
+> values (b) Effect of λ(Fixed ω0= 1 .0)
+> Figure 9. (a) demonstrates the impact of initial weight ω0; (b) illustrates how different λvalues affect the decay profile.
+
+ImageNet(256 ×256), 50k samples, 250 SDE inference timesteps 
+
+Model FID ↓
+
+REPA (Fixed CFG = 1.35) 1.80 REPA ( λ = log 2 ) 1.68 
+
+REPA ( λ = 1(log e)) 1.51 
+
+REPA ( λ = log 3 ) 1.58    
+
+> Table 5. Comparison between the different effect of λ, fixing ω0= 1 .0.
+
+Results on More Framework. In Table 6, we show the results of our C 2FG on autoguidance introduced by [ 23 ] with the model of EDM2 [ 24 ]. Autoguidance involves two denoiser networks D0(x; σ, c ) and D1(x; σ, c ) and the guiding effect is achieved by extrapolating between the two denoising results by a factor ω:
+
+Dω (x; σt, c ) = ωD 1(x; σt, c ) + (1 − ω)D0(x; σt, c ),
+
+based on their method, we make ω be a time-variance function ω(t) with the same formula of C 2FG: ω(t) = ω0 exp(1 −t/t max ).As shown in Table 6, our dynamic guidance ω(t) consistently improves over the static guidance baseline. On ImageNet-64, where the model operates directly in the pixel domain, our method achieves lower FID and FD-DINOv2 [ 1], indicating that dynamic weighting not only preserves fidelity but also enhances semantic alignment. On high-resolution ImageNet-512, which is considerably more challenging, we also observe clear gains under the same setting, confirming that the proposed C 2FG can robustly integrate with autoguidance across scales. These results highlight the generality of our approach: the time-dependent extrapolation scheme provides a more adaptive balance between fidelity and diversity than a fixed scalar weight. 
+
+Denoising Process. As shown in Figure 10, we provide a qualitative comparison of intermediate decoding results between our C2FG and the baseline across the denoising trajectory. From step 250 down to 50, both methods generate visually similar results. However, in the final refinement stage (from step 50 to 0), the difference becomes more pronounced: our C 2FG produces sharper structures and more coherent details, highlighting the benefit of dynamically adjusting the guidance strength in the later denoising steps. ImageNet(64 ×64) 
+
+Model FID ↓ FD DINOv2 ↓
+
+EDM2-S-autoguidance ( ω = 1 .7) 1.044 56.3 
+
+EDM2-S-autoguidance+Ours (ω0 = 0 .9, λ = 0 .7) 1.028 52.7 ImageNet (512 ×512), 10k samples 
+
+EDM2-S-autoguidance ( ω = 1 .4) 5.27 121.2 
+
+EDM2-S-autoguidance+Ours (ω0 = 0 .9, λ = 0 .5) 5.15 116.7 
+
+Table 6. We evaluated conditional image generation on ImageNet with EDM2 and Autoguidance. 250  0510 15 20 50 
+
+> Our Method CFG
+
+# t
+
+Figure 10. Comparison between results during the denoising process of C 2FG and Baseline. Table 7. Additional Comparisons. Left: Comparisons with dynamic guidance methods on SD1.5 (MS-COCO) and SiT (ImageNet). Right: 
+
+Results on modern T2I models (Flux, SD3). 
+
+Compare Fixed SD1.5,MS-COCO Fixed SiT,ImageNet Compare T2I models (CLIP ↑)Method CFG CFG++ β-CFG C2FG (4,1) FDG C2FG (1.7,0.15) Models Flux (1.5,1) SD3 (5,1) 
+
+FID(10k) ↓ 19.32 18.87 16.74 16.71 6.15 3.20 CFG 31.4 31.4 CLIP(10k) ↑ 32.0 32.0 31.7 32.0 – – C2FG 31.5 31.5 
+
+Additional Results. In Table 7 we compare our methods with other methods on different models. On SD1.5 [ 38 ], C 2FG achieves the best FID&CLIP , surpassing CFG++ [ 10 ] and β-CFG [ 34 ]. It also consistently improves Flux [ 27 ] and SD3 [ 15 ]. On SiT [ 54 ], C 2FG outperforms FDG [ 40 ]. Thus C 2FG consistently outperforms other methods across diverse tasks, verifying its strong generality. And Figure 11 shows our visualized results on T2I tasks. Additionally, Figure 12 shows additional results using our C 2FG method on DiT and SiT models. Figure 11. Visual Comparison. C2FG produces images that better align with the text prompt than standard CFG, yielding more faithful details, consistent with the quantitative gains in Table 7. SD3  +Ours  Flux  +Ours 
+
+Prompt:  A rustic wooden signpost sticking out of the grass in a beautiful garden. The text  'Control  CFG ' is 
+
+carved into the wood. Sunlight, lens flare, detailed textures. 
+
+> (a) Images generated by the DiT-XL/2 model with C 2FG on ImageNet-256.
+> (b) Images generated by the SiT-XL/2 (REPA) model with C 2FG on ImageNet-256.
+
+Figure 12. Additional results for C 2FG.

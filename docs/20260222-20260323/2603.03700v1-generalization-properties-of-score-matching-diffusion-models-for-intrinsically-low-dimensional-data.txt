@@ -1,0 +1,6193 @@
+Title: Generalization Properties of Score-matching Diffusion Models for Intrinsically Low-dimensional Data
+
+URL Source: https://arxiv.org/pdf/2603.03700v1
+
+Published Time: Thu, 05 Mar 2026 01:29:42 GMT
+
+Number of Pages: 52
+
+Markdown Content:
+# Generalization Properties of Score-matching Diffusion Models for Intrinsically Low-dimensional Data 
+
+Saptarshi Chakraborty ∗1, Quentin Berthet †4, and Peter L. Bartlett ‡2,3,4 1Department of Statistics, University of Michigan 
+
+2Department of Statistics, University of California, Berkeley 
+
+3Department of Electrical Engineering and Computer Sciences, UC Berkeley 
+
+4Google DeepMind 
+
+Abstract 
+
+Despite the remarkable empirical success of score-based diffusion models, their theoretical guarantees for statistical accuracy remain relatively underdeveloped. Existing analyses often yield pessimistic con-vergence rates that fail to reflect the intrinsic low-dimensional structure commonly present in real-world data distributions, such as those arising in natural images. In this work, we analyze the statistical con-vergence of score-based diffusion models for learning an unknown data distribution μ from finitely many samples. Under mild regularity conditions on both the forward diffusion process and the data distri-bution, we establish finite-sample error bounds on the learned generative distribution measured in the Wasserstein-p distance. In contrast to prior results, our guarantees hold for arbitrary p ≥ 1 and require only a finite-moment condition on μ, without compact-support, manifold or smooth density assumptions. In particular, we show that with n independent and identically distributed (i.i.d.) samples from the tar-get distribution μ with finite q-th moment (i.e. EX∼μ∥X∥q < ∞) and appropriately chosen network architectures, hyper-parameters and discretization scheme, the expected Wasserstein-p distance between the learned distribution ˆ μ and true distribution μ scales roughly as EW p(ˆ μ, μ ) = ˜O(n−1/d ⋆p,q (μ)), where 
+
+d⋆p,q (μ) denotes the ( p, q )-Wasserstein dimension of μ. Our analyses demonstrate that diffusion models naturally adapt to the intrinsic geometry of the data and effectively mitigate the curse of dimensionality, in the sense that the convergence exponent depends only on d⋆p,q (μ) rather than the ambient dimension. Furthermore, our results conceptually bridge the theoretical understanding of diffusion models with that 
+
+> ∗
+
+email: saptarsc@umich.edu 
+
+> †
+
+email: qerthet@google.com 
+
+> ‡
+
+email: peter@berkeley.edu 
+
+1 
+
+> arXiv:2603.03700v1 [stat.ML] 4 Mar 2026 of GANs and the sharp minimax rates established in optimal transport theory. The proposed ( p, q )-Wasserstein dimension also extends the classical notion of Wasserstein dimension to distributions with unbounded supports and heavy tails, which may be of independent theoretical interest.
+
+# 1 Introduction 
+
+Score-based diffusion models have emerged as a central paradigm in generative modelling, achieving remark-able success across domains (Sohl-Dickstein et al., 2015; Song and Ermon, 2019; Ho et al., 2020; Song et al., 2021) such as image and text generation (Dhariwal and Nichol, 2021; Austin et al., 2021; Saharia et al., 2022), text-to-speech synthesis (Popov et al., 2021), molecular structure modeling (Xu et al., 2022; Trippe et al., 2023; Watson et al., 2023) and many more. At their core, Denoising Diffusion Probabilistic Models (DDPMs) (Ho et al., 2020) rely on a two-stage process. In the forward phase, data samples are progressively corrupted by the iterative addition of Gaussian noise, eventually transforming the data distribution into an isotropic Gaussian. This forward noising process is chosen to be simple, tractable, and analytically well-characterized, often modelled through a stochastic differential equation (SDE). The reverse phase then seeks to invert this corruption by learning a sequence of denoising transformations that iteratively recover clean data samples from noise. In practice, the reverse process is parameterized using deep neural networks that approximate the score function of the intermediate noisy distributions. By chaining together these learned denoising steps, diffusion models are able to generate highly realistic samples that closely approximate the underlying data distribution. The empirical success of diffusion models has sparked considerable interest in their theoretical founda-tions. For instance, Chen et al. (2023c) and Lee et al. (2023) analyzed the convergence of the denoising process in terms of Total Variation (TV), assuming access to an ϵ-accurate (in the ℓ2 sense) score function. Building on this line of work, recent studies (Chen et al., 2023a; Li et al., 2023; Benton et al., 2024) have examined the “optimal” time to run the forward process and developed appropriate partitioning schemes for the denoising procedure under the same assumption of an ϵ-accurate score estimate. Their results show that with an ϵ-approximate score estimate, one can achieve a guarantee of order O(poly( D, log(1 /δ )) ϵ−2)-approximation of the target distribution in terms of the KL divergence. Here D is the ambient dimension of the data space and δ is the early stopping time for the reverse process. There has been a growing body of work in understanding the performance of diffusion models from a learning theory perspective. Oko et al. (2023) demonstrate that under certain smoothness conditions on the true density function, the resulting estimated data distribution achieves an (almost) minimax optimal convergence rate in both total variation and Wasserstein-1 distances, resulting in an error rate of EW 1(ˆ μ, μ ) = 
+
+O
+
+
+
+n− s+1 −δD+2 s
+
+
+
+error rate, when μ is s-smooth in the Besov sense (i.e. μ ∈ B sp,q ). In a related work, when 2D = 1, i.e. when the data support is [ −1, 1], Dou et al. (2024) derived the minimax estimation rate for the TV and Wasserstein-1 metric and showed that score matching can effectively achieve this rate when the score function is modelled using kernel regression based estimators with appropriately chosen bandwidth. Although significant progress has been made in our theoretical understanding of score-based diffusion models, some limitations of the existing results are yet to be addressed. For instance, the generalization bounds frequently suffer from the curse of dimensionality. In practical applications, data distributions tend to have high dimensionality, making the convergence rates that have been proven exceedingly slow. However, high-dimensional data, such as images, texts, and natural languages, often possess latent low-dimensional structures that reduce the complexity of the problem. For example, it is hypothesized that natural images lie on a low-dimensional structure, despite its high-dimensional pixel-wise representation (Pope et al., 2020). Though in classical statistics there have been various approaches, especially using kernel tricks and Gaussian process regression that achieve a fast rate of convergence that depends only on their low intrinsic dimensionality (Bickel and Li, 2007; Kim et al., 2019), such results are largely unexplored in the context of diffusion models. Chen et al. (2023b) derive explicit convergence rates for specific score estimation methods when the data distribution lies on a low-dimensional hyperplane within the ambient space under the Wasserstein-1 distance. Recently, Tang and Yang (2024) showed that when the target data distribution lies on a d-dimensional differentiable sub-manifold and has a density with respect to the volume measure of that manifold, diffusion models can achieve an error rate of the form, EW 1(ˆ μ, μ ) = O
+
+
+
+n− AB+d
+
+
+
+, when the score function class is chosen properly. Bortoli (2022) analyses convergence in the 1-Wasserstein distance under an ℓ2 error assumption on the score estimator. Both Huang et al. (2024) and Potaptchik et al. (2024) provide closeness of the estimated measure to the target measure in the KL-sense when the target measure 
+
+μ has a manifold support. However, both of these works assume that the estimated score function is ϵ-close (in the ℓ2 sense) to the true score function, which cannot be guaranteed in practice. It is important to note that all of the aforementioned works fail to fully capture the intrinsic low-dimensional structure of the underlying data distribution (see Section 4). In particular, the assumption in Tang and Yang (2024) that the support of the target distribution lies on a compact Riemannian man-ifold with a smooth, bounded density is rather restrictive and often unrealistic in practice. Similarly, the subspace-support assumption adopted in Chen et al. (2023b) provides only a crude approximation of the underlying geometry and overlooks more general forms of low-dimensional structure observed in real-world data. Furthermore, none of the aforementioned approaches address the problem in its full generality or attain the sharp convergence rates for empirical distributions established in the optimal transport literature (Weed and Bach, 2019). 3Contributions To address the aforementioned limitations in the existing literature, the main contributions of this paper are summarized below. 
+
+• In order to bridge the gap between the theory and practice of score-based diffusion generative models, in this paper, we develop a framework to establish the statistical convergence rates in the Wasserstein-p
+
+metric in terms of the intrinsic dimension of the underlying target probability measure. 
+
+• To characterize the notion of intrinsic dimension, we introduce the ( p, q )-Wasserstein dimension (see Definition 6) that develops on the notion of Wasserstein dimension (Weed and Bach, 2019) to distribu-tions with an unbounded support but satisfying a finite moment condition. This ( p, q )-Wasserstein di-mension plays an important role in characterizing the convergence rate of ˆ μn (the empirical distribution based on n i.i.d. data samples) and the true probability measure μ. In particular, if EX∼μ∥X∥q < ∞
+
+for some q > 0, then EW pp(ˆ μn, μ ) scales roughly as O
+
+
+
+n−p/d ⋆p,q (μ)
+
+
+
+, for all 0 < p < q . Here d⋆p,q (μ)denotes the ( p, q )-Wasserstein Dimension of μ.
+
+• Our results, in essence, suggest that when the score network class, the number of Monte Carlo samples used during training, and the discretization scheme are all chosen appropriately (see Theorem 13), diffusion-based generative models can achieve near-optimal statistical accuracy. Specifically, if the model is trained on n independent and identically distributed (i.i.d.) samples drawn from the target dis-tribution μ, the expected error of the learned distribution satisfies EW p(ˆ μ, μ ) ≲ n−1/d ⋆p,q (μ) poly-log( n). where d⋆p,q (μ) denotes the intrinsic ( p, q )-Wasserstein dimension of μ. This result highlights that, under mild regularity assumptions, diffusion models can adapt to the low-dimensional geometry of the data and achieve convergence rates that scale only with the intrinsic rather than the ambient dimension. Importantly, our analysis yields the sharpest known error bound for diffusion models to date. Notably, our results yield sharper rates for the special case of manifolds and p = 1 as considered in the recent literature (Tang and Yang, 2024; Oko et al., 2023) even under significantly milder regularity conditions. 
+
+• When the underlying target measure μ has a “regular” support (this includes compact differentiable manifolds, affine subspaces etc.), our results indicate that deep score-based diffusion models can effec-tively achieve the minimax optimal error rates, albeit with poly-log factors in the number of samples 
+
+n.
+
+Organization The remainder of this paper is organized as follows: In Section 2, we empirically validate that the sample efficiency of score-matching diffusion models is primarily contingent upon the intrinsic data dimension. Section 3 revisits necessary notations, definitions, and outlines the problem statement. In Section 4, we revisit the concept of intrinsic dimension and introduce a new notion of intrinsic dimension 4termed the ( p, q )-Wasserstein dimension of a measure, comparing it with commonly used metrics. This ( p, q )-Wasserstein dimension determines the convergence rate of the empirical measure to the population in the Wasserstein-p distance under finite moment conditions only, as shown in Theorem 10. The subsequent focus shifts to theoretical analyses of score-based deep diffusion models in Section 5. We begin by presenting the assumptions in Section 5.1, followed by stating the main result in Section 5.2 and providing a proof sketch in Section 5.3, with detailed proofs available in the Appendices. Section 5.4 demonstrates that diffusion can achieve the minimax optimal rates for estimating distributions, followed by concluding remarks in Section 6. 
+
+# 2 A Proof of Concept Result 2000 4000 6000 8000 10000  
+
+> Number of training samples
+> 100
+> 200
+> 300
+> 400
+> FID Score
+> d = 10 d = 100
+
+(a) Results on the basenji class 2000 4000 6000 8000 10000   
+
+> Number of training samples
+> 100
+> 200
+> 300
+> 400
+> FID Score
+> d = 10 d = 100
+
+(b) Results on the soap-bubble class 2000 4000 6000 8000 10000  
+
+> Number of training samples
+> 100
+> 200
+> 300
+> 400
+> FID Score
+> d = 10 d = 100
+
+(c) Results on the goldfish class 
+
+Figure 1: Average generalization error (in terms of FID scores) for different values of n for DDPM. The error bars denote the standard deviation out of 10 replications. Before turning to the theoretical analysis, we present an experiment illustrating that the error rates of denoising diffusion probabilistic models (DDPMs) (Ho et al., 2020) depend primarily on the intrinsic 
+
+dimension of the data. Directly estimating the intrinsic dimensionality of natural images is difficult, so we follow the synthetic data construction strategy of Pope et al. (2020) and Chakraborty and Bartlett (2024). Specifically, we use a pre-trained BigGAN (Brock et al., 2019) with a 128-dimensional latent space and 128 × 128 × 3 outputs, trained on the ImageNet dataset (Deng et al., 2009). We conduct three separate experiments, on the basenji , soap-bubble and goldfish image classes in the ImageNet data set. Using the BigGan generator, we produce 11 ,000 images by fixing all but d latent coordinates to zero, thereby constraining the generated data to lie on a d-dimensional manifold. We consider two intrinsic dimensions, 
+
+d = 10 and d = 100. All images are then down-sampled to 28 × 28 using bilinear interpolation to reduce computational cost. We train a DDPM with a standard UNet, closely following the architecture of Ho et al. (2020). The model 5consists of a 3-channel input layer, four resolution levels, sinusoidal timestep embeddings, and residual blocks with attention at the 14 ×14 scale. We use a linear β-schedule with 1000 diffusion timesteps. At each iteration, the model receives a clean training image x0, a random timestep t ∼ Uniform {0, . . . , 999 }, and Gaussian noise 
+
+ε, and is trained to predict the noise component using the standard denoising objective E∥ε − εθ (xt, t )∥22. For each intrinsic dimension, we vary the number of training samples in {1000 , 2000 , . . . , 10000 } and reserve the final 1000 images for testing. To ensure stable optimization across all sample sizes, the UNet is trained for 50 epochs using Adam with learning rate 10 −4 and batch size 64. All experiments are run on a single NVIDIA GPU. To prevent memory overflow, generated samples during evaluation are produced in batches of size 64, and gradients are disabled during the sampling stage. After training, we generate 256 samples from the learned reverse diffusion process using ancestral (DDPM) sampling, starting from standard Gaussian noise and iteratively denoising for all 1000 timesteps. We compute the Fr´ echet Inception Distance (FID) (Heusel et al., 2017) between the generated samples and an equally sized subset of held-out real images. Since FID is sensitive to sampling noise, each configuration is repeated 10 times; we report average FID values across these repetitions. All FID calculations are performed using the pytorch fid wrapper library. The empirical results, presented in Fig. 1, clearly validate our hypothesis. As the number of training samples increases from 1000 to 10000, the DDPM trained on data with intrinsic dimension d = 10 consistently achieves substantially lower FID scores than the model trained on data with intrinsic dimension d = 100. The gap persists across large sample sizes, and in fact widens slightly as more data become available, indicating that lower intrinsic-dimensional structure yields faster error decay under diffusion-based learning. This behaviour aligns precisely with our theoretical predictions: the intrinsic dimension, rather than the ambient pixel dimension, governs the sample complexity and achievable error rates of diffusion models. All codes pertaining to the experiment are publicly available through https://github.com/saptarshic27/ DiffusionIntrinsic .
+
+# 3 Background 
+
+Before presenting the main theoretical results, we first introduce the notation and review several preliminary concepts that will be used throughout the paper. 
+
+3.1 Notations 
+
+We use the notation x ∨ y := max {x, y } and x ∧ y := min {x, y }. Bϱ(x, r ) denotes the open ball of radius r
+
+around x, with respect to (w.r.t.) the metric ϱ. For any probability measure γ, the support of γ is defined as, supp( γ) = {x : γ(Bϱ(x, r )) > 0, for all r > 0}. For any function f : S → R, and any probability measure 
+
+γ on S, let ∥f ∥Lp(γ) :=  R  
+
+> S
+
+|f (x)|pdγ (x)1/p , if 0 < p < ∞. Also let, ∥f ∥L∞(γ) := ess sup x∈supp( γ) |f (x)|.6We say An ≲ Bn (also written as An = O(Bn)) if there exists C > 0, independent of n, such that An ≤
+
+CB n. Similarly, the notation, “ ≾” (also written as An = ˜O(Bn)) ignores poly-log factors in n, i.e. An ≤
+
+Bn · log C (en ), for some C > 0. We say An ≍ Bn, if An ≲ Bn and Bn ≲ An. For any k ∈ N, we let [k] = {1, . . . , k }. For two random variables X and Y , we say that X d
+
+= Y , if the random variables have the same distribution. We use bold lowercase letters to denote members of Nk for k ∈ N. Suppose Z is a random variable with law ν. Then the distribution of Z1{∥ Z∥∞ ≤ R} is denoted as TR(ν). N (θ, Σ) denotes the Gaussian distribution with mean θ and covariance matrix Σ. γD denotes the standard Gaussian distribution on RD , i.e γD ≡ N (0 , I D ). C1 denotes the set of all continuously differentiable functions from R to R.
+
+Definition 1 (Covering and Packing Numbers) . For a metric space ( S, ϱ ), the ϵ-covering number w.r.t. ϱ
+
+is defined as: N (ϵ; S, ϱ ) = inf {n ∈ N : ∃ x1, . . . x n such that ∪ni=1 Bϱ(xi, ϵ ) ⊇ S} . A minimal ϵ cover of S is denoted as C(ϵ; S, ϱ ). Similarly, the ϵ-packing number is defined as: M(ϵ; S, ϱ ) = sup {m ∈ N : ∃ x1, . . . x m ∈S such that ϱ(xi, x j ) ≥ ϵ, for all i̸ = j}.
+
+Definition 2 (Neural networks) . Let L ∈ N and {Ni}i∈[L] ∈ N. Then a L-layer neural network f : Rd → RNL
+
+is defined as, 
+
+f (x) = AL ◦ σL−1 ◦ AL−1 ◦ · · · ◦ σ1 ◦ A1(x) (1) Here, Ai(y) = Wiy + bi, with Wi ∈ RNi×Ni−1 and bi ∈ RNi−1 , with N0 = d. Note that σj is applied component-wise. Here, {Wi}1≤i≤L are known as weights, and {bi}1≤i≤L are known as biases. {σi}1≤i≤L−1
+
+are known as the activation functions. Without loss of generality, one can take σℓ(0) = 0 , ∀ ℓ ∈ [L − 1]. We define the following quantities: (Depth) L(f ) := L is known as the depth of the network; (Number of weights) the number of weights of the network f is denoted as W(f ) = PLi=1 NiNi−1; (maximum weight) 
+
+B(f ) = max 1≤j≤L(∥bj ∥∞) ∨ ∥ Wj ∥∞ to denote the maximum absolute value of the weights and biases. 
+
+N N {σi}1≤i≤L−1 (L, W, B ) = f of the form (1) : L(f ) ≤ L, W(f ) ≤ W, B(f ) ≤ B .
+
+If σj (x) = x∨0, for all j = 1 , . . . , L −1, we use the notation RN (L, W, B ) to denote N N {σi}1≤i≤L−1 (L, W, B ). 
+
+Definition 3 (Sobolev functions) . Let f : S → Rd′
+
+be a function, where S ⊆ Rd. For a multi-index 
+
+s = ( s1, . . . , s d), let, ∂sf = ∂|s|f∂x s11 ...∂x sdd
+
+, where, |s| = Pdℓ=1 sℓ. We say that a function f is ( β, C )-Sobolev (for 
+
+β ∈ N ∪ { 0}) if 
+
+∥f ∥Hβ := 
+
+> d′
+
+X
+
+> j=1
+
+X
+
+> s:0 ≤| s|≤ β
+
+∥∂sfj ∥∞ ≤ C, 
+
+where fj denotes the j-th component of f , j = 1 , . . . , d ′.
+
+Definition 4 (Wasserstein p-distance) . Let (Ω , dist) be a Polish space and let μ and ν be two probability measures on the same with finite p-moments. Then the p-Wasserstein distance between μ and ν is defined 7as: 
+
+Wp(μ, ν ) = 
+
+
+
+inf  
+
+> γ∈Γ( μ,ν )
+
+E(X,Y )∼γ (dist( X, Y )) p
+
+1/p 
+
+.
+
+Here Γ( μ, ν ) denotes the set of all measure couples between μ and ν. In what follows, we take dist( ·, ·) to be the ℓ2-norm on RD , i.e. for ( RD , ℓ 2), 
+
+Wp(μ, ν ) = 
+
+
+
+inf  
+
+> γ∈Γ( μ,ν )
+
+E(X,Y )∼γ ∥X − Y ∥p
+
+> 2
+
+1/p 
+
+.
+
+3.2 Score Matching Diffusion Models 
+
+The objective in generative modeling is to approximate an unknown distribution μ on a data space X from 
+
+n independent and identically distributed (i.i.d.) samples X1, . . . , X n ∼ μ. In most practical settings, the data space X is assumed to be a subset of RD , where D can be very large. For example, the CIFAR-10 image data set consists of 32 ×32 colored images, making D = 3072. Classical approaches such as Variational Autoencoders (VAEs) (Kingma and Welling, 2014) or Generative Adversarial Networks (GANs) (Goodfellow et al., 2020) seek to learn a generative map from a simple latent distribution (e.g., standard Gaussian) to X
+
+whose pushforward distribution approximates μ.Score-based diffusion models (Ho et al., 2020; Song et al., 2021; Song and Ermon, 2019) adopt a different perspective: instead of directly learning a generative map, they construct a sequence of intermediate dis-tributions that gradually transform the unknown data distribution into a tractable reference distribution, from which it is easy to sample, e.g., the standard Gaussian distribution. This is accomplished by adding Gaussian noise to the data in small increments, thereby diffusing the empirical distribution until, in the limit, it converges to a standard Gaussian distribution on RD . The generative process is then learned in reverse: one trains a family of score functions (or equivalently, denoisers) that estimate the gradients of the log-density at each noise level. By combining these learned scores backward along the diffusion trajectory, one can iteratively remove noise from the reference distribution, eventually producing high-quality samples that approximate μ.
+
+Forward Process In mathematical terms, the forward process is modeled by a Stochastic Differential Equation (SDE). The simplest amongst these processes is the Ornstein-Uhlenbeck (OU) process (Øksendal, 2003). We consider the forward time-rescaled OU process: d ˆXt = −βt ˆXtdt + p2βtdWt, ˆX0 ∼ ˆμn, (2) where ˆ μn = 1
+
+> n
+
+Pni=1 δXi denotes the empirical distribution based on the i.i.d. samples {Xi}i∈[n]. Here 
+
+{Wt}t≥0 denotes the standard Brownian motion on RD . The forward process is interpreted as transforming the empirical data distribution ˆ μ to the Gaussian distribution. From the literature of Markov diffusion, it is 8well known ˆPt := Law( ˆXt) approaches the Gaussian distribution γD , exponentially fast, in terms of various divergence measures including KL and TV. Under Assumption 2, ˆPt admits a density ˆ pt under the Lebesgue measure. Further, it is well-known that ˆXt| ˆXs ∼ N 
+
+
+
+e− R ts βτ dτ ˆXs, (1 − e−2 R ts βτ dτ )ID
+
+
+
+, making the forward process computationally tractable. See Proposition 19 for a proof of this result. 
+
+Reverse Process Under mild regularity conditions on {β}t≥0 (see Assumption 2), the reverse process 
+
+{Yt}0≤t≤T = { ˆXT −t}0≤t≤T satisfies the SDE, dYt = βT −t (Yt + 2 ∇ log ˆ pT −t(Yt)) d t + p2βT −td ˜Wt, Y 0 ∼ ˆPT , (3) where { ˜Wt}t≥0 is another Brownian motion independent of {Wt}t≥0. This result is proved in Proposition 11 in our context. Since the score function ∇ log ˆ pT −t is unknown, one estimates it by minimizing a Mean Squared Error (MSE) loss as described in the next paragraph. The score function estimate for ∇ log ˆ pt(x)is denoted by ˆ s(x, t ). Further, due to computational limitations of exactly implementing the reverse SDE, one discretizes the interval [0 , T ] for the reverse process as t0 ≤ t1 ≤ · · · ≤ tN . We will take t0 = 0 and 
+
+tN = T − δ0. We will use the exponential integrator scheme to approximate the reverse process as, d ˆYt = βT −t( ˆYt + 2 s( ˆYti , T − ti))d t + p2βT −td ˜Wt, t i ≤ t ≤ ti+1 and ˆY0 ∼ γD . (4) Note that one starts the reverse process from γD and not ˆPT as the former is easy to sample from and the two distributions are close (in the KL sense) when T is large (see Lemma 16). It can be easily shown that (see Lemma 20) (4) is solved by taking, ˆYti+1 = ˆYti +
+
+
+
+e     
+
+> RT−tiT−ti+1 βsds
+
+− 1
+
+  ˆYti + 2 s( ˆYti , T − ti)
+
+
+
++ Zti
+
+q
+
+e2 R T −tiT −ti+1 βsds − 1; ˆY0, Z t0 , . . . , Z tN
+
+> i.i.d.
+
+∼ γD ,
+
+(5) For notational simplicity, we define Qt = Law( Yt) and ˆQt(s) = Law( ˆYt). We write ˆQt as a function of s to denote that it is dependent on the choice of s, which is estimated as described in the next paragraph. 
+
+Score matching The score function in diffusion models is estimated by minimizing the so-called MSE loss. In this paper, we will consider the following weighted MSE loss: ˆsn = argmin  
+
+> s∈S
+> N−1
+
+X
+
+> i=0
+
+hi∥s(·, T − ti) − ∇ log ˆ pT −ti (·)∥2  
+
+> L2( ˆPT−ti)
+
+, (6) where, hi = ti+1 −ti. Here, S is a class of functions from RD → RD . In practice, this function class is realized by neural networks. We take S = RN (L, W, B ). Again, as ∇ log ˆ pti (·) is unknown, one does an equivalent reformulation of the objective as, ˆsn = argmin  
+
+> s∈S
+> N−1
+
+X
+
+> i=0
+
+hiE s
+
+
+
+e− R ti   
+
+> 0βτdτ
+
+ˆX0 +
+
+q
+
+1 − e−2 R ti   
+
+> 0βτdτ
+
+Zti , t i
+
+
+
++ Zti
+
+q
+
+1 − e−2 R ti  
+
+> 0βτdτ
+> 2
+
+, (7) 9where {Zti }i∈[N ] are i.i.d. standard Gaussian random variables on RD . We refer the reader to Lemma 21 for a formal proof of this equivalence. In practice, one typically can not compute the expectation in (7) directly, but estimate the expectation through Monte Carlo sampling as: 
+
+X(j)0 ∼ Unif ( {X1, . . . , X n}) , Z (j) 
+
+> ti
+
+∼ γD , j = 1 , . . . , m 
+
+ˆsmc  
+
+> n
+
+= argmin  
+
+> s∈S
+> N−1
+
+X
+
+> i=0
+> m
+
+X
+
+> j=1
+
+hi
+
+mi
+
+s
+
+
+
+e− R ti   
+
+> 0βτdτ
+
+X(j)0 +
+
+q
+
+1 − e−2 R ti   
+
+> 0βτdτ
+
+Z(j) 
+
+> ti
+
+, t i
+
+
+
++ Z(j)
+
+> ti
+
+q
+
+1 − e−2 R ti  
+
+> 0βτdτ
+> 2
+
+. (8) The goal of our theoretical analyses is to bound Wp(TR( ˆQtN (ˆ sn)) , μ ) and Wp(TR( ˆQtN (ˆ smc  
+
+> n
+
+)) , μ ) for ap-propriate choices of the forward process stopping time ( T ), backward process early stopping time ( δ0), time partition ( {ti}Ni=0 ) and score function class ( S) and the truncation level R.
+
+# 4 Intrinsic Data Dimension 
+
+In practice, real-world data is often believed to lie on a lower-dimensional structure embedded within a high-dimensional feature space. To formalize this intuition, researchers have introduced various notions of the 
+
+effective dimension of the underlying probability measure generating the data. Among these, the most widely used approaches rely on characterizing the growth rate, on the logarithmic scale, of the covering number of most of the measure’s support. Let ( S, ϱ ) be a Polish space, and let μ be a probability measure defined on it. Throughout this paper, we take ϱ to be the ℓ∞-norm. Before proceeding, we recall the notion of an ( ϵ, τ )-cover of a probability measure (Posner et al., 1967), defined as Nϵ(μ, τ ) = inf {N (ϵ; S, ϱ ) : μ(S) ≥ 1 − τ },
+
+i.e., Nϵ(μ, τ ) is the minimal number of ϵ-balls required to cover a set S with probability at least 1 − τ .Perhaps the most rudimentary measure of dimensionality is the upper Minkowski dimension of the support of μ, given by dim M (μ) = lim sup 
+
+> ϵ↓0
+
+log N (ϵ; supp( μ), ℓ ∞)log(1 /ϵ ) .
+
+This notion depends solely on the covering number of the support and does not require the support to be smoothly embedded in a Euclidean space of smaller dimension. As a result, it captures not only smooth man-ifolds but also highly irregular sets such as fractals. The statistical implications of the upper Minkowski di-mension have been extensively studied. For instance, Kolmogorov and Tikhomirov (1961) analyzed how cov-ering numbers of various function classes depend on the Minkowski dimension of the support. More recently, Nakada and Imaizumi (2020) demonstrated that deep learners can exploit this intrinsic low-dimensional struc-ture, which manifests in their convergence rates, while Huang et al. (2022) and Chakraborty and Bartlett (2024) showed similar adaptivity for Wasserstein GANs (WGANs) and Wasserstein Autoencoders (WAEs), respectively. 10 A well-known limitation (Chakraborty and Bartlett, 2025), however, is that the upper Minkowski dimen-sion can be large if the measure spreads over the entire sample space, even if it is highly concentrated in certain regions. To overcome this difficulty, Weed and Bach (2019) extended Dudley’s (Dudley, 1969) notion of entropic dimension to characterize the expected convergence rate of the Wasserstein-p distance between a distribution μ and its empirical counterpart. They introduced the notions of upper and lower Wasserstein dimensions , defined as follows: 
+
+Definition 5 (Upper and Lower Wasserstein Dimensions (Weed and Bach, 2019)) . For any p > 0, the 
+
+p-upper dimension of μ is given by 
+
+d∗
+
+> α
+
+(μ) = inf 
+
+
+
+s > 2p : lim sup 
+
+> ϵ↓0
+
+log Nϵ
+
+
+
+μ, ϵ 
+
+> sp s−2p
+
+
+
+log(1 /ϵ ) ≤ s
+
+
+
+.
+
+The lower Wasserstein dimension of μ is defined as d∗(μ) = lim τ ↓0 lim inf ϵ↓0 log Nϵ(μ,τ )log(1 /ϵ ) .
+
+Weed and Bach (2019) established that, approximately, n−1/d ∗(μ) ≲ EW p(ˆ μn, μ ) ≲ n−1/d ∗
+
+> p(μ)
+
+. However, the result is only applicable when the target measure μ is supported on a compact set with diameter at most 1. To understand the behavior of Wp(ˆ μn, μ ) for unbounded measures with a finite moment condition, we propose the ( p, q )-Wasserstein dimension as follows. 
+
+Definition 6. For any 0 < p < q < ∞, the (p, q )-Wasserstein dimension of μ is defined as: 
+
+d⋆p,q (μ) = inf 
+
+s > 2p : lim sup 
+
+> ϵ↓0
+
+log Nϵ
+
+
+
+μ, ϵ spq 
+
+> (q−p)( s−2p)
+
+
+
+log(1 /ϵ ) ≤ s
+
+ .
+
+The proposed ( p, q )-Wasserstein dimension is compared with different notions of intrinsic dimension popular in the literature in Proposition 9. Before proceeding with the comparison, we recall the definition of regularity dimensions and packing dimension of a measure (Fraser and Howroyd, 2017). 
+
+Definition 7 (Regularity dimensions) . The upper and lower regularity dimensions of a measure are defined as: dim reg (μ) = inf 
+
+
+
+s : ∃ C > 0 such that, for all 0 < r < R and x ∈ supp( μ), μ(B(x, R )) 
+
+μ(B(x, r )) ≤ C
+
+ Rr
+
+s 
+
+,
+
+dim reg (μ) = sup 
+
+
+
+s : ∃ C > 0 such that, for all 0 < r < R and x ∈ supp( μ), μ(B(x, R )) 
+
+μ(B(x, r )) ≥ C
+
+ Rr
+
+s 
+
+.
+
+Definition 8 (Upper packing dimension) . The upper packing dimension of a measure μ is defined as: dim P (μ) = ess sup 
+
+
+
+lim sup    
+
+> r→0log μ(B(x,r )) log r
+
+: x ∈ supp( μ)
+
+
+
+.In particular, the ( p, q )-Wasserstein dimension is no smaller than the vanilla p-upper Wasserstein di-mension. Further, d⋆p,q (·) is non-increasing in q and non-decreasing in p. The ( p, q )-Wasserstein dimension 11 is no larger than the upper Minkowski, packing and regularity dimensions if p is not large. Finally, the (p, q )-Wasserstein dimension is lower bounded by the lower regularity dimension. These results are formally stated in Proposition 9. 
+
+Proposition 9. For any probability measure μ and 0 < p < q < ∞,(a) d∗
+
+> p
+
+(μ) ≤ d⋆p,q (μ),(b) d⋆p,q (μ) is non-increasing in q.(c) d⋆p,q (μ) is non-decreasing in p.(d) For any 0 < p < dim M (μ)/2, d⋆p,q (μ) ≤ dim M (μ),(e) For any p ∈  0, dim P (μ)/2, d⋆p,q (μ) ≤ dim P (μ) ≤ dim reg (μ),(f ) dim reg (μ) ≤ d⋆p,q (μ).
+
+The ( p, q )-Wasserstein dimension can be used to characterize the convergence of ˆ μn to μ in the Wasserstein-
+
+p distance under finite moment conditions. We can show that if Mq (μ) < ∞ and 1 ≤ p < q , EW p(μ, ˆμn)roughly scales as, O
+
+
+
+n−1/d ⋆p,q (μ)
+
+
+
+. To show this, we derive the following theorem that characterizes EW pp(μ, ˆμn), when n is large enough and p > 0, with proof appearing in Appendix D. 
+
+Theorem 10. Suppose that Mq (μ) < ∞ and 0 < p < q . Then for any d > d ⋆p,q (μ), there exists constant 
+
+n0 ∈ N and c > 0 that may depend on d, μ, p and q, such that of n ≥ n0,
+
+EW pp(μ, ˆμn) ≤ c n − pd .
+
+# 5 Theoretical Analyses 
+
+5.1 Assumptions 
+
+To lay the foundation for our analysis of deep diffusion models, we introduce a set of assumptions that form the basis of our theoretical investigations. These assumptions encompass the underlying data distribution, and the “smoothness” of the process. For the purpose of the theoretical analysis, we assume that the data are independent and identically distributed from some unknown target distribution μ on RD . This is a standard assumption in the study of generative models (Liang, 2021; Huang et al., 2022; Chakraborty and Bartlett, 2025; Tang and Yang, 2024; Oko et al., 2023) and is stated formally as follows: 
+
+Assumption 1. We assume that X1, . . . , X n are independent and identically distributed according to the probability distribution μ, such that Mq (μ) :=  R ∥x∥q dμ1/q < ∞ for some q > 2.
+
+12 It should be noted Assumption 1 imposes only a mild integrability requirement on the target measure 
+
+μ, namely that it possesses a finite q-th moment. This condition ensures that μ is sufficiently well-behaved to admit meaningful error and convergence guarantees, while remaining broad enough to encompass a wide class of distributions encountered in practice, including heavy-tailed distributions. Importantly, compared to existing formulations for both GANs (Liang, 2021; Huang et al., 2022; Chakraborty and Bartlett, 2025) and diffusion models (Tang and Yang, 2024; Oko et al., 2023), Assumption 1 is considerably weaker. In particular, it neither constrains the support of μ to lie on a (sub)manifold nor requires compactness of the support. Moreover, we do not assume the existence of a density with respect to the Lebesgue measure, nor do we rely on any Poincar´ e, log-Sobolev inequalities or sub-Gaussian tails. This relaxation of the assumptions significantly broaden the applicability of our theoretical results beyond settings considered in prior work. To ensure the regularity of both the forward and backward diffusion processes, we assume that the time scaling {βt} is upper and lower bounded by positive constants β and β, respectively. Formally, 
+
+Assumption 2. 0 < β ≤ βt ≤ β < ∞, for all t ≥ 0. Further βt ∈ C1, for all t ∈ [0 , ∞).
+
+Assumption 2 imposes a mild regularity condition on the time-scaling sequence {βt}t≥0, ensuring that it varies smoothly over time. This assumption plays several important roles in our analysis. First, it guaran-tees the stability of the forward diffusion process by preventing abrupt changes in the noise-injection rate, which could otherwise lead to ill-posed behavior or numerical instability. Second, this smoothness condition ensures that the forward process admits a well-defined reverse-time dynamics as shown in Proposition 11; the existence of such a reverse diffusion is central to both the theoretical formulation of score-based gen-erative modeling and its algorithmic implementation. Third, Assumption 2 ensures that, as the terminal time T → ∞ , the forward process converges to the reference measure γD . Such a condition is standard in diffusion-based analyses and primarily serves to control the rate at which noise is injected into the system. 
+
+Proposition 11. Under Assumption 2, the reverse process {Yt}0≤t≤T = { ˆXT −t}0≤t≤T satisfies the SDE of equation (3) .
+
+Partition To approximate the continuous-time dynamics of the backward process, we employ a discrete-time scheme that iteratively updates the particles according to the drift and diffusion coefficients derived from the backward process as in equation (5). We take the following choice of partition. 
+
+• Take t′ 
+
+> 0
+
+= δ0.
+
+• Define h′ 
+
+> i
+
+= κ min {t′
+
+> i
+
+, 1}, i ∈ { 0, . . . , N − 1}.
+
+• t′ 
+
+> i+1
+
+= t′ 
+
+> i
+
++ h′
+
+> i
+
+, i ∈ { 0, . . . , N − 1}.
+
+• Take ti = T − t′ 
+
+> N−i
+
+.13 This choice of partition is standard in the diffusion literature (Chen et al., 2023a; Benton et al., 2024; Huang et al., 2024; Potaptchik et al., 2024), as it facilitates fast convergence of the backward process. Here, κ can be interpreted as the maximum step size. The partitioning scheme is designed so that, as the reverse process approaches time T − δ0, the intervals become progressively finer. The main idea is that coarser early steps set the global structure, later steps add fine detail, and the sample becomes more realistic as the noise is removed. This adaptive refinement near the terminal time mitigates numerical instability and improves the accuracy of approximating the score function in regions where the variance of the process might explode due to possible singularities in μ. Consequently, the discretized backward dynamics more faithfully capture the behavior of the underlying continuous-time diffusion. It can be shown that for the above partitioning scheme, the following lemma holds. This lemma plays a crucial role in the subsequent proofs by controlling the discretization error with a suitable choice of κ. The proof of this result can be found in Appendix H. 
+
+Lemma 12. For the above partitioning scheme, the discretization error is bounded by,  
+
+> N−1
+
+X
+
+> i=0
+
+Z ti+1 
+
+> ti
+
+β2 
+
+> T−t
+
+E∥∇ log ˆ pT −ti ( ˆXT −ti ) − ∇ log ˆ pT −t( ˆXT −t)∥2dt ≲ κ (log(1 /δ 0) + T ) . (9) 
+
+Moreover, N ≤ log(1 /δ 0)log(1+ κ) + Tκ ≤ 1 
+
+> κ
+
+(log(1 /δ 0) + T ).
+
+5.2 Main Result 
+
+Under Assumptions 1 and 2, we derive an upper bound on the expected Wasserstein-p distance between the score-matching estimator TR( ˆQT −δ0 (ˆ s)) and the target distribution μ. The bound scales with the number of available training samples, and its rate exponent depends only on the intrinsic ( p, q )-Wasserstein dimension of μ, rather than on the ambient data dimension D. Thus, for suitable data-dependent choices of the model hyper-parameters, such as the forward process stopping time ( T ), backward process early stopping time ( δ0), time partition ( {ti}Ni=0 ) and score function class ( S), estimator, obtained by minimizing the score-matching MSE loss, adapts to the low-dimensional structure of the underlying distribution. The main theoretical guarantee is stated in the following theorem. 
+
+Theorem 13 (Error rates for score-matching diffusion models) . Suppose that d > d ⋆p,q (μ) and 1 ≤ p < q .Assume that Assumptions 1 and 2 hold. Then, with the choice of the partition as stated in Section 5.1, if, T ≥ 12β
+
+ 2p(1+ q−p) 
+
+> d(q−p)
+
+log n + log  D + M22(μ)
+
+, R = n 1
+
+> d(q−p)
+
+ cq
+
+ Mqq (μ) + Mqq (γD ) 1 
+
+> q−p
+
+, δ0 = n− 2 
+
+> pd
+
+, and 
+
+κ ≍ n− 2p(1+ q−p) 
+
+> d(q−p)
+
+,
+
+EW p
+
+
+
+μ, TR
+
+ ˆQT −δ0 (ˆ sn)
+
+ 
+
+≲ n−1/d poly-log( n), (10) 
+
+if S = RN (L, W, B ), with, L ≍ log n + log(max 1≤i≤n ∥Xi∥∞ ∨ 1) , B ≍ n 1 
+
+> d
+
+( p(1+ q−p)   
+
+> q−p+3
+> p
+
+)(∥Xi∥∞ + 1) , and 
+
+W ≍ (max 1≤i≤n ∥Xi∥∞ ∨ 1) D n 1 
+
+> d
+
+((2+ D) p(1+ q−p)   
+
+> q−p+Dp
+
+)  log 2 n + log n · log(max 1≤i≤n ∥Xi∥∞ ∨ 1) .
+
+14 Further, there exists constants cim and a polynomial of log n and max 1≤i≤n ∥Xi∥∞ ∨ 1, such that if 
+
+mi ≥ cim
+
+σ4
+
+> ti
+
+h2
+
+> i
+
+n 1 
+
+> d
+
+((2+ D) p(1+ q−p)   
+
+> q−p+Dp
+
+)+ 2p(1+ q−p) 
+
+> d(q−p)
+
+poly(log n, max  
+
+> 1≤i≤n
+
+∥Xi∥∞ ∨ 1) ,
+
+then, 
+
+EW p
+
+
+
+μ, TR
+
+ ˆQT −δ0 (ˆ smc  
+
+> n
+
+)
+
+ 
+
+≲ n−1/d poly-log( n). (11) In simpler terms, the result demonstrates that the expected Wasserstein-p distance between the target measure μ and the estimates obtained by score-matching diffusion models roughly scales as ˜O
+
+
+
+n−1/d ⋆p,q (μ)
+
+
+
+under a finite q-moment condition on μ. It is important to note that, in contrast to existing results, our error bounds are derived in terms of the general Wasserstein-p distance, rather than being limited to the special case of the Wasserstein-1 distance (Tang and Yang, 2024; Oko et al., 2023; Azangulov et al., 2024) or Wasserstein-2 distance (Gao et al., 2025; Beyler and Bach, 2025) as considered in the recent literature. This generalization provides a finer characterization of the convergence behavior, as the Wasserstein-p distance for p > 1 captures higher-order geometric discrepancies between probability measures. Furthermore, the target distribution in our framework is only assumed to satisfy a mild finite-moment condition, without requiring support constraints such as being confined to a compact subset of RD , a key assumption in the recent works Tang and Yang (2024); Oko et al. (2023); Azangulov et al. (2024). In addition, unlike Tang and Yang (2024); Azangulov et al. (2024); Chen et al. (2023b), our analysis does not impose any subspace, manifold or smoothness assumptions on the underlying data distribution, thereby substantially broadening the scope of applicability of our results to real-data settings. 
+
+Inference for Data Supported on a Manifold Recall that a set A is said to be ˜d-regular with respect to the ˜d-dimensional Hausdorff measure H ˜d if H ˜d(Bϱ(x, r )) ≍ r ˜d, ∀ x ∈ A, as defined in Weed and Bach (2019, Definition 6). A classical result (Weed and Bach, 2019, Proposition 8) shows that if supp( μ) is ˜d-regular and μ ≪ H ˜d, then for any p ∈ [1 , ˜d/ 2] one has d∗(μ) = d∗
+
+> p
+
+(μ) = ˜d. Consequently, Proposition 9 implies that d⋆p,q (μ) = ˜d. By Theorem 13, it therefore follows that score-matching diffusion models achieve the convergence rate E W p
+
+
+
+μ, TR
+
+ ˆQT −δ (ˆ s)
+
+ 
+
+= ˜O
+
+
+
+n−1/ ˜d
+
+
+
+, for the estimators ˆ s = ˆ sn and ˆ smc  
+
+> n
+
+defined in (7)– (8). Moreover, since every compact ˜d-dimensional differentiable manifold is ˜d-regular (Weed and Bach, 2019, Proposition 9), the same rate ˜O(n−1/ ˜d) holds whenever supp( μ) lies on such a manifold. This recovers, up to improved constants, the rates obtained by Tang and Yang (2024) in the special case α = 0, corresponding to distributions with densities supported on a ˜d-dimensional manifold. Similar conclusions apply when supp( μ)is a nonempty compact convex subset of an affine space of dimension ˜d, the relative boundary of a compact convex set of dimension ˜d + 1, or a self-similar set with similarity dimension ˜d as all these sets are ˜d-regular. 
+
+Comparison with Existing GAN Error Bounds Our results on score-based diffusion models parallel, and in several respects exceed, the existing theory of finite-sample convergence for GANs. Classical analyses 15 of GANs (e.g., Singh et al., 2018; Uppal et al., 2019) typically establish convergence in the β-H¨ older Integral Probability Metric (IPM), with rates of order E∥ˆμGAN − μ∥Hβ = ˜O(n−β/D ) under smoothness and compact-support assumptions, where D denotes the ambient data dimension. Later refinements, such as those of Dahal et al. (2022); Huang et al. (2022), demonstrate that when the data distribution is supported on a compact ˜d-dimensional manifold, the convergence rate improves to E∥ˆμGAN − μ∥Hβ = ˜O(n−β/ ˜d). Chakraborty and Bartlett (2025) established that when the data support is within the unit hypercube, [0 , 1] D , error rates for GANs in the β-H¨ older IPM scales roughly as O
+
+
+
+n−β/d ∗ 
+
+> β(μ)
+
+
+
+. Our analysis for diffusion-based estimators achieves a similar intrinsic dimension adaptive rate but under significantly weaker regularity conditions: it requires only a finite-moment assumption on μ, without the need for compact support, bounded densities, or explicit manifold structure. In addition, our bounds are established in the general Wasserstein-p
+
+metric ( p ≥ 1), thereby capturing higher-order geometric discrepancies between the estimated and target distributions, whereas most GAN analyses are confined to some metric that is in the form of an IPM (e.g. 
+
+β-H¨ older IPM or Wasserstein-1 distance). The dependence of our rates on the intrinsic ( p, q )-Wasserstein dimension of μ reveals that diffusion models adapt automatically to low-dimensional structure in the data, a property that has been observed for GANs only under restrictive settings. 
+
+Choice of Stopping Times for the Forward and Backward Processes The choice of the diffusion horizon T and the early stopping offset δ0 plays a crucial role in balancing approximation and estimation errors in score-based diffusion models. From a theoretical perspective, taking T → ∞ ensures that the forward process fully converges to the Gaussian prior; however, in practice and in finite-sample analyses, excessively large values of T amplify numerical instability and estimation variance. Our results therefore consider a finite stopping time T that grows only logarithmically with the sample size ( n), which suffices to guarantee that the residual error from incomplete diffusion remains negligible relative to the statistical estimation error. Similarly, the backward process is terminated at T −δ0, for a small but positive δ0 > 0, instead of stopping exactly at T , to prevent instability in the score approximation near the data manifold. This truncation is standard in the analysis of score-based and denoising diffusion models (Song et al., 2021; Lai et al., 2025) and ensures that the learned score ˆ s remains well-behaved in regions of low density. In our framework, δ0 is chosen as O(n− 2 
+
+> pd
+
+) to control the variance explosion for the backward process near the data support which might result in singularities. 
+
+Choice of Partition The discretization of the backward diffusion processes plays a critical role in both the theoretical analysis and the practical performance of diffusion models. In our framework, we employ a nonuniform time partition that allocates finer resolution near regions where the drift or score function exhibits 16 high curvature or rapid variation. This design ensures that the approximation error arising from discretizing the continuous-time process remains well-controlled while avoiding unnecessary computational overhead in smoother regions. Such adaptive or variance-aware partitioning schemes have been shown to yield significant empirical improvements in sample quality and likelihood estimation across diffusion-based generative models (Song et al., 2021; Ho et al., 2020; Kingma et al., 2021; Lu et al., 2022). From a theoretical standpoint, this popular choice of partition (Benton et al., 2024; Chen et al., 2023a) ensures that the cumulative discretization error decays at a rate that matches the statistical convergence rate of the learned score function, thereby maintaining overall optimality of the derived error bounds. The choice of κ ≍ n− 2p(1+ q−p) 
+
+> d(q−p)
+
+ensures that the number of partitions N ≲ log(1 /δ 0)+ Tκ ≍ n 2p(1+ q−p) 
+
+> d(q−p)
+
+log n. Hence, the number of partitions grows only polynomially with the sample size, ensuring both theoretical tractability and computational scalability. 
+
+Scaling of the Number of Monte Carlo Samples From Theorem 13, it suffices to choose mi roughly as ˜O
+
+ σ4
+
+> ti
+> h2
+> i
+
+n 1 
+
+> d
+
+((2+ D) p(1+ q−p)   
+
+> q−p+Dp
+
+)+ 2p(1+ q−p)
+
+> d(q−p)
+
+
+
+, barring poly-log factors in n. Since, κ ≍ n− 2p(1+ q−p) 
+
+> d(q−p)
+
+and δ0 ≍ n− 2 
+
+> pd
+
+,
+
+> σ4
+> ti
+> h2
+> i
+
+≤ 1min 1≤i≤N h2
+
+> i
+
+= 1 /κ 2 ≍ n 4p(1+ q−p) 
+
+> d(q−p)
+
+. Thus, it suffices to choose mi roughly as ˜O
+
+
+
+n 1 
+
+> d
+
+((2+ D) p(1+ q−p)   
+
+> q−p+Dp
+
+)+ 6p(1+ q−p)
+
+> d(q−p)
+
+
+
+.Thus it suffices to have PN −1 
+
+> i=0
+
+mi ≍ n 1 
+
+> d
+
+((2+ D) p(1+ q−p)   
+
+> q−p+Dp
+
+)+ 8p(1+ q−p) 
+
+> d(q−p)
+
+, which is of the form ˜O
+
+
+
+n A+DB+C·d
+
+
+
+. Thus, the dimension affects the sample scaling; higher D/d values necessitate more generated samples to achieve equivalent accuracy. This dimension-dependent scaling of the number of Monte Carlo samples also appears in recent works by Chakraborty and Bartlett (2025) and Huang et al. (2022) for GANs. 
+
+5.3 Proof Sketch of the Main Result 
+
+5.3.1 Error Decomposition 
+
+As a first step toward obtaining a meaningful bound on the excess risk in terms of the Wasserstein-p distance, we derive an oracle inequality that bounds this risk in terms of generalisation, approximation, discretisation, early stopping, and truncation errors as shown in Lemma 14, with proof appearing in Appendix E. 
+
+Lemma 14. Suppose that Assumptions 1 and 2 hold and s ∈ S. Then, 
+
+Wp(μ, TR( ˆQT −δ (s))) 
+
+≤Wp(μ, ˆμn) + R
+
+2 12p
+
+KL( ˆPT , γ D ) 12p + R(2 β2) 12p 
+
+> N−1
+
+X
+
+> i=0
+
+hi∥s(·, T − ti) − ∇ log ˆ pT −ti (·)∥2
+
+> L2
+
+( ˆPT −ti )
+
+!1/2p
+
++ R(2 β2) 12p 
+
+> N−1
+
+X
+
+> i=0
+
+Z ti+1 
+
+> ti
+
+E∥∇ log ˆ pT −ti ( ˆXT −ti ) − ∇ log ˆ pT −t( ˆXT −t)∥2dt
+
+!1/2p
+
++ cp
+
+
+
+(βδ )pMpp(ˆ μ) + ( βδ )p/ 2Mpp(γD )
+
+
+
++ cq
+
+ Mqp(ˆ μ) + Mqq (γD ) R−(q−p). (12) 
+
+Here, cp and cq are absolute constants dependent on p and q, respectively. 
+
+17 In Lemma 14, each term on the right-hand side admits a clear interpretation in terms of distinct sources of statistical and computational error. The first term, Wp(μ, ˆμn), quantifies the generalization gap , which measures the discrepancy between the population distribution μ and its empirical counterpart ˆ μn observed from finite samples. This term captures the inherent statistical uncertainty due to sampling and vanishes as the number of training samples increases, typically at a rate depending on the intrinsic dimension of the data. The second term, KL( ˆPT , γ D ), accounts for the early-stopping error . Since the forward process ideally converges to the reference distribution γD only as t → ∞ , any finite-time truncation at T introduces bias. This term thus characterizes the trade-off between computational tractability and asymptotic accuracy – smaller T leads to faster simulations but a larger discrepancy from the stationary distribution. The third term, N −1X
+
+> i=0
+
+hi∥s(·, T − ti) − ∇ log ˆ pT −ti (·)∥2  
+
+> L2( ˆPT−ti)
+
+, (13) corresponds to the score approximation error . It arises from replacing the true score function ∇ log ˆ pt(·) with its learned estimator s(·, t ) at discretized time points {ti}N −1 
+
+> i=0
+
+. This term reflects the expressive power of the chosen score model class, as well as the quality of optimization used during training. The fourth term,  
+
+> N−1
+
+X
+
+> i=0
+
+Z ti+1 
+
+> ti
+
+E∥∇ log ˆ pT −ti ( ˆXT −ti ) − ∇ log ˆ pT −t( ˆXT −t)∥2 dt, 
+
+captures the discretization error introduced when the continuous-time backward process (3) is approximated by a discrete exponential-integrator scheme (5). This error quantifies the temporal approximation bias introduced by replacing the true diffusion dynamics with stepwise updates over the partition {ti}Ni=0 . Notably, under the regularity of the time-scaling sequence ensured by Assumption 2, the discretization error diminishes as the partition becomes finer. Finally, the fifth and sixth terms represent the truncation error , which arises from employing the R-truncated measure TR( ˆQT −δ (s)) in lieu of the full ˆQT −δ (s). The truncation controls the tail behaviour of the generated samples and helps bound the Wasserstein-p distance in an efficient way. While this truncation introduces a mild bias, the resulting error can be controlled by properly choosing the level of truncation. 
+
+5.3.2 Generalization Gap 
+
+The second step to bounding the excess risk is to bound the generalization gap, i.e. the first term in equation (12), w.r.t. the Wasserstein-p metric. To do so, we employ Theorem 10. An immediate corollary of Theorem 10 is that if q > 1 and 1 ≤ p < q , EW p(μ, ˆμn) scales roughly as, O
+
+
+
+n−1/d ⋆p,q (μ)
+
+
+
+.
+
+Corollary 15. Suppose that there exists q > 1, such that Mq (μ) < ∞ and 1 ≤ p < q . Then for any 
+
+d > d ⋆p,q (μ), there exists constant n0 ∈ N and c′ > 0 that may depend on d, μ, p and q, such that of n ≥ n0,
+
+EW p(μ, ˆμn) ≤ c′ n−1/d .
+
+18 5.3.3 Early Stopping Error 
+
+Under Assumptions 1 and 2, the forward process converges exponentially in Kullback–Leibler (KL) divergence to the standard Gaussian distribution on RD as shown in Lemma 16. This result aligns with the established literature on exponential convergence of OU processes and is closely related to Lemma 9 in Chen et al. (2023a) and Proposition 4 of Benton et al. (2024). The proof of this result is provided in Appendix F. 
+
+Lemma 16. For any t ≥ log 2 /β , KL( ˆPt, γ D ) ≤ exp  −2βt  (D + M2(ˆ μ)2).
+
+5.3.4 Approximation Error 
+
+To effectively bound the overall error in Lemma 14, it is essential to control the approximation error term, denoted by (13). Understanding the approximation capabilities of neural networks has been a central theme in modern learning theory over the past decade. Foundational contributions by Cybenko (1989) and Hornik (1991) established the universal approximation property of neural networks with sigmoid-type activations, showing that sufficiently wide single-hidden-layer networks can approximate any continuous function on com-pact domains with arbitrary precision. Building on these classical results, a large body of recent works has examined the approximation power of deep neural networks, highlighting the advantages of depth and width in terms of expressivity and efficiency. Important advances in this direction include Yarotsky (2017); Petersen and Voigtlaender (2018); Shen et al. (2019); Schmidt-Hieber (2020); Lu et al. (2021), among many others. These results collectively demonstrate that deep ReLU networks can approximate smooth or compositional functions with rates that scale favorably with the intrinsic dimension of the problem. In the context of dif-fusion models, several recent works have extended these ideas to characterize the approximation capabilities of feed-forward ReLU networks for score-based representations of target measures supported on bounded domains, such as the unit hypercube; see, e.g., Tang and Yang (2024); Oko et al. (2023). In contrast, our result below establishes an approximation guarantee for the score function when the target measure μ is unbounded. A proof of this result can be found in Appendix G. 
+
+Theorem 17. Suppose that κ ≍ n− 2p(1+ q−p) 
+
+> d(q−p)
+
+. Then, there exists a feed-forward ReLU network s(·, ·) sat-isfying W(s) ≲  max 1≤i≤n ∥Xi∥∞ ∨ 1D n 2p+pD +2 D 
+
+> 2pd
+
+log n, L(s) ≲ log(1 /ϵ ) ≍ log n + log  max 1≤i≤n ∥Xi∥∞ ∨
+
+1 and B ≲ n 1 
+
+> d
+
+( p(1+ q−p)   
+
+> q−p+3
+> p
+
+)(∥Xi∥∞ + 1) , such that  
+
+> N−1
+
+X
+
+> i=0
+
+hi Ex∼ ˆPti
+
+s(x, t i) − ∇ log ˆ pti (x) 2 
+
+> ∞
+
+≲ n− 2p(1+ q−p) 
+
+> d(q−p)
+
+log n. (14) 
+
+5.4 Discussions on Minimax Lower Bounds 
+
+The upper bounds discussed in Theorem 13 matches the corresponding minimax lower bound when the support of μ is regular enough. One such regularity condition is the so-called Minkowski regularity. For 19 simplicity, we only consider distribution bounded within the unit hypercube [0 , 1] D .
+
+Definition 18 (Minkowski dimension) . For a bounded metric space (S, ϱ ), the upper Minkwoski dimension of S is defined as dim M (S) = lim sup ϵ↓0log N (ϵ; S, ϱ )log(1 /ϵ ) . Similarly, the lower Minkowski dimension of S is given by, dim M (S) = lim inf ϵ↓0 log N (ϵ; S, ϱ )log(1 /ϵ ) . If dim M (S) = dim M (S), we say that S is Minkowski regular and a has Minkowski dimension of dim M (S) = lim ϵ↓0 log N (ϵ; S, ϱ )log(1 /ϵ ) .
+
+Examples of Minkowski-regular sets include ˜d-regular sets as defined in Section 5.2 and include compact ˜d-dimensional differentiable manifolds, nonempty compact convex set spanned by an affine space of dimension ˜d; the relative boundary of a nonempty, compact convex set of dimension ˜d + 1; or a self-similar set with similarity dimension ˜d. For all these examples, dim M (S) = ˜d.Suppose that M ⊆ [0 , 1] D and let Π M denote the set of all probability distributions on M. We assume that one has access to n samples, X1, . . . , X n, generated independently from μ ∈ ΠM as in Assumption 1, without any moment conditions. To characterize this notion of best-performing estimator, we use the concept of minimax risk i.e. the risk of the best-performing estimator that achieves the minimum risk with respect to the least favorable members in Π M. Formally, the minimax risk for the problem is given by, 
+
+Mn = inf  
+
+> ˆμ
+
+sup 
+
+> μ∈ΠM
+
+EμWp(ˆ μ, μ ),
+
+where the infimum is taken over all measurable estimates of μ, i.e. on {ˆμ : ( X1, . . . , X n) → ΠRD :ˆμ is measurable }. Here, we write Eμ to denote that the expectation is taken with respect to the joint distribution of X1, . . . , X n, which are independently and identically distributed as μ. Chakraborty (2025) showed that for any positive constant δ > 0, Mn ≳ n− 1dim M (S)−δ , if n is large enough. Thus, if M is Minkowski regular and supp( μ) ⊆ M, then, by Proposition 9, d⋆p,q (μ) ≤ dim M (M), for any p < 12 dim M (M). Hence, for any p < 12 dim M (M), the upper bound of Theorem 13 scales as ˜O
+
+
+
+n− 1dim M (S)+ δ
+
+
+
+, which roughly matches the lower bound of Ω 
+
+
+
+n− 1dim M (S)−δ
+
+
+
+, except a δ factor in the exponent and poly-log factors in n. It should be noted that the δ factor in the exponent is an artifact of the use of lim sup and lim inf in the definition of the upper and lower Minkowski dimensions, and can be removed with exact conditions on the growth of the covering numbers. 
+
+# 6 Conclusions 
+
+This paper investigates the theoretical properties of score-matching-based diffusion models when the under-lying data distribution lies on an intrinsically low-dimensional structure embedded in a high-dimensional ambient data space. To formalize this intrinsic structure, we introduce the ( p, q )-Wasserstein dimension ,extending the classical notion of Wasserstein dimension (Weed and Bach, 2019). Under a finite q-moment 20 condition on the target distribution, we prove that the empirical measure converges to the population dis-tribution in Wasserstein-p distance at a rate of O
+
+
+
+n−1/d ⋆p,q (μ)
+
+
+
+, thereby providing a dimension-adaptive characterization of the sample complexity under the Wasserstein-p loss. Building on these results, we derive the first Wasserstein-p risk guarantee for score-based diffusion models. By combining sharp bounds on the statistical error of score matching with approximation guarantees for the empirical score functions, we show that the excess risk under a Wasserstein-p distance scales with the ambient ( p, q )-Wasserstein dimension of the data distribution. This bypasses the curse of dimensionality ( D)of the ambient feature space. Consequently, we show that score-based diffusion estimators can nearly achieve minimax-optimal estimation rates for distributions supported on intrinsically low-dimensional regular sets, including compact differentiable manifolds. Beyond the population-level analysis, we also address several algorithmic considerations that arise in practical diffusion implementations—namely, discretization , early stopping , and truncation of score esti-mates —and provide theoretically motivated prescriptions for these choices. In particular, our bounds imply an early stopping time for the forward diffusion process of order T = O(log n), together with an early stop-ping rule for the reverse process at time T − δ0, where δ0 = Θ( n−2/(pd )) is selected to ensure convergence of the forward process to the standard Gaussian distribution and mitigate variance explosion in the reverse process. For the numerical integration of both the backward dynamics, we recommend a partition of [0 , T ]with exponentially decaying step sizes, which ensures that the accumulated discretization error remains of the same order as the estimation error of the score network. These choices collectively yield a natural trade-off between the aforementioned errors that is dimension-adaptive and compatible with the minimax rates established in our statistical analysis. While our results provide detailed statistical guarantees, the optimization error arising from training deep neural score networks remains challenging to control due to the nonconvex and coupled nature of score matching. Our bounds are optimization-agnostic and can be integrated with future advances in optimiza-tion theory for diffusion models. Our approximation and generalization analyses are carried out under the assumption that the score network is realized by a ReLU architecture, which is standard in the statisti-cal learning literature and allows us to leverage existing approximation results for H¨ older and Besov-type function classes. However, we note that practical diffusion models typically employ far more structured architectures such as U-Nets or Transformers, which incorporate multiscale convolutional blocks, attention mechanisms, and skip connections. While these architectures often exhibit strong empirical smoothness and hierarchical approximation properties, providing rigorous guarantees for such structured networks remains an open problem. 21 Contents 
+
+1 Introduction 22 A Proof of Concept Result 53 Background 6
+
+3.1 Notations . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 63.2 Score Matching Diffusion Models . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+
+4 Intrinsic Data Dimension 10 5 Theoretical Analyses 12 
+
+5.1 Assumptions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 12 5.2 Main Result . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14 5.3 Proof Sketch of the Main Result . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17 5.3.1 Error Decomposition . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17 5.3.2 Generalization Gap . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18 5.3.3 Early Stopping Error . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19 5.3.4 Approximation Error . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19 5.4 Discussions on Minimax Lower Bounds . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19 
+
+6 Conclusions 20 A Omitted Proofs from Section 3.2 23 
+
+A.1 Existence of the Reverse Process . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 24 A.2 Solution to the Discretized Reverse Process through the Exponential Integrator Scheme . . . 24 A.3 Equivalence of the Sample Score-matching Objectives . . . . . . . . . . . . . . . . . . . . . . 25 
+
+B Relations between d⋆p,q and Other Notions of Intrinsic Dimension 26 C Proof of the Main Result 28 
+
+C.1 Proof of Theorem 13 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 28 C.2 Generalization Bounds for the Sample Score-matching Objective . . . . . . . . . . . . . . . . 30 
+
+D Generalization Error 32 
+
+D.1 Supporting Results . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 32 D.2 Proof of Theorem 10 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 33 D.3 Proof of Corollary 15 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 36 22 D.4 Additional Result . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 37 
+
+E Proof of the Oracle Inequality 37 
+
+E.1 Supporting Results . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 37 E.2 Proof of Lemma 14 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 39 
+
+F Early Stopping Error 40 G Approximation Error 40 H Discretization Error 42 
+
+H.1 Proof of Lemma 12 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 42 H.2 Supporting Lemmata . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 45 
+
+I Supporting Results from the Literature 47 
+
+# A Omitted Proofs from Section 3.2 
+
+Proposition 19. Let { ˆXt}t≥0 solve the SDE (2) in RD βt ≥ 0 is measurable with A(s, t ) := R ts βτ dτ < ∞.
+
+Then for any 0 ≤ s ≤ t,
+
+bXt | bXs ∼ N 
+
+
+
+e−A(s,t ) bXs,  1 − e−2A(s,t )ID
+
+
+
+.
+
+Proof. We define the (forward) integrating factor Mu := exp 
+
+ R u 
+
+> 0
+
+βr dr
+
+
+
+, u ≥ 0. Since Mu = exp   R u 
+
+> 0
+
+βr dr
+
+is a deterministic C1 function of u, d Mu = βuMu du. Applying the Itˆ o product rule to the product Mu bXu,because M has finite variation (deterministic) the quadratic covariation [ M, bX] ≡ 0, hence d( Mu bXu) = (d Mu) bXu + Mu d bXu.
+
+Substitute d Mu = βuMu du and the SDE for bXu:d( Mu bXu) = βuMu bXu du + Mu
+
+  − βu bXu du + p2βu dWu
+
+
+
+=  βuMu bXu − βuMu bXu
+
+du + Mu
+
+p2βu dWu
+
+= Mu
+
+p2βu dWu.
+
+For 0 ≤ s ≤ t, integrating this identity, we obtain, Mt bXt − Ms bXs = R ts Mu
+
+√2βu dWu. Since Mu =exp   R u 
+
+> 0
+
+βr dr,
+
+bXt = Ms
+
+Mt
+
+bXs + 1
+
+Mt
+
+Z ts
+
+Mu
+
+p2βu dWu = e−A(s,t ) bXs +
+
+Z ts
+
+e− R tu βr dr p2βu dWu,
+
+because Ms/M t = exp 
+
+
+
+− R ts βr dr
+
+
+
+= e−A(s,t ) and Mu/M t = e− R tu βr dr . Conditioned on bXs, the stochastic integral, Zs,t := R ts e− R tu βr dr √2βu dWu is independent of ˆXs, Gaussian and mean zero. Its covariance matrix 23 is scalar times the identity because W is standard and the integrand is scalar: Cov( Zs,t ) = EZs,t ZTs,t 
+
+ = 2 
+
+Z ts
+
+βue−2 R tu βr dr du · ID = 2 e−2 R t  
+
+> 0βrdr
+
+Z ts
+
+βue2 R u   
+
+> 0βrdr
+
+du · ID .
+
+Set B(u) := R u 
+
+> 0
+
+βr dr. Then, 2e−2B(t)
+
+Z ts
+
+βue2B(u) du = e−2B(t)h
+
+e2B(u)iu=tu=s
+
+= e−2B(t) e2B(t) − e2B(s)
+
+= 1 − e−2( B(t)−B(s)) = 1 − e−2A(s,t ).
+
+Therefore Cov( Zs,t ) = (1 − e−2A(s,t ))ID . Combining the mean e−A(s,t ) bXs and the covariance above yields the conditional Gaussian law 
+
+bXt | bXs ∼ N  e−A(s,t ) bXs, (1 − e−2A(s,t ))ID
+
+,
+
+as claimed. 
+
+A.1 Existence of the Reverse Process 
+
+Proposition 11. Under Assumption 2, the reverse process {Yt}0≤t≤T = { ˆXT −t}0≤t≤T satisfies the SDE of equation (3) .Proof. Note that the forward equation (2) is of the form, dXt = b(t, X t)d t + σ(t, X t)d Wt,
+
+with b(t, x ) = −βtx and σ(t, X t) = √2βt. Clearly, 
+
+|b(t, x ) − b(t, y )| + |σ(t, x ) − σ(t, y )| = βt|x − y| ≤ β|x − y|.
+
+Further, |b(t, x )| + |σ(t, x )| = βt|x| + √2βt ≤ β|x| + p2β ≤ max {β, p2β}(|x| + 1). Thus, (H1) of Millet et al. (1989) is satisfied with K = max {β, p2β}. Further both b, σ ∈ C2 in x and a = σ2 ≥ 2β. Hence (Hiii) of Millet et al. (1989) is satisfied. Thus, by Proposition 4.2 of Millet et al. (1989), Assumptions (Ai) and (Aii) of Millet et al. (1989) are satisfied. Hence, by Millet et al. (1989, Theorem 2.3), the reverse process satisfies (3). 
+
+A.2 Solution to the Discretized Reverse Process through the Exponential In-tegrator Scheme 
+
+Lemma 20. The SDE in (4) is solved by taking, 
+
+ˆYti+1 = ˆYti +
+
+
+
+e     
+
+> RT−tiT−ti+1 βsds
+
+− 1
+
+  ˆYti + 2ˆ s( ˆYti , T − ti)
+
+
+
++ Zi
+
+q
+
+e2 R T −tiT −ti+1 βsds − 1,
+
+where Zi’s are i.i.d. standard Gaussian random variables on RD .
+
+24 Proof. We define mt = e− R tti βT −sds and Vt = mtYt. Thus, dVt =d( mtYt)=mtdYt + Ytdmt
+
+=mt
+
+
+
+βT −t( ˆYt + 2ˆ s( ˆYti , T − ti))d t + p2βT −tdWt
+
+
+
+− βT −tmtYtdt
+
+=2 mtβT −t ˆs( ˆYti , T − ti)d t + mt
+
+p2βT −tdWt (15) Thus, 
+
+Vt =Vti + 2 
+
+Z tti
+
+MsβT −s ˆs( ˆYti , T − ti)d s +
+
+Z tti
+
+mt
+
+p2βT −tdWt
+
+=Yti + 2ˆ s( ˆYti , T − ti)
+
+Z tti
+
+MsβT −sds +
+
+Z tti
+
+mt
+
+p2βT −tdWt
+
+=⇒ Vti+1 =Yti + 2ˆ s( ˆYti , T − ti)
+
+Z ti+1 
+
+> ti
+
+MsβT −sds +
+
+Z ti+1 
+
+> ti
+
+mt
+
+p2βT −tdWt
+
+=⇒ e− R ti+1   
+
+> tiβT−sds
+
+Yti+1 =Yti + 2ˆ s( ˆYti , T − ti)
+
+
+
+1 − e− R ti+1   
+
+> tiβT−sds
+
+
+
++ Zi
+
+q
+
+1 − e−2 R ti+1   
+
+> tiβT−sds
+
+,
+
+where Zi ∼ γD . The result follows from multiplying both sides with e   
+
+> Rti+1
+> tiβT−sds
+
+.
+
+A.3 Equivalence of the Sample Score-matching Objectives 
+
+Lemma 21. The score-matching objectives in (6) and (7) admit the same minimizers. Furthermore, 
+
+E∥s( ˆXti , t i) − ∇ log ˆ pti ( ˆXti )∥2
+
+=E s
+
+
+
+e− R ti   
+
+> 0βτdτ
+
+ˆX0 +
+
+q
+
+1 − e− R ti   
+
+> 0βτdτ
+
+Zti , t i
+
+
+
++ Zti
+
+q
+
+1 − e−2 R ti  
+
+> 0βτdτ
+> 2
+
++ E∥∇ log ˆ pti ( ˆXti )∥2 − Dσ2
+
+> ti
+
+, (16) 
+
+where Zti ∼ γD and is independent of ˆX0. Here, σ2 
+
+> t
+
+= e−2 R ti   
+
+> 0βτdτ
+
+.Proof. We note that, 
+
+E∥s( ˆXti , t i) − ∇ log ˆ pti ( ˆXti )∥2
+
+=E∥s( ˆXti , t i)∥2 + E∥∇ log ˆ pti ( ˆXti )∥2 − 2E
+
+D
+
+s( ˆXti , t i), ∇ log ˆ pti ( ˆXti )
+
+E
+
+=E∥s( ˆXti , t i)∥2 + E∥∇ log ˆ pti ( ˆXti )∥2 − 2
+
+Z
+
+⟨s(x, t i), ∇ log ˆ pti (x)⟩ ˆpti (x)d x
+
+=E∥s( ˆXti , t i)∥2 + E∥∇ log ˆ pti ( ˆXti )∥2 − 2
+
+Z
+
+⟨s(x, t i), ∇ˆpti (x)⟩ dx
+
+=E∥s( ˆXti , t i)∥2 + E∥∇ log ˆ pti ( ˆXti )∥2 + 2 
+
+Z
+
+(∇ · s)( x, t i)ˆ pti (x)d x
+
+=E∥s( ˆXti , t i)∥2 + E∥∇ log ˆ pti ( ˆXti )∥2 + 2 
+
+Z
+
+(∇ · s)
+
+
+
+e− R ti   
+
+> 0βτdτ
+
+ˆx0 +
+
+q
+
+1 − e−2 R ti   
+
+> 0βτdτ
+
+Zti , t i
+
+
+
+dˆ μ(ˆ x0)d γD (Zti )=E∥s( ˆXti , t i)∥2 + E∥∇ log ˆ pti ( ˆXti )∥2
+
+25 + 21 − e−2 R ti 
+
+> 0
+
+βτ dτ
+
+Z 
+
+s
+
+
+
+e− R ti 
+
+> 0
+
+βτ dτ ˆx0 +
+
+q
+
+1 − e−2 R ti 
+
+> 0
+
+βτ dτ zti , t i
+
+
+
+,
+
+q
+
+1 − e−2 R ti 
+
+> 0
+
+βτ dτ zti
+
+
+
+dˆ μ(ˆ x0)d γD (zti )=E∥s( ˆXti , t i)∥2 + E∥∇ log ˆ pti ( ˆXti )∥2
+
++ 2
+
+q
+
+1 − e− R ti 
+
+> 0
+
+βτ dτ
+
+Z 
+
+s
+
+
+
+e− R ti 
+
+> 0
+
+βτ dτ ˆx0 +
+
+q
+
+1 − e−2 R ti 
+
+> 0
+
+βτ dτ zti , t i
+
+
+
+, z ti
+
+
+
+dˆ μ(ˆ x0)d γD (zti )=E s
+
+
+
+e− R ti 
+
+> 0
+
+βτ dτ ˆX0 +
+
+q
+
+1 − e−2 R ti 
+
+> 0
+
+βτ dτ Zti , t i
+
+
+
++ Zti
+
+q
+
+1 − e−2 R ti 
+
+> 0
+
+βτ dτ
+
+2
+
++ E∥∇ log ˆ pti ( ˆXti )∥2 − E Zti
+
+q
+
+1 − e−2 R ti 
+
+> 0
+
+βτ dτ
+
+2
+
+=E s
+
+
+
+e− R ti 
+
+> 0
+
+βτ dτ ˆX0 +
+
+q
+
+1 − e−2 R ti 
+
+> 0
+
+βτ dτ Zti , t i
+
+
+
++ Zti
+
+q
+
+1 − e−2 R ti 
+
+> 0
+
+βτ dτ
+
+2
+
++ E∥∇ log ˆ pti ( ˆXti )∥2 − D
+
+1 − e−2 R ti 
+
+> 0
+
+βτ dτ .
+
+# B Relations between d⋆p,q and Other Notions of Intrinsic Dimen-sion 
+
+Proposition 9. For any probability measure μ and 0 < p < q < ∞,(a) d∗
+
+p(μ) ≤ d⋆p,q (μ),(b) d⋆p,q (μ) is non-increasing in q.(c) d⋆p,q (μ) is non-decreasing in p.(d) For any 0 < p < dim M (μ)/2, d⋆p,q (μ) ≤ dim M (μ),(e) For any p ∈  0, dim P (μ)/2, d⋆p,q (μ) ≤ dim P (μ) ≤ dim reg (μ),(f ) dim reg (μ) ≤ d⋆p,q (μ).Proof. Proof of part (a) : Let, 
+
+Ap,q =
+
+s ∈ (2 p, ∞) : lim sup 
+
+ϵ↓0
+
+log Nϵ
+
+
+
+μ, ϵ spq 
+
+> (q−p)( s−2p)
+
+
+
+log(1 /ϵ ) ≤ s
+
+ .
+
+and 
+
+Bp =
+
+s ∈ (2 p, ∞) : lim sup 
+
+ϵ↓0
+
+log Nϵ
+
+
+
+μ, ϵ sp s−2p
+
+
+
+log(1 /ϵ ) ≤ s
+
+ .
+
+26 Fix s ∈ A. Then, lim sup ϵ↓0log Nϵ
+
+
+
+μ,ϵ 
+
+> spq
+> (q−p)( s−2p)
+
+
+
+log(1 /ϵ ) ≤ s. Since, q/ (q − p) > 1, log Nϵ
+
+
+
+μ, ϵ spq 
+
+> (q−p)( s−2p)
+
+
+
+≥
+
+Nϵ
+
+
+
+μ, ϵ spq 
+
+> (q−p)( s−2p)
+
+
+
+. Hence, lim sup 
+
+ϵ↓0
+
+log Nϵ
+
+
+
+μ, ϵ sp s−2p
+
+
+
+log(1 /ϵ ) ≤ lim sup 
+
+ϵ↓0
+
+log Nϵ
+
+
+
+μ, ϵ spq 
+
+> (q−p)( s−2p)
+
+
+
+log(1 /ϵ ) ≤ s. 
+
+This implies that s ∈ Bp. Hence, Ap,q ⊆ Bp, which implies that d∗
+
+p(μ) = inf Bp ≤ inf Bp = d⋆p,q (μ). 
+
+Proof of part (b) : If q1 ≤ q2, then, spq 1
+
+(q1−p)( s−2p) ≥ spq 2
+
+(q2−p)( s−2p) , which implies that ϵ spq 1(q1−p)( s−2p) ≤
+
+ϵ spq 2(q2−p)( s−2p) , for all 0 < ϵ < 1. Hence, Nϵ
+
+
+
+μ, ϵ spq 1(q1−p)( s−2p)
+
+
+
+≥ Nϵ
+
+
+
+μ, ϵ spq 2(q2−p)( s−2p)
+
+
+
+. Thus, if s ∈ Ap,q 1 ,lim sup 
+
+ϵ↓0
+
+log Nϵ
+
+
+
+μ, ϵ spq 2(q2−p)( s−2p)
+
+
+
+log(1 /ϵ ) ≤ lim sup 
+
+ϵ↓0
+
+log Nϵ
+
+
+
+μ, ϵ spq 1(q1−p)( s−2p)
+
+
+
+log(1 /ϵ ) ≤ s, 
+
+which implies that s ∈ Ap,q 2 . Hence, Ap,q 1 ⊆ Ap,q 2 . The result follows by taking infimum on both sides. 
+
+Proof of part (c) : Suppose that f (p) = spq 
+
+(q−p)( s−2p) . Clearly, f ′(p) = sq (sq −2p2)(q−p)2(s−2p)2 > 0, if s > 2p and 
+
+p < q . Thus, if p1 ≤ p2 and s > 2p2, sp 1q
+
+(q−p1)( s−2p1) ≤ sp 1q
+
+(q−p1)( s−2p1) , which implies that ϵ sp 1q 
+
+> (q−p1)( s−2p1)
+
+≥
+
+ϵ sp 2q 
+
+> (q−p2)( s−2p2)
+
+, for all 0 < ϵ < 1. Thus, if s ∈ Ap2,q ,lim sup 
+
+ϵ↓0
+
+log Nϵ
+
+
+
+μ, ϵ sp 1q
+
+> (q−p1)( s−2p1)
+
+
+
+log(1 /ϵ ) ≤ lim sup 
+
+ϵ↓0
+
+log Nϵ
+
+
+
+μ, ϵ sp 2q
+
+> (q−p2)( s−2p2)
+
+
+
+log(1 /ϵ ) ≤ s. 
+
+The above equation, combined with the fact that s > 2p2 ≥ 2p1 implies that s ∈ Ap1,q . Thus, Ap1,q ⊇
+
+Ap2,q =⇒ inf Ap1,q ≤ inf Ap2,q =⇒ d⋆p1,q (μ) ≤ d⋆p2,q (μ). 
+
+Proof of part (d) : This part of the proposition easily follows from the fact that, Nϵ
+
+
+
+μ, ϵ spq 
+
+> (q−p)( s−2p)
+
+
+
+≤N (ϵ; supp( μ), ℓ ∞). Thus, for any s ≥ dim M (μ), lim sup 
+
+ϵ↓0
+
+log Nϵ
+
+
+
+μ, ϵ spq 
+
+> (q−p)( s−2p)
+
+
+
+log(1 /ϵ ) ≤ lim sup 
+
+ϵ↓0
+
+log N (ϵ; supp( μ), ℓ ∞)log(1 /ϵ ) = dim M (μ) ≤ s. 
+
+Hence, [dim M (μ), ∞) ⊆ Ap,q =⇒ dim M (μ) ≥ inf Ap,q = d⋆p,q (μ). 
+
+Proof of part (e) : Let 0 < ϵ < 1, s > dim P (μ) and τ = ϵ spq  
+
+> (q−p)( s−2p)
+
+. S be such that μ(S) ≥ 1 − τ and 
+
+N (ϵ; S, ϱ ) = Nϵ(μ, τ ). We let R = diam( S) ∨ 1. Let {x1, . . . , x M } be an optimal 2 ϵ-packing of S ∩ supp( μ). By the definition of the upper packing dimension, for any s > dim P (μ) we can find r0 < 1, such that, log μ(B(x, r )) log r ≤ s, ∀r ≤ r0 and x ∈ supp( μ)=⇒ μ(B(x, r )) ≥ rs, ∀r ≤ r0 and x ∈ supp( μ).
+
+Thus, if ϵ ≤ r0, 1 ≥ μ  ∪Mi=1 B(xi, ϵ ) = PMi=1 μ (B(xi, ϵ )) ≥ M ϵ s =⇒ M ≤ ϵ−s. By Lemma 37, we know that Nϵ(μ, τ ) = N (ϵ; S, ϱ ) ≤ M ≤ ϵ−s. Thus, lim sup 
+
+ϵ↓0
+
+log Nϵ
+
+
+
+μ, ϵ spq 
+
+> (q−p)( s−2p)
+
+
+
+− log ϵ ≤ s =⇒ s ∈ Ap,q =⇒ d⋆p,q (μ) ≤ s. 
+
+27 Since d⋆p,q (μ) ≤ s, for all s > dim P (μ), we get, d⋆p,q (μ) ≤ dim P (μ). The inequality dim P (μ) ≤ dim reg (μ)follows from Fraser and Howroyd (2017, Theorem 2.1). 
+
+Proof of part (f ) : The result easily follows by observing that d⋆p,q (μ) ≥ d∗
+
+> p
+
+(μ) ≥ d∗(μ), where the second inequality follows from Weed and Bach (2019, Proposition 2) and d∗(μ) ≥ dim reg (μ), which follows from Chakraborty and Bartlett (2025, Proposition 8). 
+
+# C Proof of the Main Result 
+
+C.1 Proof of Theorem 13 
+
+Theorem 13 (Error rates for score-matching diffusion models) . Suppose that d > d ⋆p,q (μ) and 1 ≤ p < q .Assume that Assumptions 1 and 2 hold. Then, with the choice of the partition as stated in Section 5.1, if, T ≥ 12β
+
+ 2p(1+ q−p) 
+
+> d(q−p)
+
+log n + log  D + M22(μ)
+
+, R = n 1
+
+> d(q−p)
+
+ cq
+
+ Mqq (μ) + Mqq (γD ) 1 
+
+> q−p
+
+, δ0 = n− 2 
+
+> pd
+
+, and 
+
+κ ≍ n− 2p(1+ q−p) 
+
+> d(q−p)
+
+,
+
+EW p
+
+
+
+μ, TR
+
+ ˆQT −δ0 (ˆ sn)
+
+ 
+
+≲ n−1/d poly-log( n), (10) 
+
+if S = RN (L, W, B ), with, L ≍ log n + log(max 1≤i≤n ∥Xi∥∞ ∨ 1) , B ≍ n 1 
+
+> d
+
+( p(1+ q−p)   
+
+> q−p+3
+> p
+
+)(∥Xi∥∞ + 1) , and 
+
+W ≍ (max 1≤i≤n ∥Xi∥∞ ∨ 1) D n 1 
+
+> d
+
+((2+ D) p(1+ q−p)   
+
+> q−p+Dp
+
+)  log 2 n + log n · log(max 1≤i≤n ∥Xi∥∞ ∨ 1) .Further, there exists constants cim and a polynomial of log n and max 1≤i≤n ∥Xi∥∞ ∨ 1, such that if 
+
+mi ≥ cim
+
+σ4
+
+> ti
+
+h2
+
+> i
+
+n 1 
+
+> d
+
+((2+ D) p(1+ q−p)   
+
+> q−p+Dp
+
+)+ 2p(1+ q−p) 
+
+> d(q−p)
+
+poly(log n, max  
+
+> 1≤i≤n
+
+∥Xi∥∞ ∨ 1) ,
+
+then, 
+
+EW p
+
+
+
+μ, TR
+
+ ˆQT −δ0 (ˆ smc  
+
+> n
+
+)
+
+ 
+
+≲ n−1/d poly-log( n). (11) 
+
+Proof. For notatiopnal simplicity, let, M = max 1≤i≤n ∥Xi∥∞. Fix d > d ⋆p,q (μ). From Lemma 14, we note that, 
+
+EW p(μ, TR( ˆQT −δ0 (s))) 
+
+≤EW p(μ, ˆμ) + R
+
+2 12p
+
+E KL( ˆPT , γ D ) 12p + R(2 β2) 12p 
+
+> N−1
+
+X
+
+> i=0
+
+hiE∥s( ˆXT −ti , T − ti) − ∇ log ˆ pT −ti ( ˆXT −ti )∥2
+
+!1/2p
+
++ R(2 β2) 12p 
+
+> N−1
+
+X
+
+> i=0
+
+Z ti+1 
+
+> ti
+
+E∥∇ log ˆ pT −ti ( ˆXT −ti ) − ∇ log ˆ pT −t( ˆXT −t)∥2dt
+
+!1/2p
+
++ cp
+
+
+
+(βδ )pEMpp(ˆ μ) + ( βδ )p/ 2Mpp(γD )
+
+
+
++ cq
+
+ EMqp(ˆ μ) + Mqq (γD ) R−(q−p)
+
+≤EW p(μ, ˆμ) + R
+
+2 12p
+
+E  exp  −2βT  (D + M22(ˆ μ))  12p
+
++ R(2 β2) 12p 
+
+> N−1
+
+X
+
+> i=0
+
+hiE∥s( ˆXT −ti , T − ti) − ∇ log ˆ pT −ti ( ˆXT −ti )∥2
+
+!1/2p
+
+28 + R(2 β2) 12p
+
+N −1X
+
+i=0 
+
+Z ti+1 
+
+ti
+
+E∥∇ log ˆ pT −ti ( ˆXT −ti ) − ∇ log ˆ pT −t( ˆXT −t)∥2dt
+
+!1/2p
+
++ cp
+
+
+
+(βδ )pMpp(μ) + ( βδ )p/ 2Mpp(γD )
+
+
+
++ cq
+
+ Mqq (μ) + Mqq (γD ) R−(q−p)
+
+≤EW p(μ, ˆμ) + R
+
+2 12p
+
+exp  −βT /p  (D + M22(μ)) 12p
+
++ R(2 β2) 12p
+
+N −1X
+
+i=0 
+
+hiE∥s( ˆXT −ti , T − ti) − ∇ log ˆ pT −ti ( ˆXT −ti )∥2
+
+!1/2p
+
++ R(2 β2) 12p
+
+N −1X
+
+i=0 
+
+Z ti+1 
+
+ti
+
+E∥∇ log ˆ pT −ti ( ˆXT −ti ) − ∇ log ˆ pT −t( ˆXT −t)∥2dt
+
+!1/2p
+
++ cp
+
+
+
+(βδ )pMpp(μ) + ( βδ )p/ 2Mpp(γD )
+
+
+
++ cq
+
+ Mqq (μ) + Mqq (γD ) R−(q−p). (17) In Lemma 33, we take κ ≍ n− 2p(1+ q−p) 
+
+> d(q−p)
+
+. This makes, N ≲ n 2p(1+ q−p) 
+
+> d(q−p)
+
+log n and PN −1
+
+i=0 (ti+1 −ti)2
+
+σ4
+
+> ti
+
+≲
+
+n− 2p(1+ q−p) 
+
+> d(q−p)
+
+log n. Hence, from Lemma 32, 
+
+N −1X
+
+i=0 
+
+Z ti+1 
+
+ti
+
+β2
+
+T −tE∥∇ log ˆ pT −ti (XT −ti ) − ∇ log ˆ pT −t(XT −t)∥2dt ≲ n− 2p(1+ q−p) 
+
+> d(q−p)
+
+log n (18) We first prove the inequality for ˆ sn, i.e. equation (10). To show this, we note that, from Theorem 17, if S =
+
+RN (L, W, B ), with W ≲ (M ∨ 1) D n (D+2) p2+Dpd 
+
+ log 2 n + log( M ∨ 1) log n, L ≲ log(1 /ϵ ) ≍ log n + log( M ∨ 1) and B ≲ n 1 
+
+> d
+
+( p(1+ q−p) 
+
+> q−p
+
++ 3 
+
+> p
+
+)(∥Xi∥∞ + 1), 
+
+N −1X
+
+i=0 
+
+hi∥ˆsn(·, T − ti) − ∇ log ˆ pT −ti (·)∥2
+
+L2( ˆPT −ti ) = inf 
+
+s∈S
+
+N −1X
+
+i=0 
+
+hi∥s(·, T − ti) − ∇ log ˆ pT −ti (·)∥2
+
+L2( ˆPT −ti )
+
+≲ n− 2p(1+ q−p) 
+
+> d(q−p)
+
+log n
+
+Finally, we take R = n 1
+
+> d(q−p)
+
+ cq
+
+ Mqq (μ) + Mqq (γD ) 1 
+
+> q−p
+
+, T ≥ 12β
+
+ 2p(1+ q−p)
+
+d(q−p) log n + log  D + M22(μ)
+
+, and 
+
+δ0 ≍ n−2/(pd ). Plugging in these values in equation (17), we observe that, 
+
+EW p(μ, TR( ˆQT −δ0 (s))) ≲ EW p(μ, ˆμn) + n−1/d poly-log( n)
+
+≲ n−1/d poly-log( n),
+
+where the final inequality follows from Corollary 15. Similarly, from Lemma 22, if mi ≥ C σ4
+
+> ti
+
+h2
+
+> i
+
+n 1 
+
+> d
+
+((2+ D) p(1+ q−p) 
+
+> q−p
+
++ Dp )+ 2p(1+ q−p) 
+
+> d(q−p)
+
+poly(log n, max i∈[n] ∥Xi∥∞ ∨ 1) ,
+
+N −1X
+
+i=0 
+
+hiE∥ˆsmc 
+
+n (·, t i) − ∇ log ˆ pti (·)∥2
+
+L2( ˆPti ) ≲ inf 
+
+s∈S
+
+N −1X
+
+i=0 
+
+hi∥s(·, t i) − ∇ log ˆ pti (·)∥2
+
+L2( ˆPti ) + n− 2p(1+ q−p)
+
+> d(q−p)
+
+≲ n− 2p(1+ q−p) 
+
+> d(q−p)
+
+log n + n− 2p(1+ q−p)
+
+> d(q−p)
+
+≲ n− 2p(1+ q−p) 
+
+> d(q−p)
+
+.
+
+With the above choices of R, δ0 and T , (11) follows from a similar calculation. 29 C.2 Generalization Bounds for the Sample Score-matching Objective 
+
+This section proves generalization bounds for the sample score matching objective (8). 
+
+Lemma 22. Suppose that s0 ∈ S. There exists a constant C an n0, such that if 
+
+mi ≥ C σ4
+
+ti
+
+h2
+
+i
+
+n 1 
+
+> d
+
+((2+ D) p(1+ q−p) 
+
+> q−p
+
++ Dp )+ 2p(1+ q−p) 
+
+> d(q−p)
+
+poly(log n, max 
+
+1≤i≤n ∥Xi∥∞ ∨ 1) 
+
+and n ≥ n0, then, 
+
+N −1X
+
+i=0 
+
+hiE∥ˆsmc 
+
+n (·, t i) − ∇ log ˆ pti (·)∥2
+
+L2( ˆPti ) ≲
+
+N −1X
+
+i=0 
+
+hi∥s0(·, t i) − ∇ log ˆ pti (·)∥2
+
+L2( ˆPti ) + n− 2p(1+ q−p) 
+
+> d(q−p)
+
+.
+
+Proof. For notational simplicity, let, M = max 1≤i≤n ∥Xi∥∞. Take ϵ = n− p(1+ q−p) 
+
+> d(q−p)
+
+and δ = N −1(M ∨
+
+1) −1δ0n− 2p(1+ q−p) 
+
+> q−p
+
+= ( M ∨ 1) −1n− 2( q−p)+3 p2(q−p+1)  
+
+> pd (q−p)
+
+. We choose 
+
+mi ≥ (M ∨ 1) 2 σ4
+
+ti log( N (1 + N (ϵ; S, ℓ ∞)) /δ )
+
+h2
+
+i
+
+× n 2p(1+ q−p) 
+
+> d(q−p)
+
+.
+
+Thus, it is enough to choose 
+
+mi ≥ σ4
+
+ti (M ∨ 1) 2
+
+h2
+
+i
+
+
+
+log N + log(1 /δ ) + W log 
+
+
+
+2LB L(W + 1) Ln− p(1+ q−p)
+
+> d(q−p)
+
+
+
+× n 2p(1+ q−p)
+
+> d(q−p)
+
+
+
+≍ σ4
+
+ti
+
+h2
+
+i
+
+n 1 
+
+> d
+
+((2+ D) p(1+ q−p) 
+
+> q−p
+
++ Dp )+ 2p(1+ q−p) 
+
+> d(q−p)
+
+poly(log n, M ∨ 1) .
+
+From Lemma 23, this will ensure that with probability at least 1 − δ,
+
+N −1X
+
+i=0 
+
+hi∥ˆsmc 
+
+n (·, t i) − ∇ log ˆ pti (·)∥2
+
+L2( ˆPti ) ≲
+
+N −1X
+
+i=0 
+
+hi∥s0(·, t i) − ∇ log ˆ pti (·)∥2
+
+L2( ˆPti ) + n− 2p(1+ q−p) 
+
+> d(q−p)
+
+. (19) Suppose that a1 be the constant that honors the inequality in (20), i.e. 
+
+N −1X
+
+i=0 
+
+hi∥ˆsmc 
+
+n (·, t i) − ∇ log ˆ pti (·)∥2
+
+L2( ˆPti ) ≤a1
+
+N −1X
+
+i=0 
+
+hi∥s0(·, t i) − ∇ log ˆ pti (·)∥2
+
+L2( ˆPti ) + a1n− 2p(1+ q−p) 
+
+> d(q−p)
+
+. (20) This implies that 
+
+N −1X
+
+i=0 
+
+hiE∥ˆsmc 
+
+n (·, t i) − ∇ log ˆ pti (·)∥2
+
+L2( ˆPti )
+
+=E
+
+" N −1X
+
+i=0 
+
+hi∥ˆsmc 
+
+n (·, t i) − ∇ log ˆ pti (·)∥2
+
+L2( ˆPti )
+
+!
+
+× 1
+
+(N −1X
+
+i=0 
+
+hi∥ˆsmc 
+
+n (·, t i) − ∇ log ˆ pti (·)∥2
+
+L2( ˆPti ) ≤ a1
+
+N −1X
+
+i=0 
+
+hi∥s0(·, t i) − ∇ log ˆ pti (·)∥2
+
+L2( ˆPti ) + a1n− 2p(1+ q−p)
+
+> d(q−p)
+
+) # 
+
++ E
+
+" N −1X
+
+i=0 
+
+hi∥ˆsmc 
+
+n (·, t i) − ∇ log ˆ pti (·)∥2
+
+L2( ˆPti )
+
+!
+
+× 1
+
+(N −1X
+
+i=0 
+
+hi∥ˆsmc 
+
+n (·, t i) − ∇ log ˆ pti (·)∥2
+
+L2( ˆPti ) ≥ a1
+
+N −1X
+
+i=0 
+
+hi∥s0(·, t i) − ∇ log ˆ pti (·)∥2
+
+L2( ˆPti ) + a1n− 2p(1+ q−p)
+
+> d(q−p)
+
+) # 
+
+30 ≤a1 
+
+> N−1
+
+X
+
+> i=0
+
+hi∥s0(·, t i) − ∇ log ˆ pti (·)∥2  
+
+> L2( ˆPti)
+
++ a1n− 2p(1+ q−p) 
+
+> d(q−p)
+
++ 
+
+> N−1
+
+X
+
+> i=0
+
+mtMσt2
+
+> i
+
+δ
+
+≲ 
+
+> N−1
+
+X
+
+> i=0
+
+hi∥s0(·, t i) − ∇ log ˆ pti (·)∥2  
+
+> L2( ˆPti)
+
++ n− 2p(1+ q−p) 
+
+> d(q−p)
+
+(21) 
+
+Lemma 23. Suppose that 0 < δ, ϵ < 1 and s0 ∈ S. Then, with probability at least 1 − δ, 
+
+> N−1
+
+X
+
+> i=0
+
+hi∥ˆsmc  
+
+> n
+
+(·, t i) − ∇ log ˆ pti (·)∥2 
+
+> L2( ˆPti)
+
+≲ 
+
+> N−1
+
+X
+
+> i=0
+
+hi∥s0(·, t i) − ∇ log ˆ pti (·)∥2  
+
+> L2( ˆPti)
+
++ M 
+
+> N−1
+
+X
+
+> i=0
+
+hi
+
+σ2
+
+> ti
+
+s
+
+log( N (1 + N (ϵ; S, ℓ ∞)) /δ )
+
+mi
+
++ ϵ2 (22) 
+
+Proof. For notational simplicity, we write ˆX(j) 
+
+> ti
+
+= e− R ti   
+
+> 0βτdτ
+
+X(j) 
+
+> ti
+
++
+
+q
+
+1 − e− R ti   
+
+> 0βτdτ
+
+Z(j) 
+
+> ti
+
+. Fix i ∈ [N ]. We note that, 1
+
+m 
+
+> N−1
+
+X
+
+> i=0
+> m
+
+X
+
+> j=1
+
+hi s
+
+ ˆX(j) 
+
+> ti
+
+, t i
+
+
+
++ Z(j)
+
+> ti
+
+σti
+
+> 2
+
+−
+
+> m
+
+X
+
+> j=1
+
+hiE∥ˆsmc  
+
+> n
+
+( ˆXti ) + Zti /σ ti ∥2 (23) = 1
+
+m 
+
+> N−1
+
+X
+
+> i=0
+> m
+
+X
+
+> j=1
+
+hi
+
+ s
+
+ ˆX(j) 
+
+> ti
+
+, t i
+
+
+
++ Z(j)
+
+> ti
+
+σti
+
+> 2
+
+− E ˆsmc  
+
+> n
+
+( ˆXti ) + Zti
+
+σti
+
+> 2
+
+ (24) For any i, and s ∈ S, we note that with probability at least 1 − δ,
+
+1
+
+m
+
+> m
+
+X
+
+> j=1
+
+ s
+
+ ˆX(j) 
+
+> ti
+
+, t i
+
+
+
++ Z(j)
+
+> ti
+
+σti
+
+> 2
+
+− E ˆsmc  
+
+> n
+
+( ˆXti ) + Zti
+
+σti
+
+> 2
+
+
+
+≤8e s
+
+ ˆX(j) 
+
+> ti
+
+, t i
+
+
+
++ Z(j)
+
+> ti
+
+σti
+
+> 2
+> ψ1
+
+r 2 log(1 /δ )
+
+m (25) 
+
+≲ s
+
+ ˆX(j) 
+
+> ti
+
+, t i
+
+ 2
+
+> ψ1
+
++ 1
+
+σ2
+
+> ti
+
+Z(j)
+
+> ti
+> 2
+> ψ1
+
+! r 2 log(1 /δ )
+
+m
+
+≲ Mσ2
+
+> ti
+
+r log(1 /δ )
+
+m (26) In the above, ∥ · ∥ ψ1 denotes the Orlicz-1 norm. By the union bound, with probability at least 1 − N δ , 
+
+> N−1
+
+X
+
+> i=0
+
+hi
+
+1
+
+m
+
+> m
+
+X
+
+> j=1
+
+ s
+
+ ˆX(j) 
+
+> ti
+
+, t i
+
+
+
++ Z(j)
+
+> ti
+
+σti
+
+> 2
+
+− E ˆsmc  
+
+> n
+
+( ˆXti ) + Zti
+
+σti
+
+> 2
+
+ ≲ M 
+
+> N−1
+
+X
+
+> i=0
+
+hi
+
+σ2
+
+> ti
+
+r log(1 /δ )
+
+m (27) Let C (ϵ; S, ℓ ∞) be an ϵ-cover of S in the ℓ∞ norm. Further, let s0 be such that (14) is satisfied. Thus, with probability at least 1 − N (1 + N (ϵ; S, ℓ ∞)) δ, 
+
+> N−1
+
+X
+
+> i=0
+
+hi
+
+1
+
+m
+
+> m
+
+X
+
+> j=1
+
+ s
+
+ ˆX(j) 
+
+> ti
+
+, t i
+
+
+
++ Z(j)
+
+> ti
+
+σti
+
+> 2
+
+− E ˆsmc  
+
+> n
+
+( ˆXti ) + Zti
+
+σti
+
+> 2
+
+ ≲ M 
+
+> N−1
+
+X
+
+> i=0
+
+hi
+
+σ2
+
+> ti
+
+r log(1 /δ )
+
+m , (28) 31 for any s ∈ C (ϵ; S, ℓ ∞) ∪ { s0}. Let ˜ s ∈ C (ϵ; S, ℓ ∞) be such that ∥ˆsmc  
+
+> n
+
+− ˜s∥∞ ≤ ϵ. We now observe that,  
+
+> N−1
+
+X
+
+> i=0
+
+hiE ˆsmc  
+
+> n
+
+( ˆXti ) + Zti
+
+σti
+
+> 2
+
+= 
+
+> N−1
+
+X
+
+> i=0
+
+hiE ˜s( ˆXti ) + Zti
+
+σti
+
++ ˆ smc  
+
+> n
+
+( ˆXti ) − ˜s( ˆXti )
+
+> 2
+
+≤2 
+
+> N−1
+
+X
+
+> i=0
+
+hiE ˜s( ˆXti ) + Zti
+
+σti
+
+> 2
+
++ 2 ˆsmc  
+
+> n
+
+( ˆXti ) − ˜s( ˆXti ) 2
+
+≲ 1
+
+m 
+
+> N−1
+
+X
+
+> i=0
+> m
+
+X
+
+> j=1
+
+hi ˜s( ˆX(j) 
+
+> ti
+
+) + Z(j)
+
+> ti
+
+σti
+
+> 2
+
++ M 
+
+> N−1
+
+X
+
+> i=0
+
+hi
+
+σ2
+
+> ti
+
+r log(1 /δ )
+
+m + ϵ2
+
+≤ 1
+
+m 
+
+> N−1
+
+X
+
+> i=0
+> m
+
+X
+
+> j=1
+
+hi s0( ˆX(j) 
+
+> ti
+
+) + Z(j)
+
+> ti
+
+σti
+
+> 2
+
++ M 
+
+> N−1
+
+X
+
+> i=0
+
+hi
+
+σ2
+
+> ti
+
+r log(1 /δ )
+
+m + ϵ2
+
+≲ 
+
+> N−1
+
+X
+
+> i=0
+
+hiE s0( ˆXti ) + Zti
+
+σti
+
+> 2
+
++ M 
+
+> N−1
+
+X
+
+> i=0
+
+hi
+
+σ2
+
+> ti
+
+r log(1 /δ )
+
+m + ϵ2 (29) Thus, with probability at least 1 − δ, 
+
+> N−1
+
+X
+
+> i=0
+
+hiE∥ˆsmc  
+
+> n
+
+( ˆXti , t i) − ∇ log ˆ pti ( ˆXti )∥2
+
+≲ 
+
+> N−1
+
+X
+
+> i=0
+
+hiE∥s0( ˆXti , t i) − ∇ log ˆ pti ( ˆXti )∥2 + M 
+
+> N−1
+
+X
+
+> i=0
+
+hi
+
+σ2
+
+> ti
+
+s
+
+log( N (1 + N (ϵ; S, ℓ ∞)) /δ )
+
+mi
+
++ ϵ2 (30) 
+
+# D Generalization Error 
+
+D.1 Supporting Results 
+
+We first prove in Lemma 24 that the set A (defined below) takes the shape of an interval (left open or closed). For notational simplicity, we will take α = q/ (q − p) throughout this section. 
+
+Lemma 24. Suppose that A =
+
+s ∈ (2 p, ∞) : lim sup ϵ↓0log Nϵ 
+
+> 
+> μ,ϵ
+> spq
+> (q−p)( s−2p)
+> 
+> log(1 /ϵ )
+
+≤ s
+
+. Then, A ⊇ (d⋆p,q (μ), ∞).Proof. We begin by claiming the following: 
+
+Claim : If s1 ∈ A then s2 ∈ A, for all s2 ≥ s1. (31) To observe this, we note that, if s2 ≥ s1 > 2p and ϵ ∈ (0 , 1), 
+
+s1pα s1 − 2p ≥ s2pα s2 − 2p =⇒ ϵ s1pα s1−2p ≤ ϵ s2pα s2−2p =⇒ Nϵ
+
+
+
+μ, ϵ s1pα s1−2p
+
+
+
+≥ Nϵ
+
+
+
+μ, ϵ s2pα s2−2p
+
+
+
+.
+
+Here the last implication follows from Lemma 31 of Chakraborty and Bartlett (2025). Thus, lim sup 
+
+> ϵ↓0
+
+log Nϵ
+
+
+
+μ, ϵ s2pα s2−2p
+
+
+
+log(1 /ϵ ) ≤ lim sup 
+
+> ϵ↓0
+
+log Nϵ
+
+
+
+μ, ϵ s1pα s1−2p
+
+
+
+log(1 /ϵ ) ≤ s1 ≤ s2.
+
+32 Hence, s2 ∈ A. Let s > d ⋆p,q (μ), then by definition of infimum, we note that we can find s′ ∈ [d⋆p,q (μ), s ), such that, s′ ∈ A. Since, s > s ′ ∈ A, by Claim (31), s ∈ A. Thus, for any s > d ∗
+
+> α
+
+(Λ), s ∈ A, which proves the lemma. An immediate corollary of Lemma 24 is as follows. 
+
+Corollary 25. Let s > d ⋆p,q (μ). Then, there exists ϵ′ ∈ (0 , 1] , such that if 0 < ϵ ≤ ϵ′, then, there exists a set 
+
+S, such that N (ϵ; S, ϱ ) ≤ ϵ−s and μ(S) ≥ 1 − ϵ spq  
+
+> (q−p)( s−2p)
+
+.Proof. Let δ = s − d⋆p,q (μ). By Lemma 24, we observe that s′ = d⋆p,q (μ) + δ/ 2 ∈ A. Now by definition of lim sup, one can find a ϵ′ > 0, such that,    
+
+> log Nϵμ,ϵ
+> s′pα s′−2p
+> !
+> log(1 /ϵ )
+
+≤ s′ + δ/ 2 = s, for all ϵ ∈ (0 , ϵ ′]. The result now follows from observing that Nϵ
+
+
+
+μ, ϵ sα s−2α
+
+
+
+≤ Nϵ
+
+
+
+μ, ϵ s′pα s′−2p
+
+
+
+≤ ϵ−s.By Corollary 25, we can find an ϵ′ ∈ (0 , 1], such that if ϵ ∈ (0 , ϵ ′], we can find Sϵ, such that N (ϵ; Sϵ, ℓ ∞) ≤
+
+ϵ−d and μ(Sϵ) ≥ 1 − ϵ dpα d−2p . We state and prove the following lemma that helps us create the base of a sequential partitioning of RD . For notational simplicity, we use diam( A) = sup x,y ∈A ϱ(x, y ) to denote the diameter of a set w.r.t. the metric ℓ∞-norm. 
+
+Lemma 26. For any r ≥ ⌈ log 3(1 /ϵ ′)−2⌉, we can find disjoint sets Sr, 0, . . . , S r,m r , such that, ∪mr
+
+> j=0
+
+Sr,j = Rd.Furthermore, mr ≤ 3d(r+2) , diam( Sr,j ) ≤ 3−(r+1) , for all j = 1 , . . . , m r and μ(Sr, 0) ≤ 3− d(r+2) pα d−2p .Proof. We take ϵ = 3 −(r+2) . Clearly, 0 < ϵ ≤ ϵ′. We take Sr, 0 = S∁ 
+
+> ϵ
+
+. By definition of covering numbers, we can find a minimal ϵ-net {x1, . . . , x mr }, such that S ⊆ ∪ mr
+
+> j=1
+
+Bℓ∞ (xi, ϵ ) and mr ≤ ϵ−d = 3 d(r+2) . We construct Sr, 1, . . . S r,m r as follows: 
+
+• Take Sr, 1 = Bℓ∞ (x1, ϵ ) \ Sr, 0.
+
+• For any j = 2 , . . . , m r , we take Sr,j = Bℓ∞ (xj , ϵ ) \
+
+
+
+∪j−1
+
+> j′=0
+
+Sr,j ′
+
+
+
+.By construction {Sr,j }mr 
+
+> j=0
+
+are disjoint. Moreover, μ(Sr, 0) = 1 − μ(Sϵ) ≤ ϵ dpα d−2p = 3 − d(r+2) pα d−2p . Furthermore since, Sr,j ⊆ Bℓ∞ (xj , ϵ ), diam( Sr,j ) ≤ diam( Bℓ∞ (xj , ϵ )) = 2 ϵ = 2 × 3−(r+2) ≤ 3−(r+1) .
+
+D.2 Proof of Theorem 10 
+
+Proof. Let s ≤ t with s, t ∈ N. We define Ss:t, 0 = ∪tr=sSr, 0. We define the sets At,i = St,i \ Ss:t, 0 for all 
+
+i ∈ [mt]. Clearly, diam( At,i ) ≤ 3−(t+1) . We define the following diadic partition of ∪mt
+
+> i=1
+
+At,i as follows: 33 • Take Qt = {At,i }mt
+
+> i=1
+
+.
+
+• Given ℓ + 1, let, Qℓ 
+
+> 1
+
+= S 
+
+> Q∈Qℓ+1 ,Q∩Sℓ, 1̸=∅
+
+Q and if 2 ≤ j ≤ mℓ, we let, 
+
+Qℓj =
+
+ [ 
+
+> Q∈Qℓ+1 ,Q∩Sr,j ̸=∅
+
+Q
+
+
+
+\
+
+
+
+∪j−1
+
+> j′=1
+
+Qℓj′
+
+
+
+.
+
+Take Qℓ = {Qℓj }mℓ
+
+> j=1
+
+.Clearly for any Q ∈ Qℓ, sup 
+
+> Q∈Qℓ
+
+diam( Q) ≤ 2 sup 
+
+> Q′∈Qℓ+1
+
+diam( Q′) + sup 
+
+> 1≤j≤mℓ
+
+diam( Sℓ,j ) ≤ 3 × 3−(ℓ+1) = 3 −ℓ, by induction. Also, if Q ∈ Qℓ+1 , we can find sets Q′
+
+> 1
+
+, . . . , Q ′ 
+
+> k
+
+∈ Qℓ, such that {Q′
+
+> i
+
+}i∈[k] constitutes a partition of Q. Furthermore, |Qℓ| ≤ mℓ, by construction. Let, μs = μ and νs = ˆ μn. We recursively define, 
+
+πr = X   
+
+> j:Qrj∈Qr,μ t(Qrj)>0
+
+1 − νt(Qrj )
+
+μt(Qrj )
+
+!
+
+> +
+
+μr |Qrj
+
+ρr = X   
+
+> j:Qrj∈Qr,ν t(Qrj)>0
+
+1 − μt(Qrj )
+
+νt(Qrj )
+
+!
+
+> +
+
+νr |Qrj
+
+Clearly, 0 ≤ πr ≤ μr and 0 ≤ ρr ≤ νr . Further μr+1 = μ − Prτ =s πτ and νr+1 = ν − Ptτ =s ρτ . It is easy to see that if γr ∈ Couple( πr , ρ r ) for all r ≤ t and γt+1 ∈ Couple( μt+1 , ρ t+1 ), we note that, 
+
+> t+1
+
+X
+
+> r=s
+
+γt ∈ Couple 
+
+> t
+
+X
+
+> r=s
+
+πt + μt+1 ,
+
+> t
+
+X
+
+> r=s
+
+ρr + νt+1 
+
+!
+
+= Couple( μ, ˆμn).
+
+Here, Couple( μ, ν ) denotes the set of all measure couples between μ and ν. Thus, 
+
+Wpp(μ, ˆμn) ≤
+
+> t
+
+X
+
+> r=s
+
+Wpp(πt, ρ t) + Wpp(μt+1 , ν t+1 )
+
+≲
+
+> t
+
+X
+
+> r=s
+
+Wpp(πt, ρ t) + Wpp(μt+1 |S∁
+
+> s+t:0
+
+, ν t+1 |S∁
+
+> s+t:0
+
+) + Wpp(μ, μ t+1 |Ss+t:0 ) + Wpp(ˆ μ, ν t+1 |Ss+t:0 ) (32) We define 
+
+γr = X 
+
+> Q∈Qr−1,π r(Q)>0
+
+πr |Q ⊗ ρr |Q
+
+πr (Q) .
+
+Let us first prove that γr is indeed a measure couple between πr and ρr . Suppose that U is a measurable subset of RD . Then, 
+
+γr (RD , U ) = X 
+
+> Q∈Qr−1,π r(Q)>0
+
+πr (Q)ρr (Q ∩ U )
+
+πr (Q) = ρr (U ).
+
+Similarly, 
+
+γr (U, RD ) = X 
+
+> Q∈Qr−1,π r(Q)>0
+
+πr (Q ∩ U )ρr (Q)
+
+πr (Q) = X 
+
+> Q∈Qr−1,π r(Q)>0
+
+πr (Q ∩ U )ρr (Q)
+
+ρr (Q) = πr (U ).
+
+34 The second equality in the above equation follows from Lemma 27. Thus, 
+
+Wpp(πr , ρ r ) ≤
+
+Z
+
+∥x − y∥pdγ(x, y )= X 
+
+> Q∈Qr−1,π r(Q)>0
+
+1
+
+πr (Q)
+
+Z
+
+> Q
+
+∥x − y∥pdπr (x)d ρr (y)
+
+≤ X 
+
+> Q∈Qr−1,π r(Q)>0
+
+(diam( Q)) p
+
+πr (Q) πr (Q)ρr (Q)=3 −p(r−1) ρr (S∁
+
+> s:t:0
+
+) (33) Again since μt+1 (Q) = νt+1 (Q), for all Q ∈ Qt, by a similar argument, 
+
+Wpp(μt+1 |S∁
+
+> s:t, 0
+
+, ν t+1 |S∁
+
+> s:t, 0
+
+) ≤3−pt μt+1 (S∁
+
+> s:t:0
+
+) ≤ 3−pt . (34) combining (32), (33) and (34), we observe that, 
+
+Wpp(μ, ˆμ) ≲3−pt +
+
+> t
+
+X
+
+> r=s
+
+3−p(r−1) ρr (S∁
+
+> s:t, 0
+
+) + Wpp(μ, μ t+1 |Ss+t:0 ) + Wpp(ˆ μ, ν t+1 |Ss+t:0 ). (35) We now concentrate on bounding ρr (S∁
+
+> s:t, 0
+
+). Clearly, 
+
+ρr (S∁
+
+> s:t, 0
+
+) = X
+
+> Q∈Qr
+
+(νr (Q) − μr (Q)) + = 12
+
+X
+
+> Q∈Qr
+
+|νr (Q) − μr (Q)| (36) We claim that for any s ≤ r ≤ t, there exists scalars c1(Q, r ) and c2(Q, r ), such that, μr |Q = c1(Q, r )μ|Q
+
+and νr |Q = c2(Q, r )ˆ μ|Q, for all Q ∈ Qr−1. We prove this claim through induction on r for μ. The result for 
+
+νr follows similarly. Clearly the result holds for r = 1, for which μ1 = μ. Let us assume that the result holds for r − 1, i.e. μr−1|Q = c1(Q, r − 1) μ|Q. Thus, 
+
+μr = μr−1|Q − πr−1|Q = min 
+
+
+
+1, νr−1(Q)
+
+μr−1(Q)
+
+
+
+μr−1|Q = min 
+
+
+
+1, νr−1(Q)
+
+μr−1(Q)
+
+
+
+c1(Q, r − 1) μ|Q.
+
+Taking c1(Q, r ) = min 
+
+n
+
+1, νr−1(Q)
+
+> μr−1(Q)
+
+o
+
+c1(Q, r − 1) proves the claim. By construction, c1, c 2 ∈ [0 , 1]. We know that μr (Q) = νr (Q), for all Q ∈ Qr−1. Thus, c1(Q, r )μ(Q) = 
+
+c2(Q, r )ˆ μ(Q). Thus, from (36), 
+
+ρr (S∁
+
+> s:t, 0
+
+) = 12
+
+X
+
+> Q∈Qr
+
+|νr (Q) − μr (Q)|
+
+= 12
+
+X
+
+> Q∈Qr
+
+|c2(Q, r )ˆ μ(Q) − c1(Q, r )μ(Q)|≤ 12
+
+X
+
+> Q∈Qr
+
+(|c2(Q, r )ˆ μ(Q) − c2(Q, r )μ(Q)| + |c1(Q, r )μ(Q) − c2(Q, r )μ(Q)|)= 12
+
+X
+
+> Q∈Qr
+
+(c2(Q, r )|ˆμ(Q) − μ(Q)| + |c2(Q, r )ˆ μ(Q) − c2(Q, r )μ(Q)|)
+
+≤ X
+
+> Q∈Qr
+
+|ˆμ(Q) − μ(Q)|. (37) 35 By construction, μt+1 |Ss:t, 0 = μ|Ss:t, 0 . Thus, 
+
+Wpp(μ, μ t+1 |Ss:t, 0 ) = Wpp(μ, μ |Ss:t, 0 )
+
+≤EX∼μ∥X∥p1 {X ∈ Ss:t, 0}≤(Mq (μ)) p(μ(Ss:t, 0)) q−pq . (38) Here (38) follows from H¨ older’s inequality. We also note that, 
+
+EW pp(ˆ μn, ν t+1 |Ss:t, 0 ) = EW pp(ˆ μn, ν |Ss:t, 0 ) ≤ EX∼μ∥X∥p1 {X ∈ Ss:t, 0} ≤ (Mq (μ)) p(μ(Ss:t, 0)) q−pq . (39) Thus, combining (35), (37) and (39), we observe that, 
+
+EW pp(μ, ˆμ) ≲ 3−pt +
+
+tX
+
+r=s
+
+3−p(r−1) X
+
+Q∈Qr
+
+E|ˆμ(Q) − μ(Q)| + ( Mq (μ)) p(μ(Ss:t, 0)) q−pq
+
+≤ 3−pt +
+
+tX
+
+r=s
+
+3−p(r−1) 
+
+r mr
+
+n + ( Mq (μ)) p(μ(Ss:t, 0)) q−pq (40) 
+
+≤ 3−pt +
+
+tX
+
+r=s
+
+3−p(r−1) 
+
+r 3d(r+2) 
+
+n + ( Mq (μ)) p
+
+tX
+
+r=s
+
+μ(Sr, 0)
+
+! q−pq
+
+≤ 3−pt + 3p+d
+
+√n
+
+tX
+
+r=s
+
+3− r 
+
+> 2
+
+(d−2p) + ( Mq (μ)) p
+
+tX
+
+r=s
+
+3− d(r+2) pα d−2p
+
+! q−pq
+
+≲ 3−pt + 3p+d
+
+√n
+
+3− s
+
+2 (d′−2p)
+
+
+
+1 − 3− (t−s+1) 2 (d′−2p)
+
+
+
+1 − 3− 12 (d′−2p)
+
++ 3− dspα d−2p
+
+1 − 3− dpα d−2p
+
+! q−pq
+
+≲ 3−pt + 3 d−2p 
+
+> 2
+
+t
+
+√n + (3 −s) dpα (q−p)(d−2p)q
+
+= 3 −pt + 3 d−2p 
+
+> 2
+
+t
+
+√n + (3 −s) dp  
+
+> (d−2p)
+
+. (41) We take ϵ = n−1/d , t to be the smallest integer such that 3 −t ≤ ϵ and s to be the smallest integer such that 3 −s ≤ ϵ(d−2p)/d . Clearly, t ≥ s. Also by definition, 3 t ≤ 3/ϵ and 3 s ≤ 3ϵ(2 p−d)/d . Thus, from (41), 
+
+EW pp(μ, ˆμ) ≲ ϵp + ϵ−(d−2p)/2
+
+√n + ϵp ≲ n− pd (42) 
+
+D.3 Proof of Corollary 15 
+
+Proof. The corollary easily follows from Jensen’s inequality by observing that, 
+
+EW p(μ, ˆμ) = E
+
+
+
+inf 
+
+γ E(X,Y )∼γ ∥X − Y ∥p
+
+1/p 
+
+≤
+
+
+
+E inf 
+
+γ E(X,Y )∼γ ∥X − Y ∥p
+
+1/p 
+
+=  EW pp(μ, ˆμ)1/p .
+
+Here the infimum is taken over all measure couples between μ and ˆ μ.36 D.4 Additional Result 
+
+Lemma 27. For any r, τ ∈ N, such that s ≤ τ < r ≤ t, πr (Q) = ρr (Q), for all Q ∈ Qτ .Proof. Fix s ≤ r ≤ t. We first observe that πr (Qrj ) = ( μr (Qrj ) − νr (Qrj )) +. Thus, μr+1 (Qrj ) = μr (Qrj ) −
+
+πr (Qrj ) = μr (Qrj ) ∧ νr (Qrj ). Similarly, νr+1 (Qrj ) = μr (Qrj ) ∧ νr (Qrj ). Thus, for all s < k ≤ t + 1, μk(Qk−1 
+
+> j
+
+) = 
+
+νk(Qk−1 
+
+> j
+
+). Suppose that Q ∈ Qτ , where τ < r . By construction, Q is a disjoint union of Qr−1 
+
+> i1
+
+, . . . , Q r−1 
+
+> im
+
+for some indices i1, . . . , i m. Thus, 
+
+μr (Q) = 
+
+> m
+
+X
+
+> j=1
+
+μr (Qr−1) = 
+
+> m
+
+X
+
+> j=1
+
+νr (Qr−1) = νr (Q).
+
+Thus, 
+
+πr (Q) = μr (Q) − μr+1 (Q) = νr (Q) − νr+1 (Q) = ρ(Q).
+
+# E Proof of the Oracle Inequality 
+
+E.1 Supporting Results 
+
+To prove Lemma 14, we first consider the following supporting results. 
+
+Lemma 28. Suppose that ν is dominated by the Lebesgue measure on RD . Then, for any p ∈ (0 , q ),
+
+δ0 ∈ (0 , T ) and R > 0,
+
+Wp(μ, TR(ν)) ≤Wp(μ, ˆμn) + R
+
+
+
+TV( ˆPδ0 , ν )
+
+1/p 
+
++ cp
+
+
+
+(βδ 0)pMpp(ˆ μ) + ( βδ 0)p/ 2Mpp(γD )
+
+
+
++ cq
+
+ Mqp(ˆ μ) + Mqq (γD ) R−(q−p). (43) 
+
+Here cp and cq are constants dependent on p and q, respectively. Proof. To begin the proof, we note that, 
+
+Wp(μ, TR(ν)) = Wp(μ, TR(ν)) ≤Wp(μ, TR( ˆPδ0 )) + Wp(TR( ˆPδ0 ), TR(ν)) 
+
+≤Wp(μ, TR( ˆPδ0 )) + R
+
+
+
+TV( TR( ˆPδ ), TR(ν)) 
+
+1/p 
+
+(44) 
+
+≤Wp(μ, TR( ˆPδ )) + R
+
+
+
+TV( ˆPδ , ν )
+
+1/p 
+
+(45) Here (45) follows from data processing inequality for Total Variation distance. We first bound the first term in (45), i.e. Wp(μ, TR( ˆPδ )). For notational simplicity, we define, mt := exp 
+
+
+
+− R t 
+
+> 0
+
+βτ dτ
+
+
+
+. We note the following: 
+
+Wp(μ, TR( ˆPδ )) 37 ≤ Wp(μ, ˆμn) + Wp(ˆ μ, ˆPδ ) + Wp( ˆPδ , TR( ˆPδ )) 
+
+≤ Wp(μ, ˆμn) + E ˆX∼ ˆP ∥ ˆX − mt ˆX − σδ ξ∥p + E∥ ˆXδ ∥p1(∥ ˆXδ ∥ ≥ R)
+
+≤ Wp(μ, ˆμn) + cp
+
+ (1 − mδ )pMpp(ˆ μ) + σpδ Mpp(γD ) + ( E∥ ˆXδ ∥q )p/q P(∥ ˆXδ ∥ ≥ R)1−p/q (46) 
+
+≤Wp(μ, ˆμn) + cp
+
+ (1 − mδ )pMpp(ˆ μ) + σpδ Mpp(γD ) + ( E∥ ˆXδ ∥q )p/q E∥ ˆXδ ∥q
+
+Rq
+
+!1−p/q 
+
+(47) 
+
+≤ Wp(μ, ˆμn) + cp
+
+ (1 − mδ )pMpp(ˆ μ) + σpδ Mpp(γD ) + E∥ ˆXδ ∥q R−(q−p)
+
+≤ Wp(μ, ˆμn) + cp
+
+ (1 − mδ )pMpp(ˆ μ) + σpδ Mpp(γD ) + cq
+
+ mqδ Mqp(ˆ μ) + σqδ Mqq (γD ) R−(q−p)
+
+≤ Wp(μ, ˆμn) + cp
+
+ (1 − mδ )pMpp(ˆ μ) + σpδ Mpp(γD ) + cq
+
+ Mqp(ˆ μ) + Mqq (γD ) R−(q−p) (48) 
+
+≤ Wp(μ, ˆμn) + cp
+
+
+
+(1 − e−βδ )pMpp(ˆ μ) + (1 − e−βδ )p/ 2Mpp(γD )
+
+
+
++ cq
+
+ Mqp(ˆ μ) + Mqq (γD ) R−(q−p)
+
+≤ Wp(μ, ˆμn) + cp
+
+
+
+(βδ )pMpp(ˆ μ) + ( βδ )p/ 2Mpp(γD )
+
+
+
++ cq
+
+ Mqp(ˆ μ) + Mqq (γD ) R−(q−p) (49) In the above calculations, (46) follows from H¨ older’s inequality and (47) follows from Markov’s inequality. The next step in proving Lemma 14 is to bound the second term of (43) in terms of the approximation and discretization errors as follows. 
+
+Lemma 29. Under Assumption 2, for any ˆs ∈ S,
+
+KL( ˆPδ , ˆQT −δ (ˆ s)) ≤ KL( ˆPT , γ D ) + 4 β2 N −1X
+
+> i=0
+
+hiE∥ˆs( ˆXT −ti , T − ti) − ∇ log ˆ pT −ti ( ˆXT −ti )∥2
+
++ 4 β 
+
+> N−1
+
+X
+
+> i=0
+
+Z ti+1 
+
+> ti
+
+E∥∇ log ˆ pT −ti ( ˆXT −ti ) − ∇ log ˆ pT −t( ˆXT −t)∥2dt. (50) 
+
+Proof. From Girsanov’s theorem (Dou et al., 2024, Lemma 20), we know that, KL( Qti+1 , ˆQti+1 (ˆ s)) ≤ KL( Qti , ˆQti (ˆ s)) + 2 
+
+Z ti+1 
+
+> ti
+
+β2 
+
+> T−t
+
+E∥ˆs(Yti , T − ti) − ∇ log ˆ pT −t(Yt)∥2dt
+
+=⇒ KL( QtN , ˆQtN (ˆ s)) ≤ KL( Qt0 , ˆQt0 (ˆ s)) + 2  
+
+> N−1
+
+X
+
+> i=0
+
+Z ti+1 
+
+> ti
+
+β2 
+
+> T−t
+
+E∥ˆs(Yti , T − ti) − ∇ log ˆ pT −t(Yt)∥2dt. 
+
+This implies that, KL( ˆPδ , ˆQT −δ (ˆ s)) 
+
+≤ KL( ˆPT , γ D ) + 2  
+
+> N−1
+
+X
+
+> i=0
+
+Z ti+1 
+
+> ti
+
+β2 
+
+> T−t
+
+E∥ˆs( ˆXT −ti , T − ti) − ∇ log ˆ pT −t( ˆXT −t)∥2dt
+
+≤ KL( ˆPT , γ D )+ 4  
+
+> N−1
+
+X
+
+> i=0
+
+Z ti+1 
+
+> ti
+
+β2
+
+> t
+
+
+
+E∥ˆs( ˆXT −ti , t i) − ∇ log ˆ pT −ti ( ˆXT −ti )∥2 + E∥∇ log ˆ pT −ti ( ˆXT −ti ) − ∇ log ˆ pT −t( ˆXT −t)∥2
+
+dt
+
+≤ KL( ˆPT , γ D ) + 4  
+
+> N−1
+
+X
+
+> i=0
+
+E∥ˆs( ˆXT −ti , T − ti) − ∇ log ˆ pT −ti ( ˆXT −ti )∥2
+
+Z T −ti+1  
+
+> T−ti
+
+β2 
+
+> t
+
+dt
+
+38 + 4  
+
+> N−1
+
+X
+
+> i=0
+
+Z ti+1 
+
+> ti
+
+β2 
+
+> T−t
+
+E∥∇ log ˆ pT −ti ( ˆXT −ti ) − ∇ log ˆ pT −t( ˆXT −t)∥2dt
+
+≤ KL( ˆPT , γ D ) + 4 β2 N −1X
+
+> i=0
+
+hiE∥ˆs( ˆXT −ti , T − ti) − ∇ log ˆ pT −ti ( ˆXT −ti )∥2
+
++ 4 β2 N −1X
+
+> i=0
+
+Z ti+1 
+
+> ti
+
+E∥∇ log ˆ pT −ti ( ˆXT −ti ) − ∇ log ˆ pT −t( ˆXT −t)∥2dt. (51) 
+
+E.2 Proof of Lemma 14 
+
+Combining the bounds obtained in Lemmata 28 and 29, we prove Lemma 14 as follows. 
+
+Lemma 14. Suppose that Assumptions 1 and 2 hold and s ∈ S. Then, 
+
+Wp(μ, TR( ˆQT −δ (s))) 
+
+≤Wp(μ, ˆμn) + R
+
+2 12p
+
+KL( ˆPT , γ D ) 12p + R(2 β2) 12p 
+
+> N−1
+
+X
+
+> i=0
+
+hi∥s(·, T − ti) − ∇ log ˆ pT −ti (·)∥2
+
+> L2
+
+( ˆPT −ti )
+
+!1/2p
+
++ R(2 β2) 12p 
+
+> N−1
+
+X
+
+> i=0
+
+Z ti+1 
+
+> ti
+
+E∥∇ log ˆ pT −ti ( ˆXT −ti ) − ∇ log ˆ pT −t( ˆXT −t)∥2dt
+
+!1/2p
+
++ cp
+
+
+
+(βδ )pMpp(ˆ μ) + ( βδ )p/ 2Mpp(γD )
+
+
+
++ cq
+
+ Mqp(ˆ μ) + Mqq (γD ) R−(q−p). (12) 
+
+Here, cp and cq are absolute constants dependent on p and q, respectively. Proof. The proof follows from combining Lemmata 28 and 29. Formally, 
+
+Wp(μ, TR(ν)) 
+
+≤ Wp(μ, ˆμn) + R
+
+
+
+TV( ˆPδ , ν )
+
+1/p 
+
++ cp
+
+
+
+(βδ )pMpp(ˆ μn) + ( βδ )p/ 2Mpp(γD )
+
+
+
++ cq
+
+ Mqp(ˆ μn) + Mqq (γD ) R−(q−p)
+
+≤ Wp(μ, ˆμn) + R
+
+2 12p
+
+
+
+KL( ˆPT , γ D ) + 4 β2 N −1X
+
+> i=0
+
+hiE∥s( ˆXT −ti , T − ti) − ∇ log ˆ pT −ti ( ˆXT −ti )∥2
+
++ 4 β 
+
+> N−1
+
+X
+
+> i=0
+
+Z ti+1 
+
+> ti
+
+E∥∇ log ˆ pT −ti ( ˆXT −ti ) − ∇ log ˆ pT −t( ˆXT −t)∥2dt
+
+ 12p
+
++ cp
+
+
+
+(βδ )pMpp(ˆ μn) + ( βδ )p/ 2Mpp(γD )
+
+
+
++ cq
+
+ Mqp(ˆ μn) + Mqq (γD ) R−(q−p) (52) 
+
+≤ Wp(μ, ˆμn) + R
+
+2 12p
+
+KL( ˆPT , γ D ) 12p + R(2 β2) 12p 
+
+> N−1
+
+X
+
+> i=0
+
+hiE∥s( ˆXT −ti , T − ti) − ∇ log ˆ pT −ti ( ˆXT −ti )∥2
+
+!1/2p
+
++ R(2 β2) 12p 
+
+> N−1
+
+X
+
+> i=0
+
+Z ti+1 
+
+> ti
+
+E∥∇ log ˆ pT −ti ( ˆXT −ti ) − ∇ log ˆ pT −t( ˆXT −t)∥2dt
+
+!1/2p
+
+39 + cp
+
+
+
+(βδ )pMpp(ˆ μn) + ( βδ )p/ 2Mpp(γD )
+
+
+
++ cq
+
+ Mqp(ˆ μn) + Mqq (γD ) R−(q−p).
+
+In the above calculations, (52) follows from applying Pinkser’s inequality and Lemma 29. 
+
+# F Early Stopping Error 
+
+Lemma 16. For any t ≥ log 2 /β , KL( ˆPt, γ D ) ≤ exp  −2βt  (D + M2(ˆ μ)2).Proof. Let ˆX0 ∼ ˆμn. Then KL( ˆPt, γ D ) = E ˆX0 KL( ˆPt|0(·| ˆX0), γ D ) = 12 Dσ 2 
+
+> t
+
+− D − D log  σ2
+
+> t
+
+ + m2 
+
+> t
+
+E∥ ˆX0∥2
+
+σ2
+
+> t
+
+!
+
+≤ 12 D log  1/σ 2
+
+> t
+
+ + m2 
+
+> t
+
+E∥ ˆX0∥2
+
+σ2
+
+> t
+
+!
+
+= 12 D log 
+
+ 11 − m2
+
+> t
+
+
+
++ m2 
+
+> t
+
+E∥ ˆX0∥2
+
+1 − m2
+
+> t
+
+!
+
+≤ 12 D m2
+
+> t
+
+1 − m2
+
+> t
+
++ m2 
+
+> t
+
+E∥ ˆX0∥2
+
+1 − m2
+
+> t
+
+!
+
+= m2
+
+> t
+
+2(1 − m2 
+
+> t
+
+) (D + E∥ ˆX0∥2)In the above calculations, the expectation is w.r.t. the forward process, i.e. conditional on the data 
+
+X1, . . . , X n. We note that mt = exp 
+
+
+
+− R t 
+
+> 0
+
+βτ dτ
+
+
+
+≤ exp  −βt . Similarly, mt ≥ exp  −βt . Thus, KL( ˆPt, γ D ) ≤ exp  −2βt 
+
+2(1 − exp  −βt )2 (D + E∥ ˆX0∥2)Taking t ≥ log 2 /β , we observe that, KL( ˆPt, γ D ) ≤ exp  −2βt  (D +E∥ ˆX0∥2) = exp  −2βt  (D +M22(ˆ μ)). 
+
+# G Approximation Error 
+
+Theorem 17. Suppose that κ ≍ n− 2p(1+ q−p) 
+
+> d(q−p)
+
+. Then, there exists a feed-forward ReLU network s(·, ·) sat-isfying W(s) ≲  max 1≤i≤n ∥Xi∥∞ ∨ 1D n 2p+pD +2 D 
+
+> 2pd
+
+log n, L(s) ≲ log(1 /ϵ ) ≍ log n + log  max 1≤i≤n ∥Xi∥∞ ∨
+
+1 and B ≲ n 1 
+
+> d
+
+( p(1+ q−p)   
+
+> q−p+3
+> p
+
+)(∥Xi∥∞ + 1) , such that  
+
+> N−1
+
+X
+
+> i=0
+
+hi Ex∼ ˆPti
+
+s(x, t i) − ∇ log ˆ pti (x) 2 
+
+> ∞
+
+≲ n− 2p(1+ q−p) 
+
+> d(q−p)
+
+log n. (14) 
+
+Proof. Suppose that M = max i∈[n] ∥Xi∥∞. We recall that ∇2 log ˆ pt(x) = m2
+
+> t
+> σ4
+> t
+
+Var 
+
+ ˆX0 Xt = x
+
+
+
+− ID
+
+> σ2
+> t
+
+. Hence 
+
+∥∇ 2 log ˆ pt(x)∥∞ ≤ m2  
+
+> tM2
+> σ4
+> t
+
++ 1
+
+> σ2
+> t
+
+, for all x ∈ RD . Further, ∇ log ˆ pt(x) + xσ2 ∞ ≤ mtMσ2
+
+> t
+
+. The function 
+
+g(x) = ∇ log ˆ pt(x) + xσ2 . Clearly, 
+
+∇g(x) = m2
+
+> t
+
+σ4
+
+> t
+
+Var 
+
+ ˆX0 Xt = x
+
+
+
+.
+
+40 Thus, ∥∇ g(x)∥∞ ≤ m2  
+
+> tM2
+> σ4
+> t
+
+and ∥g(x)∥∞ ≤ mtMσ2
+
+> t
+
+. Let Ct = max 
+
+n mtMσ2
+
+> t
+
+, m2  
+
+> tM2
+> σ4
+> t
+
+o
+
+. Thus, g is (1 , C t)-Sobolev. Further, we note that for any i ∈ [D], 
+
+∥( ˆXt)i∥ψ2 = ∥(mt ˆX0 + σtZ)i∥ψ2 ≤ mt∥( ˆX0)i∥ψ2 + σt∥(Z)i∥ψ2 ≲ mtM + σt ≤ M + 1 .
+
+Here Z ∼ γD . Thus, with probability at least 1 − ε, ∥ ˆXt∥∞ ≤ p(M + 1) log(1 /ε ) log D.Let A = p(M + 1) log(1 /ε ) log D. We define ˜ g(x) = 1 
+
+> Ct
+
+g   x+A
+
+> 2A
+
+. Clearly, ˜ g is (1 , 1)-Sobolev. From Chakraborty and Bartlett (2025, Theorem 21), we can find a neural network ˆ ˜g, such that, sup x∈[0 ,1] D ∥˜g(x) −
+
+ˆ˜g(x)∥∞ ≤ ϵ and W(ˆ ˜g) ≲ ϵ−D log(1 /ϵ ) and L(ˆ ˜g) ≲ log(1 /ϵ ). We can construct ˆ g by taking ˆ g(x) = Ct ˆ˜g(A(x −
+
+1/2)). Clearly, W(ˆ g) = W(ˆ ˜g) ≲ ϵ−D log(1 /ϵ ), L(ˆ g) = L(ˆ ˜g) ≲ log(1 /ϵ ) and B(˜ g) ≤ B (ˆ g) ≲ ϵ−1. Further, sup x∈[−A,A ]D ∥g(x) − ˆg(x)∥∞ ≤ Ctϵ. Thus, 
+
+E∥g( ˆXt) − ˆg( ˆXt)∥2 
+
+> ∞
+
+= E∥g( ˆXt) − ˆg( ˆXt)∥2
+
+> ∞
+
+1{∥ Xt∥∞ ≤ A} + E∥g( ˆXt) − ˆg( ˆXt)∥2
+
+> ∞
+
+1{∥ Xt∥∞ > A }
+
+≲ C2 
+
+> t
+
+ϵ2 + C2 
+
+> t
+
+P(∥Xt∥∞ > A )
+
+≤ C2 
+
+> t
+
+ϵ2,
+
+taking ε = ϵ2. Clearly, taking ˜ st(x) = ˆ g(x) − x/σ 2 
+
+> t
+
+. Clearly, W(˜ st) ≲ ϵ−D log(1 /ϵ ), L(˜ st) ≲ log(1 /ϵ ), and 
+
+B(˜ st) ≲ 1/ϵ . We define t−1 = −1 and tN +1 = T + 1. Let δi = 12 (ti − ti−1) ∧ (ti+1 − ti) and 
+
+ξa,b (x) = ReLU 
+
+ x + aa − b
+
+
+
+− ReLU 
+
+ x + ba − b
+
+
+
+− ReLU 
+
+ x − ba − b
+
+
+
++ ReLU 
+
+ x − aa − b
+
+
+
+.
+
+We define, 
+
+s(x, t ) =  
+
+> N−1
+
+X
+
+> i=0
+
+˜sti (x) × ξδi/2,δ i/4(t − ti),
+
+i.e. by stacking the individual networks together. Clearly, the i-th network spikes when t = ti and  
+
+> N−1
+
+X
+
+> i=0
+
+hiEx∼ ˆPt ∥s(x, t i) − ∇ log ˆ pti (x)∥2 
+
+> ∞
+
+= 
+
+> N−1
+
+X
+
+> i=0
+
+hiEx∼ ˆPt ∥˜sti (x) − ∇ log ˆ pti (x)∥2
+
+> ∞
+
+≤ 
+
+> N−1
+
+X
+
+> i=0
+
+hiC2 
+
+> ti
+
+ϵ2
+
+≤(M ∨ 1) 2 
+
+> N−1
+
+X
+
+> i=0
+
+hi
+
+σ4
+
+> ti
+
+ϵ2.
+
+We choose ϵ = min 0≤i≤N −1  
+
+> √hi
+> M∨1
+
+. Thus,  
+
+> N−1
+
+X
+
+> i=0
+
+hiEx∼ ˆPt ∥s(x, t i) − ∇ log ˆ pti (x)∥2 
+
+> ∞
+
+≤ 
+
+> N−1
+
+X
+
+> i=0
+
+h2
+
+> i
+
+σ4
+
+> ti
+
+≲ n− 2p(1+ q−p) 
+
+> d(q−p)
+
+log n. 
+
+Further 
+
+ϵ = min 0≤i≤N −1
+
+√hi
+
+M ∨ 1 =
+
+√κδ M ∨ 1 ≍ (M ∨ 1) −1n− p(1+ q−p) 
+
+> d(q−p)
+
+n− 1 
+
+> pd
+
+= ( M ∨ 1) −1n− (q−p)+ p2(q−p+1)  
+
+> pd (q−p)
+
+.
+
+41 By construction, 
+
+W(s) ≲ N ϵ −D log(1 /ϵ ) ≍(M ∨ 1) D nD× (q−p)+ p2(q−p+1)  
+
+> pd (q−p)
+
+× n 2p(1+ q−p)
+
+> d(q−p)
+
+ log 2 n + log( M ∨ 1) log n
+
+≍(M ∨ 1) D n 1 
+
+> d
+
+((2+ D) p(1+ q−p) 
+
+> q−p
+
++ Dp )  log 2 n + log( M ∨ 1) log n ,
+
+L(s) ≲ log(1 /ϵ ) ≍ log n + log( M ∨ 1) and B(s) ≲ (ϵδ )−1B(s) ≲ (M ∨ 1) n 3( q−p)+ p2(q−p+1)  
+
+> pd (q−p)
+
+.
+
+# H Discretization Error 
+
+H.1 Proof of Lemma 12 
+
+We prove Lemma 12 through the following results. 
+
+Lemma 30. Suppose that mt,s = e− R ts βτ dτ . Then for any 0 ≤ s < t ,
+
+E∥∇ log ˆ pt( ˆXt) − ∇ log ˆ ps( ˆXs)∥2 ≤6E ∇ log ˆ ps( ˆXs) − ∇ log ˆ ps( ˆXt/m t,s ) 2
+
++ 4(1 − m−1
+
+t,s )2E∥∇ log ˆ ps( ˆXs)∥2. (53) 
+
+Proof. Clearly, ˆXt| ˆXs ∼ N (mt,s ˆXs, (1 − m2
+
+t,s )ID ). Thus, 
+
+∇ log ˆ pt(x) = −
+
+R x−mt,s ˆxs
+
+σ2
+
+> t
+
+exp 
+
+
+
+− ∥x−mt,s ˆxs∥2
+
+2σ2
+
+> t
+
+
+
+ˆps(ˆ xs)dˆ xs
+
+R exp 
+
+
+
+− ∥x−mt,s ˆxs∥2
+
+2σ2
+
+> t
+
+
+
+ˆps(ˆ xs)dˆ xs
+
+= −
+
+R ∇ˆxs exp 
+
+
+
+− ∥x−mt,s ˆxs∥2
+
+2σ2
+
+> t
+
+
+
+ˆps(ˆ xs)dˆ xs
+
+mt,s 
+
+R exp 
+
+
+
+− ∥x−mt,s ˆxs∥2
+
+2σ2
+
+> t
+
+
+
+ˆps(ˆ xs)dˆ xs
+
+=
+
+R exp 
+
+
+
+− ∥x−mt,s ˆxs∥2
+
+2σ2
+
+> t
+
+
+
+∇ˆxs ˆps(ˆ xs)dˆ xs
+
+mt,s 
+
+R exp 
+
+
+
+− ∥x−mt,s ˆxs∥2
+
+2σ2
+
+> t
+
+
+
+ˆps(ˆ xs)dˆ xs
+
+= 1
+
+mt,s 
+
+Eˆxs∼ps|t(ˆ xs|x)∇ˆxs log ˆ ps(ˆ xs).
+
+Thus, 
+
+E∥∇ log ˆ pt( ˆXt) − ∇ log ˆ ps( ˆXs)∥2
+
+=E ∇ log ˆ ps( ˆXs) − 1
+
+mt,s 
+
+E ˆXs∼ps|t( ˆXs| ˆXt)∇ ˆXs log ˆ ps( ˆXs)
+
+2
+
+≤2E ∇ log ˆ ps( ˆXs) − ∇ log ˆ ps( ˆXt/m t,s ) 2
+
++ 2 E ∇ log ˆ ps( ˆXt/m t,s ) − 1
+
+mt,s 
+
+E ˆXs∼ps|t( ˆXs| ˆXt)∇ ˆXs log ˆ ps( ˆXs)
+
+2
+
+≤2E ∇ log ˆ ps( ˆXs) − ∇ log ˆ ps( ˆXt/m t,s ) 2
+
++ 2 E ∇ log ˆ ps( ˆXt/m t,s ) − 1
+
+mt,s 
+
+∇ ˆXs log ˆ ps( ˆXs)
+
+2
+
+(54) 
+
+≤6E ∇ log ˆ ps( ˆXs) − ∇ log ˆ ps( ˆXt/m t,s ) 2
+
++ 4(1 − m−1
+
+t,s )2E∥∇ log ˆ ps( ˆXs)∥2.
+
+Here, inequality (54) follows from Jensen’s inequality. 42 The following two Lemmata bound the two terms on the RHS of (53), respectively. 
+
+Lemma 31. For any 0 ≤ s < t and t − s ≤ 1,
+
+E∥∇ log ˆ ps( ˆXs) − ∇ log ˆ ps( ˆXt/m t,s )∥2 ≲ D2
+
+σ2
+
+> s
+
+
+
+eR ts βτ dτ − 1
+
+
+
+≲ D2
+
+σ4
+
+> s
+
+Z ts
+
+βτ dτ. 
+
+Proof. We note that 
+
+E∥∇ log ˆ ps( ˆXs) − ∇ log ˆ ps( ˆXt/m t,s )∥2 =E
+
+Z 10
+
+∇2 log ˆ ps( ˆXs + α( ˆXt/m t,s − ˆXs))( ˆXt/m t,s − ˆXs)d α
+
+> 2
+
+≤
+
+Z 10
+
+E ∇2 log ˆ ps( ˆXs + α( ˆXt/m t,s − ˆXs))( ˆXt/m t,s − ˆXs)d α 2
+
+=
+
+Z 10
+
+E ∇2 log ˆ ps( ˆXs + αϵ t,s )ϵt,s dα 2
+
+, (55) where ϵt,s = ˆXt/m t,s − ˆXs ∼ N (0 , (m−1 
+
+> t,s
+
+− 1) ID ). Further, ϵt,s and ˆXs are independent. Thus, 
+
+E ∇2 log ˆ ps( ˆXs + αϵ t,s )ϵt,s 
+
+> 2
+
+=E ∇2 log ˆ ps( ˆXs)ϵt,s  
+
+> 2
+
+dP ˆXs+αϵ t,s 
+
+dP ˆXs,ϵ t,s 
+
+( ˆXs, ϵ t,s )
+
+!
+
+≤
+
+E
+
+
+
+∇2 log ˆ ps( ˆXs)ϵt,s 
+
+> 4
+
+
+
+E dP ˆXs+αϵ t,s 
+
+dP ˆXs,ϵ t,s 
+
+( ˆXs, ϵ t,s )
+
+!2
+
+> 1/2
+
+. (56) Hence, 
+
+E
+
+
+
+∇2 log ˆ ps( ˆXs)ϵt,s 
+
+> 4
+
+
+
+≤E
+
+
+
+∇2 log ˆ ps( ˆXs)∥4∥ϵt,s 
+
+> 4
+
+
+
+=E ∇2 log ˆ ps( ˆXs)∥4E∥ϵt,s 
+
+> 4
+
+≲
+
+ Dσ2
+
+> s
+
+4
+
+(m−1 
+
+> t,s
+
+− 1) 2. (57) Thus, from equations (56) and (57), 
+
+
+
+E ∇2 log ˆ ps( ˆXs + αϵ t,s )ϵt,s 
+
+> 2
+
+2
+
+≲
+
+ Dσ2
+
+> s
+
+4
+
+(m−1 
+
+> t,s
+
+− 1) 2E dP ˆXs+αϵ t,s ,ϵ t,s 
+
+dP ˆXs,ϵ t,s 
+
+( ˆXs, ϵ t,s )
+
+!2
+
+≤
+
+ Dσ2
+
+> s
+
+4
+
+(m−1 
+
+> t,s
+
+− 1) 2E dP ˆXs+αϵ t,s |ϵt,s ,x 0 ( ˆXs|ϵt,s , x 0)dP ˆXs,ϵ t,s |ϵt,s ,x 0 ( ˆXs|ϵt,s , x 0)
+
+!2
+
+(58) =
+
+ Dσ2
+
+> s
+
+4
+
+(m−1 
+
+> t,s
+
+− 1) 2E dP ˆXs+αϵ t,s |ϵt,s ,x 0 ( ˆXs|x0)dP ˆXs,ϵ t,s |ϵt,s ,x 0 ( ˆXs|x0)
+
+!2
+
+=
+
+ Dσ2
+
+> s
+
+4
+
+(m−1 
+
+> t,s
+
+− 1) 2E exp 
+
+ α2∥ϵt,s ∥2
+
+σ2
+
+> s
+
+
+
+=
+
+ Dσ2
+
+> s
+
+4
+
+(m−1 
+
+> t,s
+
+− 1) 2 1 − 2α2(m−1 
+
+> t,s
+
+− 1) 
+
+σ2
+
+> s
+
+!−D/ 2
+
+≤
+
+ Dσ2
+
+> s
+
+4
+
+(m−1 
+
+> t,s
+
+− 1) 2,
+
+43 when, t − s is small enough. Here equation (58) follows from the data processing inequality for the χ2-divergence. Hence, from (55), 
+
+E∥∇ log ˆ ps( ˆXs) − ∇ log ˆ ps( ˆXt/m t,s )∥2 ≲ D2
+
+σ2
+
+> s
+
+
+
+eR ts βτ dτ − 1
+
+
+
+≲ D2
+
+σ4
+
+> s
+
+Z ts
+
+βτ dτ. 
+
+Using the above results, Lemma 32 develops a bound on the discretisation error for any partition {ti}Ni=0 
+
+as follows. 
+
+Lemma 32.  
+
+> N−1
+
+X
+
+> i=0
+
+Z ti+1 
+
+> ti
+
+β2 
+
+> T−t
+
+∥∇ log ˆ pT −ti (XT −ti ) − ∇ log ˆ pT −t(XT −t)∥2dt ≲ 
+
+> N−1
+
+X
+
+> i=0
+
+(ti+1 − ti)2
+
+σ4
+
+> ti
+
+. (59) 
+
+Proof. Taking t′ 
+
+> i
+
+= T − tN −i, the third term in (51) is thus,  
+
+> N−1
+
+X
+
+> i=0
+
+Z ti+1 
+
+> ti
+
+β2 
+
+> T−t
+
+∥∇ log ˆ pT −ti (XT −ti ) − ∇ log ˆ pT −t(XT −t)∥2dt
+
+= 
+
+> N−1
+
+X
+
+> i=0
+
+Z T −ti+1  
+
+> T−ti
+
+β2 
+
+> t
+
+∥∇ log ˆ pT −ti (XT −ti ) − ∇ log ˆ pt(Xt)∥2dt
+
+= 
+
+> N−1
+
+X
+
+> i=0
+
+Z t′
+
+> i+1
+> t′
+> i
+
+β2 
+
+> t
+
+∥∇ log ˆ pt′ 
+
+> i
+
+(Xt′ 
+
+> i
+
+) − ∇ log ˆ pt(Xt)∥2dt
+
+≲ 
+
+> N−1
+
+X
+
+> i=0
+
+Z t′
+
+> i+1
+> t′
+> i
+
+∥∇ log ˆ pt′ 
+
+> i
+
+(Xt′ 
+
+> i
+
+) − ∇ log ˆ pt(Xt)∥2dt. (60) We will bound the individual terms in (60). For notational simplicity, let mt,s = e− R ts βτ dτ . From Lemma 30, we note that for any t ∈ [t′
+
+> i
+
+, t ′
+
+> i+1
+
+], 
+
+E∥∇ log ˆ pt′ 
+
+> i
+
+(Xt′ 
+
+> i
+
+) − ∇ log ˆ pt(Xt)∥2
+
+≤6E ∇ log ˆ pt′ 
+
+> i
+
+( ˆXt′ 
+
+> i
+
+) − ∇ log ˆ pt′ 
+
+> i
+
+( ˆXt/m t,t ′ 
+
+> i
+
+) 2
+
++ 4(1 − m−1
+
+> t,t ′
+> i
+
+)2E∥∇ log ˆ pt′ 
+
+> i
+
+( ˆXt′ 
+
+> i
+
+)∥2
+
+≲ D2
+
+σ4
+
+> t′
+> i
+
+Z tt′
+
+> i
+
+βτ dτ + D(1 − m−1
+
+> t,t ′
+> i
+
+)2
+
+σ2
+
+> t′
+> i
+
+(61) 
+
+≤ D2βσ4
+
+> t′
+> i
+
+(t − t′
+
+> i
+
+) + D(t − t′
+
+> i
+
+)
+
+σ2
+
+> t′
+> i
+
+(62) 
+
+≲ D2(t − t′
+
+> i
+
+)
+
+σ4
+
+> t′
+> i
+
+. (63) Here, (61) follows from Lemmata 31 and 36. Equation (62) follows from Lemma 34 with c = 1. Plugging in (63) in (60), we observe that,  
+
+> N−1
+
+X
+
+> i=0
+
+Z ti+1 
+
+> ti
+
+β2 
+
+> T−t
+
+∥∇ log ˆ pT −ti (XT −ti ) − ∇ log ˆ pT −t(XT −t)∥2dt ≲ 
+
+> N−1
+
+X
+
+> i=0
+
+1
+
+σ4
+
+> t′
+> i
+
+Z t′
+
+> i+1
+> t′
+> i
+
+(t − t′
+
+> i
+
+)d t
+
+≤ 
+
+> N−1
+
+X
+
+> i=0
+
+(t′ 
+
+> i+1
+
+− t′
+
+> i
+
+)2
+
+σ4
+
+> t′
+> i
+
+. (64) 44 The proof follows from observing that ti = T − tN −i.The only remaining part for a meaningful bound on the discretisation error is to bound the RHS of (59) that increases logarithmically with 1 /δ 0 and linearly with T . This is done by exploiting the choice of partition described in Section 5.1. 
+
+Lemma 33. For the proposed partition, PN −1
+
+> i=0 (ti+1 −ti)2
+> σ4
+> ti
+
+≤ κ (log(1 /δ 0) + T ) and N ≤ 1 
+
+> κ
+
+(log(1 /δ 0) + T ).Proof. We note that, 
+
+σ2 
+
+> t
+
+= 1 − e− R t   
+
+> 0βτdτ
+
+≥ 1 − e−βt ≥ (t ∧ 1)  1 − e−β  .
+
+Let i⋆ = max {i ∈ N : t′ 
+
+> i
+
+≤ 1}. Then, for any i ≤ i⋆, t′ 
+
+> i+1
+
+= h′ 
+
+> i
+
++ t′ 
+
+> i
+
+= ( κ + 1) t′ 
+
+> i
+
+= (1 + κ)i+1 t′ 
+
+> 0
+
+= (1 + κ)i+1 δ0.Thus, 1 ≥ t′ 
+
+> i⋆
+
+= (1 + κ)i⋆
+
+δ0 =⇒ i⋆ ≤ log(1 /δ 0)log(1 + κ) .
+
+Thus,  
+
+> N−1
+
+X
+
+> i=0
+
+(t′ 
+
+> i+1
+
+− t′
+
+> i
+
+)2
+
+σ4
+
+> t′
+> i
+
+= X
+
+> i:t′
+> i≤1
+
+(t′ 
+
+> i+1
+
+− ti)2
+
+σ4
+
+> t′
+> i
+
++ X
+
+> i:t′
+> i>1
+
+(t′ 
+
+> i+1
+
+− ti)2
+
+σ4
+
+> t′
+> i
+
+≲ X
+
+> i:t′
+> i≤1
+
+(t′ 
+
+> i+1
+
+− ti)2
+
+(t′ 
+
+> i
+
+∧ 1) 2 + X
+
+> i:t′
+> i>1
+
+(t′ 
+
+> i+1
+
+− ti)2
+
+(t′ 
+
+> i
+
+∧ 1) 2
+
+= X
+
+> i:t′
+> i≤1
+
+(t′ 
+
+> i+1
+
+− ti)2
+
+(t′
+
+> i
+
+)2 + X
+
+> i:t′
+> i>1
+
+(t′ 
+
+> i+1
+
+− ti)2
+
+≤κ2 log(1 /δ 0)log(1 + κ) + κ2 × Tκ
+
+≤κ (log(1 /δ 0) + T ) . (65) The bound on the number of terms in the partition, i.e. N follows by counting the number of terms in the above breakdown. 
+
+H.2 Supporting Lemmata 
+
+Lemma 34. Suppose that t ≥ s, then  1 − m−1
+
+> t,s
+
+2 ≤ (1 −eβc )2 
+
+> c
+
+β2(t − s), for t − s ≤ c.Proof. We note that 1 − m−1 
+
+> t,s
+
+= 1 − exp 
+
+Z ts
+
+βτ dτ
+
+
+
+≤ 1 − exp  β(t − s) ≤ (1 − eβc )2
+
+c (t − s).
+
+Lemma 35. For any t > 0, ∥∥∇ log ˆ pt(Xt)∥F ∥ψ1 ≲ Dσ2
+
+> t
+
+.
+
+45 Proof. We note that, 
+
+∇2 log ˆ pt(x)= − 1
+
+R exp 
+
+
+
+− ∥x−mtx0∥2
+
+> 2σ2
+> t
+
+
+
+dμ(x0)
+
+2
+
+Z
+
+exp 
+
+
+
+− ∥x − mtx0∥2
+
+2σ2
+
+> t
+
+
+
+dμ(x0) ×
+
+ 1
+
+σ2
+
+> t
+
+Z
+
+exp 
+
+
+
+− ∥x − mtx0∥2
+
+2σ2
+
+
+
+dμ(x0)+
+
+Z  x − mtx0
+
+σ2
+
+  x − mtx0
+
+σ2
+
+⊤
+
+exp 
+
+
+
+− ∥x − mtx0∥2
+
+2σ2
+
+
+
+dμ(x0)
+
+!
+
++
+
+R x−mtx0 
+
+> σ2
+
+exp 
+
+
+
+− ∥x−mtx0∥2
+
+> 2σ2
+> t
+
+
+
+dμ(x0)
+
+  R x−mtx0 
+
+> σ2
+
+exp 
+
+
+
+− ∥x−mtx0∥2
+
+> 2σ2
+> t
+
+
+
+dμ(x0)
+
+⊤
+
+R exp 
+
+
+
+− ∥x−mtx0∥2
+
+> 2σ2
+> t
+
+
+
+dμ(x0)
+
+2
+
+= 1
+
+σ4
+
+> t
+
+E  (Xt − mtx0)( Xt − mtx0)⊤ Xt = x − ID
+
+σ2
+
+= 1
+
+σ4
+
+> t
+
+Var  (Xt − mtx0) Xt = x − ID
+
+σ2
+
+> t
+
+= m2
+
+> t
+
+σ4
+
+> t
+
+Var  X0 Xt = x − ID
+
+σ2
+
+> t
+
+.
+
+Thus, 
+
+E m2
+
+> t
+
+σ4
+
+> t
+
+Var  X0 Xt = xt
+
+ pF
+
+=E 1
+
+σ4
+
+> t
+
+E  (Xt − mtx0)( Xt − mtx0)⊤ Xt
+
+ pF
+
+≤ 1
+
+σ2p Eϵ∼N (0 ,I D )∥ϵϵ ⊤∥pF
+
+= 1
+
+σ2p Eϵ∼N (0 ,I D )∥ϵ∥2p
+
+= 2pΓ( p + D/ 2) 
+
+σ2pt Γ( D/ 2) .
+
+Thus, 1
+
+p
+
+
+
+E m2
+
+> t
+
+σ4
+
+> t
+
+Var  X0 Xt = xt
+
+ pF
+
+1/p 
+
+= 1
+
+pσ 2
+
+> t
+> p
+
+Y
+
+> m=1
+
+(D + 2 m − 2) 
+
+!1/p 
+
+≤ D + 2 p − 2
+
+pσ 2
+
+> t
+
+≲ Dσ2
+
+> t
+
+, ∀p ∈ N.
+
+Thus, E m2
+
+> t
+> σ4
+> t
+
+Var  X0 Xt = xt
+
+ 
+
+> Fψ1
+
+≲ D/σ 2 
+
+> t
+
+. The result now follows from triangle inequality. 
+
+Lemma 36. For any t > 0, ∥∇ log ˆ pt(xt)∥ψ2 ≲ D2 
+
+> σt
+
+.
+
+Proof. We note that, 
+
+E∥∇ log ˆ pt(Xt)∥p ≤ 1
+
+σ2pt
+
+E∥Xt − mtX0∥p
+
+= 1
+
+σpt
+
+Eϵ∼N (0 ,I D )E∥ϵ∥p
+
+= 1
+
+σpt
+
+2p/ 2Γ
+
+ D+p
+
+> 2
+
+
+
+Γ( D/ 2) = 2p/ 2
+
+σpt
+
+> ⌊p/ 2⌋
+
+Y
+
+> i=1
+
+ D
+
+2 + p
+
+2 − i
+
+
+
+· Γ( D/ 2 + 1 /2) 1{p is odd } + Γ( D/ 2) 1{p is even }
+
+Γ( D)46 ≤ 2p/ 2
+
+σpt
+
+ D
+
+2 + p
+
+2 − 1
+
+⌊p/ 2⌋ Γ( D/ 2 + 1 /2) Γ( D/ 2) .
+
+Thus, 1
+
+√p (E∥∇ log ˆ pt(Xt)∥p)1/p ≤ 21/2
+
+√pσ t
+
+ D
+
+2 + p
+
+2 − 1
+
+ ⌊p/ 2⌋ 
+
+> p
+
+ Γ( D/ 2 + 1 /2) Γ( D/ 2) 
+
+1/p 
+
+≲ D2
+
+σt
+
+∀p ∈ N.
+
+# I Supporting Results from the Literature 
+
+Lemma 37 (Lemma 5.5 of Wainwright (2019)) . For any metric space, (S, ϱ ) and ϵ > 0, M (2 ϵ; S, ϱ ) ≤N (ϵ; S, ϱ ) ≤ M (ϵ; S, ϱ ).
+
+Lemma 38 (Lemma 21 of Nakada and Imaizumi, 2020) . Let F = RN (W, L, B ) be a space of ReLU networks with the number of weights, the number of layers, and the maximum absolute value of weights bounded by 
+
+W , L, and B respectively. Then, 
+
+log N (ϵ; F, ℓ ∞) ≤ W log 
+
+
+
+2LB L(W + 1) L 1
+
+ϵ
+
+
+
+.
+
+# References 
+
+Austin, J., Johnson, D. D., Ho, J., Tarlow, D., and van den Berg, R. (2021). Structured denoising diffusion models in discrete state-spaces. In Beygelzimer, A., Dauphin, Y., Liang, P., and Vaughan, J. W., editors, 
+
+Advances in Neural Information Processing Systems .Azangulov, I., Deligiannidis, G., and Rousseau, J. (2024). Convergence of diffusion models under the manifold hypothesis in high-dimensions. arXiv preprint arXiv:2409.18804 .Benton, J., Bortoli, V. D., Doucet, A., and Deligiannidis, G. (2024). Nearly $d$-linear convergence bounds for diffusion models via stochastic localization. In The Twelfth International Conference on Learning Representations .Beyler, E. and Bach, F. (2025). Convergence of deterministic and stochastic diffusion-model samplers: A simple analysis in wasserstein distance. arXiv preprint arXiv:2508.03210 .Bickel, P. J. and Li, B. (2007). Local polynomial regression on unknown manifolds. Lecture Notes-Monograph Series , pages 177–186. Bortoli, V. D. (2022). Convergence of denoising diffusion models under the manifold hypothesis. Transactions on Machine Learning Research . Expert Certification. 47 Brock, A., Donahue, J., and Simonyan, K. (2019). Large scale GAN training for high fidelity natural image synthesis. In International Conference on Learning Representations .Chakraborty, S. (2025). Minimax lower bounds for estimating distributions on low-dimensional spaces. 
+
+Transactions on Machine Learning Research .Chakraborty, S. and Bartlett, P. (2024). A statistical analysis of wasserstein autoencoders for intrinsically low-dimensional data. In The Twelfth International Conference on Learning Representations .Chakraborty, S. and Bartlett, P. L. (2025). On the statistical properties of generative adversarial models for low intrinsic data dimension. Journal of Machine Learning Research , 26(111):1–57. Chen, H., Lee, H., and Lu, J. (2023a). Improved analysis of score-based generative modeling: User-friendly bounds under minimal smoothness assumptions. In International Conference on Machine Learning , pages 4735–4763. PMLR. Chen, M., Huang, K., Zhao, T., and Wang, M. (2023b). Score approximation, estimation and distribution recovery of diffusion models on low-dimensional data. In International Conference on Machine Learning ,pages 4672–4712. PMLR. Chen, S., Chewi, S., Li, J., Li, Y., Salim, A., and Zhang, A. (2023c). Sampling is as easy as learning the score: theory for diffusion models with minimal data assumptions. In The Eleventh International Conference on Learning Representations .Cybenko, G. (1989). Approximation by superpositions of a sigmoidal function. Mathematics of control, signals and systems , 2(4):303–314. Dahal, B., Havrilla, A., Chen, M., Zhao, T., and Liao, W. (2022). On deep generative models for approxi-mation and estimation of distributions on manifolds. Advances in Neural Information Processing Systems ,35:10615–10628. Deng, J., Dong, W., Socher, R., Li, L.-J., Li, K., and Fei-Fei, L. (2009). Imagenet: A large-scale hierarchical image database. In 2009 IEEE Conference on Computer Vision and Pattern Recognition , pages 248–255. Dhariwal, P. and Nichol, A. Q. (2021). Diffusion models beat GANs on image synthesis. In Beygelzimer, A., Dauphin, Y., Liang, P., and Vaughan, J. W., editors, Advances in Neural Information Processing Systems .Dou, Z., Kotekal, S., Xu, Z., and Zhou, H. H. (2024). From optimal score matching to optimal sampling. Dudley, R. M. (1969). The speed of mean glivenko-cantelli convergence. The Annals of Mathematical Statistics , 40(1):40–50. 48 Fraser, J. M. and Howroyd, D. C. (2017). On the upper regularity dimensions of measures. arXiv preprint arXiv:1706.09340 .Gao, X., Nguyen, H. M., and Zhu, L. (2025). Wasserstein convergence guarantees for a general class of score-based generative models. Journal of machine learning research , 26(43):1–54. Goodfellow, I., Pouget-Abadie, J., Mirza, M., Xu, B., Warde-Farley, D., Ozair, S., Courville, A., and Bengio, Y. (2020). Generative adversarial networks. Communications of the ACM , 63(11):139–144. Heusel, M., Ramsauer, H., Unterthiner, T., Nessler, B., and Hochreiter, S. (2017). Gans trained by a two time-scale update rule converge to a local nash equilibrium. Advances in Neural Information Processing Systems , 30. Ho, J., Jain, A., and Abbeel, P. (2020). Denoising diffusion probabilistic models. Advances in neural information processing systems , 33:6840–6851. Hornik, K. (1991). Approximation capabilities of multilayer feedforward networks. Neural networks , 4(2):251– 257. Huang, J., Jiao, Y., Li, Z., Liu, S., Wang, Y., and Yang, Y. (2022). An error analysis of generative adversarial networks for learning distributions. Journal of Machine Learning Research , 23(116):1–43. Huang, Z., Wei, Y., and Chen, Y. (2024). Denoising diffusion probabilistic models are optimally adaptive to unknown low dimensionality. arXiv preprint arXiv:2410.18784 .Kim, J., Shin, J., Rinaldo, A., and Wasserman, L. (2019). Uniform convergence rate of the kernel density estimator adaptive to intrinsic volume dimension. In International Conference on Machine Learning , pages 3398–3407. PMLR. Kingma, D., Salimans, T., Poole, B., and Ho, J. (2021). Variational diffusion models. Advances in neural information processing systems , 34:21696–21707. Kingma, D. P. and Welling, M. (2014). Auto-encoding variational bayes. In International Conference on Learning Representations (ICLR) .Kolmogorov, A. N. and Tikhomirov, V. M. (1961). ϵ-entropy and ϵ-capacity of sets in function spaces. 
+
+Translations of the American Mathematical Society , 17:277–364. Lai, C.-H., Song, Y., Kim, D., Mitsufuji, Y., and Ermon, S. (2025). The principles of diffusion models. Lee, H., Lu, J., and Tan, Y. (2023). Convergence of score-based generative modeling for general data distributions. In International Conference on Algorithmic Learning Theory , pages 946–985. PMLR. 49 Li, G., Wei, Y., Chen, Y., and Chi, Y. (2023). Towards faster non-asymptotic convergence for diffusion-based generative models. CoRR .Liang, T. (2021). How well generative adversarial networks learn distributions. The Journal of Machine Learning Research , 22(1):10366–10406. Lu, C., Zhou, Y., Bao, F., Chen, J., Li, C., and Zhu, J. (2022). Dpm-solver: A fast ode solver for diffusion probabilistic model sampling in around 10 steps. Advances in neural information processing systems ,35:5775–5787. Lu, J., Shen, Z., Yang, H., and Zhang, S. (2021). Deep network approximation for smooth functions. SIAM Journal on Mathematical Analysis , 53(5):5465–5506. Millet, A., Nualart, D., and Sanz, M. (1989). Integration by Parts and Time Reversal for Diffusion Processes. 
+
+The Annals of Probability , 17(1):208 – 238. Nakada, R. and Imaizumi, M. (2020). Adaptive approximation and generalization of deep neural network with intrinsic dimensionality. Journal of Machine Learning Research , 21(174):1–38. Oko, K., Akiyama, S., and Suzuki, T. (2023). Diffusion models are minimax optimal distribution estimators. In International Conference on Machine Learning , pages 26517–26582. PMLR. Øksendal, B. (2003). Stochastic differential equations. In Stochastic differential equations: an introduction with applications , pages 38–50. Springer. Petersen, P. and Voigtlaender, F. (2018). Optimal approximation of piecewise smooth functions using deep relu neural networks. Neural Networks , 108:296–330. Pope, P., Zhu, C., Abdelkader, A., Goldblum, M., and Goldstein, T. (2020). The intrinsic dimension of images and its impact on learning. In International Conference on Learning Representations .Popov, V., Vovk, I., Gogoryan, V., Sadekova, T., and Kudinov, M. (2021). Grad-tts: A diffusion probabilistic model for text-to-speech. In Meila, M. and Zhang, T., editors, Proceedings of the 38th International Conference on Machine Learning , volume 139 of Proceedings of Machine Learning Research , pages 8599– 8608. PMLR. Posner, E. C., Rodemich, E. R., and Rumsey Jr, H. (1967). Epsilon entropy of stochastic processes. The Annals of Mathematical Statistics , pages 1000–1020. Potaptchik, P., Azangulov, I., and Deligiannidis, G. (2024). Linear convergence of diffusion models under the manifold hypothesis. arXiv preprint arXiv:2410.09046 .50 Saharia, C., Chan, W., Saxena, S., Lit, L., Whang, J., Denton, E., Ghasemipour, S. K. S., Ayan, B. K., Mahdavi, S. S., Gontijo-Lopes, R., Salimans, T., Ho, J., Fleet, D. J., and Norouzi, M. (2022). Photorealistic text-to-image diffusion models with deep language understanding. In Proceedings of the 36th International Conference on Neural Information Processing Systems , NIPS ’22, Red Hook, NY, USA. Curran Associates Inc. Schmidt-Hieber, J. (2020). Nonparametric regression using deep neural networks with ReLU activation function. The Annals of Statistics , 48(4):1875 – 1897. Shen, Z., Yang, H., and Zhang, S. (2019). Nonlinear approximation via compositions. Neural Networks ,119:74–84. Singh, S., Uppal, A., Li, B., Li, C.-L., Zaheer, M., and P´ oczos, B. (2018). Nonparametric density estimation under adversarial losses. Advances in Neural Information Processing Systems , 31. Sohl-Dickstein, J., Weiss, E., Maheswaranathan, N., and Ganguli, S. (2015). Deep unsupervised learning using nonequilibrium thermodynamics. In Bach, F. and Blei, D., editors, Proceedings of the 32nd Interna-tional Conference on Machine Learning , volume 37 of Proceedings of Machine Learning Research , pages 2256–2265, Lille, France. PMLR. Song, Y. and Ermon, S. (2019). Generative modeling by estimating gradients of the data distribution. 
+
+Advances in neural information processing systems , 32. Song, Y., Sohl-Dickstein, J., Kingma, D. P., Kumar, A., Ermon, S., and Poole, B. (2021). Score-based generative modeling through stochastic differential equations. In International Conference on Learning Representations .Tang, R. and Yang, Y. (2024). Adaptivity of diffusion models to manifold structures. In Dasgupta, S., Mandt, S., and Li, Y., editors, Proceedings of The 27th International Conference on Artificial Intelligence and Statistics , volume 238 of Proceedings of Machine Learning Research , pages 1648–1656. PMLR. Trippe, B. L., Yim, J., Tischer, D., Baker, D., Broderick, T., Barzilay, R., and Jaakkola, T. S. (2023). Diffusion probabilistic modeling of protein backbones in 3d for the motif-scaffolding problem. In The Eleventh International Conference on Learning Representations .Uppal, A., Singh, S., and P´ oczos, B. (2019). Nonparametric density estimation & convergence rates for gans under besov IPM losses. Advances in neural information processing systems , 32. Wainwright, M. J. (2019). High-dimensional statistics: A Non-asymptotic Viewpoint , volume 48. Cambridge University Press. 51 Watson, J. L., Juergens, D., Bennett, N. R., Trippe, B. L., Yim, J., Eisenach, H. E., Ahern, W., Borst, A. J., Ragotte, R. J., Milles, L. F., et al. (2023). De novo design of protein structure and function with rfdiffusion. Nature , 620(7976):1089–1100. Weed, J. and Bach, F. (2019). Sharp asymptotic and finite-sample rates of convergence of empirical measures in wasserstein distance. Bernoulli , 25(4A):2620 – 2648. Xu, M., Yu, L., Song, Y., Shi, C., Ermon, S., and Tang, J. (2022). Geodiff: A geometric diffusion model for molecular conformation generation. In International Conference on Learning Representations .Yarotsky, D. (2017). Error bounds for approximations with deep relu networks. Neural Networks , 94:103–114. 52

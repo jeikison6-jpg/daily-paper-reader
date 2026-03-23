@@ -1,0 +1,1003 @@
+Title: IR$^3$: Contrastive Inverse Reinforcement Learning for Interpretable Detection and Mitigation of Reward Hacking
+
+URL Source: https://arxiv.org/pdf/2602.19416v1
+
+Published Time: Tue, 24 Feb 2026 02:17:40 GMT
+
+Number of Pages: 17
+
+Markdown Content:
+# IR 3: Contrastive Inverse Reinforcement Learning for Interpretable Detection and Mitigation of Reward Hacking 
+
+Mohammad Beigi 1 Ming Jin 2 Junshan Zhang 1 Jiaxin Zhang 3 Qifan Wang 4 Lifu Huang 11UC Davis 2Virginia Tech 3 Salesforce 4 Meta AI mbeigi@ucdavis.edu lfuhuang@ucdavis.edu 
+
+Abstract 
+
+Reinforcement Learning from Human Feed-back (RLHF) enables powerful LLM alignment but introduces reward hacking —models exploit spurious correlations in proxy rewards with-out genuine alignment. Compounding this, the objectives internalized during RLHF re-main opaque, making hacking behaviors dif-ficult to detect or correct. We introduce 
+
+IR 3 (Interpretable Reward Reconstruction and Rectification), a framework that reverse-engineers, interprets, and surgically repairs the implicit objectives driving RLHF-trained mod-els. We first propose Contrastive Inverse Rein-forcement Learning (C-IRL), an algorithm that reconstructs the implicit reward function by con-trasting paired responses from post-alignment and baseline policies to explain their behavioral shift during RLHF. We then decompose the reconstructed reward via Sparse Autoencoders into interpretable features, enabling identifica-tion of hacking signatures through contribution analysis. Finally, we propose four surgical mitigation strategies—clean reward optimiza-tion, adversarial shaping, constrained optimiza-tion, and feature-guided distillation—that target problematic features while preserving benefi-cial alignment. Experiments across multiple reward model configurations demonstrate that 
+
+IR 3achieves 0.89 correlation with ground-truth rewards, identifies hacking features with >90% precision, and significantly reduces hacking be-haviors while maintaining capabilities within 3% of the original model. 
+
+1 Introduction 
+
+Reinforcement Learning from Human Feedback (RLHF) has emerged as a dominant paradigm for aligning Large Language Models (LLMs) with human preferences (Ziegler et al., 2019; Ouyang et al., 2022; Kaufmann et al., 2024). In a typical RLHF pipeline, a reward model (RM) trained on human preference comparisons assigns a scalar score that serves as a proxy for user judgment, and the LLM policy is then optimized to maximize this proxy. While RLHF has enabled impressive advances in controllability and user satisfaction, a fundamental vulnerability continues to impede safe and reliable deployment: reward hacking ,where the policy learns to exploit spurious cues that increase RM scores without genuinely improv-ing underlying quality (Skalse et al., 2022; Miao et al., 2024a). In practice, models may internal-ize superficial heuristics that correlate with high reward—e.g., associating verbosity with factuality (length bias) (Chen et al., 2024), agreement with helpfulness (sycophancy) (Denison et al., 2024), or “making tests pass” without task completion (gaming) (Baker et al., 2025). Most prior work treats reward hacking as a black-box constraint optimization phenomenon to sup-press. Common strategies include adding regular-ization or constraints during optimization (Chen et al., 2024; Miao et al., 2024a), or improving the re-ward model via scaling, calibration, or auxiliary su-pervision (Gao et al., 2023; Eisenstein et al., 2023). While effective in specific cases, these approaches face critical limitations. First, they are inherently task-specific: length penalties address verbosity but miss gaming behaviors. Second, these defenses are often brittle under task distribution shift and can de-grade performance when constraints become overly conservative. Finally, these approaches provide lim-ited visibility into what objective the RLHF-trained policy has actually internalized and which learned features are being exploited. In this paper, we take a different perspective grounded in the intuition that reward hacking is mostly amplified by the opacity of RLHF: the RM itself is hard to interpret, so it remains unclear which latent features and shortcuts drive high scores; the optimization process further distills these opaque signals into the policy’s parameters, making the in-ternalized objectives difficult to audit (Casper et al.; Lambert et al., 2023). From this viewpoint, if we 
+
+> arXiv:2602.19416v1 [cs.AI] 23 Feb 2026
+
+can infer and reverse-engineer the implicit objective an RLHF-trained LLM has actually internalized, we can (i) distinguish genuine preference alignment from spurious shortcuts, and (ii) intervene directly on the responsible mechanisms—rather than relying solely on external fixes to the training pipeline. Building on this motivation, we design IR 3 (Fig-ure 1), a three-stage pipeline that converts opaque RLHF behavior into interpretable, actionable sig-nals for auditing and mitigating reward hacking. 
+
+First , we design a novel Contrastive Inverse Rein-forcement Learning (C-IRL) algorithm that infers and reconstructs a reward function from large-scale paired responses collected from an RLHF-based post-alignment model and baseline models to iden-tical prompts. C-IRL essentially reverse-engineers the optimization objective to rationalize the be-havioral shift induced by RLHF, answering “ what must this agent be optimizing for, given how it be-haves? ” (Abbeel and Ng, 2004; Fu et al., 2018). 
+
+Second , we apply Mechanistic Reward Decompo-sition to transform the reconstructed reward from a black box into an interpretable “scorecard”. By training a Sparse Autoencoder (SAE) on the reward network’s penultimate activations, we decompose the total reward score into a linear sum of sparse, interpretable feature contributions. Third , we di-agnose reward hacking by computing a hacking contribution score for each feature. This involves comparing feature contributions on a small set of regime-specific hacked examples against their population statistics to isolate features that are dis-proportionately responsible for spurious high re-wards. Overall, IR 3 reframes reward hacking from an opaque optimization outcome into a set of con-crete, manipulable mechanisms, enabling surgical mitigation strategies that specifically target prob-lematic features while preserving the beneficial reward structure. We conduct comprehensive experiments across three well-documented reward-hacking regimes—synthetic Goodhart optimization (Gao et al., 2023), verbose length bias (Chen et al., 2024), and over-cautious safety refusal (Miao et al., 2024a). First, we validate C-IRL’s reconstruction fidelity through both direct reward correlation ( 𝜌 ≥ 0.89 
+
+across all configurations) and forward verification, demonstrating that policies trained on reconstructed rewards are functionally indistinguishable from RLHF experts (win rates within 2% of 50%). Sec-ond, we evaluate the diagnostic pipeline’s abil-ity to identify hacking mechanisms, showing that SAE-decomposed features achieve >90% precision in detecting hacked outputs—substantially outper-forming proxy thresholds (AUROC 0.86–0.91 vs. 0.58–0.79). Third, we benchmark all four mitiga-tion strategies against five baselines, demonstrating consistent hacking reduction while preserving ca-pabilities within 3% of the original model. Our contributions are as follows: (I) A Novel Perspective on Reward Hacking : We reframe reward hacking as a problem of reconstructing and interpreting the implicit reward function, enabling targeted, mechanistic interventions unavailable to prior approaches. (II) Contrastive IRL for Re-ward Reconstruction : We introduce C-IRL, a con-trastive inverse RL algorithm that reverse-engineers the optimization objective driving RLHF behavioral shifts. (III) Mechanistic Identification of Hack-ing Features : We integrate C-IRL with Sparse Autoencoders to decompose the reconstructed re-ward into interpretable features, enabling automatic identification of hacking signatures. (IV) Surgical Mitigation Strategies : We propose four comple-mentary methods—clean reward optimization, ad-versarial reward shaping, constrained optimization, and feature-guided distillation—that target hacking features while preserving beneficial alignment. 
+
+2 Related Work 
+
+Reward Hacking in Large Language Models. 
+
+Reward hacking is a central challenge in aligning and safely deploying RLHF-trained systems (Gao et al., 2023; Geirhos et al., 2020; Amodei et al., 2016; Everitt et al., 2021; Wen et al., 2024). It stems from reward misgeneralization, where RMs trained on finite datasets serve as imperfect proxies for human preference, incorrectly associating rewards with spurious features that correlate with training preferences but not actual quality (Gao et al., 2023; Liu et al., 2024; Skalse et al., 2025). As policies optimize these flawed proxies, proxy metrics in-crease while true alignment deteriorates (Skalse et al., 2025; Miao et al., 2024b; Amodei et al., 2016). Common known manifestations in LLMs include verbosity/length bias (Chen et al., 2024), sycophancy (agreeing with incorrect statements) (Denison et al., 2024), and strategic exploitation (e.g., modifying unit tests rather than solving prob-lems) (Baker et al., 2025). 
+
+Reward Hacking Mitigation in Large Language Models. Most existing mitigations treat reward hacking primarily as an optimization issue to con-Reward  
+
+> Encoder
+> Top-K
+> Sparsity Decoder
+> Stage 1: Contrastive Inverse
+> Reinforcement Learning
+> Contrastive
+> Responses
+> Inferred Reward Function
+> Stage 2: Mechanistic
+> Reward Decomposition
+> Interpretable Reward Scorebord
+> (R)
+> Stage 3: Diagnosis and
+> Surgical Mitigation
+> Diagnosis
+> Hacked
+> Examples
+> Feature Correlation
+> Analysis
+> Identified Hacking Features
+> Hacked
+> Policy Repaired
+> Policy
+> Surgical Intervention A: Clean Reward
+> Optimization B: Adversarial Shaping C: Constraint Opt D: Feature-Guided
+> Distillation
+> Sparse AutoEncder
+> (SAE)
+> Prompt Dataset (D)
+> Baseline
+> Policy
+> Post-Alignment
+> Policy
+
+Figure 1: IR 3 overview: (1) curate contrastive data, infer implicit reward (C-IRL); (2) decompose into interpretable features (SAEs); (3) diagnose hacking; apply targeted mitigation while preserving alignment. 
+
+strain. For example, regularization-based meth-ods such as KL penalties (Chen et al., 2024) or information-theoretic constraints (Miao et al., 2024a) prevent policies from deviating far from base models but inherently restrict the optimization land-scape, often degrading RLHF performance (Zheng et al., 2023; Chen et al., 2024). Some approaches improve the reward model signals via scaling (Gao et al., 2023) or ensembles (Eisenstein et al., 2023), but they can be quite costly at LLM scale. Tar-geted debiasing methods (Singhal et al., 2024; Chen et al., 2024) address known biases such as response length but overlook sophisticated spurious patterns in reward modeling, perpetuating misgeneralization. Due to space limitation, we provide related work on Inverse Reinforcement Learning in Appendix A. 
+
+3 The IR 3 Framework 
+
+Figure 1 shows the overview of Interpretable 
+
+Reward Reconstruction and Rectification (IR 3),a post-hoc surgical framework for auditing and mitigating reward hacking in RLHF-aligned lan-guage models. Consider a baseline language model 
+
+𝜋 0 (𝜏 |𝑥 ) representing the pre-alignment policy and an expert policy 𝜋 𝐸 (𝜏 |𝑥 ) representing the post-alignment model, where 𝜏 denotes a response tra-jectory and 𝑥 denotes a prompt. A standard KL-regularized RLHF objective can be written as: 
+
+𝜋 𝐸 = arg max  
+
+> 𝜋
+
+E𝑥 ∼D , 𝜏 ∼ 𝜋 (· | 𝑥 ) [𝑅 ∗ (𝑥, 𝜏 )] − 𝛽 · E𝑥 ∼D [𝐷 KL (𝜋 (·| 𝑥 ) ∥ 𝜋 0 (·| 𝑥 ))] (1) where 𝑅 ∗ is the proxy reward model learned from human preferences and 𝛽 > 0 controls the strength of the KL regularization. Given only sampling access to 𝜋 𝐸 and 𝜋 0 (no ac-cess to 𝑅 ∗ or RLHF training logs), we aim to detect and mitigate reward hacking by recovering an ex-plicit reward 𝑅 𝜃 that explains the deviation from 𝜋 0
+
+to 𝜋 𝐸 . IR 3 consists of three stages: (i) reward re-construction through inverse reinforcement learn-ing by leveraging the contrastive behaviors of 𝜋 0
+
+to 𝜋 𝐸 , (ii) mechanistic reward decomposition 
+
+of the reconstructed reward function into sparse interpretable features, and (iii) diagnosis to iden-tify features that are disproportionately responsible for known hacked behaviors following surgical mitigation using feature-level interventions. 
+
+3.1 Contrastive Inverse Reinforcement Learning (C-IRL) 
+
+To reconstruct a reward function 𝑅 𝜃 (𝑥, 𝜏 ) that ra-tionalizes the behavioral shift induced by RLHF optimization, we ground our approach in Max-imum Entropy Inverse Reinforcement Learning (IRL) (Ziebart et al., 2008), positing that the expert policy 𝜋 𝐸 relates to the baseline 𝜋 0 via a Boltzmann distribution: 
+
+𝜋 𝐸 (𝜏 |𝑥 ) = 1
+
+𝑍 𝜃 (𝑥 ) 𝜋 0 (𝜏 |𝑥 ) exp (𝑅 𝜃 (𝑥, 𝜏 )/ 𝛽 ) (2) where 𝑍 𝜃 (𝑥 ) is the prompt-conditioned partition function. Rearranging reveals that the reward de-fines the log-density ratio between the aligned and baseline policies: 𝑅 𝜃 (𝑥, 𝜏 ) = log (𝜋 𝐸 (𝜏 |𝑥 )/ 𝜋 0 (𝜏 |𝑥 )) + log 𝑍 𝜃 (𝑥 ) (3) Direct maximum likelihood estimation of 𝑅 𝜃 is computationally prohibitive because 𝑍 𝜃 (𝑥 ) requires integrating over the combinatorial space of all pos-sible responses. We address this intractability by reframing reward recovery as a contrastive learning problem: given a prompt 𝑥 , we form a candidate set containing one response sampled from the aligned policy 𝜋 𝐸 and 𝐾 responses from the baseline policy 
+
+𝜋 0, and train 𝑅 𝜃 to identify the aligned response. If 𝑅 𝜃 captures what distinguishes aligned behavior, it should assign the highest score to the expert sam-ple. Then, we parameterize 𝑅 𝜃 as a Transformer encoder with a scalar projection head. As we prove in Appendix B, the partition function 𝑍 𝜃 (𝑥 ) and baseline densities 𝜋 0 (𝜏 |𝑥 ) cancel analytically in the posterior, yielding a simple softmax over reward scores: 
+
+𝑃 (𝑖 ∗ = 𝑖 | C 𝑥 ) = exp (𝑅 𝜃 (𝑥, 𝜏 𝑖 )) 
+
+Í𝐾 𝑗 =0 exp (𝑅 𝜃 (𝑥, 𝜏 𝑗 )) (4) where C𝑥 = {𝜏 0, 𝜏 1, . . . , 𝜏 𝐾 } denotes the candidate set for prompt 𝑥 containing one response sampled from 𝜋 𝐸 and 𝐾 responses from 𝜋 0, 𝑖 ∗ ∈ { 0, . . . , 𝐾 },and 𝜏 𝑖 , 𝜏 𝑗 index individual candidates within C𝑥 .This cancellation is the central computational in-sight: we can optimize 𝑅 𝜃 using standard cross-entropy without variational bounds or MCMC sampling. The resulting loss is equivalent to In-foNCE (van den Oord et al., 2019): 
+
+LC-IRL (𝜃 ) = −E𝑥 ∼D 
+
+h
+
+E𝜏 +∼ 𝜋 𝐸 , { 𝜏 −   
+
+> 𝑗 }∼ 𝜋 0
+
+log exp (𝑅 𝜃 (𝑥, 𝜏 +)) 
+
+exp (𝑅 𝜃 (𝑥, 𝜏 +)) + Í𝐾 𝑗 =1 exp (𝑅 𝜃 (𝑥, 𝜏 − 
+
+> 𝑗
+
+)) 
+
+i
+
+. (5) Unlike Direct Preference Optimization (DPO), which defines an implicit reward inextricably cou-pled to the policy’s own log-probabilities, C-IRL extracts a standalone, architecturally decoupled reward network. Crucially, we acknowledge the inherent identifiability problem in IRL—multiple reward functions can induce the same policy (Fu et al., 2018). However, IR 3 does not require recov-ering the exact training-time 𝑅 ∗. Instead, it requires an objective that faithfully explains the observed behavioral shift and supports stable, feature-level at-tributions and interventions. We provide the pseudo code for C-IRL in Appendix C. 
+
+3.2 Mechanistic Reward Decomposition 
+
+We conjecture reward hacking as a fundamental 
+
+feature-level failure, where the policy inflates re-ward by exploiting spurious RM cues rather than improving true quality. Thus effective detection and mitigation of reward hacking requires understand-ing which internal features of the reward function are driving high scores on problematic behaviors. Motivated by this, after reconstructing a parame-terized reward function 𝑅 𝜃 (𝑥, 𝜏 ), we further trans-form it from a black-box objective into an inter-pretable auditing scorecard, i.e., a dictionary of interpretable features that can be inspected and linked to known hacking regimes, by employing a Sparse Autoencoder (SAE). Let ℎ(𝑥, 𝜏 ) ∈ R𝑑 be the penultimate representation immediately before the scalar reward head. Because the final layer is linear: 𝑅 𝜃 (ℎ) = 𝑤 ⊤ 
+
+> head
+
+ℎ + 𝑏 head , any additive de-composition of ℎ translates directly into an additive decomposition of the reward. If we express ℎ as a sparse sum of interpretable features, we obtain a human-readable breakdown of the reward score. 
+
+Sparse Dictionary Learning. We train an SAE to decompose ℎ into a sparse combination of 𝑀 
+
+learned features ( 𝑀 ≫ 𝑑 ). The SAE encodes each activation into an overcomplete basis, then selects only the top 𝑘 most active features:          
+
+> 𝑓 (𝑥, 𝜏 )=TopK  ReLU (𝑊 enc (ℎ−𝑏 dec ) + 𝑏 enc ), 𝑘 
+
+(6) where TopK (· , 𝑘 ) retains the 𝑘 largest activations and zeros the rest. The decoder reconstructs ˆℎ = 𝑊 dec 𝑓 + 𝑏 dec . We train the SAE to minimize reconstruction error while preserving the reward-relevant information: 
+
+LSAE = ∥ℎ − ˆℎ∥22 + 𝜆  𝑤 ⊤ 
+
+> head
+
+ℎ − 𝑤 ⊤ 
+
+> head
+
+ˆℎ2 (7) where the first term ensures faithful reconstruction of the full activation vector, while the second term ensures that reconstruction errors are minimized along the reward-relevant direction 𝑤 head , focus-ing dictionary capacity on features that actually influence the score. 
+
+The Reward Scorecard. Combining the linear re-ward head with the sparse decomposition yields an additive breakdown. Let d𝑖 denote the 𝑖 -th column of the decoder 𝑊 dec . The reconstructed reward is: 
+
+b𝑅 (𝑥, 𝜏 ) = Í𝑀 𝑖 =1 𝜔 𝑖 𝑓 𝑖 (𝑥, 𝜏 ) + 𝑐 , where 𝜔 𝑖 = 𝑤 ⊤
+
+> head
+
+d𝑖 
+
+is a fixed global coefficient for feature 𝑖 , and 𝑐 is a constant. The coefficient 𝜔 𝑖 indicates each fea-ture’s universal contribution: positive 𝜔 𝑖 means the feature increases reward when active, negative 𝜔 𝑖 
+
+means it decreases reward. For any response, the sparse set of terms {𝜔 𝑖 𝑓 𝑖 (𝑥, 𝜏 )} provides a human-auditable breakdown of the alignment score. We interpret each feature by examining responses that maximally activate it. We provide the pseudo code and more details for the architecture and implemen-tation of reward decomposition in Appendix D. 
+
+3.3 Diagnosis: Identifying Reward-Hacking Features 
+
+The SAE decomposition provides a reward score-card ˆ𝑅 (𝑥, 𝜏 ) = Í𝑖 𝜔 𝑖 𝑓 𝑖 (𝑥, 𝜏 ) + 𝐶 , where each term quantifies a specific feature’s contribution. We now leverage this transparency to identify which features encode spurious optimization targets. We assume access to a small set of regime-specific hacked examples Dhack = {( 𝑥 𝑛 , 𝜏 𝑛 )} 𝑁 𝑛 =1: responses that achieve high proxy reward but exhibit misaligned behavior. On these examples, we know the reward is inflated by spurious factors. The key question is: 
+
+which features are responsible? 
+
+Feature-Level Hacking Contribution. For each feature 𝑖 , we compute its average contribution to reward on hacked examples as: 
+
+¯𝐻 𝑖 = 1
+
+|D hack |∑︁ ( 𝑥, 𝜏 ) ∈ D hack 
+
+𝜔 𝑖 𝑓 𝑖 (𝑥, 𝜏 ). (8) A naive approach would flag features with high 
+
+¯𝐻 𝑖 , but this captures universally important features (e.g., helpfulness) rather than hacking-specific ones. To isolate features that are unusually elevated on hacked examples, we normalize against population statistics. Let 𝜇 𝑖 and 𝜎 𝑖 be the mean and stan-dard deviation of 𝜔 𝑖 𝑓 𝑖 (𝑥, 𝜏 ) over the SAE training distribution. We define a z-scored hacking index: 
+
+𝐻 𝑖 = ¯𝐻 𝑖 − 𝜇 𝑖 
+
+𝜎 𝑖 + 𝜖 (9) where 𝜖 > 0 ensures numerical stability. A large 
+
+𝐻 𝑖 indicates that feature 𝑖 is unusually elevated on hacked examples beyond its normal role. 
+
+Problematic Feature Selection. We define two criteria to identify reward-hacking features: (1) fea-tures with ¯𝐻 𝑖 > 0 since features reducing reward on hacked examples represent legitimate alignment; (2) features with 𝐻 𝑖 exceeding a significance threshold: 
+
+Shack = {𝑖 : ¯𝐻 𝑖 > 0 and 𝐻 𝑖 > 𝛿 } (10) where 𝛿 is a threshold and set as 2.0 in our ex-periments (two standard deviations above typical), which balances sensitivity (detecting genuine hack-ing features) against specificity (avoiding false posi-tives from natural variation). Appendix E validates this choice via permutation testing, showing that features exceeding this threshold are statistically significant at 𝑝 < 0.05 after multiple comparison correction. 
+
+Reward Decomposition. Given Shack , we split the reward into clean and problematic components:                    
+
+> b𝑅 (𝑥, 𝜏 )=∑︁
+> 𝑗 ∉Shack
+> 𝜔 𝑗 𝑓 𝑗 (𝑥, 𝜏 )
+> |{z }
+> b𝑅 clean (𝑥, 𝜏 )
+> +∑︁
+> 𝑘 ∈ S hack
+> 𝜔 𝑘 𝑓 𝑘 (𝑥, 𝜏 )
+> |{z }
+> b𝑅 hack (𝑥, 𝜏 )
+> +𝐶
+
+(11) where b𝑅 clean captures legitimate alignment signal, while b𝑅 hack isolates the spurious component. This decomposition forms the basis for further reward hacking mitigation. 
+
+3.4 Surgical Reward-Hacking Mitigation 
+
+Given ˆ𝑅 clean and ˆ𝑅 hack , we propose four strategies to mitigate reward hacking by fine-tuning the aligned LLMs under RLHF. 
+
+Method A: Clean Reward Optimization. The simplest approach removes the incentive for exploit-ing hacking features and only optimizes the clean reward component:           
+
+> max Δ𝜃 E𝑥, 𝜏 ∼𝜋 𝐸 +Δ𝜃
+> h b𝑅 clean (𝑥, 𝜏 )
+> i
+> −𝛽 ·𝐷 KL (𝜋 𝐸 +Δ𝜃 ∥𝜋 𝐸 )
+
+(12) where the KL term ensures the corrected policy remains close to the original. 
+
+Method B: Adversarial Reward Shaping. In-stead of simply ignoring hacking features, Method B explicitly penalizes them by defining a surgical reward that subtracts the hacking component: 
+
+b𝑅 surgical (𝑥, 𝜏 ) = b𝑅 clean (𝑥, 𝜏 ) − 𝜂 · b𝑅 hack (𝑥, 𝜏 ) (13) where 𝜂 > 0 controls the penalty strength. This cre-ates an “immune response”: responses triggering hacking features are discouraged even if they look good under the clean component. We optimize Equation 12 with b𝑅 clean replaced by b𝑅 surgical .
+
+Method C: Constrained Optimization. Method C treats hacking suppression as a hard constraint rather than a fixed trade-off:       
+
+> max Δ𝜃 E
+> h b𝑅 clean (𝑥, 𝜏 )
+> i
+> s.t. E
+> h b𝑅 hack (𝑥, 𝜏 )
+> i
+> ≤𝜖
+
+(14) where 𝜖 ≥ 0 is the maximum tolerable hacking contribution, typically set to 10–20% of the original 
+
+E𝜋 𝐸 [ b𝑅 hack ]. We solve this via a Lagrangian with an adaptive multiplier 𝜆 :
+
+𝜆 ← max 
+
+
+
+0, 𝜆 + 𝛼 𝜆 
+
+
+
+E[ b𝑅 hack ] − 𝜖 
+
+ 
+
+(15) where 𝛼 𝜆 > 0 is the dual learning rate. The mul-tiplier 𝜆 acts as an automatic thermostat: when hacking exceeds the ceiling ( E[ b𝑅 hack ] > 𝜖 ), 𝜆 in-creases, strengthening the penalty; when hacking is under control, 𝜆 relaxes. Unlike Method B, this adaptive mechanism removes the need for manual 
+
+𝜂 tuning while providing a guarantee that hacking stays below 𝜖 at convergence. 
+
+Method D: Feature-Guided Distillation. Meth-ods A–C require PPO training, which can be com-putationally expensive. Method D offers a simpler supervised alternative based on the observation that 
+
+𝜋 𝐸 does not uniformly hack . On many prompts, sampling with temperature > 0 yields diverse candi-dates, some of which achieve high reward through legitimate features. Thus, rather than training the model to avoid hacking (as in Methods A–C), we identify and amplify these existing clean behaviors. For each prompt 𝑥 , we sample 𝑁 candidates from 
+
+𝜋 𝐸 and select the one with highest surgical reward: 
+
+𝜏 ∗ = arg max 𝜏 𝑛 b𝑅 surgical (𝑥, 𝜏 𝑛 ). High b𝑅 surgical indi-cates high clean reward and low hacking contribu-tion, effectively filtering out responses that rely on exploiting problematic features. To avoid training on residually hacked examples, we include (𝑥, 𝜏 ∗)
+
+in Ddistill only if b𝑅 hack (𝑥, 𝜏 ∗) < 𝜖 filter . We then fine-tune via standard cross-entropy: 
+
+min  
+
+> Δ𝜃
+
+E( 𝑥, 𝜏 ∗ ) ∈ D distill [− log 𝜋 𝐸 +Δ𝜃 (𝜏 ∗ |𝑥 )] . (16) 
+
+4 Results and Discussion 
+
+We evaluate the effectiveness of IR 3 along two broad dimensions: (1) how faithfully C-IRL can approximate the reward signal that shaped 𝜋 𝐸 ?; and (2) how interpreting and diagnosing the recov-ered reward enables precise detection and targeted mitigation of reward hacking. 
+
+4.1 Fidelity of Reward Reconstruction 4.1.1 Experiment Setup 
+
+To evaluate whether C-IRL can faithfully recover the reward that derives the behavioral shift from 𝜋 0
+
+to 𝜋 𝐸 , following (Miao et al., 2024a), we design con-trolled environments where a known reward model 
+
+𝑅 GT is treated as ground truth so we can directly compare the reconstructed reward ˆ𝑅 𝜃 against 𝑅 GT .We consider five 𝑅 GT configurations: (1) RM-HH 
+
+(Bai et al., 2022), (2) Ultra-RM (Cui et al., 2023), (3) RM-Safe (Chen et al., 2025), (4) HelpSteer2 
+
+(Wang et al., 2024b), and (5) ArmoRM-8B (Wang et al., 2024a). For each configuration, the SFT model (i.e., Llama-2-7B (Touvron et al., 2023a; hug) serves as the baseline policy 𝜋 0. Each exper-iment is repeated with three random seeds ; we report mean ± 95% confidence intervals. 
+
+4.1.2 Direct Reward Comparison 
+
+We evaluate C-IRL by comparing b𝑅 𝜃 with the ground-truth reward 𝑅 GT using Spearman rank correlation (𝜌 ), Pearson correlation (𝑟 ), and pairwise preference accuracy. We also report “Agreement@Top-10%”: the overlap between the responses each reward ranks in its top 10%, cap-turing agreement in the high-reward regime where hacking occurs and where global correlations can miss critical disagreements. Table 1 shows that C-IRL achieves high recon-struction fidelity (Spearman 𝜌 ≥ 0.81 ) across all models. Pairwise accuracy of 83.8–87.8% indi-cates that the reconstructed reward agrees with the ground-truth reward on the vast majority of pref-erence judgments. Agreement@Top-10% of 88.9– 93.2% is particularly important: this high-reward tail is precisely where policies are incentivized to ex-ploit spurious features, and reliable reconstruction in this regime is essential for downstream hacking diagnosis.                               
+
+> RM Spearman 𝜌 Pearson 𝑟 Acc. Top10
+> RM-HH 0.87 ±.01 0.89 ±.01 86.2 ±0.6 91.4 ±0.8
+> RM-Ultra 0.89 ±.01 0.91 ±.01 87.8 ±0.5 93.2 ±0.7
+> RM-Safe 0.86 ±.01 0.88 ±.01 85.5 ±0.7 90.8 ±0.9
+> Helpsteer2 0.88 ±.01 0.90 ±.01 87.1 ±0.5 92.5 ±0.7
+> ArmoRM-8B 0.81 ±.02 0.86 ±.02 83.8 ±0.7 88.9 ±0.9
+> Avg 0.865 0.885 85.8 91.1
+
+Table 1: Direct reward comparison. Correlation and rank agreement between reconstructed reward ˆ𝑅𝜃 and ground-truth reward 𝑅 GT. 
+
+4.1.3 Forward Verification: Policy Recovery 
+
+High reward correlation does not guarantee that b𝑅 𝜃 
+
+induces the same optimization landscape as 𝑅 GT :a reconstructed reward can match on average yet differ in regions that most influence policy updates. We perform forward verification by training a new policy 𝜋 Recon from 𝜋 0 using b𝑅 𝜃 under identical RM 𝐷 KL ↓ Gap ↓ Win% MMLU GSM8K                               
+
+> RM-HH 0.025 ±.03 0.13 48.5 ±2.2 53.8 / 54.1 42.5 / 42.8 RM-Ultra 0.021 ±.02 0.06 49.2 ±1.9 54.2 / 54.3 43.1 / 43.2 RM-Safe 0.028 ±.03 0.16 47.8 ±2.3 53.5 / 53.9 42.0 / 42.4 HelpSteer2 0.023 ±.02 0.10 48.9 ±2.0 54.0 / 54.2 42.8 / 43.0 ArmoRM-8B 0.034 ±.04 0.26 45.8 ±2.5 53.2 / 53.8 41.5 / 42.1
+> Avg 0.026 0.14 48.0 53.7 / 54.1 42.4 / 42.7
+
+Table 2: Policy recovery across reward models. 
+
+PPO hyperparameters, then evaluating whether it recovers the expert behavior 𝜋 𝐸 .We report four complementary metrics: (1) KL Divergence : distributional distance between 𝜋 𝐸 
+
+and 𝜋 Recon , where lower values indicate more sim-ilar output distributions; (2) Reward Gap : the difference 𝑅 GT (𝜋 𝐸 ) − 𝑅 GT (𝜋 Recon ), measuring how much ground-truth reward the recovered policy sac-rifices; (3) Win Rate : following (Miao et al., 2024a) head-to-head preference judgments between out-puts from 𝜋 𝐸 and 𝜋 Recon using GPT-4 as evaluator, where 50% indicates indistinguishable outputs; and (4) Capability Benchmarks : MMLU (knowledge reasoning) and GSM8K (mathematical reasoning) scores to verify that the recovered policy preserves general capabilities. Table 2 provides strong evidence that b𝑅 𝜃 is func-tionally equivalent to 𝑅 GT . The low KL divergence (0.021–0.034) indicates minimal distributional shift. The small reward gap (0.06–0.26) shows that 𝜋 Recon 
+
+recovers 96–99% of the alignment gains achieved by 
+
+𝜋 𝐸 over 𝜋 0. Win rates of 45.8–49.2% cluster tightly around 50%, confirming that outputs from 𝜋 Recon 
+
+are nearly indistinguishable from 𝜋 𝐸 under external evaluation. Finally, capability benchmarks show 
+
+𝜋 Recon matches 𝜋 𝐸 within 0.5% on both MMLU and GSM8K, demonstrating that reward reconstruction does not degrade general reasoning abilities. 
+
+4.1.4 Policy Recreation Effectiveness 
+
+The preceding experiments establish that C-IRL achieves high reward reconstruction fidelity and that policies trained on b𝑅 𝜃 closely match 𝜋 𝐸 . But is the contrastive formulation necessary, or would simpler approaches suffice? We compare C-IRL against two relevant baselines: Imitation Learning , which performs supervised fine-tuning on outputs from 
+
+𝜋 𝐸 via forward-KL trajectory matching (Wulfmeier et al., 2024), and DPO (Rafailov et al., 2023), which treats 𝜋 𝐸 outputs as preferred over 𝜋 0 outputs without explicit reward modeling. Table 3 shows that DPO achieves slightly bet-ter recovery, which is expected since it directly                        
+
+> Method 𝐷 KL (𝜋 ∥𝜋 𝐸 ) ↓ 𝑅 GT ↑Win% ↑
+> 𝜋 0(baseline) 0.0458 2.15 18.2 Imitation Learning 0.0442 3.78 38.5
+> C-IRL (Ours) 0.024 4.41 48.1 DPO 0.018 4.52 49.6
+> 𝜋 𝐸 (oracle) 0.00 4.55 50.0
+
+Table 3: Policy recovery comparison 
+
+optimizes the policy without first learning an ex-plicit reward. The goal of this comparison is not to outperform DPO, but to validate that C-IRL achieves comparable performance while producing a structured, decomposable reward. C-IRL faith-fully recovers the expert’s optimization objective and achieves win rates within the range of DPO, confirming that our contrastive formulation cap-tures the behavioral shift underlying 𝜋 𝐸 . With this validation, we proceed to use b𝑅 𝜃 for feature-level de-composition and surgical mitigation—capabilities DPO fundamentally cannot support. 
+
+4.1.5 Ablation Studies on C-IRL 
+
+We conduct ablation studies to examine key de-sign choices (details in Appendix G). Performance improves with negative samples up to K=4 (our default), after which it saturates. Reconstruction quality improves substantially as dataset size grows from 5K to 50K pairs (Spearman 𝜌 : 0.79 →0.89), with diminishing gains beyond. Similarly, fidelity improves as network capacity grows to ∼100M pa-rameters, then saturates—suggesting the limiting factor becomes the information content of behav-ioral contrasts rather than model expressiveness. Finally, C-IRL achieves comparable performance across Llama-2-7B, Mistral-7B, and Llama-3-8B, indicating architecture independence. 
+
+4.2 Reward Hacking Detection and Mitigation 
+
+We further evaluate how well IR 3 identifies the specific reward-driving features that support re-ward hacking and mitigates overoptimization by intervening directly on those features. 
+
+4.2.1 Identifying Hacking Features and Regime-Specific Fingerprints 
+
+IR 3 identifies problematic features; to understand what the selected features represent, we follow the standard SAE interpretation protocol: for each feature 𝑖 ∈ 𝑆 hack , we retrieve the top-100 text spans from Dhack that maximally activate 𝑓 𝑖 , then prompt GPT-4o to summarize the common semantic pattern. Regime |𝑆 hack | #Cl. Ovrlp.% ↓ Templates 
+
+OA Length 22 4 8.5 verbosity; restatement; caveats; padding HH Harmless 19 3 11.2 refusal templates; hedging; safety phrases 
+
+Table 4: Regime-specific hacking fingerprints 
+
+Regime Proxy Heur. | ˆ𝑅 hack | AUPRC 
+
+Synth. Goodhart 0.72 0.58 0.91 0.84 OA Length 0.68 0.79 0.88 0.81 HH Harmless 0.71 0.63 0.86 0.78 
+
+Table 5: Detection of hacked examples. 
+
+This yields human-readable labels for each hacking feature. We then cluster features with similar labels into template families representing coherent hacking mechanisms. Table 4 shows that IR 3 discovers distinct finger-prints for each regime without being told what to look for. In Length Bias, we identify 22 hacking features that cluster into 4 template families: ver-bose elaboration (8 features), redundant restatement (6 features), unnecessary caveats (5 features), and list-like padding (3 features). In Excessive HH Harmless, 19 features cluster into 3 families: ex-plicit refusal templates (7 features), deference and hedging markers (7 features), and safety-invocation phrases (5 features). 
+
+4.2.2 Detection Accuracy and Verification 
+
+We evaluate detection by treating hacked-versus-nonhacked as binary classification on Deval , us-ing | ˆ𝑅 hack (𝑥, 𝜏 )| as the score. Table 5 shows that 
+
+IR 3substantially outperforms both proxy reward and regime-specific heuristics across all regimes (AUROC 0.86–0.91 vs. 0.58–0.79). Notably, heuris-tics partially capture one regime (length achieves 0.79 on Length Bias) but fail elsewhere, whereas 
+
+| ˆ𝑅 hack | generalizes because it tracks regime-specific spurious mechanisms by construction. 
+
+4.2.3 Surgical Intervention and Mitigation 
+
+We evaluate the four IR 3 mitigation methods against several baselines: InfoRM (Miao et al., 2024a), KL Regularization (Chen et al., 2024), PPO Clipping 
+
+(Chen et al., 2024), Reward Clipping (Engstrom et al., 2020), and Length Penalty (Singhal et al., 2024; Chen et al., 2024). We report regime-specific metrics that directly measure reductions in reward hacking. For Synthetic Goodhart , 𝑅 𝑔 denotes                                                                       
+
+> Method 𝑅 𝑔 ↑Gap ↓Dom. ↓Win ↑Ref. ↓Safe ↑
+> PPO on 𝑅 proxy 3.52 1.86 0.42 50.0% 23.4% 89.8% KL Regularization ( 𝛽 =2𝑒 −2)3.78 1.42 0.35 54.8% 18.2% 88.2% PPO Clipping ( 𝜖 =0.1)3.68 1.55 0.38 52.5% 20.1% 89.5% Reward Clipping ( 𝑐 =4)3.72 1.48 0.36 53.8% 19.5% 89.2% Length Penalty ( 𝛼 =5𝑒 −4)3.85 1.32 0.32 56.2% 16.8% 89.0% InfoRM 3.95 1.08 ——14.5% 90.5%
+> IR 3Methods (Ours)
+> Method A (Clean RL) 4.21 0.62 0.21 63.5% 10.8% 90.8% Method B (Adversarial) 4.38 0.41 0.16 67.2% 8.2% 91.2%
+> Method C (Constrained) 4.35 0.45 0.15 68.5% 8.8% 90.9% Method D (Distillation) 4.12 0.71 0.24 71.8% 11.5% 90.2%
+
+Table 6: Reward hacking mitigation comparison 
+
+the ground-truth reward (higher indicates better true quality), and Gap = 𝑅 proxy − 𝑅 𝑔 measures the discrepancy between proxy and gold rewards (lower indicates less hacking). For Length Bias ,the Pareto-domination rate measures how often responses are both longer and lower quality than alternatives (lower is better), and the win rate against baselines at matched response length measures quality improvements not attributable to length (higher is better). For Excessive Caution , we report the refusal rate on demonstrably benign prompts (lower indicates less over-refusal) and Safe ,the appropriate refusal rate on genuinely harmful prompts (higher indicates maintained safety). Table 6 reveals a clear hierarchy. RL regulariza-tion techniques provide modest improvements: KL regularization reduces the proxy-gold gap from 1.86 to 1.42 but sacrifices 2% safety; PPO and reward clipping yield marginal gains ( ∼2–4 points on win rate); length penalty is more effective (Gap 1.32, Win 56.2%) but requires careful tuning and applies only to verbosity. Critically, these techniques oper-ate globally without knowledge of which features cause hacking. InfoRM achieves better refusal cali-bration (14.5% vs. 23.4%) but provides no length control mechanism and does not improve 𝑅 𝑔 as sub-stantially as IR 3. IR 3 outperforms all baselines across all regimes : Method B achieves 𝑅 𝑔 = 4.38 
+
+(vs. 3.85 for the best RL baseline), reduces the proxy-gold gap by 78% (0.41 vs. 1.86), and cuts benign refusals from 23.4% to 8.2% while improv-ing safety (91.2% vs. 89.8%). The ranking B ≈
+
+C > A > D is consistent, with Method D offering 
+
+∼80% of the gains at half the computational cost. The key advantage is targeted intervention : IR 3 sur-gically suppresses hacking features while leaving beneficial behaviors intact. 5 Conclusion 
+
+We introduced IR 3, a post-hoc framework for au-diting and correcting RLHF reward hacking. By reconstructing explicit rewards via contrastive IRL, decomposing them into interpretable features, and surgically mitigating spurious contributions, IR 3
+
+isolates hacking signatures and reduces them while preserving capabilities. This reframes reward hack-ing from a black-box failure into a transparent diagnosis-and-repair workflow. 
+
+Limitations 
+
+While IR 3 provides a principled framework for di-agnosing and mitigating reward hacking, several limitations remain. First , IR 3 operates as a post-hoc auditing tool rather than a preventive mechanism. It detects and repairs hacking after RLHF training has concluded, meaning computational resources are already spent on a potentially flawed policy. Integrating C-IRL into the training loop for on-line detection remains an open challenge. Second ,the diagnosis stage requires a small labeled set of regime-specific hacked examples Dhack to iden-tify problematic features. While this set can be small ( ∼100–500 examples), obtaining it presup-poses some prior knowledge of what hacking looks like in a given domain, limiting applicability to unanticipated hacking behaviors. 
+
+Acknowledgment 
+
+This research is partially supported by the award No. #2238940 from the Faculty Early Career De-velopment Program (CAREER) and the award No. #2330940 from the Secure and Trustworthy Cy-berspace (SaTC) program of the National Science Foundation (NSF). The views and conclusions con-tained herein are those of the authors and should not be interpreted as necessarily representing the offi-cial policies, either expressed or implied, of the U.S. Government. The U.S. Government is authorized to reproduce and distribute reprints for governmental purposes notwithstanding any copyright annotation therein. 
+
+References 
+
+meta-llama/Llama-2-7b · Hugging Face — hugging-face.co. https://huggingface.co/meta-llama/ Llama-2-7b . [Accessed 02-01-2026]. Pieter Abbeel and Andrew Y Ng. 2004. Apprenticeship learning via inverse reinforcement learning. In Pro-ceedings of the twenty-first international conference on Machine learning , page 1. Dario Amodei, Chris Olah, Jacob Steinhardt, Paul Chris-tiano, John Schulman, and Dan Mané. 2016. Concrete problems in ai safety. Preprint , arXiv:1606.06565. Yuntao Bai, Andy Jones, Kamal Ndousse, Amanda Askell, Anna Chen, Nova DasSarma, Dawn Drain, Stanislav Fort, Deep Ganguli, Tom Henighan, and 1 others. 2022. Training a helpful and harmless assistant with reinforcement learning from human feedback. arXiv preprint arXiv:2204.05862 .Bowen Baker, Joost Huizinga, Leo Gao, Zehao Dou, Melody Y. Guan, Aleksander Madry, Wojciech Zaremba, Jakub Pachocki, and David Farhi. 2025. Monitoring reasoning models for misbehavior and the risks of promoting obfuscation. Preprint ,arXiv:2503.11926. Stephen Casper, Xander Davies, Claudia Shi, Thomas Krendl Gilbert, Jérémy Scheurer, Javier Rando, Rachel Freedman, Tomek Korbak, David Lindner, Pedro Freire, and 1 others. Open problems and fundamental limitations of reinforcement learn-ing from human feedback. Transactions on Machine Learning Research .Lichang Chen, Chen Zhu, Davit Soselia, Jiuhai Chen, Tianyi Zhou, Tom Goldstein, Heng Huang, Moham-mad Shoeybi, and Bryan Catanzaro. 2024. Odin: Disentangled reward mitigates hacking in rlhf. arXiv preprint arXiv:2402.07319 .Xiusi Chen, Gaotang Li, Ziqi Wang, Bowen Jin, Cheng Qian, Yu Wang, Hongru Wang, Yu Zhang, Denghui Zhang, Tong Zhang, Hanghang Tong, and Heng Ji. 2025. Rm-r1: Reward modeling as reasoning. 
+
+Preprint , arXiv:2505.02387. Ganqu Cui, Lifan Yuan, Ning Ding, Guanming Yao, Wei Zhu, Yuan Ni, Guotong Xie, Zhiyuan Liu, and Maosong Sun. 2023. Ultrafeedback: Boosting lan-guage models with high-quality feedback. arXiv preprint arXiv:2310.01377 .Carson Denison, Monte MacDiarmid, Fazl Barez, David Duvenaud, Shauna Kravec, Samuel Marks, Nicholas Schiefer, Ryan Soklaski, Alex Tamkin, Jared Ka-plan, Buck Shlegeris, Samuel R. Bowman, Ethan Perez, and Evan Hubinger. 2024. Sycophancy to subterfuge: Investigating reward-tampering in large language models. Preprint , arXiv:2406.10162. Jacob Eisenstein, Chirag Nagpal, Alekh Agarwal, Ah-mad Beirami, Alex D’Amour, DJ Dvijotham, Adam Fisch, Katherine Heller, Stephen Pfohl, Deepak Ra-machandran, and 1 others. 2023. Helping or herding? reward model ensembles mitigate but do not eliminate reward hacking. arXiv preprint arXiv:2312.09244 .Logan Engstrom, Andrew Ilyas, Shibani Santurkar, Dim-itris Tsipras, Firdaus Janoos, Larry Rudolph, and Aleksander Madry. 2020. Implementation matters in deep policy gradients: A case study on ppo and trpo. 
+
+Preprint , arXiv:2005.12729. Tom Everitt, Marcus Hutter, Ramana Kumar, and Vic-toria Krakovna. 2021. Reward tampering prob-lems and solutions in reinforcement learning: Acausal influence diagram perspective. Preprint ,arXiv:1908.04734. Justin Fu, Katie Luo, and Sergey Levine. 2018. Learning robust rewards with adverserial inverse reinforcement learning. In International Conference on Learning Representations .Leo Gao, John Schulman, and Jacob Hilton. 2023. Scal-ing laws for reward model overoptimization. In In-ternational Conference on Machine Learning , pages 10835–10866. PMLR. Robert Geirhos, Jörn-Henrik Jacobsen, Claudio Michaelis, Richard Zemel, Wieland Brendel, Matthias Bethge, and Felix A. Wichmann. 2020. Shortcut learning in deep neural networks. Nature Machine Intelligence , 2(11):665–673. Timo Kaufmann, Paul Weng, Viktor Bengs, and Eyke Hüllermeier. 2024. A survey of reinforcement learn-ing from human feedback. Nathan Lambert, Thomas Krendl Gilbert, and Tom Zick. 2023. The history and risks of reinforce-ment learning and human feedback. arXiv preprint arXiv:2310.13595 .Tianqi Liu, Wei Xiong, Jie Ren, Lichang Chen, Junru Wu, Rishabh Joshi, Yang Gao, Jiaming Shen, Zhen Qin, Tianhe Yu, and 1 others. 2024. Rrm: Robust re-ward model training mitigates reward hacking. arXiv preprint arXiv:2409.13156 .Yuchun Miao, Sen Zhang, Liang Ding, Rong Bao, Lefei Zhang, and Dacheng Tao. 2024a. Inform: Mitigat-ing reward hacking in rlhf via information-theoretic reward modeling. Advances in Neural Information Processing Systems , 37:134387–134429. Yuchun Miao, Sen Zhang, Liang Ding, Rong Bao, Lefei Zhang, and Dacheng Tao. 2024b. Inform: Mitigat-ing reward hacking in rlhf via information-theoretic reward modeling. Preprint , arXiv:2402.09345. Long Ouyang, Jeffrey Wu, Xu Jiang, Diogo Almeida, Carroll Wainwright, Pamela Mishkin, Chong Zhang, Sandhini Agarwal, Katarina Slama, Alex Ray, and 1 others. 2022. Training language models to follow in-structions with human feedback. Advances in neural information processing systems , 35:27730–27744. Rafael Rafailov, Archit Sharma, Eric Mitchell, Stefano Ermon, Christopher D Manning, and Chelsea Finn. 2023. Direct preference optimization: Your language model is secretly a reward model. arXiv preprint arXiv:2305.18290 .Prasann Singhal, Tanya Goyal, Jiacheng Xu, and Greg Durrett. 2024. A long way to go: Investigating length correlations in rlhf. Preprint , arXiv:2310.03716. Joar Skalse, Nikolaus Howe, Dmitrii Krasheninnikov, and David Krueger. 2022. Defining and characteriz-ing reward gaming. Advances in Neural Information Processing Systems , 35:9460–9471. Joar Skalse, Nikolaus H. R. Howe, Dmitrii Krashenin-nikov, and David Krueger. 2025. Defining and charac-terizing reward hacking. Preprint , arXiv:2209.13085. Hugo Touvron, Louis Martin, Kevin Stone, Peter Al-bert, Amjad Almahairi, Yasmine Babaei, Nikolay Bashlykov, Soumya Batra, Prajjwal Bhargava, Shruti Bhosale, and 1 others. 2023a. Llama 2: Open foun-dation and fine-tuned chat models. arXiv preprint arXiv:2307.09288 .Hugo Touvron, Louis Martin, Kevin Stone, Peter Al-bert, Amjad Almahairi, Yasmine Babaei, Nikolay Bashlykov, Soumya Batra, Prajjwal Bhargava, Shruti Bhosale, and 1 others. 2023b. Llama 2: Open foun-dation and fine-tuned chat models. arXiv preprint arXiv:2307.09288 .Aaron van den Oord, Yazhe Li, and Oriol Vinyals. 2019. Representation learning with contrastive predictive coding. Preprint , arXiv:1807.03748. Haoxiang Wang, Wei Xiong, Tengyang Xie, Han Zhao, and Tong Zhang. 2024a. Interpretable preferences via multi-objective reward modeling and mixture-of-experts. arXiv preprint arXiv:2406.12845 .Zhilin Wang, Alexander Bukharin, Olivier Delal-leau, Daniel Egert, Gerald Shen, Jiaqi Zeng, Olek-sii Kuchaiev, and Yi Dong. 2024b. Helpsteer2-preference: Complementing ratings with preferences. 
+
+arXiv preprint arXiv:2410.01257 .Jiaxin Wen, Ruiqi Zhong, Akbir Khan, Ethan Perez, Jacob Steinhardt, Minlie Huang, Samuel R. Bowman, He He, and Shi Feng. 2024. Language models learn to mislead humans via rlhf. Preprint , arXiv:2409.12822. Markus Wulfmeier, Michael Bloesch, Nino Vieillard, Arun Ahuja, Jorg Bornschein, Sandy Huang, Artem Sokolov, Matt Barnes, Guillaume Desjardins, Alex Bewley, and 1 others. 2024. Imitating language via scalable inverse reinforcement learning. In The Thirty-eighth Annual Conference on Neural Information Processing Systems .Rui Zheng, Shihan Dou, Songyang Gao, Yuan Hua, Wei Shen, Binghai Wang, Yan Liu, Senjie Jin, Qin Liu, Yuhao Zhou, Limao Xiong, Lu Chen, Zhiheng Xi, Nuo Xu, Wenbin Lai, Minghao Zhu, Cheng Chang, Zhangyue Yin, Rongxiang Weng, and 8 others. 2023. Secrets of rlhf in large language models part i: Ppo. 
+
+Preprint , arXiv:2307.04964. Brian D Ziebart, Andrew L Maas, J Andrew Bagnell, Anind K Dey, and 1 others. 2008. Maximum entropy inverse reinforcement learning. In Aaai , volume 8, pages 1433–1438. Chicago, IL, USA. Daniel M Ziegler, Nisan Stiennon, Jeffrey Wu, Tom B Brown, Alec Radford, Dario Amodei, Paul Christiano, and Geoffrey Irving. 2019. Fine-tuning language models from human preferences. arXiv preprint arXiv:1909.08593 .A More on Related Work 
+
+Inverse Reinforcement Learning (IRL). IRL in-fers the reward function that best explains an agent’s behavior and has been widely used to recover pref-erences from demonstrations in domains such as robotics (); however, it has seen limited use as a 
+
+post-hoc auditing tool for RLHF-trained LLMs. Re-cent LLM work has instead explored IRL primarily for training guidance (Wulfmeier et al., 2024). In contrast, we use IRL to reconstruct and interrogate the implicit objective learned through alignment, and pair it with mechanistic interpretability to local-ize concrete “hacking features” inside the recovered reward. This perspective also distinguishes our ap-proach from direct alignment methods such as DPO (Rafailov et al., 2023): although DPO induces an implicit scalar reward, it is tightly coupled to the policy’s own log-probabilities and offers limited decomposability, whereas our approach yields an explicit, architecturally decoupled reward network that can be decomposed, audited, and targeted for repair. 
+
+B Derivation and Theoretical Properties of C-IRL 
+
+In this section, we provide the formal derivation of the C-IRL objective and establish the identifiability properties of the recovered reward function. 
+
+Theorem A.1 (Partition Function Cancellation). 
+
+Let the expert policy be defined as 
+
+𝜋 𝐸 (𝜏 |𝑥 ) = 1
+
+𝑍 𝜃 (𝑥 ) 𝜋 0 (𝜏 |𝑥 ) exp (𝑅 𝜃 (𝑥, 𝜏 )) .
+
+Given a contrastive set C𝑥 containing one sample from 𝜋 𝐸 and 𝐾 samples from 𝜋 0, the posterior probability of identifying the expert sample is in-dependent of both the partition function 𝑍 𝜃 (𝑥 ) as well as the baseline density 𝜋 0.Proof. Let C𝑥 = {𝜏 0, . . . , 𝜏 𝐾 }. The gen-erative process samples a positive index 𝑖 ∗ ∼
+
+Uniform {0, · · · , 𝐾 }, draws 𝜏 𝑖 ∗ ∼ 𝜋 𝐸 , and draws 
+
+{𝜏 𝑗 } 𝑗 ≠𝑖 ∗ ∼ 𝜋 0. We seek the posterior 𝑃 (𝑖 ∗ =
+
+𝑖 |C 𝑥 , 𝑥 ). From Bayes’ theorem, we get 
+
+𝑃 (𝑖 ∗ = 𝑖 |C 𝑥 , 𝑥 ) = 𝑃 (C 𝑥 |𝑖 ∗ = 𝑖 )𝑃 (𝑖 ∗ = 𝑖 )
+
+Í𝐾 𝑚 =0 𝑃 (C 𝑥 |𝑖 ∗ = 𝑚 )𝑃 (𝑖 ∗ = 𝑚 ) .
+
+(A.1) Since 𝑖 ∗ ∼ Uniform (0, · · · , 𝐾 ), the priors 𝑃 (𝑖 ∗ =
+
+𝑖 ) = 1 
+
+> 𝐾 +1
+
+cancel. Given that 𝑖 corresponds to the expert sample, the likelihood term is 
+
+𝑃 (C 𝑥 | 𝑖 ∗ = 𝑖 ) = 𝜋 𝐸 (𝜏 𝑖 | 𝑥 )
+
+Ö
+
+> 𝑗 ≠𝑖
+
+𝜋 0 (𝜏 𝑗 | 𝑥 )
+
+=
+
+ 𝜋 0 (𝜏 𝑖 | 𝑥 ) exp  𝑅 𝜃 (𝑥, 𝜏 𝑖 )
+
+𝑍 𝜃 (𝑥 )
+
+ Ö
+
+> 𝑗 ≠𝑖
+
+𝜋 0 (𝜏 𝑗 | 𝑥 ).
+
+(A.2) Factoring out the common terms, we get                 
+
+> 𝑃 (C 𝑥 |𝑖 ∗=𝑖 )=exp  𝑅 𝜃 (𝑥, 𝜏 𝑖 )
+> 𝑍 𝜃 (𝑥 )
+> 𝐾 Ö
+> 𝑘 =0
+> 𝜋 0(𝜏 𝑘 |𝑥 )
+> !|{z }
+> Common Base Measure Ω(𝑥 )
+> .
+> (A.3)
+
+The term Ω(𝑥 )/ 𝑍 𝜃 (𝑥 ) depends only on the set 
+
+C𝑥 and the prompt, and is independent of the index 
+
+𝑖 . Substituting this into the posterior, this common factor appears both in the numerator as well as in every summand of the denominator, thus canceling perfectly yielding 
+
+𝑃 (𝑖 ∗ = 𝑖 | C 𝑥 , 𝑥 ) =    
+
+> Ω(𝑥 )
+> 𝑍 𝜃 (𝑥 )
+
+exp  𝑅 𝜃 (𝑥, 𝜏 𝑖 )Í𝐾 𝑚 =0    
+
+> Ω(𝑥 )
+> 𝑍 𝜃 (𝑥 )
+
+exp  𝑅 𝜃 (𝑥, 𝜏 𝑚 )
+
+= exp  𝑅 𝜃 (𝑥, 𝜏 𝑖 )Í𝐾 𝑚 =0 exp  𝑅 𝜃 (𝑥, 𝜏 𝑚 ) .
+
+(A.4) which is independent of both the partition function 
+
+𝑍 𝜃 (𝑥 ) as well as the baseline density 𝜋 0. □
+
+Corollary A.2 (Identifiability). The reward func-tion 𝑅 𝜃 (𝑥, 𝜏 ) is identifiable up to a prompt-dependent additive constant. That is, 𝑅 and 
+
+𝑅 ′ are observationally equivalent if and only if 
+
+𝑅 ′ (𝑥, 𝜏 ) = 𝑅 (𝑥, 𝜏 ) + 𝑓 (𝑥 ).Proof. First, consider sufficiency. Let ˜𝑅 (𝑥, 𝜏 ) =
+
+𝑅 𝜃 (𝑥, 𝜏 ) + 𝑓 (𝑥 ) for any arbitrary function 𝑓 (𝑥 ).Substituting this into the posterior from Theorem A.1: 
+
+𝑃 (𝑖 ∗ = 𝑖 | C 𝑥 , 𝑥 ) = exp   ˜𝑅 (𝑥, 𝜏 𝑖 )Í𝐾 𝑗 =0 exp   ˜𝑅 (𝑥, 𝜏 𝑗 )
+
+= exp  𝑅 𝜃 (𝑥, 𝜏 𝑖 ) + 𝑓 (𝑥 )Í𝐾 𝑚 =0 exp  𝑅 𝜃 (𝑥, 𝜏 𝑚 ) + 𝑓 (𝑥 )
+
+= exp   𝑓 (𝑥 ) exp  𝑅 𝜃 (𝑥, 𝜏 𝑖 )
+
+exp   𝑓 (𝑥 ) Í 𝐾 𝑚 =0 exp  𝑅 𝜃 (𝑥, 𝜏 𝑚 )
+
+= 𝑃 (𝑖 ∗ = 𝑖 | C 𝑥 , 𝑥 ) .
+
+(A.5) Thus, the posterior remains invariant. Conversely, for necessity, if two reward func-tions induce identical posteriors for all possible contrastive sets, their log-odds must match: 
+
+log 𝑃 (𝑖 ∗ = 𝑖 | C 𝑥 , 𝑥 )
+
+𝑃 (𝑖 ∗ = 𝑗 | C 𝑥 , 𝑥 )
+
+= 𝑅 (𝑥, 𝜏 𝑖 ) − 𝑅 (𝑥, 𝜏 𝑗 ) = 𝑅 ′ (𝑥, 𝜏 𝑖 ) − 𝑅 ′ (𝑥, 𝜏 𝑗 ).
+
+This implies that 𝑅 ′ (𝑥, 𝜏 ) − 𝑅 (𝑥, 𝜏 ) = const (w.r.t. 
+
+𝜏 ), which defines the function 𝑓 (𝑥 ). Thus, prompt-dependent additive shifts characterize the complete equivalence class. Consequently, while global reward magnitudes are not unique, relative reward differences and gradient-based attributions (since 
+
+∇𝜏 𝑓 (𝑥 ) = 0) are uniquely identified. 
+
+C C-IRL Implementation Details 
+
+C.1 C-IRL Algorithm 
+
+Algorithm 1 presents the complete C-IRL training procedure. The algorithm consists of two phases: (1) dataset construction, where we collect trajectory samples from both the baseline and aligned policies, and (2) contrastive training, where we optimize the reward network to distinguish aligned trajectories from baseline trajectories. 
+
+Algorithm 1 Contrastive Inverse Reinforcement Learning (C-IRL) 
+
+Require: Baseline policy 𝜋 0, aligned policy 𝜋 𝐸 ,prompt dataset D
+
+Require: Number of negatives 𝐾 , learning rate 𝜂 ,training iterations 𝑇 
+
+Ensure: Trained reward network 𝑅 𝜃 
+
+Phase 1: Dataset Construction  
+
+> 1:
+
+Initialize trajectory buffers B𝐸 ← {} , B0 ← {}  
+
+> 2:
+
+for each prompt 𝑥 ∈ D do  
+
+> 3:
+
+Sample 𝜏 + ∼ 𝜋 𝐸 (·| 𝑥 ) ⊲ Expert trajectory  
+
+> 4:
+
+Sample {𝜏 − 
+
+> 𝑗
+
+}𝐾 𝑗 =1 ∼ 𝜋 0 (·| 𝑥 ) ⊲ Baseline trajectories  
+
+> 5:
+
+B𝐸 ← B 𝐸 ∪ {( 𝑥, 𝜏 +)}  
+
+> 6:
+
+B0 ← B 0 ∪ {( 𝑥, 𝜏 − 
+
+> 𝑗
+
+)} 𝐾 𝑗 =1 
+
+> 7:
+
+end for Phase 2: Contrastive Training  
+
+> 8:
+
+Initialize reward network 𝑅 𝜃 from pretrained encoder  
+
+> 9:
+
+Initialize optimizer (e.g., AdamW with weight decay)  
+
+> 10:
+
+for 𝑡 = 1, . . . , 𝑇 do  
+
+> 11:
+
+Sample minibatch of prompts {𝑥 𝑏 }𝐵 𝑏 =1 ⊂D 
+
+> 12:
+
+for each prompt 𝑥 𝑏 in minibatch do  
+
+> 13:
+
+Retrieve expert trajectory: 𝜏 + 
+
+> 𝑏
+
+←B𝐸 [𝑥 𝑏 ] 
+
+> 14:
+
+Sample 𝐾 negatives: {𝜏 − 
+
+> 𝑏, 𝑗
+
+}𝐾 𝑗 =1 ⊂B0 [𝑥 𝑏 ] 
+
+> 15:
+
+Compute 𝑟 + 
+
+> 𝑏
+
+← 𝑅 𝜃 (𝑥 𝑏 , 𝜏 + 
+
+> 𝑏
+
+) 
+
+> 16:
+
+Compute 𝑟 − 
+
+> 𝑏, 𝑗
+
+← 𝑅 𝜃 (𝑥 𝑏 , 𝜏 − 
+
+> 𝑏, 𝑗
+
+) for 𝑗 =
+
+1, . . . , 𝐾  
+
+> 17:
+
+end for 
+
+⊲ InfoNCE loss and gradient update  
+
+> 18:
+
+L ← − 1
+
+> 𝐵
+
+Í𝐵 𝑏 =1 log exp (𝑟 + 
+
+> 𝑏
+
+)
+
+exp (𝑟 + 
+
+> 𝑏
+
+) + Í𝐾 𝑗 =1 exp (𝑟 − 
+
+> 𝑏, 𝑗
+
+) 
+
+> 19:
+
+𝜃 ← 𝜃 − 𝜂 ∇𝜃 L 
+
+> 20:
+
+end for  
+
+> 21:
+
+return 𝑅 𝜃 
+
+D SAE Training Algorithm 
+
+Algorithm 2 presents the SAE training procedure for reward decomposition. Algorithm 2 Sparse Autoencoder for Reward De-composition 
+
+Require: Trained reward network 𝑅 𝜃 with linear head (𝑤 head , 𝑏 head )
+
+Require: Dataset of prompt-response pairs D =
+
+{( 𝑥 𝑖 , 𝜏 𝑖 )} 𝑁 𝑖 =1
+
+Require: Hidden dim 𝑑 , dictionary size 𝑀 , spar-sity 𝑘 , consistency weight 𝜆 
+
+Require: Training iterations 𝑇 , learning rate 𝜂 ,auxiliary coefficient 𝛼 
+
+Ensure: Trained SAE, feature coefficients {𝜔 𝑖 }𝑀 𝑖 =1,constant 𝐶 
+
+Phase 1: Activation Extraction  
+
+> 1:
+
+Initialize activation buffer H ← {}  
+
+> 2:
+
+for each (𝑥, 𝜏 ) ∈ D do  
+
+> 3:
+
+ℎ ← 𝑅 penult  
+
+> 𝜃
+
+(𝑥, 𝜏 ) ⊲ Penultimate layer activation  
+
+> 4:
+
+H ← H ∪ { ℎ} 
+
+> 5:
+
+end for Phase 2: Initialization  
+
+> 6:
+
+𝑏 dec ← GeometricMedian (H )  
+
+> 7:
+
+Initialize 𝑊 dec ∈ R𝑑 ×𝑀 with unit-norm orthog-onal columns  
+
+> 8:
+
+𝑊 enc ← 𝑊 ⊤
+
+> dec
+
+, 𝑏 enc ← 0 
+
+> 9:
+
+¯𝑓 𝑖 ← 0 for 𝑖 = 1, . . . , 𝑀 ⊲ Feature frequency tracker 
+
+Phase 3: Training  
+
+> 10:
+
+for 𝑡 = 1, . . . , 𝑇 do  
+
+> 11:
+
+Sample minibatch {ℎ𝑏 }𝐵 𝑏 =1 ⊂ H  
+
+> 12:
+
+for 𝑏 = 1, . . . , 𝐵 do  
+
+> 13:
+
+𝑧 𝑏 ← 𝑊 enc (ℎ𝑏 − 𝑏 dec ) + 𝑏 enc | | ⊲ Eq. ??  
+
+> 14:
+
+𝑓 𝑏 ← TopK (ReLU (𝑧 𝑏 ), 𝑘 ) ⊲ Sparse features  
+
+> 15:
+
+ˆℎ𝑏 ← 𝑊 dec 𝑓 𝑏 + 𝑏 dec ⊲ Reconstruction  
+
+> 16:
+
+end for 
+
+⊲ Losses (Eq. 7)  
+
+> 17:
+
+Lrecon ← 1
+
+> 𝐵
+
+Í𝐵 𝑏 =1 ∥ℎ𝑏 − ˆℎ𝑏 ∥22 
+
+> 18:
+
+Lreward ← 1
+
+> 𝐵
+
+Í𝐵 𝑏 =1
+
+
+
+𝑤 ⊤ 
+
+> head
+
+ℎ𝑏 − 𝑤 ⊤ 
+
+> head
+
+ˆℎ𝑏 
+
+2
+
+⊲ Dead feature prevention  
+
+> 19:
+
+¯𝑓 𝑖 ← 0.99 · ¯𝑓 𝑖 + 0.01 · 1
+
+> 𝐵
+
+Í𝐵 𝑏 =1 I[ 𝑓 𝑏,𝑖 > 0]
+
+for all 𝑖  
+
+> 20:
+
+𝛼 𝑡 ← 𝛼 if 𝑡 < 0.9𝑇 , else linearly anneal to 
+
+0 
+
+> 21:
+
+Laux ← 𝛼 𝑡 
+
+Í𝑀 𝑖 =1 max (0, 𝑘  
+
+> 2𝑀
+
+− ¯𝑓 𝑖 )2
+
+⊲ Update  
+
+> 22:
+
+Ltot ← L recon + 𝜆 Lreward + L aux  
+
+> 23:
+
+Update (𝑊 enc , 𝑏 enc , 𝑊 dec , 𝑏 dec ) via AdamW  
+
+> 24:
+
+d𝑖 ← d𝑖 /∥ d𝑖 ∥2 for 𝑖 = 1, . . . , 𝑀 ⊲
+
+Normalize decoder  
+
+> 25:
+
+end for 
+
+E Permutation Test for Feature Significance 
+
+To ensure that the identified hacking features repre-sent genuine systematic patterns rather than sam-pling artifacts, we employ a permutation-based hypothesis test. Under the null hypothesis 𝐻 0, the feature contributions on hacked examples are drawn from the same distribution as the general popula-tion, implying no systematic elevation of feature 𝑖 
+
+on hacked examples. The test proceeds as follows. For each feature 
+
+𝑖 , we first compute the observed hacking contribu-tion score 𝐻 obs  
+
+> 𝑖
+
+using Equation 9. We then gen-erate 𝐵 permutation samples, typically 𝐵 = 1000 ,by randomly sampling |D hack | examples from the SAE training distribution DSAE and computing the hacking score 𝐻 (𝑏 ) 
+
+> 𝑖
+
+on each random sample. The 
+
+𝑝 -value is computed as the fraction of permutations where the permuted score meets or exceeds the observed score: 𝑝 𝑖 = 1
+
+> 𝐵
+
+Í𝐵 𝑏 =1 1[𝐻 (𝑏 ) 
+
+> 𝑖
+
+≥ 𝐻 obs  
+
+> 𝑖
+
+].Since we test 𝑀 features simultaneously, we must correct for multiple comparisons to control the false discovery rate. We apply the Benjamini-Hochberg procedure at level 𝛼 = 0.05 . The 𝑝 -values are sorted in ascending order as 𝑝 (1) ≤
+
+𝑝 (2) ≤ · · · ≤ 𝑝 ( 𝑀 ) , and we find the largest 𝑘 such that 𝑝 (𝑘 ) ≤ 𝑘 𝑀 𝛼 . All features with 𝑝 𝑖 ≤ 𝑝 (𝑘 ) are deemed statistically significant. The final set of hacking features Shack is obtained by intersecting the statistically significant features with the direc-tionality filter Spositive = {𝑖 : ¯𝐻 𝑖 > 0}.
+
+F Implementation Details for Mitigation 
+
+This section provides complete implementation specifications for all mitigation methods. 
+
+F.1 PPO Configuration 
+
+For Methods A, B, and C, which require reinforce-ment learning, we use the following PPO configura-tion. The learning rate is set to 1 × 10 −5 with linear warmup over the first 10% of training steps. The KL coefficient 𝛽 is initialized at 0.1 with adaptive adjustment to maintain a target KL divergence. The PPO clip range is set to 0.2, the value function coefficient to 0.5, and the entropy coefficient to 0.01 to encourage exploration. We use a batch size of 64 with mini-batches of size 8 and perform 4 PPO epochs per batch. Gradient accumulation over 4 steps yields an effective batch size of 256. Gradients are clipped to a maximum norm of 1.0 for stability. F.2 Distillation Configuration 
+
+For Method D, we generate 𝑁 = 16 candidates per prompt using temperature 0.8 and top-𝑝 of 0.95. The penalty strength 𝜂 in the surgical reward is set to 1.0. The minimum surgical reward threshold 
+
+𝜏 min is set to 0.0, meaning we only require the selected response to have non-negative surgical reward. Fine-tuning uses a learning rate of 2 × 10 −5
+
+for 3 epochs with batch size 32. This configuration is significantly simpler than the PPO-based methods and requires no reward model in the training loop. 
+
+F.3 Computational Requirements 
+
+The computational requirements vary substantially across methods. Methods A, B, and C require approximately 20-50 GPU-hours on 8 × A100 GPUs for a 7B parameter model, with peak memory usage of 40-80 GB depending on batch size and sequence length. The PPO infrastructure adds significant overhead. Method D requires only 5-10 GPU-hours with peak memory of 20-40 GB, as it uses standard supervised fine-tuning without online RL. The candidate generation step can be parallelized efficiently across GPUs. For practitioners with limited computational resources, Method D offers the most favorable trade-off between effectiveness and efficiency. 
+
+G Ablation Studies: Full Results 
+
+This section provides detailed ablation experiments examining the impact of key hyperparameters and design choices on C-IRL’s reconstruction fidelity and policy recovery performance. 
+
+G.1 Number of Negative Samples ( 𝐾 )
+
+The InfoNCE objective (Equation ?? ) contrasts each positive response from 𝜋 𝐸 against 𝐾 negative responses sampled from 𝜋 0. Increasing 𝐾 pro-vides a tighter lower bound on mutual information and reduces gradient variance, but incurs higher computational cost. 
+
+Setup. We train C-IRL with 𝐾 ∈ { 1, 2, 4, 8, 16 }
+
+while holding all other hyperparameters fixed (50K contrastive pairs, 98M parameter reward network, Llama-2-7B backbone). We measure Spearman correlation with 𝑅 GT , pairwise ranking accuracy, forward KL divergence of the recovered policy, gradient variance during training, and wall-clock training time. 
+
+Results. Table 7 shows that performance im-proves from 𝐾 =1 to 𝐾 =4 and then largely saturates. Ranking accuracy reaches 87.8% at 𝐾 =4, while increasing to 𝐾 =16 yields only a marginal gain (+2.4%) at approximately 4× the computational cost. Gradient variance decreases monotonically with 𝐾 , consistent with the theoretical analysis of InfoNCE ( ?). We use 𝐾 =4 as the default throughout our experiments. 
+
+G.2 Contrastive Dataset Size 
+
+The contrastive dataset consists of paired responses 
+
+(𝑥, 𝜏 𝐸 , 𝜏 0) where 𝜏 𝐸 ∼ 𝜋 𝐸 (·| 𝑥 ) and 𝜏 0 ∼ 𝜋 0 (·| 𝑥 ).Larger datasets provide better coverage of the be-havioral shift between the two policies but require more data collection and training time. 
+
+Setup. We train C-IRL with dataset sizes 
+
+∈ {5K, 10 K, 25 K, 50 K, 100 K} contrastive pairs while holding other hyperparameters fixed ( 𝐾 =4,98M parameter reward network, Llama-2-7B back-bone). 
+
+Results. Table 8 shows that reconstruction quality improves substantially as dataset size grows from 5K to 50K samples (Spearman 𝜌 : 0.79 →0.89; for-ward KL: 0.58 →0.21), after which gains diminish. This suggests that approximately 50K contrastive pairs provide sufficient coverage of the behavioral shift between 𝜋 0 and 𝜋 𝐸 for reliable reward recovery. We use 50K pairs as the default. 
+
+G.3 Reward Network Capacity 
+
+Table 9 shows that reconstruction fidelity improves markedly as capacity grows from 24M to approx-imately 100M parameters, but then saturates: the 98M and 210M models achieve essentially identi-cal Spearman correlation (0.89) and forward KL (0.021 vs 0.020). This suggests that once b𝑅 𝜃 is suf-ficiently expressive, the limiting factor becomes the information content and coverage of the behavioral contrasts rather than model capacity. We use the 98M configuration as the default. 
+
+G.4 Backbone Model Generalization 
+
+C-IRL reconstructs b𝑅 𝜃 using features extracted from an LLM backbone, which serves as the se-mantic representation space for contrastive learning. While the C-IRL objective is model-agnostic, the choice of backbone can affect representation quality and the geometry of the learning problem. Table 7: Effect of the number of negative samples 𝐾 . Performance saturates around 𝐾 = 4, providing the best trade-off between reconstruction quality and computational cost. 
+
+𝐾 Spearman 𝜌 Rank Acc. Forward KL Grad. Var. Train Time 
+
+1 0.86 ± .02 85.2% 0.032 1.0 × 1.0 ×
+
+2 0.87 ± .01 86.1% 0.028 1.4 × 1.9 ×
+
+4 0.89 ± .01 87.8% 0.021 1.8 × 3.7 ×
+
+8 0.89 ± .01 87.9% 0.020 2.6 × 7.2 ×
+
+16 0.90 ± .01 88.2% 0.019 3.1 × 14.1 ×
+
+Table 8: Effect of contrastive dataset size. Performance saturates around 50K contrastive pairs. 
+
+Dataset Size Spearman 𝜌 Rank Acc. Forward KL 
+
+5K 0.79 ± .03 80.2% 0.058 10K 0.84 ± .02 84.1% 0.038 25K 0.87 ± .01 86.5% 0.26 50K 0.89 ± .01 87.8% 0.021 
+
+100K 0.89 ± .01 88.1% 0.020 
+
+Setup. We evaluate C-IRL on three widely used backbones: Llama-2-7B (Touvron et al., 2023b), Mistral-7B ( ?), and Llama-3-8B ( ?). For each back-bone, we use the same hyperparameters ( 𝐾 =4, 50K pairs, 98M reward network) and measure recon-struction fidelity and policy recovery. 
+
+Results. Table 10 shows that C-IRL achieves comparable reward agreement and policy recovery across all backbones, with Spearman 𝜌 ranging from 0.88 to 0.89 and forward KL from 0.20 to 0.23. This demonstrates that C-IRL is not tied to a particular architecture and can be applied with different foundation models. Table 9: Effect of reward network capacity. Performance saturates around 100M parameters. 
+
+Hidden Dim. Depth Params Spearman 𝜌 Forward KL 
+
+512 2 24M 0.78 0.52 1024 4 46M 0.85 0.35 2048 8 98M 0.89 0.21 
+
+4096 12 210M 0.89 0.20   
+
+> Table 10: C-IRL performance across different LLM backbones. The method generalizes across architectures.
+
+Backbone Params Spearman 𝜌 Rank Acc. Forward KL 
+
+Llama-2-7B 7B 0.89 87.8% 0.021 Mistral-7B 7B 0.88 87.2% 0.023 Llama-3-8B 8B 0.89 88.1% 0.020  
+
+> Table 11: Default C-IRL hyperparameters.
+
+Hyperparameter Value 
+
+Number of negatives ( 𝐾 ) 4Contrastive dataset size 50K pairs Reward network hidden dim 2048 Reward network depth 8 layers Reward network params 98M Learning rate 1 × 10 −5
+
+Batch size 64 Training epochs 3
