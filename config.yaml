@@ -25,4 +25,40 @@ subscriptions:
     stage: A
     diff_threshold_pct: 15
   keyword_recall_mode: or
-  intent_profiles: []
+  intent_profiles:
+    - tag: RL DM
+      description: 强化学习与扩散模型相关的学术论文检索
+      enabled: true
+      keywords:
+        - keyword: reinforcement learning
+          keyword_cn: 强化学习
+          query: reinforcement learning algorithms and frameworks
+        - keyword: diffusion models
+          keyword_cn: 扩散模型
+          query: generative diffusion models and denoising processes
+        - keyword: guided diffusion
+          keyword_cn: 引导式扩散
+          query: classifier-guided and classifier-free diffusion for RL
+        - keyword: generative modeling
+          keyword_cn: 生成式建模
+          query: generative models for decision making and planning
+        - keyword: trajectory optimization
+          keyword_cn: 轨迹优化
+          query: trajectory generation using diffusion models
+      intent_queries:
+        - query: advancements in reinforcement learning using diffusion models
+          query_cn: 利用扩散模型改进强化学习的进展
+          enabled: true
+          source: manual
+          note: ''
+        - query: diffusion models for offline reinforcement learning and policy optimization
+          query_cn: 用于离线强化学习和策略优化的扩散模型
+          enabled: true
+          source: manual
+          note: ''
+        - query: integrating generative diffusion processes into decision making agents
+          query_cn: 将生成式扩散过程集成到决策智能体中
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-03-23T13:49:31.432Z'
