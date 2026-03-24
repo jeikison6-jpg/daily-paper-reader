@@ -1,0 +1,745 @@
+Title: Learning Permutation Distributions via Reflected Diffusion on Ranks
+
+URL Source: https://arxiv.org/pdf/2603.17353v1
+
+Published Time: Thu, 19 Mar 2026 00:45:01 GMT
+
+Number of Pages: 14
+
+Markdown Content:
+# Learning Permutation Distributions via Reflected Diffusion on Ranks 
+
+Sizhuang He * 1 Yangtian Zhang * 1 Shiyang Zhang 1 David van Dijk 1
+
+## Abstract 
+
+The finite symmetric group Sn provides a natural domain for permutations, yet learning probability distributions on Sn is challenging due to its fac-torially growing size and discrete, non-Euclidean structure. Recent permutation diffusion methods define forward noising via shuffle-based random walks (e.g., riffle shuffles) and learn reverse tran-sitions with Plackett–Luce (PL) variants, but the resulting trajectories can be abrupt and increas-ingly hard to denoise as n grows. We propose 
+
+Soft-Rank Diffusion , a discrete diffusion frame-work that replaces shuffle-based corruption with a structured soft-rank forward process: we lift permutations to a continuous latent representation of order by relaxing discrete ranks into soft ranks, yielding smoother and more tractable trajectories. For the reverse process, we introduce contextual-ized generalized Plackett–Luce (cGPL) denoisers that generalize prior PL-style parameterizations and improve expressivity for sequential decision structures. Experiments on sorting and combinato-rial optimization benchmarks show that Soft-Rank Diffusion consistently outperforms prior diffusion baselines, with particularly strong gains in long-sequence and intrinsically sequential settings. 
+
+## 1. Introduction 
+
+Permutations are fundamental objects in a wide range of applications, from ranking search results and recommenda-tions (Feng et al., 2021; Koren et al., 2009) to sorting and learning-to-rank (Liu, 2009) and combinatorial optimiza-tion problems such as the traveling salesperson problem (TSP). In many settings, we aim to model a distribution over permutations—and ultimately build generative models with which to sample permutations. In continuous Euclidean domains, diffusion models (Sohl-Dickstein et al., 2015; Ho et al., 2020; Song et al., 2021;   
+
+> *Equal contribution 1Department of Computer Science, Yale University, New Haven, CT, USA. Correspondence to: David van Dijk <david.vandijk@yale.edu >.
+> Preprint. March 19, 2026.
+
+2022) have emerged as powerful and scalable tools for mod-eling complex distributions like images, and related ideas have been extended beyond Rd to discrete objects such as text and graphs, a class of models known as Discrete Diffu-sion models (Austin et al., 2023; Lou et al., 2024; Dieleman et al., 2022; Gat et al., 2024; Gulrajani and Hashimoto, 2023; Vignac et al., 2023). Yet permutations remain a par-ticularly challenging case: although they are discrete, the state space grows factorially with sequence length n, and the natural transitions on permutations, like card-shuffling, are often abrupt —small local moves can cause discontinuous, non-differentiable changes in the induced ordering. Con-sequently, diffusion-style constructions that work well for other discrete domains can become brittle on permutations and scale poorly with n.Developing discrete diffusion models over permutations remains relatively underexplored. Recent progress on per-mutation diffusion (Zhang et al., 2025) tackles above chal-lenge by defining the forward noising process directly on permutations—typically as a random walk induced by riffle shuffles (Gilbert, 1955)—and parameterizing the reverse dy-namics with the Plackett–Luce distribution (PL) (Plackett, 1975; Luce, 1959) and its generalizations (GPL) (Zhang et al., 2025). While effective on small instances, these dis-crete forward trajectories can be highly “jumpy”: even a single riffle–shuffle can simultaneously move many items across the sequence, yielding abrupt, non-smooth changes in the ordering. Performance often degrades rapidly and can even collapse in the long-n regime. In this paper, we take a different perspective: rather than diffusing within Sn, we lift a permutation—viewed as the rank of each element—to a continuous latent representation and diffuse in that space. Concretely, we represent an order-ing by assigning each item a continuous-valued soft rank 
+
+z ∈ [0 , 1] , obtaining a soft rank vector Z ∈ [0 , 1] n and re-cover the induced permutation by sorting, σ = argsort( Z).This relaxation lets us define smooth stochastic dynamics in a continuous space, while still producing a discrete permu-tation at any time via a simple sorting operation. Building on this idea, we introduce Soft-Rank Diffusion ,which defines the forward noising process as a reflected diffusion bridge (Lou and Ermon, 2023; Xie et al., 2024) on [0 , 1] n, and observes permutations through the induced 1
+
+> arXiv:2603.17353v1 [cs.LG] 18 Mar 2026 Learning Permutation Distributions via Reflected Diffusion on Ranks
+
+ordering σt = argsort( Zt). The latent construction also yields a reverse-time sampler. We augment the intractable 
+
+discrete reverse step with an auxiliary, tractable continuous update in the soft-rank space, followed by a projection back to permutations via sorting. We further introduce contextu-alized GPL (cGPL) and a pointer-cGPL variant, general-izations of PL/GPL that make stagewise logits depend on the evolving prefix and the shrinking candidate set—a natu-ral fit for intrinsically sequential and dynamic tasks such as TSP. We evaluate Soft-Rank Diffusion on standard permutation generation benchmarks, including 4-digit MNIST sorting and TSP. Across settings, our method consistently outper-forms prior permutation diffusion baselines and differen-tiable sorting baselines, with gains that widen as sequence lengths increase. Taken together, our results suggest that reflected diffusion in soft-rank space provides a principled and scalable route to permutation generative modeling. 
+
+Contributions. Our main contributions are: • We introduce Soft-Rank Diffusion , a permutation diffusion framework induced by reflected diffusion bridges in a relaxed continuous soft-rank space. • We derive a hybrid reverse sampler that augments the intractable reverse dynamics in permutation space with tractable updates in the soft-rank space. • We propose cGPL and pointer-cGPL , generalizations of PL/GPL that improve prefix-conditional expressivity for sequential permutation tasks. • We demonstrate strong empirical performance on long-sequence MNIST sorting and TSP benchmarks, partic-ularly in the large-n regime. 
+
+## 2. Related Works 
+
+Discrete Diffusion Models. Diffusion models (Sohl-Dickstein et al., 2015; Ho et al., 2020; Song et al., 2021) were initially developed for continuous data. D3PM (Austin et al., 2023) extended this framework to discrete domains by defining forward noising processes based on masking or uniform replacement. Subsequent work introduced alterna-tive parameterizations and training objectives for discrete diffusion (Lou et al., 2024; Gat et al., 2024) and further extended discrete (both in state space and time) diffusion to continuous-time variants (Campbell et al., 2022; Sun et al., 2023; Shi et al., 2025). However, most existing methods assumes a manageable or factorized state space; directly extending them to permutation-valued data is challenging because the group Sn has size n!, making naive transi-tion representations intractable without exploiting additional structure. 
+
+Learning Permutations. Sorting algorithms can be viewed as producing a permutation of a set of items and are well understood; however, their hard discrete decisions are 
+
+non-differentiable , which hinders end-to-end training when permutations are produced by, or embedded within, neural models. This motivates differentiable sorting methods that replace discrete swaps or permutation operators with smooth surrogates, yielding a soft permutation (or rank) representa-tion amenable to gradient-based optimization (Mena et al., 2018; Cuturi et al., 2019; Prillo and Eisenschlos, 2020; Blon-del et al., 2020; Grover et al., 2019; Petersen et al., 2022). Another widely used family is Pointer Networks (Ptr-Nets) (Vinyals et al., 2017), which parameterize permutation-valued outputs by decoding a sequence of indices into the input, rather than symbols from a fixed vocabulary. At each decoding step, an attention mechanism induces a categori-cal distribution over input positions, and the chosen index specifies which input element is appended next in the output ordering. Because the effective output domain scales with input length, Ptr-Nets naturally accommodate variable-sized instances and provide a natural generic parameterization for combinatorial prediction problems whose outputs are orderings (e.g., sorting and routing). 
+
+Discrete Diffusion on Permutations. Zhang et al. (2025) introduce SymmetricDiffusers , which formulates discrete diffusion directly on the finite symmetric group Sn. The forward noising dynamics are instantiated as a random walk on Sn, with the riffle shuffle (Gilbert, 1955) serving as an ef-fective transition that mixes rapidly to enable short diffusion chains in practice. For the reverse (denoising) parameterization, Plackett–Luce-style (PL) models are adopted and extended to a generalized Plackett–Luce (GPL) family. While the PL distribution is defined as 
+
+pPL (σ) = 
+
+> n
+
+Y
+
+> i=1
+
+exp  sσ(i)
+
+Pnj=i exp  sσ(j)
+
+ , (1) i.e., it assigns a single preference score sk to each item k
+
+and samples items without replacement according to these fixed scores, the GPL family generalizes this construction by assigning step-specific scores for each item rather than a single fixed global score. As a result, GPL is strictly more expressive than PL; in particular, GPL is universal in the sense that it can represent arbitrary distributions over Sn.
+
+Reflected Diffusion and Reflected Flow Matching. Dif-fusion models are often trained on data supported on bounded domains (e.g., [0 , 255] for unnormalized image pixels), yet the learned dynamics can leave the domain at intermediate time steps—a pathology that is commonly han-dled by ad-hoc clipping. Lou and Ermon (2023) address this 2Learning Permutation Distributions via Reflected Diffusion on Ranks 
+
+issue by formulating generation as a reflected score-based SDE, augmenting the dynamics with an additional reflection term that enforces the state constraint and keeps trajecto-ries in-bounds throughout sampling. Xie et al. (2024) later extend the same principle to flow matching, incorporating reflection into the corresponding flow/ODE formulations. 
+
+## 3. Methods 
+
+Let [N ] := {1, . . . , N }. A permutation is a bijection σ :[N ] → [N ]. We can write it as 
+
+σ =
+
+ 1 2 · · · Nσ(1) σ(2) · · · σ(N )
+
+
+
+,
+
+meaning that each element i ∈ [N ] is mapped to σ(i). We can make the source indices (1 , 2, . . . , N ) implicit and use the one-line notation 
+
+σ = ( σ(1) , σ (2) , . . . , σ (N )) .
+
+Under this convention, σ(i) can be interpreted as the (desti-nation) position of element i after reordering, i.e., the rank 
+
+of element i of the original sequence in the permuted order-ing. We denote by SN the set of all such permutations (i.e., the symmetric group under composition). Applying a permu-tation to an ordered list simply reindexes its entries. Equiv-alently, each σ ∈ S N can be represented by a permutation matrix Pσ ∈ { 0, 1}N ×N , so that the same reindexing can be implemented via matrix multiplication. Given an instance X = ( x1, . . . , x N ) ∈ RN ×d consisting of N items (with associated features), we aim to model a conditional distribution over permutations σ ∈ S N . We observe i.i.d. training pairs (X, σ 0) ∼ p⋆, and our goal is to learn a generative model that can efficiently sample valid permutations conditioned on X. We write Xt = σt(X) to be the permuted instance at time t.We adopt a diffusion-style approach on SN . Specifically, we define a forward noising process on permutations that gradually transforms σ0 toward a target distribution, and train a parameterized reverse-time model pθ (σt−∆t | σt, X )
+
+to approximately invert this corruption process. At test time, sampling starts from the reference distribution and iteratively applies the learned reverse dynamics to generate 
+
+ˆσ0 ∈ S N conditioned on X.
+
+3.1. Forward Process: Soft-Rank Diffusion 
+
+Instead of defining diffusion dynamics directly on the dis-crete space SN (e.g., via card shuffling methods as in Zhang et al. (2025), which can be abrupt and unstructured), we adopt a continuous latent viewpoint in which a permutation is encoded by the relative ordering of real-valued coordi-nates. The key idea is to relax the discrete rank values in [N ]
+
+to continuous soft ranks in [0 , 1] , and to define a diffusion process over these continuous variables. At any intermediate time, the induced ordering of the latent coordinates yields a valid permutation of the original items. This relaxation brings two immediate benefits. First, it provides a Euclidean state space where noise injection and interpolation are natural, enabling diffusion-style modeling without relying on discrete, jump-like transitions. Second, the forward marginals can be designed to be analytically tractable, which later allows us to derive a reverse-time sampler. Intuitively, one may view each item as a particle undergoing Brownian motion: starting from an initial ordered configu-ration, the particles gradually diffuse, and the permutation at time t is given by the snapshot ordering of their positions. Formally, to initialize a continuous latent state, we convert a permutation σ ∈ S N into a canonical soft-rank vector in [0 , 1] N by mapping discrete ranks to a fixed grid. Let 
+
+{gr }Nr=1 be a uniform grid on [0 , 1] , e.g., 
+
+gr = r − 1
+
+N − 1 (r = 1 , . . . , N ). (2) We define the grid-mapping operator LiftToGrid : SN →
+
+[0 , 1] N by 
+
+LiftToGrid( σ)i := gσ(i), i ∈ [N ]. (3) In particular, we set Z0 := LiftToGrid( σ0).We generate Zt by coupling the data latent Z0 to a ran-domly sampled endpoint Z1 ∼ pref via a Brownian bridge, where pref is a tractable, data-independent reference dis-tribution (e.g., N (0 , I N ) or Unif([0 , 1] N )). We apply this construction coordinate-wise : each entry of Zt evolves as an independent one-dimensional bridge driven by its own Brownian motion. For clarity, we describe a single coordi-nate using lowercase notation. Specifically, we consider the following SDE, which corresponds to a VE diffusion bridge as in Zhou et al. (2023): 
+
+dz t = z1 − zt
+
+1 − t dt + ηdw t + dl t, (4) where wt is a standard one-dimensional Brownian motion, η
+
+is the noise scale and lt is a reflection term (Lou and Ermon, 2023; Xie et al., 2024) that enforces the state constraint 
+
+zt ∈ [0 , 1] .Then, at any time t, we obtain a discrete permutation in the rank representation simply by ranking the coordinates of Zt. Assuming distinct coordinates (almost surely under continuous noise) and using 1-based indexing, we recover 
+
+σt as 
+
+σt = argsort   argsort( Zt).
+
+Figure 1 illustrates the forward process. 3Learning Permutation Distributions via Reflected Diffusion on Ranks 𝑋 !𝑋 " 𝑋 # 𝑋 "
+
+## "               
+
+> Z!
+> 𝑝 "(𝜎 #%|𝑋 $)
+> Z%𝑍 #
+> *=[ &
+> ',0,1,(
+> ']
+> 𝑋 #
+> *=𝜎 #%(𝑋 $)
+> Discrete  space  Continuous space  Forward Process Reverse Process
+> Z!Soft Ranks at time t
+> 𝑋 "Permuted data sequence at time t
+> 𝑝 #Denoiser model parameterized with 𝜃
+
+## … …        
+
+> Induced forward shuffling process in permutation space
+> Augmenting reverse
+> sampling step with
+> continuous Soft Ranks
+> Induced reverse step
+> in permutation space
+> 𝑝 (𝑍 $|𝑍 ",𝑍 %
+> ),𝑍 &)
+> Induce ordering from Soft Ranks
+> Lift to continuous Soft Ranks
+> Reverse transition kerne l
+
+Figure 1. Soft-Rank Diffusion. We define the forward diffusion by relaxing each item’s rank to a continuous soft-rank variable and evolving these soft ranks in a reflected diffusion process (Lou and Ermon, 2023). At each time t, the soft ranks induce a discrete ordering by simple sorting, thereby yielding a forward process in permutation space. For reverse sampling, we couple a discrete denoiser in permutation space (predicting a clean permutation from Xt) with an auxiliary continuous update: we lift the predicted permutation to a grid-aligned soft-rank vector ˆZ0, sample an intermediate latent Zs for s < t from a conditional reverse kernel p(Zs | Zt, ˆZ0, Z 1), and map back to permutation space by sorting Zs, thus stepping backward in time. 
+
+3.2. Reverse Process 
+
+Although the forward process is defined in a continuous latent space, our observations and learning targets are the induced permutations. In other words, the model operates on discrete permutation-valued states, while the continuous latent dynamics serve as an underlying construction that we invoke only to derive a convenient reverse-time update. One can choose to treat the continuous latent Zt as the primary reverse-time state and learn a denoiser directly in 
+
+RN . We instead work in SN : during sampling we keep the permutation σt as the explicit state, and reconstruct a rank-consistent latent Zt only as an auxiliary variable when executing each backward update. We adopt a σ0-prediction style parameterization. Specifi-cally, a neural network fθ predicts an estimate of the initial permutation, 
+
+ˆσ0 = fθ (Xt, t ), (5) which in turn induces an estimate of the clean sequence via the permutation action, ˆX0 = ˆ σ0(X).We describe the overall reverse process next, and later pro-vide details on the parameterization of fθ .
+
+Reverse-time transition kernel. Our forward process in Eq. 4 is a reflected Brownian bridge. Following Xie et al. (2024), in practice one first solve an unconstrained back-ward step in RN using the corresponding unreflected bridge conditional, and apply the reflection operator only after-wards (and only when needed). Specifically, let μ(u) := (1 − u)z0 + uz 1 denote the linear interpolation between endpoints. For the unconstrained 
+
+bridge, for any 0 < s < t < 1 we have the closed-form Gaussian conditional 
+
+zs | zt, z 0, z 1 ∼ N 
+
+
+
+μ(s) + st
+
+ zt − μ(t), η 2 s(t − s)
+
+t
+
+
+
+.
+
+(6) Equivalently, we sample a proposal ˜zs by 
+
+˜zs = μ(s)+ st
+
+ zt−μ(t)+η
+
+r s(t − s)
+
+t ϵ, ϵ ∼ N (0 , 1) .
+
+(7) and then enforce the latent-domain constraint via reflection: 
+
+zs ← R (˜ zs). (8) We defer the derivation of Eq. (6) to Appendix B. The reverse sampling procedure is initialized by drawing 
+
+z1 ∼ pref . Since our model maintains only a permutation-valued state, we obtain the corresponding initial permutation 4Learning Permutation Distributions via Reflected Diffusion on Ranks 
+
+Algorithm 1 Reverse Sampling via Reflected Gaussian-Bridge Updates 
+
+Require: Number of items n; time grid 0 = t0 < t 1 < · · · <tK = 1 ; diffusion scale η.Reference distribution pref on [0 , 1] n.Score network fθ defining pθ (σ | Xt, t ).Operators LiftToGrid( ·) and Reflect( ·). 
+
+> 1:
+
+Sample z1 ∼ pref and set ztK ← z1. 
+
+> 2:
+
+for k = K, K − 1, . . . , 1 do  
+
+> 3:
+
+t ← tk, s ← tk−1. 
+
+> 4:
+
+Xt ← argsort( zt) (induce discrete state)  
+
+> 5:
+
+Sample ˆσ0 ∼ pθ (· | Xt, t ) (via fθ ) 
+
+> 6:
+
+ˆz0 ← LiftToGrid(ˆ σ0) ∈ [0 , 1] n. 
+
+> 7:
+
+μt ← (1 − t)ˆ z0 + tz 1, μs ← (1 − s)ˆ z0 + sz 1. 
+
+> 8:
+
+Sample ξ ∼ N (0 , I n). 
+
+> 9:
+
+¯zs ← μs + st
+
+ zt − μt
+
+ + η
+
+q s(t−s) 
+
+> t
+
+ξ. 
+
+> 10:
+
+zs ← Reflect(¯ zs). 
+
+> 11:
+
+zt ← zs. 
+
+> 12:
+
+end for  
+
+> 13:
+
+return zt0 and optionally ˆσ ← argsort( zt0 ).by mapping the latent to the grid via σ1 = LiftToGrid( z1)
+
+in Eq. (3) . The complete reverse-time algorithm is summa-rized in Algorithm 1 and illustrated in Figure 1. 
+
+3.3. Model architecture 
+
+We now describe the model architecture used to parameter-ize the σ0-prediction distribution and to sample an estimate of the clean permutation, as in Eq. 5. We extend the Generalized Plackett–Luce (GPL) parame-terization of (Zhang et al., 2025) to a contextualized Gen-eralized Plackett–Luce (cGPL) model. In contrast to the encoder-only architecture used in Zhang et al. (2025), we implement cGPL with a full encoder–decoder Transformer (Vaswani et al., 2023). This formulation generalizes GPL, and we show empirically that cGPL yields a more expressive parameterization across our benchmarks. 
+
+Contextualized GPL. Similar to GPL (Zhang et al., 2025), cGPL models a permutation σ ∈ Sn with a stagewise distribution that, at each position i, normal-izes scores over the remaining (unselected) set Ri(σ) := [n] \ { σ(1) , . . . , σ (i − 1) }:
+
+pθ (σ | X, t ) = 
+
+> n
+
+Y
+
+> i=1
+
+exp  sσ(i),i 
+
+P 
+
+> k∈R i(σ)
+
+exp  sk,i 
+
+ . (9) The distinction between GPL and cGPL lies entirely in the context each position-i score vector s:,i is allowed to depend on. In GPL, scores are prefix-agnostic and can be computed once as a static matrix. Consequently, sampling from GPL consists of a single forward pass to obtain all scores, followed by sequentially reading the corresponding columns and sampling without replacement. 
+
+GPL: 
+
+sk,i := [ fθ (X, t )] k,i , (10) In contrast, cGPL makes scores explicitly prefix-conditional through an encoder–decoder Transformer. As a result, sam-pling from cGPL must proceed autoregressively: scores are recomputed progressively as the prefix σ<i is instantiated. 
+
+cGPL: 
+
+sk,i = [ fθ (X, σ <i , t )] k,i . (11) See Algorithm 2 for the complete sampling procedure of cGPL. Empirically, prefix-conditioning improves perfor-mance across all tasks we consider, and the benefits are particularly pronounced on intrinsically sequential and dy-namic settings such as the Traveling Salesperson Problem, where next-step decisions depend strongly on the evolving partial solution. When the decoder is made prefix-agnostic such that 
+
+sk,i (X, σ <i , t ) ≡ sk,i (X, t ) for all prefixes, cGPL reduces to GPL; hence we can conclude cGPL generalizes GPL. Figure 2 demonstrates the difference among sampling from PL, GPL and cGPL. In practice, both sampling and likelihood evaluation re-quire normalizing scores only over the remaining (feasi-ble) set Ri(σ). We implement this via a feasibility mask 
+
+mk,i (σ<i ) ∈ { 0, −∞} added to the predicted scores: 
+
+mk,i (σ<i ) = 
+
+(
+
+0, k ∈ R i(σ),
+
+−∞ , k / ∈ R i(σ), (12) 
+
+˜sk,i := sk,i (X, σ <i , t ) + mk,i (σ<i ), (13) so that softmax(˜ s:,i ) renormalizes over Ri(σ) and assigns zero probability to infeasible items. 
+
+Training objective. We train our model by maximizing the standard variational lower bound: 
+
+Epdata (X0,X )[log pθ (X0 | X)] 
+
+≥ Epdata (X0,X ) q(X1: T |X0,X )
+
+h
+
+log p(XT | X)+
+
+> T
+
+X
+
+> t=1
+
+log pθ (Xt−1 | Xt, t )
+
+q(Xt | Xt−1)
+
+i
+
+.
+
+Our model predicts a denoised distribution pθ (X0 | Xt, t ).To obtain a one-step reverse transition, we compose this predictor with a reconstruction kernel ˜qt(Xt−1 | Xt, X 0):
+
+pθ (Xt−1 | Xt, t ) := X
+
+> X0
+
+˜qt(Xt−1 | Xt, X 0) pθ (X0 | Xt, t ).
+
+(14) 5Learning Permutation Distributions via Reflected Diffusion on Ranks PL                  
+
+> GPL
+> (a) PL and GPL sampling. cGPL
+> <BoS>
+> Embeddings
+> (b) cGPL sampling.
+> Figure 2. Sampling in PL/GPL/cGPL. (a) PL and GPL. In PL, each item is assigned a single scalar score; sampling a permuta-tion amounts to repeatedly sampling from the same score vector without replacement, masking selected items and renormalizing at each step. In GPL, each item is assigned a length-Nscore vector, yielding position-specific logits: at step iwe sample according to the i-th column of the score matrix (after masking previously selected items), proceeding sequentially from i= 1 to N.(b) cGPL. In cGPL, each item is assigned a position-dependent score vector dynamically . Sampling proceeds autoregressively : the score vector at later positions depends on the outcomes sampled at pre-ceding positions. As in GPL, we apply masking and subsequent renormalization to obtain a valid probability distribution over the remaining items.
+
+Note that ˜qt in the discrete permutation space is generally intractable but as discussed in 3.2, we can augment with a tractable update step in the continuous soft-rank space. With the feasibility mask in Eq 13, the negative log-likelihood reduces to a sum of cross-entropies on the masked scores: 
+
+L(σ; X, t ) = −
+
+> n
+
+X
+
+> i=1
+
+log exp  ˜sσ(i),i 
+
+Pnk=1 exp  ˜sk,i 
+
+ . (15) 
+
+Pointer parameterization. As an alternative to a fixed 
+
+n-way linear head that directly outputs n logits (treating output coordinates as a fixed “vocabulary” indexed by abso-lute positions), we draw inspiration from Pointer Networks (Vinyals et al., 2017) and parameterize the cGPL scores with an item-aligned pointer head that explicitly points to the encoded input items. Concretely, at decoding step i we compute a compatibility score between the decoder state and each encoder item rep-resentation, and interpret the resulting length-n vector as a categorical distribution over the input indices (rather than over a fixed output dictionary); see Fig. 4 for an illustration. This parameterization naturally supports variable-size out-put dictionaries and provides another way of producing 
+
+Algorithm 2 Autoregressive Sampling from cGPL 
+
+Require: Input set X = {x1, . . . , x n}; diffusion step t;neural decoder fθ
+
+Ensure: Permutation ˆσ ∈ S n 
+
+> 1:
+
+R ← { 1, 2, . . . , n } (remaining items)  
+
+> 2:
+
+ˆσ ← [ ] (empty prefix)  
+
+> 3:
+
+for i = 1 , . . . , n do  
+
+> 4:
+
+Compute logits s:,i ←  [fθ (X, ˆσ<i , t )] k,i 
+
+nk=1  
+
+> 5:
+
+˜sk,i ← sk,i if k ∈ R , else −∞ (mask)  
+
+> 6:
+
+π·,i ← softmax(˜ s·,i ) 
+
+> 7:
+
+Sample ˆσ(i) ∼ Categorical( π·,i ) 
+
+> 8:
+
+R ← R \ { ˆσ(i)} 
+
+> 9:
+
+end for  
+
+> 10:
+
+return ˆσ
+
+valid permutations other than relying on versions of the Plackett-Luce distribution (Vinyals et al., 2017). Formally, given encoder item representations and a prefix-dependent decoder state, we compute the pointer scores as a bi-affine transformation between them: 
+
+ek = Enc θ (Xt, t )k ∈ Rd, k ∈ [n],di = Dec θ (σ<i , X t, t )i ∈ Rd, i ∈ [n],sk,i (Xt, σ <i , t ) = d⊤ 
+
+> i
+
+W e k + u⊤di + v⊤ek + b, 
+
+(16) where W ∈ Rd×d and u, v ∈ Rd and b ∈ R are learned parameters. The conditional distribution at step i is then obtained by applying the same remaining-set normalization as in Eq. (9). 
+
+## 4. Experiments 
+
+4.1. 4-digit MNIST sorting 
+
+We evaluate Soft-Rank Diffusion on four-digit MNIST sort-ing, a standard benchmark for permutation modeling in differentiable sorting and permutation diffusion (Grover et al., 2019; Petersen et al., 2022; Zhang et al., 2025). Each instance is a list of N four-digit MNIST images (randomly ordered), and the task is to predict the permutation that sorts the list in ascending order by the underlying four-digit numbers they represent. We report Kendall–Tau correlation 
+
+(a correlation coefficient between ranks) (Kendall, 1938), 
+
+accuracy (fraction of exactly matched sorted lists), and 
+
+correctness (fraction of items placed in their correct posi-tions). We rerun the baseline methods DiffSort (Petersen et al., 2022), Error-free DiffSort (Kim et al., 2024) and SymmetricDiffusers (Zhang et al., 2025) using their offi-cial GitHub repositories and the recommended (or default) hyperparameters. For SymmetricDiffusers, we use GPL sampling and disable beam search so that the comparison fo-cuses on cGPL versus GPL under the same sampling setting. 6Learning Permutation Distributions via Reflected Diffusion on Ranks 0 50 100 150 200  
+
+> Sequence Length N
+> 10 −8
+> 10 −6
+> 10 −4
+> 10 −2
+> 12
+> 1 − 10 −2
+> 1 − 10 −4
+> 1 − 10 −6
+> 1 − 10 −8
+> Accuracy
+> SymmetricDiffusers
+> Soft-Rank Diffusion (cGPL)
+> Soft-Rank Diffusion (Pointer-cGPL)
+
+(a) Exact-match accuracy in logit scale over N .0 50 100 150 200    
+
+> Sequence Length N
+> 10 0
+> 10 1
+> Normalized accuracy (SD = 1)  ***
+
+(b) Accuracy ratio relative to SymmetricDiffusers (SD), shown on a log scale. 
+
+Figure 3. Exact-match accuracy and relative improvement ver-sus SymmetricDiffusers as a function of sequence length (N). 
+
+Panel 3a shows accuracy on a logit scale. Panel 3b reports the accuracy ratio of Soft-Rank Diffusion relative to SymmetricDif-fusers on a log scale. Starred points mark sequence lengths where SymmetricDiffusers attains zero accuracy; the corresponding ra-tios are undefined and are clipped to the top of the plotted range for visualization. 
+
+See Appendix A.1 for details. Table 1 summarizes results on the 4-digit MNIST sorting benchmark across sequence lengths N ∈{9, 15 , 32 , 52 , 75 , 100 , 150 , 200 }. Overall, Soft-Rank Dif-fusion consistently outperforms all baseline methods, with the performance gap widening as N increases. In particu-lar, the Pointer variant further outperforms the plain cGPL variant, and is the only method that maintains non-trivial per-formance in the long-sequence regime ( N ≥ 150 ). While SymmetricDiffusers performs strongly on short sequences, its accuracy and correctness degrade rapidly as N grows, ap-proaching chance-level behavior at N > 100 . By contrast, Soft-Rank Diffusion degrades more gracefully, indicating improved scalability and robustness to longer permutations. This scaling advantage is further illustrated in Figure 3, which examines exact-match accuracy as a function of the sequence length N . Figure 3a shows that both variants of Soft-Rank Diffusion are substantially less prone to catas-trophic accuracy collapse as N increases, with the Pointer variant exhibiting consistently stronger robustness at larger sequence lengths. Figure 3b further quantifies this effect by reporting the relative exact-match accuracy of Soft-Rank Diffusion over SymmetricDiffusers, computed as the ratio relative to the baseline accuracy. The improvement margin grows rapidly with N , indicating that Soft-Rank Diffusion achieves increasingly favorable scaling behavior compared to SymmetricDiffusers. 
+
+4.2. Traveling Salesperson Problem (TSP) 
+
+We evaluate Soft-Rank Diffusion on the traveling salesper-son problem (TSP), an NP-hard combinatorial optimization task. Given a set of 2D points V = {v1, . . . , v n} ⊂ R2,the goal is to predict a tour permutation σ ∈ Sn that minimizes the total length Pni=1 ∥vσ(i) − vσ(i+1) ∥2, where 
+
+σ(n + 1) := σ(1) . We report the tour length and the opti-mality gap (see Appendix A.2 for details) on TSP-20 and TSP-50 ( n = 20 and n = 50 , respectively). We rerun SymmetricDiffusers using their respective official GitHub repositories and default hyper-parameters. For Symmet-ricDiffusers, we again use GPL sampling and disable beam search to ensure a fair comparison. See Appendix A.2 This task is particularly well-suited to highlight the advan-tage of our dynamic cGPL parameterization: unlike static scoring schemes, TSP decoding requires making prefix-dependent decisions over a shrinking set of remaining cities, where the desirability of each candidate depends strongly on the current partial tour. By producing context-conditioned, step-specific logits over the remaining items, cGPL better matches this dynamic decision structure and therefore ex-hibits larger performance gains as problem size increases. Table 2 reports Euclidean TSP results on TSP-20 and TSP-50. Across both problem sizes, Soft-Rank Diffusion sub-stantially improves over SymmetricDiffusers, reducing tour length and closing the optimality gap by more than two orders of magnitude. Moreover, the Pointer variant consis-tently achieves the best performance, yielding further gains over the fixed variant—especially on TSP-50—highlighting the benefit of our dynamic cGPL parameterization for prefix-dependent decoding over a shrinking candidate set. 
+
+## 5. Ablation Studies 
+
+We study the impact of several key design choices of Soft-Rank Diffusion in Table 4. While our default configuration adopts an σ0 parametrization for the cGPL reverse model, we observe that the model achieves consistently strong per-formance when using an σt−1 parametrization, as also em-ployed in Zhang et al. (2025). In contrast, when paired with the Riffle Shuffle forward process, the σ0 parametriza-tion consistently fails, leading to a severe degradation in performance across all evaluation metrics. This may be due to the intractability of the reverse transition when the forward process is defined via a riffle shuffle. Moreover, even under the shared σt−1 parametrization, models trained with the Soft-Rank Diffusion forward process consistently outperform those using the Riffle Shuffle forward process. Finally, incorporating a biaffine pointer mechanism in the cGPL reverse model further improves performance over the vanilla cGPL variant, highlighting the benefit of explicitly modeling autoregressive selection in the reverse dynamics. 
+
+## 6. Conclusions 
+
+We presented Soft-Rank Diffusion, a diffusion framework for permutation-valued data that bridges diffusion modeling with principled ranking distributions. By lifting permuta-7Learning Permutation Distributions via Reflected Diffusion on Ranks 
+
+Table 1. MNIST sorting benchmark. We compare baselines and our models across sequence lengths. Bold indicates the best value in each column. For a controlled comparison, SymmetricDiffusers and both Soft-Rank Diffusion variants use the same 7-layer Transformer backbone (ours: 3-layer encoder + 4-layer decoder with matched hidden width). This differs from Zhang et al. (2025), which used a 12-layer Transformer for n = 200 and a 7-layer Transformer for other lengths. Method Metric Sequence Length N
+
+9 15 32 52 75 100 150 200 DiffSort (Petersen et al., 2022) Kendall-Tau ↑ 0.8163 0.7386 0.4423 0.3037 0.2227 0.1617 0.0891 0.0636 Accuracy ↑ 0.5555 0.2350 0.0003 0.0000 0.0000 0.0000 0.0000 0.0000 Correctness ↑ 0.8643 0.7975 0.5335 0.3897 0.2987 0.2251 0.1307 0.0953 Error-free DiffSort (Kim et al., 2024) Kendall-Tau ↑ 0.9151 0.9160 0.8798 0.0042 0.0005 0.0029 0.0006 0.0002 Accuracy ↑ 0.7953 0.7492 0.5186 0.0000 0.0000 0.0000 0.0000 0.0000 Correctness ↑ 0.9365 0.9334 0.9019 0.0258 0.0132 0.0112 0.0072 0.0030 SymmetricDiffusers with GPL (Zhang et al., 2025) Kendall-Tau ↑ 0.9483 0.9320 0.8610 0.7890 0.7304 0.1114 0.0641 0.0022 Accuracy ↑ 0.8955 0.8260 0.5896 0.3009 0.1379 0.0000 0.0000 0.0000 Correctness ↑ 0.9605 0.9450 0.8846 0.8232 0.7733 0.1620 0.0975 0.0061 Soft-Rank Diffusion with cGPL 
+
+Ours 
+
+Kendall-Tau ↑ 0.9668 0.9384 0.8765 0.8092 0.6925 0.6279 0.4821 0.3982 Accuracy ↑ 0.9397 0.8601 0.6555 0.4239 0.1908 0.0863 0.0080 0.0004 Correctness ↑ 0.9742 0.9505 0.8967 0.8393 0.7347 0.6773 0.5468 0.4644 Soft-Rank Diffusion with Pointer-cGPL 
+
+Ours 
+
+Kendall-Tau ↑ 0.9645 0.9455 0.8944 0.8459 0.7727 0.7454 0.6198 0.6048 
+
+Accuracy ↑ 0.9329 0.8710 0.6854 0.4909 0.2742 0.1922 0.0421 0.0137 
+
+Correctness ↑ 0.9719 0.9559 0.9119 0.8724 0.8082 0.7849 0.6704 0.6607 
+
+Table 2. TSP performance on TSP-20 and TSP-50. We report tour length L(Tour ) and the optimality gap (both lower is better). Method TSP-20 TSP-50 
+
+L(Tour ) ↓ Gap ↓ L(Tour ) ↓ Gap ↓
+
+SymmetricDiffusers with GPL (Zhang et al., 2025) 5.4342 0.4169 12.8525 1.2618 Soft-Rank Diffusion with cGPL 
+
+Ours 3.8732 0.0079 5.7336 0.0078 Soft-Rank Diffusion with Pointer-cGPL 
+
+Ours 3.8557 0.0034 5.7157 0.0047 
+
+tions into a continuous latent space through soft rank rep-resentations, our approach enables a smoother and more tractable forward process than existing abrupt schemes such as riffle–shuffles, and a theoretically sound reverse solver grounded in Plackett–Luce–style likelihoods. Central to our method is the proposed contextualized Generalized Plack-ett–Luce (cGPL) parameterization, which conditions each selection step on the evolving prefix and generalizes prior prefix-agnostic models. Across sorting and combinatorial optimization benchmarks, Soft-Rank Diffusion consistently outperforms existing per-mutation diffusion and differentiable sorting approaches, with particularly strong gains on long and intrinsically se-quential permutations. These results highlight the impor-tance of context-aware reverse dynamics for scalable per-mutation modeling. We believe this framework opens the door to further unifying diffusion-based generative mod-eling with structured, likelihood-based formulations over discrete combinatorial objects. 
+
+## Impact Statement 
+
+This paper advances methods in machine learning. We do not anticipate societal impacts that require specific discus-sion beyond standard considerations. 
+
+## References 
+
+Jacob Austin, Daniel D. Johnson, Jonathan Ho, Daniel Tar-low, and Rianne van den Berg. Structured denoising diffusion models in discrete state-spaces, 2023. URL 
+
+https://arxiv.org/abs/2107.03006 .Mathieu Blondel, Olivier Teboul, Quentin Berthet, and Josip Djolonga. Fast differentiable sorting and ranking, 2020. URL https://arxiv.org/abs/2002.08871 .Andrew Campbell, Joe Benton, Valentin De Bortoli, Tom Rainforth, George Deligiannidis, and Arnaud Doucet. A continuous time framework for discrete denoising mod-els, 2022. URL https://arxiv.org/abs/2205. 14987 .Marco Cuturi, Olivier Teboul, and Jean-Philippe Vert. Differentiable ranks and sorting using optimal trans-port, 2019. URL https://arxiv.org/abs/1905. 11885 .Sander Dieleman, Laurent Sartran, Arman Roshannai, Niko-8Learning Permutation Distributions via Reflected Diffusion on Ranks 
+
+lay Savinov, Yaroslav Ganin, Pierre H. Richemond, Arnaud Doucet, Robin Strudel, Chris Dyer, Conor Durkan, Curtis Hawthorne, R ´emi Leblond, Will Grath-wohl, and Jonas Adler. Continuous diffusion for categor-ical data, 2022. URL https://arxiv.org/abs/ 2211.15089 .Yufei Feng, Yu Gong, Fei Sun, Junfeng Ge, and Wenwu Ou. Revisit recommender system in the permutation prospec-tive, 2021. URL https://arxiv.org/abs/2102. 12057 .Itai Gat, Tal Remez, Neta Shaul, Felix Kreuk, Ricky T. Q. Chen, Gabriel Synnaeve, Yossi Adi, and Yaron Lipman. Discrete flow matching, 2024. URL https://arxiv. org/abs/2407.15595 .Edgar Gilbert. Theory of shuffling. Technical report, Tech-nical memorandum, Bell Laboratories, 1955. Aditya Grover, Eric Wang, Aaron Zweig, and Stefano Er-mon. Stochastic optimization of sorting networks via continuous relaxations, 2019. URL https://arxiv. org/abs/1903.08850 .Ishaan Gulrajani and Tatsunori B. Hashimoto. Likelihood-based diffusion language models, 2023. URL https: //arxiv.org/abs/2305.18619 .Jonathan Ho, Ajay Jain, and Pieter Abbeel. Denoising diffusion probabilistic models, 2020. URL https:// arxiv.org/abs/2006.11239 .Chaitanya K. Joshi, Quentin Cappart, Louis-Martin Rousseau, and Thomas Laurent. Learning tsp requires rethinking generalization. volume 210, pages 33:1–33:21. Schloss Dagstuhl – Leibniz-Zentrum f ¨ur Informatik, 2021. doi: 10.4230/LIPICS.CP.2021.33. URL 
+
+https://drops.dagstuhl.de/entities/ document/10.4230/LIPIcs.CP.2021.33 .M. G. Kendall. A new measure of rank correlation. 
+
+Biometrika , 30(1-2):81–93, 06 1938. ISSN 0006-3444. doi: 10.1093/biomet/30.1-2.81. URL https://doi. org/10.1093/biomet/30.1-2.81 .Jungtaek Kim, Jeongbeen Yoon, and Minsu Cho. General-ized neural sorting networks with error-free differentiable swap functions, 2024. URL https://arxiv.org/ abs/2310.07174 .Yehuda Koren, Robert Bell, and Chris Volinsky. Matrix factorization techniques for recommender systems. Com-puter , 42(8):30–37, 2009. doi: 10.1109/MC.2009.263. Tie-Yan Liu. Learning to rank for information retrieval. 
+
+Found. Trends Inf. Retr. , 3(3):225–331, March 2009. ISSN 1554-0669. doi: 10.1561/1500000016. URL 
+
+https://doi.org/10.1561/1500000016 .Aaron Lou and Stefano Ermon. Reflected diffusion mod-els, 2023. URL https://arxiv.org/abs/2304. 04740 .Aaron Lou, Chenlin Meng, and Stefano Ermon. Discrete diffusion modeling by estimating the ratios of the data dis-tribution, 2024. URL https://arxiv.org/abs/ 2310.16834 .R. D. Luce. Individual Choice Behavior . John Wiley, 1959. TorchVision maintainers and contributors. Torchvision: Py-torch’s computer vision library. https://github. com/pytorch/vision , 2016. Gonzalo Mena, David Belanger, Scott Linderman, and Jasper Snoek. Learning latent permutations with gumbel-sinkhorn networks, 2018. URL https://arxiv. org/abs/1802.08665 .Felix Petersen, Christian Borgelt, Hilde Kuehne, and Oliver Deussen. Monotonic differentiable sorting net-works, 2022. URL https://arxiv.org/abs/ 2203.09630 .R. L. Plackett. The analysis of permutations. Journal of the Royal Statistical Society: Series C (Applied Statis-tics) , 24(2):193–202, 1975. doi: https://doi.org/10.2307/ 2346567. URL https://rss.onlinelibrary. wiley.com/doi/abs/10.2307/2346567 .Sebastian Prillo and Julian Martin Eisenschlos. Softsort: A continuous relaxation for the argsort operator, 2020. URL 
+
+https://arxiv.org/abs/2006.16038 .Jiaxin Shi, Kehang Han, Zhe Wang, Arnaud Doucet, and Michalis K. Titsias. Simplified and generalized masked diffusion for discrete data, 2025. URL https:// arxiv.org/abs/2406.04329 .Jascha Sohl-Dickstein, Eric A. Weiss, Niru Mah-eswaranathan, and Surya Ganguli. Deep unsupervised learning using nonequilibrium thermodynamics, 2015. URL https://arxiv.org/abs/1503.03585 .Jiaming Song, Chenlin Meng, and Stefano Ermon. De-noising diffusion implicit models, 2022. URL https: //arxiv.org/abs/2010.02502 .Yang Song, Jascha Sohl-Dickstein, Diederik P. Kingma, Abhishek Kumar, Stefano Ermon, and Ben Poole. Score-based generative modeling through stochastic differential equations, 2021. URL https://arxiv.org/abs/ 2011.13456 .Haoran Sun, Lijun Yu, Bo Dai, Dale Schuurmans, and Hanjun Dai. Score-based continuous-time discrete dif-fusion models, 2023. URL https://arxiv.org/ abs/2211.16750 .9Learning Permutation Distributions via Reflected Diffusion on Ranks 
+
+Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszko-reit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser, and Illia Polosukhin. Attention is all you need, 2023. URL 
+
+https://arxiv.org/abs/1706.03762 .Clement Vignac, Igor Krawczuk, Antoine Siraudin, Bohan Wang, Volkan Cevher, and Pascal Frossard. Digress: Discrete denoising diffusion for graph generation, 2023. URL https://arxiv.org/abs/2209.14734 .Oriol Vinyals, Meire Fortunato, and Navdeep Jaitly. Pointer networks, 2017. URL https://arxiv.org/abs/ 1506.03134 .Tianyu Xie, Yu Zhu, Longlin Yu, Tong Yang, Ziheng Cheng, Shiyue Zhang, Xiangyu Zhang, and Cheng Zhang. Re-flected flow matching, 2024. URL https://arxiv. org/abs/2405.16577 .Yongxing Zhang, Donglin Yang, and Renjie Liao. Symmet-ricdiffusers: Learning discrete diffusion on finite symmet-ric groups, 2025. URL https://arxiv.org/abs/ 2410.02942 .Linqi Zhou, Aaron Lou, Samar Khanna, and Stefano Ermon. Denoising diffusion bridge models, 2023. URL https: //arxiv.org/abs/2309.16948 .10 Learning Permutation Distributions via Reflected Diffusion on Ranks 
+
+## A. Details on experimental setup 
+
+A.1. 4-digit MNIST sorting Dataset Following Zhang et al. (2025), we generate the 4-digit MNIST dataset using the code from their official GitHub repository. For each experiment, we construct training sequences by sampling 60 ,000 length-N sequences of 4-digit MNIST images from torchvision.datasets.MNIST (maintainers and contributors, 2016), where N is an experiment-specific parameter. We generate an additional 10 ,000 sequences for testing. Each 4-digit image is created on the fly by first sampling four digits uniformly at random, then drawing the corresponding digit images from MNIST, and finally concatenating them into a single 4-digit image. 
+
+Model architecture For SymmetricDiffusers, we use a 7-layer encoder-only Transformer with hidden dimension 512, feedforward dimension 128, with 8 attention heads. For Soft-Rank Diffusion, we match the overall model capacity by using a 7-layer encoder–decoder Transformer, with 3 layers in the encoder and 4 layers in the decoder. We keep the hidden and feedforward dimensions the same as SymmetricDiffusers. Note: While Zhang et al. (2025) use a 12-layer Transformer for N =200 , we use a 7-layer Transformer for all N to keep model capacity consistent across sequence lengths and ensure performance is comparable across settings. 
+
+Training All models are trained on a single NVIDIA H100 GPU with batch size 64 for 120 epochs. Training data are generated on the fly at each epoch. For SymmetricDiffusers, we use the default hyperparameters from the authors’ official GitHub repository. For N ∈ 75 , 150 , where no default hyperparameters are provided, we reuse the settings for N = 52 and 
+
+N = 100 , respectively. 
+
+Inference and metrics At inference time, we randomly generate 10 ,000 sequences of N 4-digit MNIST images. Since each image is labeled by its underlying 4-digit number, we can obtain the ground-truth ascending order directly from the labels. We report the same three metrics as Zhang et al. (2025): Kendall–Tau coefficient, Accuracy (exact match), and Correctness (element-wise match). Kendall–Tau measures rank correlation between the predicted and ground-truth permutations; Accuracy indicates whether the two permutations are identical; and Correctness is the fraction of elements placed in the correct position. 
+
+Non-diffusion model baselines We retrain and evaluate DiffSort (Petersen et al., 2022) and Error-free DiffSort (Kim et al., 2024) under the same dataset setup. For DiffSort, we use the default hyperparameters from the authors’ official GitHub repository, with the odd–even sorting network, steepness 10 , and learning rate 10 −3.5. For Error-free DiffSort, we use TransformerL as the backbone and the hyperparameters listed in Table 3. 
+
+Sequence Length Steepness Sorting Network Loss Weight Learning Rate 
+
+9 34 odd even 1.00 10 −4
+
+15 25 odd even 0.10 10 −4
+
+32 124 odd even 0.10 10 −4
+
+52 130 bitonic 0.10 10 −3.5
+
+75 135 bitonic 0.10 10 −3.5
+
+100 140 bitonic 0.10 10 −3.5
+
+150 170 bitonic 0.10 10 −3.5
+
+200 200 bitonic 0.10 10 −4 
+
+> Table 3. Hyperparameters for Error-Free Diffsort on 4-digit MNIST sorting
+
+A.2. TSP Dataset For TSP-20 and TSP-50, we use the dataset from Zhang et al. (2025), which is adapted from Joshi et al. (2021). The training set contains 1,512 ,000 graphs, and the test set contains 1,280 graphs. 
+
+Model architecture For SymmetricDiffusers, we use a 16-layer encoder-only Transformer with hidden dimension 1024, feedforward dimension 256, with 8 attention heads. For Soft-Rank Diffusion, we match the overall model capacity by using 11 Learning Permutation Distributions via Reflected Diffusion on Ranks 
+
+a 16-layer encoder–decoder Transformer, with 8 layers in the encoder and 8 layers in the decoder. We keep the hidden and feedforward dimensions the same as SymmetricDiffusers. 
+
+Training All models are trained on a single NVIDIA H100 GPU for 50 epochs with batch size 64. We use a peak learning rate of 2 × 10 −4 with a cosine decay schedule and 51 ,600 warm-up steps. 
+
+Inference and metrics At inference time, we evaluate on the 1,280 held-out test graphs and report two metrics: the tour length of the predicted solution, Lpred , and the optimality gap relative to an OR solver baseline, LOR . The optimality gap is defined as Gap = Lpred − LOR 
+
+LOR 
+
+## B. Derivations 
+
+Here we derive the reverse conditional transition kernel q(zs | zt, z 0, z 1) for 0 < s < t < 1 in Eq. 6. We present the derivation for a single scalar soft-rank coordinate; the N -dimensional extension follows by independence across coordinates. For the (unreflected) Brownian bridge with noise scale η, the marginal at time u ∈ (0 , 1) is Gaussian: 
+
+q(zu | z0, z 1) = N zu; μ(u), η 2u(1 − u), μ(u) := (1 − u)z0 + uz 1. (17) A convenient representation of a Brownian bridge is 
+
+zu = μ(u) + η b u, u ∈ [0 , 1] , (18) where bu is a standard Brownian bridge with b0 = b1 = 0 and covariance Cov( bs, b t) = min( s, t ) − st . Therefore, conditional on (z0, z 1), the pair (zs, z t) is jointly Gaussian with means 
+
+E[zs | z0, z 1] = μ(s), E[zt | z0, z 1] = μ(t), (19) variances 
+
+vs := Var( zs | z0, z 1) = η2s(1 − s), vt := Var( zt | z0, z 1) = η2t(1 − t), (20) and covariance (for s < t )
+
+cst := Cov( zs, z t | z0, z 1) = η2 min( s, t ) − st  = η2s(1 − t). (21) Hence, writing μs := μ(s), μt := μ(t) and c := cst ,
+
+q(zs, z t | z0, z 1) = N
+
+ zs
+
+zt
+
+
+
+;
+
+μs
+
+μt
+
+
+
+,
+
+vs cc vt
+
+ 
+
+, q(zt | z0, z 1) = N (zt; μt, v t). (22) By Bayes’ rule, 
+
+q(zs | zt, z 0, z 1) = q(zs, z t | z0, z 1)
+
+q(zt | z0, z 1) . (23) Since the denominator does not depend on zs (for fixed zt), it suffices to view the joint density as a function of zs and complete the square. Let x := zs − μs and y := zt − μt. Using the closed-form inverse for a symmetric 2 × 2 matrix, the inverse of the covariance matrix is then 
+
+vs cc vt
+
+−1
+
+= 1
+
+D
+
+ vt −c
+
+−c vs
+
+
+
+, D := vsvt − c2. (24) Therefore, 
+
+xy
+
+⊤ vs cc vt
+
+−1 xy
+
+
+
+= 1
+
+D
+
+ vtx2 − 2cxy + vsy2
+
+= vt
+
+D
+
+
+
+x − cvt
+
+y
+
+2
+
++ const (y), (25) 12 Learning Permutation Distributions via Reflected Diffusion on Ranks 
+
+where const (y) does not depend on x (hence not on zs). This yields the Gaussian conditional 
+
+zs | zt, z 0, z 1 ∼ N 
+
+
+
+μs + cvt
+
+(zt − μt), v s − c2
+
+vt
+
+
+
+. (26) Substituting vs = η2s(1 − s), vt = η2t(1 − t), and c = η2s(1 − t) (for s < t ), we obtain 
+
+cvt
+
+= st , vs − c2
+
+vt
+
+= η2 s(t − s)
+
+t . (27) Hence, 
+
+zs | zt, z 0, z 1 ∼ N 
+
+
+
+μ(s) + st
+
+ zt − μ(t), η 2 s(t − s)
+
+t
+
+
+
+, 0 < s < t < 1. (28) 
+
+Extension to N dimensions. Under coordinate-wise independent bridges sharing the same noise scale η, the same conditional holds with ϵ ∼ N (0 , I N ), i.e., the conditional covariance becomes η2 s(t−s) 
+
+> t
+
+IN .
+
+## C. Additional figure and tables Transformer Encoder 
+
+> e0
+
+Transformer Decoder 
+
+d0 d1 d2 d3
+
+Output Head        
+
+> e1e2e3BoS y0y1y2y3
+
+(a) Model Architecture. e0 e1 e2 e3 d0 d1 d2 d3 
+
+> Bi -Affine Pointer Head( ei,dj)
+
+(b) Pointer-cGPL factorization. 
+
+Figure 4. Model architecture and Pointer-cGPL parameterization for permutation generation. We adopt a standard encoder–decoder Transformer backbone (Vaswani et al., 2023). In the vanilla cGPL parameterization, the decoder states are mapped to logits via a linear output head (yielding a distribution over candidates at each step). In contrast, Panel 4b illustrates Pointer-cGPL , where a bi-affine compatibility module scores each encoded item representation against the current decoder state, producing step-wise logits over the input items that can be interpreted as a pointer distribution. 
+
+13 Learning Permutation Distributions via Reflected Diffusion on Ranks 
+
+Table 4. Ablation study over forward diffusion processes, reverse models, and parametrizations on sorting 32 4-digit MNIST images. Forward Process Reverse Model Parametrization Kendall-Tau ↑ Accuracy ↑ Correctness ↑
+
+Riffle Shuffle GPL xt−1 0.8610 0.5896 0.8846 
+
+x0 -0.0013 0.0000 0.0312 Soft-Rank Diffusion cGPL xt−1 0.8764 0.6425 0.8958 cGPL w/ Biaffine Pointer xt−1 0.9074 0.7152 0.9232 Riffle Shuffle cGPL xt−1 0.8527 0.5833 0.8758 cGPL w/ Biaffine Pointer xt−1 0.8742 0.6404 0.8950 cGPL x0 -0.0011 0.0000 0.0313 cGPL w/ Biaffine Pointer x0 0.0001 0.0000 0.0314 
+
+14

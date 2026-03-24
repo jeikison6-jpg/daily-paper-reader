@@ -6,93 +6,73 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-03-23
-- 运行时间：2026-03-23 20:20:14 UTC
+- 最新运行日期：2026-03-24
+- 运行时间：2026-03-24 20:29:02 UTC
 - 运行状态：成功
-- 本次总论文数：24
-- 精读区：13
+- 本次总论文数：17
+- 精读区：6
 - 速读区：11
 
 ### 今日简报（AI）
-今日精选 24 篇前沿成果，深度聚焦扩散策略在风格化控制与流策略蒸馏中的核心突破。
-满
-- 详情：[/202603/23/README](/202603/23/README)
+今日深度解析 17 篇前沿成果，聚焦扩散模型微调优化与路径空间强化学习的理论突破。
+重点推荐锐度感知（Sharpness-Aware）微调技术及薛定谔桥视角下的 PPO 算法，两项研究均获满分评价。
+建议关注生成模型与复杂策略优化的数学融合，探索如何在高维分布中实现更稳健的学习。
+- 详情：[/202603/24/README](/202603/24/README)
 
 ### 精读区论文标签
-1. [Encoding Predictability and Legibility for Style-Conditioned Diffusion Policy](/202603/23/2603.16368v1-encoding-predictability-and-legibility-for-style-conditioned-diffusion-policy)  
+1. [Reward Sharpness-Aware Fine-Tuning for Diffusion Models](/202603/24/2603.21175v1-reward-sharpness-aware-fine-tuning-for-diffusion-models)  
    标签：评分：10.0/10、query:rl-dm
-   evidence：使用扩散策略进行轨迹生成
-2. [GoldenStart: Q-Guided Priors and Entropy Control for Distilling Flow Policies](/202603/23/2603.14245v1-goldenstart-q-guided-priors-and-entropy-control-for-distilling-flow-policies)  
+   evidence：以奖励为中心的扩散强化学习 (RDRL)
+2. [Proximal Policy Optimization in Path Space: A Schrödinger Bridge Perspective](/202603/24/2603.21621v1-proximal-policy-optimization-in-path-space-a-schrdinger-bridge-perspective)  
+   标签：评分：10.0/10、query:rl-dm
+   evidence：路径空间中基于扩散策略的在线强化学习
+3. [SHIFT: Motion Alignment in Video Diffusion Models with Adversarial Hybrid Fine-Tuning](/202603/24/2603.17426v1-shift-motion-alignment-in-video-diffusion-models-with-adversarial-hybrid-fine-tuning)  
    标签：评分：9.0/10、query:rl-dm
-   evidence：通过 Q 引导先验和蒸馏技术改进强化学习中的流匹配策略
-3. [Trust-Region Noise Search for Black-Box Alignment of Diffusion and Flow Models](/202603/23/2603.14504v1-trust-region-noise-search-for-black-box-alignment-of-diffusion-and-flow-models)  
+   evidence：视频扩散模型的奖励驱动微调
+4. [Time-Reversed BSDEs for Accurate Gradient Estimation in Diffusion Models](/202603/24/2603.20455v1-time-reversed-bsdes-for-accurate-gradient-estimation-in-diffusion-models)  
    标签：评分：9.0/10、query:rl-dm
-   evidence：使用信任区域搜索对扩散模型进行黑盒对齐
-4. [Delightful Policy Gradient](/202603/23/2603.14608v1-delightful-policy-gradient)  
+   evidence：用于微调扩散策略的随机最优控制
+5. [Adaptive Robust Estimator for Multi-Agent Reinforcement Learning](/202603/24/2603.21574v1-adaptive-robust-estimator-for-multi-agent-reinforcement-learning)  
    标签：评分：9.0/10、query:rl-dm
-   evidence：策略梯度算法的改进
-5. [Chain-of-Trajectories: Unlocking the Intrinsic Generative Optimality of Diffusion Models via Graph-Theoretic Planning](/202603/23/2603.14704v1-chain-of-trajectories-unlocking-the-intrinsic-generative-optimality-of-diffusion-models-via-graph-theoretic-planning)  
-   标签：评分：9.0/10、query:rl-dm
-   evidence：扩散模型中的轨迹规划
-6. [Emergent Dexterity via Diverse Resets and Large-Scale Reinforcement Learning](/202603/23/2603.15789v1-emergent-dexterity-via-diverse-resets-and-large-scale-reinforcement-learning)  
-   标签：评分：9.0/10、query:rl-dm
-   evidence：用于机器人技术的大规模强化学习框架
-7. [Physics-informed offline reinforcement learning eliminates catastrophic fuel waste in maritime routing](/202603/23/2603.17319v1-physics-informed-offline-reinforcement-learning-eliminates-catastrophic-fuel-waste-in-maritime-routing)  
-   标签：评分：9.0/10、query:rl-dm
-   evidence：用于燃油效率路由的离线强化学习框架
-8. [Complementary Reinforcement Learning](/202603/23/2603.17621v1-complementary-reinforcement-learning)  
-   标签：评分：9.0/10、query:rl-dm
-   evidence：基于大语言模型智能体的强化学习算法
-9. [VectorWorld: Efficient Streaming World Model via Diffusion Flow on Vector Graphs](/202603/23/2603.17652v1-vectorworld-efficient-streaming-world-model-via-diffusion-flow-on-vector-graphs)  
-   标签：评分：9.0/10、query:rl-dm
-   evidence：用于自动驾驶策略的生成式世界模型
-10. [Generative Control as Optimization: Time Unconditional Flow Matching for Adaptive and Robust Robotic Control](/202603/23/2603.17834v1-generative-control-as-optimization-time-unconditional-flow-matching-for-adaptive-and-robust-robotic-control)  
-   标签：评分：9.0/10、query:rl-dm
-   evidence：用于机器人动作序列合成的生成式流匹配技术
-11. [dTRPO: Trajectory Reduction in Policy Optimization of Diffusion Large Language Models](/202603/23/2603.18806v1-dtrpo-trajectory-reduction-in-policy-optimization-of-diffusion-large-language-models)  
-   标签：评分：9.0/10、query:rl-dm
-   evidence：针对扩散大语言模型的离线策略优化
-12. [Bridging Semantic and Kinematic Conditions with Diffusion-based Discrete Motion Tokenizer](/202603/23/2603.19227v1-bridging-semantic-and-kinematic-conditions-with-diffusion-based-discrete-motion-tokenizer)  
-   标签：评分：9.0/10、query:rl-dm
-   evidence：基于扩散的运动合成与规划
-13. [TRACE: Trajectory Recovery with State Propagation Diffusion for Urban Mobility](/202603/23/2603.19474v1-trace-trajectory-recovery-with-state-propagation-diffusion-for-urban-mobility)  
-   标签：评分：9.0/10、query:rl-dm
-   evidence：基于状态传播扩散的轨迹恢复
+   evidence：鲁棒多智能体强化学习框架
+6. [Trajectory-Diversity-Driven Robust Vision-and-Language Navigation](/202603/24/2603.15370v1-trajectory-diversity-driven-robust-vision-and-language-navigation)  
+   标签：评分：8.0/10、query:rl-dm
+   evidence：用于导航策略的强化学习框架
 
 ### 速读区论文标签
-1. [Bridging Scene Generation and Planning: Driving with World Model via Unifying Vision and Motion Representation](/202603/23/2603.14948v1-bridging-scene-generation-and-planning-driving-with-world-model-via-unifying-vision-and-motion-representation)  
+1. [DyJR: Preserving Diversity in Reinforcement Learning with Verifiable Rewards via Dynamic Jensen-Shannon Replay](/202603/24/2603.16157v1-dyjr-preserving-diversity-in-reinforcement-learning-with-verifiable-rewards-via-dynamic-jensen-shannon-replay)  
    标签：评分：8.0/10、query:rl-dm
-   evidence：用于场景生成和规划的世界模型
-2. [WiT: Waypoint Diffusion Transformers via Trajectory Conflict Navigation](/202603/23/2603.15132v1-wit-waypoint-diffusion-transformers-via-trajectory-conflict-navigation)  
+   evidence：具有动态参考分布的强化学习
+2. [Learning Permutation Distributions via Reflected Diffusion on Ranks](/202603/24/2603.17353v1-learning-permutation-distributions-via-reflected-diffusion-on-ranks)  
    标签：评分：8.0/10、query:rl-dm
-   evidence：使用流匹配和路径点的轨迹生成
-3. [NavThinker: Action-Conditioned World Models for Coupled Prediction and Planning in Social Navigation](/202603/23/2603.15359v1-navthinker-action-conditioned-world-models-for-coupled-prediction-and-planning-in-social-navigation)  
+   evidence：用于排列组合的离散扩散框架
+3. [Benchmarking Reinforcement Learning via Stochastic Converse Optimality: Generating Systems with Known Optimal Policies](/202603/24/2603.17631v1-benchmarking-reinforcement-learning-via-stochastic-converse-optimality-generating-systems-with-known-optimal-policies)  
    标签：评分：8.0/10、query:rl-dm
-   evidence：用于预测和规划的动作条件世界模型
-4. [NavThinker: Action-Conditioned World Models for Coupled Prediction and Planning in Social Navigation](/202603/23/2603.15359v2-navthinker-action-conditioned-world-models-for-coupled-prediction-and-planning-in-social-navigation)  
+   evidence：强化学习算法基准测试
+4. [Operator-Theoretic Foundations and Policy Gradient Methods for General MDPs with Unbounded Costs](/202603/24/2603.17875v1-operator-theoretic-foundations-and-policy-gradient-methods-for-general-mdps-with-unbounded-costs)  
    标签：评分：8.0/10、query:rl-dm
-   evidence：结合在线强化学习的世界模型用于规划
-5. [ViSA: Visited-State Augmentation for Generalized Goal-Space Contrastive Reinforcement Learning](/202603/23/2603.14887v2-visa-visited-state-augmentation-for-generalized-goal-space-contrastive-reinforcement-learning)  
+   evidence：通用MDP中策略梯度方法的算子理论基础
+5. [Spectrum Matching: a Unified Perspective for Superior Diffusability in Latent Diffusion](/202603/24/2603.14645v1-spectrum-matching-a-unified-perspective-for-superior-diffusability-in-latent-diffusion)  
    标签：评分：7.0/10、query:rl-dm
-   evidence：带有状态增强的目标条件强化学习
-6. [SAGE: Multi-Agent Self-Evolution for LLM Reasoning](/202603/23/2603.15255v1-sage-multi-agent-self-evolution-for-llm-reasoning)  
+   evidence：潜空间扩散中的可学习性与去噪偏差
+6. [When Should a Robot Think? Resource-Aware Reasoning via Reinforcement Learning for Embodied Robotic Decision-Making](/202603/24/2603.16673v1-when-should-a-robot-think-resource-aware-reasoning-via-reinforcement-learning-for-embodied-robotic-decision-making)  
    标签：评分：7.0/10、query:rl-dm
-   evidence：具有可验证奖励的强化学习用于大模型推理
-7. [Meta-TTRL: A Metacognitive Framework for Self-Improving Test-Time Reinforcement Learning in Unified Multimodal Models](/202603/23/2603.15724v1-meta-ttrl-a-metacognitive-framework-for-self-improving-test-time-reinforcement-learning-in-unified-multimodal-models)  
+   evidence：用于机器人决策的强化学习
+7. [Efficient Soft Actor-Critic with LLM-Based Action-Level Guidance for Continuous Control](/202603/24/2603.17468v1-efficient-soft-actor-critic-with-llm-based-action-level-guidance-for-continuous-control)  
    标签：评分：7.0/10、query:rl-dm
-   evidence：多模态模型的测试时强化学习框架
-8. [Large Reward Models: Generalizable Online Robot Reward Generation with Vision-Language Models](/202603/23/2603.16065v1-large-reward-models-generalizable-online-robot-reward-generation-with-vision-language-models)  
+   evidence：用于连续控制的强化学习算法
+8. [Few-Step Diffusion Sampling Through Instance-Aware Discretizations](/202603/24/2603.17671v1-few-step-diffusion-sampling-through-instance-aware-discretizations)  
    标签：评分：7.0/10、query:rl-dm
-   evidence：强化学习的在线奖励生成
-9. [Robust Physics-Guided Diffusion for Full-Waveform Inversion](/202603/23/2603.16393v1-robust-physics-guided-diffusion-for-full-waveform-inversion)  
+   evidence：扩散采样中的实例感知离散化
+9. [Faster Inference of Flow-Based Generative Models via Improved Data-Noise Coupling](/202603/24/2603.15279v1-faster-inference-of-flow-based-generative-models-via-improved-data-noise-coupling)  
    标签：评分：6.0/10、query:rl-dm
-   evidence：具有似然引导的物理引导扩散
-10. [Unlearning for One-Step Generative Models via Unbalanced Optimal Transport](/202603/23/2603.16489v1-unlearning-for-one-step-generative-models-via-unbalanced-optimal-transport)  
+   evidence：扩散模型在图像和视频生成任务中的高效替代方案
+10. [Diffusion-Guided Semantic Consistency for Multimodal Heterogeneity](/202603/24/2603.19337v1-diffusion-guided-semantic-consistency-for-multimodal-heterogeneity)  
    标签：评分：6.0/10、query:rl-dm
-   evidence：单步生成流映射模型的机器卸载
-11. [Adaptive Guidance for Retrieval-Augmented Masked Diffusion Models](/202603/23/2603.17677v1-adaptive-guidance-for-retrieval-augmented-masked-diffusion-models)  
+   evidence：扩散模型用于联邦学习中的语义引导
+11. [Accelerating Diffusion Decoders via Multi-Scale Sampling and One-Step Distillation](/202603/24/2603.19570v1-accelerating-diffusion-decoders-via-multi-scale-sampling-and-one-step-distillation)  
    标签：评分：6.0/10、query:rl-dm
-   evidence：掩码扩散模型的自适应引导
+   evidence：加速扩散解码器与采样
 
 
 <div class="dpr-home-promo-card">

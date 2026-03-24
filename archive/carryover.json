@@ -1,83 +1,8 @@
 {
-  "generated_at": "2026-03-23T20:17:08.304389+00:00",
-  "updated_date": "20260323",
+  "generated_at": "2026-03-24T20:26:55.597666+00:00",
+  "updated_date": "20260324",
   "carryover_days": 9,
   "items": [
-    {
-      "id": "2603.20092v1",
-      "title": "How Out-of-Equilibrium Phase Transitions can Seed Pattern Formation in Trained Diffusion Models",
-      "abstract": "In this work, we propose a theoretical framework that interprets the generation process in trained diffusion models as an instance of out-of-equilibrium phase transitions. We argue that, rather than evolving smoothly from noise to data, reverse diffusion passes through a critical regime in which small spatial fluctuations are amplified and seed the emergence of large-scale structure. Our central insight is that architectural constraints, such as locality, sparsity, and translation equivariance, transform memorization-driven instabilities into collective spatial modes, enabling the formation of coherent patterns beyond the training data. Using analytically tractable patch score models, we show how classical symmetry-breaking bifurcations generalize into spatially extended critical phenomena described by softening Fourier modes and growing correlation lengths. We further connect these dynamics to effective field theories of the Ginzburg-Landau type and to mechanisms of pattern formation in non-equilibrium physics. Empirical results on trained convolutional diffusion models corroborate the theory, revealing signatures of criticality including mode softening and rapid growth of spatial correlations. Finally, we demonstrate that this critical regime has practical relevance: targeted perturbations, such as classifier-free guidance pulses applied at the estimated critical time, significantly improve generation control. Together, these findings position non-equilibrium critical phenomena as a unifying principle for understanding, and potentially improving, the behavior of modern diffusion models.",
-      "authors": [
-        "Luca Ambrogioni"
-      ],
-      "primary_category": "cs.LG",
-      "categories": [
-        "cs.LG"
-      ],
-      "published": "2026-03-20T16:19:10+00:00",
-      "link": "https://arxiv.org/pdf/2603.20092v1",
-      "tags": [
-        "keyword:RL DM"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "generation process in trained diffusion models",
-      "llm_evidence_cn": "训练好的扩散模型中的生成过程",
-      "llm_evidence": "训练好的扩散模型中的生成过程",
-      "canonical_evidence": "训练好的扩散模型中的生成过程",
-      "llm_tldr_en": "Provides a theoretical framework interpreting diffusion generation as out-of-equilibrium phase transitions.",
-      "llm_tldr_cn": "提供了一个理论框架，将扩散生成过程解释为非平衡相变。",
-      "llm_tldr": "提供了一个理论框架，将扩散生成过程解释为非平衡相变。",
-      "llm_tags": [
-        "query:rl-dm"
-      ],
-      "matched_query_tag": "query:rl-dm",
-      "matched_query_text": "generative diffusion models and denoising processes",
-      "matched_requirement_id": "req-2",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.20092v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.15370v1",
-      "title": "Trajectory-Diversity-Driven Robust Vision-and-Language Navigation",
-      "abstract": "Vision-and-Language Navigation (VLN) requires agents to navigate photo-realistic environments following natural language instructions. Current methods predominantly rely on imitation learning, which suffers from limited generalization and poor robustness to execution perturbations. We present NavGRPO, a reinforcement learning framework that learns goal-directed navigation policies through Group Relative Policy Optimization. By exploring diverse trajectories and optimizing via within-group performance comparisons, our method enables agents to distinguish effective strategies beyond expert paths without requiring additional value networks. Built on ScaleVLN, NavGRPO achieves superior robustness on R2R and REVERIE benchmarks with +3.0% and +1.71% SPL improvements in unseen environments. Under extreme early-stage perturbations, we demonstrate +14.89% SPL gain over the baseline, confirming that goal-directed RL training builds substantially more robust navigation policies. Code and models will be released.",
-      "authors": [
-        "Jiangyang Li",
-        "Cong Wan",
-        "SongLin Dong",
-        "Chenhao Ding",
-        "Qiang Wang",
-        "Zhiheng Ma",
-        "Yihong Gong"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV"
-      ],
-      "published": "2026-03-16T14:46:54+00:00",
-      "link": "https://arxiv.org/pdf/2603.15370v1",
-      "tags": [
-        "keyword:RL DM",
-        "query:RL DM"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "reinforcement learning framework for goal-directed navigation",
-      "llm_evidence_cn": "用于目标导向导航的强化学习框架",
-      "llm_evidence": "用于目标导向导航的强化学习框架",
-      "canonical_evidence": "用于目标导向导航的强化学习框架",
-      "llm_tldr_en": "NavGRPO uses Group Relative Policy Optimization to improve robustness and generalization in vision-language navigation.",
-      "llm_tldr_cn": "NavGRPO利用组相对策略优化来提高视觉语言导航的鲁棒性和泛化能力。",
-      "llm_tldr": "NavGRPO利用组相对策略优化来提高视觉语言导航的鲁棒性和泛化能力。",
-      "llm_tags": [
-        "query:rl-dm"
-      ],
-      "matched_query_tag": "query:rl-dm",
-      "matched_query_text": "reinforcement learning algorithms and frameworks",
-      "matched_requirement_id": "req-1",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.15370v1",
-      "carry_days": 1
-    },
     {
       "id": "2603.17919v1",
       "title": "Training Diffusion Language Models for Black-Box Optimization",
@@ -117,41 +42,114 @@
       "matched_requirement_id": "req-7",
       "selection_source": "carryover_cache",
       "paper_id": "2603.17919v1",
+      "carry_days": 2
+    },
+    {
+      "id": "2603.19939v1",
+      "title": "Timestep-Aware Block Masking for Efficient Diffusion Model Inference",
+      "abstract": "Diffusion Probabilistic Models (DPMs) have achieved great success in image generation but suffer from high inference latency due to their iterative denoising nature. Motivated by the evolving feature dynamics across the denoising trajectory, we propose a novel framework to optimize the computational graph of pre-trained DPMs on a per-timestep basis. By learning timestep-specific masks, our method dynamically determines which blocks to execute or bypass through feature reuse at each inference stage. Unlike global optimization methods that incur prohibitive memory costs via full-chain backpropagation, our method optimizes masks for each timestep independently, ensuring a memory-efficient training process. To guide this process, we introduce a timestep-aware loss scaling mechanism that prioritizes feature fidelity during sensitive denoising phases, complemented by a knowledge-guided mask rectification strategy to prune redundant spatial-temporal dependencies. Our approach is architecture-agnostic and demonstrates significant efficiency gains across a broad spectrum of models, including DDPM, LDM, DiT, and PixArt. Experimental results show that by treating the denoising process as a sequence of optimized computational paths, our method achieves a superior balance between sampling speed and generative quality. Our code will be released.",
+      "authors": [
+        "Haodong He",
+        "Yuan Gao",
+        "Weizhong Zhang",
+        "Gui-Song Xia"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-20T13:35:03+00:00",
+      "link": "https://arxiv.org/pdf/2603.19939v1",
+      "tags": [
+        "keyword:RL DM"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "efficient diffusion model inference and denoising",
+      "llm_evidence_cn": "高效扩散模型推理与去噪过程",
+      "llm_evidence": "高效扩散模型推理与去噪过程",
+      "canonical_evidence": "高效扩散模型推理与去噪过程",
+      "llm_tldr_en": "Optimizes diffusion model inference speed using timestep-aware block masking.",
+      "llm_tldr_cn": "利用时间步感知的块掩码技术优化扩散模型的推理速度和去噪效率。",
+      "llm_tldr": "利用时间步感知的块掩码技术优化扩散模型的推理速度和去噪效率。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "generative diffusion models and denoising processes",
+      "matched_requirement_id": "req-2",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.19939v1",
       "carry_days": 1
     },
     {
-      "id": "2603.17631v1",
-      "title": "Benchmarking Reinforcement Learning via Stochastic Converse Optimality: Generating Systems with Known Optimal Policies",
-      "abstract": "The objective comparison of Reinforcement Learning (RL) algorithms is notoriously complex as outcomes and benchmarking of performances of different RL approaches are critically sensitive to environmental design, reward structures, and stochasticity inherent in both algorithmic learning and environmental dynamics. To manage this complexity, we introduce a rigorous benchmarking framework by extending converse optimality to discrete-time, control-affine, nonlinear systems with noise. Our framework provides necessary and sufficient conditions, under which a prescribed value function and policy are optimal for constructed systems, enabling the systematic generation of benchmark families via homotopy variations and randomized parameters. We validate it by automatically constructing diverse environments, demonstrating our framework's capacity for a controlled and comprehensive evaluation across algorithms. By assessing standard methods against a ground-truth optimum, our work delivers a reproducible foundation for precise and rigorous RL benchmarking.",
+      "id": "2603.21085v1",
+      "title": "Taming Sampling Perturbations with Variance Expansion Loss for Latent Diffusion Models",
+      "abstract": "Latent diffusion models have emerged as the dominant framework for high-fidelity and efficient image generation, owing to their ability to learn diffusion processes in compact latent spaces. However, while previous research has focused primarily on reconstruction accuracy and semantic alignment of the latent space, we observe that another critical factor, robustness to sampling perturbations, also plays a crucial role in determining generation quality. Through empirical and theoretical analyses, we show that the commonly used $β$-VAE-based tokenizers in latent diffusion models, tend to produce overly compact latent manifolds that are highly sensitive to stochastic perturbations during diffusion sampling, leading to visual degradation. To address this issue, we propose a simple yet effective solution that constructs a latent space robust to sampling perturbations while maintaining strong reconstruction fidelity. This is achieved by introducing a Variance Expansion loss that counteracts variance collapse and leverages the adversarial interplay between reconstruction and variance expansion to achieve an adaptive balance that preserves reconstruction accuracy while improving robustness to stochastic sampling. Extensive experiments demonstrate that our approach consistently enhances generation quality across different latent diffusion architectures, confirming that robustness in latent space is a key missing ingredient for stable and faithful diffusion sampling.",
       "authors": [
-        "Sinan Ibrahim",
-        "Grégoire Ouerdane",
-        "Hadi Salloum",
-        "Henni Ouerdane",
-        "Stefan Streif",
-        "Pavel Osinenko"
+        "Qifan Li",
+        "Xingyu Zhou",
+        "Jinhua Zhang",
+        "Weiyi You",
+        "Shuhang Gu"
       ],
-      "primary_category": "cs.LG",
+      "primary_category": "cs.CV",
       "categories": [
-        "cs.LG",
-        "cs.AI",
-        "eess.SY",
-        "math.OC"
+        "cs.CV"
       ],
-      "published": "2026-03-18T11:52:21+00:00",
-      "link": "https://arxiv.org/pdf/2603.17631v1",
+      "published": "2026-03-22T06:56:12+00:00",
+      "link": "https://arxiv.org/pdf/2603.21085v1",
+      "tags": [
+        "keyword:RL DM"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "latent diffusion models and denoising processes",
+      "llm_evidence_cn": "潜空间扩散模型与去噪过程",
+      "llm_evidence": "潜空间扩散模型与去噪过程",
+      "canonical_evidence": "潜空间扩散模型与去噪过程",
+      "llm_tldr_en": "Improves latent diffusion model robustness to sampling perturbations via variance expansion loss.",
+      "llm_tldr_cn": "通过方差扩展损失提高潜空间扩散模型对采样扰动的鲁棒性。",
+      "llm_tldr": "通过方差扩展损失提高潜空间扩散模型对采样扰动的鲁棒性。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "generative diffusion models and denoising processes",
+      "matched_requirement_id": "req-2",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.21085v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.21563v1",
+      "title": "Counterfactual Credit Policy Optimization for Multi-Agent Collaboration",
+      "abstract": "Collaborative multi-agent large language models (LLMs) can solve complex reasoning tasks by decomposing roles and aggregating diverse hypotheses. Yet, reinforcement learning (RL) for such systems is often undermined by credit assignment: a shared global reward obscures individual contributions, inflating update variance and encouraging free-riding. We introduce Counterfactual Credit Policy Optimization (CCPO), a framework that assigns agent-specific learning signals by estimating each agent's marginal contribution through counterfactual trajectories. CCPO builds dynamic counterfactual baselines that simulate outcomes with an agent's contribution removed, yielding role-sensitive advantages for policy optimization. To further improve stability under heterogeneous tasks and data distributions, we propose a global-history-aware normalization scheme that calibrates advantages using global rollout statistics. We evaluate CCPO on two collaboration topologies: a sequential Think--Reason dyad and multi-agent voting. Across mathematical and logical reasoning benchmarks, CCPO mitigates free-riding and outperforms strong multi-agent RL baselines, yielding finer-grained and more effective credit assignment for collaborative LLM training. Our code is available at https://github.com/bhai114/ccpo.",
+      "authors": [
+        "Zhongyi Li",
+        "Wan Tian",
+        "Yikun Ban",
+        "Jinju Chen",
+        "Huiming Zhang",
+        "Yang Liu",
+        "Fuzhen Zhuang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-23T04:35:02+00:00",
+      "link": "https://arxiv.org/pdf/2603.21563v1",
       "tags": [
         "keyword:RL DM",
         "query:RL DM"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "benchmarking framework for RL algorithms",
-      "llm_evidence_cn": "强化学习算法的基准测试框架",
-      "llm_evidence": "强化学习算法的基准测试框架",
-      "canonical_evidence": "强化学习算法的基准测试框架",
-      "llm_tldr_en": "Introduces a rigorous benchmarking framework for RL by generating systems with known optimal policies.",
-      "llm_tldr_cn": "通过生成具有已知最优策略的系统，为强化学习算法提供了一个严谨的基准测试框架。",
-      "llm_tldr": "通过生成具有已知最优策略的系统，为强化学习算法提供了一个严谨的基准测试框架。",
+      "llm_evidence_en": "policy optimization for multi-agent collaboration",
+      "llm_evidence_cn": "多智能体协作的策略优化",
+      "llm_evidence": "多智能体协作的策略优化",
+      "canonical_evidence": "多智能体协作的策略优化",
+      "llm_tldr_en": "Introduces counterfactual credit assignment to optimize policies in collaborative multi-agent systems.",
+      "llm_tldr_cn": "引入反事实信用分配，以优化协作多智能体系统中的策略。",
+      "llm_tldr": "引入反事实信用分配，以优化协作多智能体系统中的策略。",
       "llm_tags": [
         "query:rl-dm"
       ],
@@ -159,37 +157,42 @@
       "matched_query_text": "reinforcement learning algorithms and frameworks",
       "matched_requirement_id": "req-1",
       "selection_source": "carryover_cache",
-      "paper_id": "2603.17631v1",
+      "paper_id": "2603.21563v1",
       "carry_days": 1
     },
     {
-      "id": "2603.17468v1",
-      "title": "Efficient Soft Actor-Critic with LLM-Based Action-Level Guidance for Continuous Control",
-      "abstract": "We present GuidedSAC, a novel reinforcement learning (RL) algorithm that facilitates efficient exploration in vast state-action spaces. GuidedSAC leverages large language models (LLMs) as intelligent supervisors that provide action-level guidance for the Soft Actor-Critic (SAC) algorithm. The LLM-based supervisor analyzes the most recent trajectory using state information and visual replays, offering action-level interventions that enable targeted exploration. Furthermore, we provide a theoretical analysis of GuidedSAC, proving that it preserves the convergence guarantees of SAC while improving convergence speed. Through experiments in both discrete and continuous control environments, including toy text tasks and complex MuJoCo benchmarks, we demonstrate that GuidedSAC consistently outperforms standard SAC and state-of-the-art exploration-enhanced variants (e.g., RND, ICM, and E3B) in terms of sample efficiency and final performance.",
+      "id": "2603.18464v1",
+      "title": "AcceRL: A Distributed Asynchronous Reinforcement Learning and World Model Framework for Vision-Language-Action Models",
+      "abstract": "Reinforcement learning (RL) for large-scale Vision-Language-Action (VLA) models faces significant challenges in computational efficiency and data acquisition. We propose AcceRL, a fully asynchronous and decoupled RL framework designed to eliminate synchronization barriers by physically isolating training, inference, and rollouts. Crucially, AcceRL is the first to integrate a plug-and-play, trainable world model into a distributed asynchronous RL pipeline to generate virtual experiences. Experiments on the LIBERO benchmark demonstrate that AcceRL achieves state-of-the-art (SOTA) performance. Systematically, it exhibits super-linear scaling in throughput and highly efficient hardware utilization. Algorithmically, the world-model-augmented variant delivers unprecedented sample efficiency and robust training stability in complex control tasks.",
       "authors": [
-        "Hao Ma",
-        "Zhiqiang Pu",
-        "Xiaolin Ai",
-        "Huimu Wang"
+        "Chengxuan Lu",
+        "Shukuan Wang",
+        "Yanjie Li",
+        "Wei Liu",
+        "Shiji Jin",
+        "Fuyuan Qian",
+        "Peiming Li",
+        "Baigui Sun",
+        "Yang Liu"
       ],
       "primary_category": "cs.LG",
       "categories": [
         "cs.LG"
       ],
-      "published": "2026-03-18T08:22:31+00:00",
-      "link": "https://arxiv.org/pdf/2603.17468v1",
+      "published": "2026-03-19T03:50:45+00:00",
+      "link": "https://arxiv.org/pdf/2603.18464v1",
       "tags": [
         "keyword:RL DM",
         "query:RL DM"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "reinforcement learning algorithm with LLM guidance",
-      "llm_evidence_cn": "带有LLM引导的强化学习算法",
-      "llm_evidence": "带有LLM引导的强化学习算法",
-      "canonical_evidence": "带有LLM引导的强化学习算法",
-      "llm_tldr_en": "Presents GuidedSAC, an RL algorithm that uses LLMs to provide action-level guidance for efficient exploration.",
-      "llm_tldr_cn": "提出了GuidedSAC，一种利用大语言模型提供动作级引导以实现高效探索的强化学习算法。",
-      "llm_tldr": "提出了GuidedSAC，一种利用大语言模型提供动作级引导以实现高效探索的强化学习算法。",
+      "llm_evidence_en": "Distributed asynchronous reinforcement learning framework with world models",
+      "llm_evidence_cn": "带有世界模型的分布式异步强化学习框架",
+      "llm_evidence": "带有世界模型的分布式异步强化学习框架",
+      "canonical_evidence": "带有世界模型的分布式异步强化学习框架",
+      "llm_tldr_en": "Develops AcceRL, a distributed framework integrating world models for large-scale VLA models.",
+      "llm_tldr_cn": "开发了AcceRL，一个为大规模VLA模型集成世界模型的分布式框架。",
+      "llm_tldr": "开发了AcceRL，一个为大规模VLA模型集成世界模型的分布式框架。",
       "llm_tags": [
         "query:rl-dm"
       ],
@@ -197,7 +200,130 @@
       "matched_query_text": "reinforcement learning algorithms and frameworks",
       "matched_requirement_id": "req-1",
       "selection_source": "carryover_cache",
-      "paper_id": "2603.17468v1",
+      "paper_id": "2603.18464v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.22283v1",
+      "title": "End-to-End Training for Unified Tokenization and Latent Denoising",
+      "abstract": "Latent diffusion models (LDMs) enable high-fidelity synthesis by operating in learned latent spaces. However, training state-of-the-art LDMs requires complex staging: a tokenizer must be trained first, before the diffusion model can be trained in the frozen latent space. We propose UNITE - an autoencoder architecture for unified tokenization and latent diffusion. UNITE consists of a Generative Encoder that serves as both image tokenizer and latent generator via weight sharing. Our key insight is that tokenization and generation can be viewed as the same latent inference problem under different conditioning regimes: tokenization infers latents from fully observed images, whereas generation infers them from noise together with text or class conditioning. Motivated by this, we introduce a single-stage training procedure that jointly optimizes both tasks via two forward passes through the same Generative Encoder. The shared parameters enable gradients to jointly shape the latent space, encouraging a \"common latent language\". Across image and molecule modalities, UNITE achieves near state of the art performance without adversarial losses or pretrained encoders (e.g., DINO), reaching FID 2.12 and 1.73 for Base and Large models on ImageNet 256 x 256. We further analyze the Generative Encoder through the lenses of representation alignment and compression. These results show that single stage joint training of tokenization & generation from scratch is feasible.",
+      "authors": [
+        "Shivam Duggal",
+        "Xingjian Bai",
+        "Zongze Wu",
+        "Richard Zhang",
+        "Eli Shechtman",
+        "Antonio Torralba",
+        "Phillip Isola",
+        "William T. Freeman"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.GR",
+        "cs.LG"
+      ],
+      "published": "2026-03-23T17:59:49+00:00",
+      "link": "https://arxiv.org/pdf/2603.22283v1",
+      "tags": [
+        "keyword:RL DM"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "latent denoising and generative diffusion models",
+      "llm_evidence_cn": "潜空间去噪与生成式扩散模型",
+      "llm_evidence": "潜空间去噪与生成式扩散模型",
+      "canonical_evidence": "潜空间去噪与生成式扩散模型",
+      "llm_tldr_en": "Proposes UNITE for unified tokenization and latent diffusion to simplify generative model training.",
+      "llm_tldr_cn": "提出 UNITE 架构，实现统一的分词与潜空间扩散，简化生成模型训练流程。",
+      "llm_tldr": "提出 UNITE 架构，实现统一的分词与潜空间扩散，简化生成模型训练流程。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "generative diffusion models and denoising processes",
+      "matched_requirement_id": "req-2",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.22283v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.18771v1",
+      "title": "Empathetic Motion Generation for Humanoid Educational Robots via Reasoning-Guided Vision--Language--Motion Diffusion Architecture",
+      "abstract": "This article suggests a reasoning-guided vision-language-motion diffusion framework (RG-VLMD) for generating instruction-aware co-speech gestures for humanoid robots in educational scenarios. The system integrates multi-modal affective estimation, pedagogical reasoning, and teaching-act-conditioned motion synthesis to enable adaptive and semantically consistent robot behavior. A gated mixture-of-experts model predicts Valence/Arousal from input text, visual, and acoustic features, which then mapped to discrete teaching-act categories through an affect-driven policy.These signals condition a diffusion-based motion generator using clip-level intent and frame-level instructional schedules via additive latent restriction with auxiliary action-group supervision. Compared to a baseline diffusion model, our proposed method produces more structured and distinctive motion patterns, as verified by motion statics and pairwise distance analysis. Generated motion sequences remain physically plausible and can be retargeted to a NAO robot for real-time execution. The results reveal that reasoning-guided instructional conditioning improves gesture controllability and pedagogical expressiveness in educational human-robot interaction.",
+      "authors": [
+        "Fuze Sun",
+        "Lingyu Li",
+        "Lekan Dai",
+        "Xinyu Fan"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-03-19T11:26:04+00:00",
+      "link": "https://arxiv.org/pdf/2603.18771v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "diffusion-based motion generator for humanoid robots",
+      "llm_evidence_cn": "用于类人机器人的扩散运动生成器",
+      "llm_evidence": "用于类人机器人的扩散运动生成器",
+      "canonical_evidence": "用于类人机器人的扩散运动生成器",
+      "llm_tldr_en": "Proposes a reasoning-guided diffusion architecture for generating empathetic robot motions in educational settings.",
+      "llm_tldr_cn": "提出一种推理引导的扩散架构，用于在教育场景中生成具有共情能力的机器人动作。",
+      "llm_tldr": "提出一种推理引导的扩散架构，用于在教育场景中生成具有共情能力的机器人动作。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "integrating generative diffusion processes into decision making agents",
+      "matched_requirement_id": "req-8",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.18771v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.21342v1",
+      "title": "Generalized Discrete Diffusion from Snapshots",
+      "abstract": "We introduce Generalized Discrete Diffusion from Snapshots (GDDS), a unified framework for discrete diffusion modeling that supports arbitrary noising processes over large discrete state spaces. Our formulation encompasses all existing discrete diffusion approaches, while allowing significantly greater flexibility in the choice of corruption dynamics. The forward noising process relies on uniformization and enables fast arbitrary corruption. For the reverse process, we derive a simple evidence lower bound (ELBO) based on snapshot latents, instead of the entire noising path, that allows efficient training of standard generative modeling architectures with clear probabilistic interpretation. Our experiments on large-vocabulary discrete generation tasks suggest that the proposed framework outperforms existing discrete diffusion methods in terms of training efficiency and generation quality, and beats autoregressive models for the first time at this scale. We provide the code along with a blog post on the project page : \\href{https://oussamazekri.fr/gdds}{https://oussamazekri.fr/gdds}.",
+      "authors": [
+        "Oussama Zekri",
+        "Théo Uscidda",
+        "Nicolas Boullé",
+        "Anna Korba"
+      ],
+      "primary_category": "stat.ML",
+      "categories": [
+        "stat.ML",
+        "cs.AI",
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-03-22T17:58:01+00:00",
+      "link": "https://arxiv.org/pdf/2603.21342v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "unified framework for discrete diffusion modeling",
+      "llm_evidence_cn": "离散扩散模型的统一框架",
+      "llm_evidence": "离散扩散模型的统一框架",
+      "canonical_evidence": "离散扩散模型的统一框架",
+      "llm_tldr_en": "Introduces GDDS, a unified framework for discrete diffusion supporting arbitrary noising processes.",
+      "llm_tldr_cn": "引入GDDS，一个支持任意加噪过程的离散扩散模型统一框架。",
+      "llm_tldr": "引入GDDS，一个支持任意加噪过程的离散扩散模型统一框架。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "generative diffusion models and denoising processes",
+      "matched_requirement_id": "req-2",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.21342v1",
       "carry_days": 1
     }
   ]

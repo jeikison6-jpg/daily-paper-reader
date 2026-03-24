@@ -1,0 +1,683 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-03-24T20:26:55.596578+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 18,
+    "deep_cap": 6,
+    "deep_selected": 6,
+    "quick_candidates": 36,
+    "quick_skim_target": 11,
+    "quick_selected": 11
+  },
+  "deep_dive": [
+    {
+      "id": "2603.21175v1",
+      "title": "Reward Sharpness-Aware Fine-Tuning for Diffusion Models",
+      "abstract": "Reinforcement learning from human feedback (RLHF) has proven effective in aligning large language models with human preferences, inspiring the development of reward-centric diffusion reinforcement learning (RDRL) to achieve similar alignment and controllability. While diffusion models can generate high-quality outputs, RDRL remains susceptible to reward hacking, where the reward score increases without corresponding improvements in perceptual quality. We demonstrate that this vulnerability arises from the non-robustness of reward model gradients, particularly when the reward landscape with respect to the input image is sharp. To mitigate this issue, we introduce methods that exploit gradients from a robustified reward model without requiring its retraining. Specifically, we employ gradients from a flattened reward model, obtained through parameter perturbations of the diffusion model and perturbations of its generated samples. Empirically, each method independently alleviates reward hacking and improves robustness, while their joint use amplifies these benefits. Our resulting framework, RSA-FT (Reward Sharpness-Aware Fine-Tuning), is simple, broadly compatible, and consistently enhances the reliability of RDRL.",
+      "authors": [
+        "Kwanyoung Kim",
+        "Byeongsu Sim"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-22T11:32:50+00:00",
+      "link": "https://arxiv.org/pdf/2603.21175v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "reward-centric diffusion reinforcement learning (RDRL)",
+      "llm_evidence_cn": "以奖励为中心的扩散强化学习 (RDRL)",
+      "llm_evidence": "以奖励为中心的扩散强化学习 (RDRL)",
+      "canonical_evidence": "以奖励为中心的扩散强化学习 (RDRL)",
+      "llm_tldr_en": "Addresses reward hacking in diffusion RL by using reward sharpness-aware fine-tuning for better alignment.",
+      "llm_tldr_cn": "通过奖励锐度感知微调解决扩散强化学习中的奖励黑客问题，实现更好的对齐。",
+      "llm_tldr": "通过奖励锐度感知微调解决扩散强化学习中的奖励黑客问题，实现更好的对齐。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "advancements in reinforcement learning using diffusion models",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.21621v1",
+      "title": "Proximal Policy Optimization in Path Space: A Schrödinger Bridge Perspective",
+      "abstract": "On-policy reinforcement learning with generative policies is promising but remains underexplored. A central challenge is that proximal policy optimization (PPO) is traditionally formulated in terms of action-space probability ratios, whereas diffusion- and flow-based policies are more naturally represented as trajectory-level generative processes. In this work, we propose GSB-PPO, a path-space formulation of generative PPO inspired by the Generalized Schrödinger Bridge (GSB). Our framework lifts PPO-style proximal updates from terminal actions to full generation trajectories, yielding a unified view of on-policy optimization for generative policies. Within this framework, we develop two concrete objectives: a clipping-based objective, GSB-PPO-Clip, and a penalty-based objective, GSB-PPO-Penalty. Experimental results show that while both objectives are compatible with on-policy training, the penalty formulation consistently delivers better stability and performance than the clipping counterpart. Overall, our results highlight path-space proximal regularization as an effective principle for training generative policies with PPO.",
+      "authors": [
+        "Yuehu Gong",
+        "Zeyuan Wang",
+        "Yulin Chen",
+        "Yanwei Fu"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-03-23T06:37:42+00:00",
+      "link": "https://arxiv.org/pdf/2603.21621v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "on-policy RL for diffusion-based policies in path space",
+      "llm_evidence_cn": "路径空间中基于扩散策略的在线强化学习",
+      "llm_evidence": "路径空间中基于扩散策略的在线强化学习",
+      "canonical_evidence": "路径空间中基于扩散策略的在线强化学习",
+      "llm_tldr_en": "Develops GSB-PPO, a path-space PPO formulation for optimizing generative diffusion-based policies.",
+      "llm_tldr_cn": "开发了GSB-PPO，一种用于优化生成式扩散策略的路径空间PPO公式。",
+      "llm_tldr": "开发了GSB-PPO，一种用于优化生成式扩散策略的路径空间PPO公式。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "advancements in reinforcement learning using diffusion models",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.17426v1",
+      "title": "SHIFT: Motion Alignment in Video Diffusion Models with Adversarial Hybrid Fine-Tuning",
+      "abstract": "Image-conditioned Video diffusion models achieve impressive visual realism but often suffer from weakened motion fidelity, e.g., reduced motion dynamics or degraded long-term temporal coherence, especially after fine-tuning. We study the problem of motion alignment in video diffusion models post-training. To address this, we introduce pixel-motion rewards based on pixel flux dynamics, capturing both instantaneous and long-term motion consistency. We further propose Smooth Hybrid Fine-tuning (SHIFT), a scalable reward-driven fine-tuning framework for video diffusion models. SHIFT fuses the normal supervised fine-tuning and advantage weighted fine-tuning into a unified framework. Benefiting from novel adversarial advantages, SHIFT improves convergence speed and mitigates reward hacking. Experiments show that our approach efficiently resolves dynamic-degree collapse in modern video diffusion models supervised fine-tuning.",
+      "authors": [
+        "Xi Ye",
+        "Wenjia Yang",
+        "Yangyang Xu",
+        "Xiaoyang Liu",
+        "Duo Su",
+        "Mengfei Xia",
+        "Jun Zhu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-18T07:04:02+00:00",
+      "link": "https://arxiv.org/pdf/2603.17426v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "reward-driven fine-tuning for video diffusion models",
+      "llm_evidence_cn": "视频扩散模型的奖励驱动微调",
+      "llm_evidence": "视频扩散模型的奖励驱动微调",
+      "canonical_evidence": "视频扩散模型的奖励驱动微调",
+      "llm_tldr_en": "Introduces a reward-driven fine-tuning framework to align motion dynamics in video diffusion models.",
+      "llm_tldr_cn": "引入一种奖励驱动的微调框架，以对齐视频扩散模型中的运动动力学。",
+      "llm_tldr": "引入一种奖励驱动的微调框架，以对齐视频扩散模型中的运动动力学。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "advancements in reinforcement learning using diffusion models",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.20455v1",
+      "title": "Time-Reversed BSDEs for Accurate Gradient Estimation in Diffusion Models",
+      "abstract": "There is a growing literature adopting a stochastic optimal control (SOC) perspective to fine-tune diffusion models and related generative policies. A prominent class of methods, known as iterative diffusion optimization, solves the SOC problem by simulating the diffusion process, evaluating a loss function, and applying stochastic optimization algorithms, with adjoint matching emerging as a state-of-the-art approach. However, the adjoint process used in these methods is not adapted to the forward diffusion filtration, which can lead to unstable or high-variance gradient estimates. In this paper, we revisit gradient estimation in diffusion models through the lens of backward stochastic differential equations (BSDEs). We propose an alternative estimator based on a time-reversed BSDE formulation introduced in our prior work, which produces an adjoint process adapted to the underlying filtration. This adapted structure leads to more stable gradient estimates with potentially lower variance. We analyze the accuracy of the proposed estimator and compare it with adjoint matching. Numerical experiments on fine-tuning toy diffusion models demonstrate improved gradient stability and competitive performance.",
+      "authors": [
+        "Yuhang Mei",
+        "Amirhossein Taghvaei"
+      ],
+      "primary_category": "math.OC",
+      "categories": [
+        "math.OC"
+      ],
+      "published": "2026-03-20T19:36:00+00:00",
+      "link": "https://arxiv.org/pdf/2603.20455v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "stochastic optimal control for fine-tuning diffusion policies",
+      "llm_evidence_cn": "用于微调扩散策略的随机最优控制",
+      "llm_evidence": "用于微调扩散策略的随机最优控制",
+      "canonical_evidence": "用于微调扩散策略的随机最优控制",
+      "llm_tldr_en": "Uses BSDEs to improve gradient estimation for fine-tuning diffusion models as generative policies.",
+      "llm_tldr_cn": "利用倒向随机微分方程改进扩散模型作为生成策略微调时的梯度估计准确性。",
+      "llm_tldr": "利用倒向随机微分方程改进扩散模型作为生成策略微调时的梯度估计准确性。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "advancements in reinforcement learning using diffusion models",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.21574v1",
+      "title": "Adaptive Robust Estimator for Multi-Agent Reinforcement Learning",
+      "abstract": "Multi-agent collaboration has emerged as a powerful paradigm for enhancing the reasoning capabilities of large language models, yet it suffers from interaction-level ambiguity that blurs generation, critique, and revision, making credit assignment across agents difficult. Moreover, policy optimization in this setting is vulnerable to heavy-tailed and noisy rewards, which can bias advantage estimation and trigger unstable or even divergent training. To address both issues, we propose a robust multi-agent reinforcement learning framework for collaborative reasoning, consisting of two components: Dual-Agent Answer-Critique-Rewrite (DACR) and an Adaptive Robust Estimator (ARE). DACR decomposes reasoning into a structured three-stage pipeline: answer, critique, and rewrite, while enabling explicit attribution of each agent's marginal contribution to its partner's performance. ARE provides robust estimation of batch experience means during multi-agent policy optimization. Across mathematical reasoning and embodied intelligence benchmarks, even under noisy rewards, our method consistently outperforms the baseline in both homogeneous and heterogeneous settings. These results indicate stronger robustness to reward noise and more stable training dynamics, effectively preventing optimization failures caused by noisy reward signals.",
+      "authors": [
+        "Zhongyi Li",
+        "Wan Tian",
+        "Jingyu Chen",
+        "Kangyao Huang",
+        "Huiming Zhang",
+        "Hui Yang",
+        "Tao Ren",
+        "Jinyang Jiang",
+        "Yijie Peng",
+        "Yikun Ban",
+        "Fuzhen Zhuang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-23T04:51:15+00:00",
+      "link": "https://arxiv.org/pdf/2603.21574v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "robust multi-agent reinforcement learning framework",
+      "llm_evidence_cn": "鲁棒多智能体强化学习框架",
+      "llm_evidence": "鲁棒多智能体强化学习框架",
+      "canonical_evidence": "鲁棒多智能体强化学习框架",
+      "llm_tldr_en": "Proposes a robust MARL framework with adaptive estimation to improve credit assignment and training stability.",
+      "llm_tldr_cn": "提出一种具有自适应估计的鲁棒多智能体强化学习框架，以改善信用分配和训练稳定性。",
+      "llm_tldr": "提出一种具有自适应估计的鲁棒多智能体强化学习框架，以改善信用分配和训练稳定性。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.15370v1",
+      "title": "Trajectory-Diversity-Driven Robust Vision-and-Language Navigation",
+      "abstract": "Vision-and-Language Navigation (VLN) requires agents to navigate photo-realistic environments following natural language instructions. Current methods predominantly rely on imitation learning, which suffers from limited generalization and poor robustness to execution perturbations. We present NavGRPO, a reinforcement learning framework that learns goal-directed navigation policies through Group Relative Policy Optimization. By exploring diverse trajectories and optimizing via within-group performance comparisons, our method enables agents to distinguish effective strategies beyond expert paths without requiring additional value networks. Built on ScaleVLN, NavGRPO achieves superior robustness on R2R and REVERIE benchmarks with +3.0% and +1.71% SPL improvements in unseen environments. Under extreme early-stage perturbations, we demonstrate +14.89% SPL gain over the baseline, confirming that goal-directed RL training builds substantially more robust navigation policies. Code and models will be released.",
+      "authors": [
+        "Jiangyang Li",
+        "Cong Wan",
+        "SongLin Dong",
+        "Chenhao Ding",
+        "Qiang Wang",
+        "Zhiheng Ma",
+        "Yihong Gong"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-16T14:46:54+00:00",
+      "link": "https://arxiv.org/pdf/2603.15370v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "reinforcement learning framework for navigation policies",
+      "llm_evidence_cn": "用于导航策略的强化学习框架",
+      "llm_evidence": "用于导航策略的强化学习框架",
+      "canonical_evidence": "用于导航策略的强化学习框架",
+      "llm_tldr_en": "Introduces NavGRPO, an RL framework that optimizes navigation policies through group relative comparisons.",
+      "llm_tldr_cn": "引入 NavGRPO，一种通过组相对比较优化导航策略的强化学习框架。",
+      "llm_tldr": "引入 NavGRPO，一种通过组相对比较优化导航策略的强化学习框架。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2603.16157v1",
+      "title": "DyJR: Preserving Diversity in Reinforcement Learning with Verifiable Rewards via Dynamic Jensen-Shannon Replay",
+      "abstract": "While Reinforcement Learning (RL) enhances Large Language Model reasoning, on-policy algorithms like GRPO are sample-inefficient as they discard past rollouts. Existing experience replay methods address this by reusing accurate samples for direct policy updates, but this often incurs high computational costs and causes mode collapse via overfitting. We argue that historical data should prioritize sustaining diversity rather than simply reinforcing accuracy. To this end, we propose Dynamic Jensen-Shannon Replay (DyJR), a simple yet effective regularization framework using a dynamic reference distribution from recent trajectories. DyJR introduces two innovations: (1) A Time-Sensitive Dynamic Buffer that uses FIFO and adaptive sizing to retain only temporally proximal samples, synchronizing with model evolution; and (2) Jensen-Shannon Divergence Regularization, which replaces direct gradient updates with a distributional constraint to prevent diversity collapse. Experiments on mathematical reasoning and Text-to-SQL benchmarks demonstrate that DyJR significantly outperforms GRPO as well as baselines such as RLEP and Ex-GRPO, while maintaining training efficiency comparable to the original GRPO. Furthermore, from the perspective of Rank-$k$ token probability evolution, we show that DyJR enhances diversity and mitigates over-reliance on Rank-1 tokens, elucidating how specific sub-modules of DyJR influence the training dynamics.",
+      "authors": [
+        "Long Li",
+        "Zhijian Zhou",
+        "Tianyi Wang",
+        "Weidi Xu",
+        "Zuming Huang",
+        "Wei Chu",
+        "Zhe Wang",
+        "Shirui Pan",
+        "Chao Qu",
+        "Yuan Qi"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-17T06:20:56+00:00",
+      "link": "https://arxiv.org/pdf/2603.16157v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "reinforcement learning with dynamic reference distribution",
+      "llm_evidence_cn": "具有动态参考分布的强化学习",
+      "llm_evidence": "具有动态参考分布的强化学习",
+      "canonical_evidence": "具有动态参考分布的强化学习",
+      "llm_tldr_en": "Introduces a dynamic replay framework to preserve diversity and improve sample efficiency in reinforcement learning.",
+      "llm_tldr_cn": "引入动态回放框架，以保持强化学习中的多样性并提高样本效率。",
+      "llm_tldr": "引入动态回放框架，以保持强化学习中的多样性并提高样本效率。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.14645v1",
+      "title": "Spectrum Matching: a Unified Perspective for Superior Diffusability in Latent Diffusion",
+      "abstract": "In this paper, we study the diffusability (learnability) of variational autoencoders (VAE) in latent diffusion. First, we show that pixel-space diffusion trained with an MSE objective is inherently biased toward learning low and mid spatial frequencies, and that the power-law power spectral density (PSD) of natural images makes this bias perceptually beneficial. Motivated by this result, we propose the \\emph{Spectrum Matching Hypothesis}: latents with superior diffusability should (i) follow a flattened power-law PSD (\\emph{Encoding Spectrum Matching}, ESM) and (ii) preserve frequency-to-frequency semantic correspondence through the decoder (\\emph{Decoding Spectrum Matching}, DSM). In practice, we apply ESM by matching the PSD between images and latents, and DSM via shared spectral masking with frequency-aligned reconstruction. Importantly, Spectrum Matching provides a unified view that clarifies prior observations of over-noisy or over-smoothed latents, and interprets several recent methods as special cases (e.g., VA-VAE, EQ-VAE). Experiments suggest that Spectrum Matching yields superior diffusion generation on CelebA and ImageNet datasets, and outperforms prior approaches. Finally, we extend the spectral view to representation alignment (REPA): we show that the directional spectral energy of the target representation is crucial for REPA, and propose a DoG-based method to further improve the performance of REPA. Our code is available https://github.com/forever208/SpectrumMatching.",
+      "authors": [
+        "Mang Ning",
+        "Mingxiao Li",
+        "Le Zhang",
+        "Lanmiao Liu",
+        "Matthew B. Blaschko",
+        "Albert Ali Salah",
+        "Itir Onal Ertugrul"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-15T22:47:43+00:00",
+      "link": "https://arxiv.org/pdf/2603.14645v1",
+      "tags": [
+        "keyword:RL DM"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "learnability and denoising bias in latent diffusion",
+      "llm_evidence_cn": "潜空间扩散中的可学习性与去噪偏差",
+      "llm_evidence": "潜空间扩散中的可学习性与去噪偏差",
+      "canonical_evidence": "潜空间扩散中的可学习性与去噪偏差",
+      "llm_tldr_en": "Analyzes the diffusability of VAE latents and proposes spectrum matching to improve latent diffusion models.",
+      "llm_tldr_cn": "分析了 VAE 潜变量的可扩散性，并提出了频谱匹配以改进潜空间扩散模型。",
+      "llm_tldr": "分析了 VAE 潜变量的可扩散性，并提出了频谱匹配以改进潜空间扩散模型。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "generative diffusion models and denoising processes",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.15279v1",
+      "title": "Faster Inference of Flow-Based Generative Models via Improved Data-Noise Coupling",
+      "abstract": "Conditional Flow Matching (CFM), a simulation-free method for training continuous normalizing flows, provides an efficient alternative to diffusion models for key tasks like image and video generation. The performance of CFM in solving these tasks depends on the way data is coupled with noise. A recent approach uses minibatch optimal transport (OT) to reassign noise-data pairs in each training step to streamline sampling trajectories and thus accelerate inference. However, its optimization is restricted to individual minibatches, limiting its effectiveness on large datasets. To address this shortcoming, we introduce LOOM-CFM (Looking Out Of Minibatch-CFM), a novel method to extend the scope of minibatch OT by preserving and optimizing these assignments across minibatches over training time. Our approach demonstrates consistent improvements in the sampling speed-quality trade-off across multiple datasets. LOOM-CFM also enhances distillation initialization and supports high-resolution synthesis in latent space training.",
+      "authors": [
+        "Aram Davtyan",
+        "Leello Tadesse Dadi",
+        "Volkan Cevher",
+        "Paolo Favaro"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CV"
+      ],
+      "published": "2026-03-16T13:42:28+00:00",
+      "link": "https://arxiv.org/pdf/2603.15279v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "efficient alternative to diffusion models for image and video generation",
+      "llm_evidence_cn": "扩散模型在图像和视频生成任务中的高效替代方案",
+      "llm_evidence": "扩散模型在图像和视频生成任务中的高效替代方案",
+      "canonical_evidence": "扩散模型在图像和视频生成任务中的高效替代方案",
+      "llm_tldr_en": "Improves Conditional Flow Matching to accelerate inference as an alternative to diffusion models.",
+      "llm_tldr_cn": "改进条件流匹配技术，作为扩散模型的替代方案以加速推理过程。",
+      "llm_tldr": "改进条件流匹配技术，作为扩散模型的替代方案以加速推理过程。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "generative diffusion models and denoising processes",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.17353v1",
+      "title": "Learning Permutation Distributions via Reflected Diffusion on Ranks",
+      "abstract": "The finite symmetric group S_n provides a natural domain for permutations, yet learning probability distributions on S_n is challenging due to its factorially growing size and discrete, non-Euclidean structure. Recent permutation diffusion methods define forward noising via shuffle-based random walks (e.g., riffle shuffles) and learn reverse transitions with Plackett-Luce (PL) variants, but the resulting trajectories can be abrupt and increasingly hard to denoise as n grows. We propose Soft-Rank Diffusion, a discrete diffusion framework that replaces shuffle-based corruption with a structured soft-rank forward process: we lift permutations to a continuous latent representation of order by relaxing discrete ranks into soft ranks, yielding smoother and more tractable trajectories. For the reverse process, we introduce contextualized generalized Plackett-Luce (cGPL) denoisers that generalize prior PL-style parameterizations and improve expressivity for sequential decision structures. Experiments on sorting and combinatorial optimization benchmarks show that Soft-Rank Diffusion consistently outperforms prior diffusion baselines, with particularly strong gains in long-sequence and intrinsically sequential settings.",
+      "authors": [
+        "Sizhuang He",
+        "Yangtian Zhang",
+        "Shiyang Zhang",
+        "David van Dijk"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-18T04:28:24+00:00",
+      "link": "https://arxiv.org/pdf/2603.17353v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "discrete diffusion framework for permutations",
+      "llm_evidence_cn": "用于排列组合的离散扩散框架",
+      "llm_evidence": "用于排列组合的离散扩散框架",
+      "canonical_evidence": "用于排列组合的离散扩散框架",
+      "llm_tldr_en": "Introduces Soft-Rank Diffusion for learning probability distributions on permutations.",
+      "llm_tldr_cn": "引入软排名扩散模型，用于学习排列组合上的概率分布。",
+      "llm_tldr": "引入软排名扩散模型，用于学习排列组合上的概率分布。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "generative diffusion models and denoising processes",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.16673v1",
+      "title": "When Should a Robot Think? Resource-Aware Reasoning via Reinforcement Learning for Embodied Robotic Decision-Making",
+      "abstract": "Embodied robotic systems increasingly rely on large language model (LLM)-based agents to support high-level reasoning, planning, and decision-making during interactions with the environment. However, invoking LLM reasoning introduces substantial computational latency and resource overhead, which can interrupt action execution and reduce system reliability. Excessive reasoning may delay actions, while insufficient reasoning often leads to incorrect decisions and task failures. This raises a fundamental question for embodied agents: when should the agent reason, and when should it act? In this work, we propose RARRL (Resource-Aware Reasoning via Reinforcement Learning), a hierarchical framework for resource-aware orchestration of embodied agents. Rather than learning low-level control policies, RARRL learns a high-level orchestration policy that operates at the agent's decision-making layer. This policy enables the agent to adaptively determine whether to invoke reasoning, which reasoning role to employ, and how much computational budget to allocate based on current observations, execution history, and remaining resources. Extensive experiments, including evaluations with empirical latency profiles derived from the ALFRED benchmark, show that RARRL consistently improves task success rates while reducing execution latency and enhancing robustness compared with fixed or heuristic reasoning strategies. These results demonstrate that adaptive reasoning control is essential for building reliable and efficient embodied robotic agents.",
+      "authors": [
+        "Jun Liu",
+        "Pu Zhao",
+        "Zhenglun Kong",
+        "Xuan Shen",
+        "Peiyan Dong",
+        "Fan Yang",
+        "Lin Cui",
+        "Hao Tang",
+        "Geng Yuan",
+        "Wei Niu",
+        "Wenbin Zhang",
+        "Xue Lin",
+        "Gaowen Liu",
+        "Yanzhi Wang",
+        "Dong Huang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-03-17T15:38:50+00:00",
+      "link": "https://arxiv.org/pdf/2603.16673v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "reinforcement learning for robotic decision-making",
+      "llm_evidence_cn": "用于机器人决策的强化学习",
+      "llm_evidence": "用于机器人决策的强化学习",
+      "canonical_evidence": "用于机器人决策的强化学习",
+      "llm_tldr_en": "Proposes a hierarchical RL framework to balance reasoning and action in embodied agents.",
+      "llm_tldr_cn": "提出一种分层强化学习框架，以平衡具身智能体中的推理与行动决策。",
+      "llm_tldr": "提出一种分层强化学习框架，以平衡具身智能体中的推理与行动决策。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "generative models for decision making and planning",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.19337v1",
+      "title": "Diffusion-Guided Semantic Consistency for Multimodal Heterogeneity",
+      "abstract": "Federated learning (FL) is severely challenged by non-independent and identically distributed (non-IID) client data, a problem that degrades global model performance, especially in multimodal perception settings. Conventional methods often fail to address the underlying semantic discrepancies between clients, leading to suboptimal performance for multimedia systems requiring robust perception. To overcome this, we introduce SemanticFL, a novel framework that leverages the rich semantic representations of pre-trained diffusion models to provide privacy-preserving guidance for local training. Our approach leverages multi-layer semantic representations from a pre-trained Stable Diffusion model (including VAE-encoded latents and U-Net hierarchical features) to create a shared latent space that aligns heterogeneous clients, facilitated by an efficient client-server architecture that offloads heavy computation to the server. A unified consistency mechanism, employing cross-modal contrastive learning, further stabilizes convergence. We conduct extensive experiments on benchmarks including CIFAR-10, CIFAR-100, and TinyImageNet under diverse heterogeneity scenarios. Our results demonstrate that SemanticFL surpasses existing federated learning approaches, achieving accuracy gains of up to 5.49% over FedAvg, validating its effectiveness in learning robust representations for heterogeneous and multimodal data for perception tasks.",
+      "authors": [
+        "Jing Liu",
+        "Zhengliang Guo",
+        "Yan Wang",
+        "Xiaoguang Zhu",
+        "Yao Du",
+        "Zehua Wang",
+        "Victor C. M. Leung"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-19T04:44:37+00:00",
+      "link": "https://arxiv.org/pdf/2603.19337v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "diffusion models for semantic guidance in federated learning",
+      "llm_evidence_cn": "扩散模型用于联邦学习中的语义引导",
+      "llm_evidence": "扩散模型用于联邦学习中的语义引导",
+      "canonical_evidence": "扩散模型用于联邦学习中的语义引导",
+      "llm_tldr_en": "Uses pre-trained diffusion models to provide semantic guidance for local training in federated learning.",
+      "llm_tldr_cn": "利用预训练扩散模型为联邦学习中的本地训练提供语义引导。",
+      "llm_tldr": "利用预训练扩散模型为联邦学习中的本地训练提供语义引导。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "generative diffusion models and denoising processes",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.17631v1",
+      "title": "Benchmarking Reinforcement Learning via Stochastic Converse Optimality: Generating Systems with Known Optimal Policies",
+      "abstract": "The objective comparison of Reinforcement Learning (RL) algorithms is notoriously complex as outcomes and benchmarking of performances of different RL approaches are critically sensitive to environmental design, reward structures, and stochasticity inherent in both algorithmic learning and environmental dynamics. To manage this complexity, we introduce a rigorous benchmarking framework by extending converse optimality to discrete-time, control-affine, nonlinear systems with noise. Our framework provides necessary and sufficient conditions, under which a prescribed value function and policy are optimal for constructed systems, enabling the systematic generation of benchmark families via homotopy variations and randomized parameters. We validate it by automatically constructing diverse environments, demonstrating our framework's capacity for a controlled and comprehensive evaluation across algorithms. By assessing standard methods against a ground-truth optimum, our work delivers a reproducible foundation for precise and rigorous RL benchmarking.",
+      "authors": [
+        "Sinan Ibrahim",
+        "Grégoire Ouerdane",
+        "Hadi Salloum",
+        "Henni Ouerdane",
+        "Stefan Streif",
+        "Pavel Osinenko"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "eess.SY",
+        "math.OC"
+      ],
+      "published": "2026-03-18T11:52:21+00:00",
+      "link": "https://arxiv.org/pdf/2603.17631v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "benchmarking reinforcement learning algorithms",
+      "llm_evidence_cn": "强化学习算法基准测试",
+      "llm_evidence": "强化学习算法基准测试",
+      "canonical_evidence": "强化学习算法基准测试",
+      "llm_tldr_en": "Develops a rigorous benchmarking framework for RL by generating systems with known optimal policies.",
+      "llm_tldr_cn": "通过生成具有已知最优策略的系统，为强化学习算法开发了一个严谨的基准测试框架。",
+      "llm_tldr": "通过生成具有已知最优策略的系统，为强化学习算法开发了一个严谨的基准测试框架。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.17468v1",
+      "title": "Efficient Soft Actor-Critic with LLM-Based Action-Level Guidance for Continuous Control",
+      "abstract": "We present GuidedSAC, a novel reinforcement learning (RL) algorithm that facilitates efficient exploration in vast state-action spaces. GuidedSAC leverages large language models (LLMs) as intelligent supervisors that provide action-level guidance for the Soft Actor-Critic (SAC) algorithm. The LLM-based supervisor analyzes the most recent trajectory using state information and visual replays, offering action-level interventions that enable targeted exploration. Furthermore, we provide a theoretical analysis of GuidedSAC, proving that it preserves the convergence guarantees of SAC while improving convergence speed. Through experiments in both discrete and continuous control environments, including toy text tasks and complex MuJoCo benchmarks, we demonstrate that GuidedSAC consistently outperforms standard SAC and state-of-the-art exploration-enhanced variants (e.g., RND, ICM, and E3B) in terms of sample efficiency and final performance.",
+      "authors": [
+        "Hao Ma",
+        "Zhiqiang Pu",
+        "Xiaolin Ai",
+        "Huimu Wang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-03-18T08:22:31+00:00",
+      "link": "https://arxiv.org/pdf/2603.17468v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "reinforcement learning algorithm for continuous control",
+      "llm_evidence_cn": "用于连续控制的强化学习算法",
+      "llm_evidence": "用于连续控制的强化学习算法",
+      "canonical_evidence": "用于连续控制的强化学习算法",
+      "llm_tldr_en": "Enhances Soft Actor-Critic with LLM-based guidance for efficient exploration in RL.",
+      "llm_tldr_cn": "利用大语言模型引导增强SAC算法，提高强化学习在连续控制中的探索效率。",
+      "llm_tldr": "利用大语言模型引导增强SAC算法，提高强化学习在连续控制中的探索效率。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.19570v1",
+      "title": "Accelerating Diffusion Decoders via Multi-Scale Sampling and One-Step Distillation",
+      "abstract": "Image tokenization plays a central role in modern generative modeling by mapping visual inputs into compact representations that serve as an intermediate signal between pixels and generative models. Diffusion-based decoders have recently been adopted in image tokenization to reconstruct images from latent representations with high perceptual fidelity. In contrast to diffusion models used for downstream generation, these decoders are dedicated to faithful reconstruction rather than content generation. However, their iterative sampling process introduces significant latency, making them impractical for real-time or large-scale applications. In this work, we introduce a two-stage acceleration framework to address this inefficiency. First, we propose a multi-scale sampling strategy, where decoding begins at a coarse resolution and progressively refines the output by doubling the resolution at each stage, achieving a theoretical speedup of $\\mathcal{O}(\\log n)$ compared to standard full-resolution sampling. Second, we distill the diffusion decoder at each scale into a single-step denoising model, enabling fast and high-quality reconstructions in a single forward pass per scale. Together, these techniques yield an order-of-magnitude reduction in decoding time with little degradation in output quality. Our approach provides a practical pathway toward efficient yet expressive image tokenizers. We hope it serves as a foundation for future work in efficient visual tokenization and downstream generation.",
+      "authors": [
+        "Chuhan Wang",
+        "Hao Chen"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-20T02:24:58+00:00",
+      "link": "https://arxiv.org/pdf/2603.19570v1",
+      "tags": [
+        "keyword:RL DM"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "accelerating diffusion decoders and sampling",
+      "llm_evidence_cn": "加速扩散解码器与采样",
+      "llm_evidence": "加速扩散解码器与采样",
+      "canonical_evidence": "加速扩散解码器与采样",
+      "llm_tldr_en": "Accelerates diffusion-based decoders using multi-scale sampling and distillation for efficient image reconstruction.",
+      "llm_tldr_cn": "利用多尺度采样和蒸馏技术加速基于扩散的解码器，实现高效的图像重建。",
+      "llm_tldr": "利用多尺度采样和蒸馏技术加速基于扩散的解码器，实现高效的图像重建。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "generative diffusion models and denoising processes",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.17875v1",
+      "title": "Operator-Theoretic Foundations and Policy Gradient Methods for General MDPs with Unbounded Costs",
+      "abstract": "Markov decision processes (MDPs) is viewed as an optimization of an objective function over certain linear operators over general function spaces. Using the well-established perturbation theory of linear operators, this viewpoint allows one to identify derivatives of the objective function as a function of the linear operators. This leads to generalization of many well-known results in reinforcement learning to cases with generate state and action spaces. Prior results of this type were only established in the finite-state finite-action MDP settings and in settings with certain linear function approximations. The framework also leads to new low-complexity PPO-type reinforcement learning algorithms for general state and action space MDPs.",
+      "authors": [
+        "Abhishek Gupta",
+        "Aditya Mahajan"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "math.OC"
+      ],
+      "published": "2026-03-18T16:01:49+00:00",
+      "link": "https://arxiv.org/pdf/2603.17875v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Operator-theoretic foundations for policy gradient methods in general MDPs",
+      "llm_evidence_cn": "通用MDP中策略梯度方法的算子理论基础",
+      "llm_evidence": "通用MDP中策略梯度方法的算子理论基础",
+      "canonical_evidence": "通用MDP中策略梯度方法的算子理论基础",
+      "llm_tldr_en": "Provides a theoretical framework for policy gradient methods in general state and action spaces.",
+      "llm_tldr_cn": "为通用状态和动作空间中的策略梯度方法提供了理论框架。",
+      "llm_tldr": "为通用状态和动作空间中的策略梯度方法提供了理论框架。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.17671v1",
+      "title": "Few-Step Diffusion Sampling Through Instance-Aware Discretizations",
+      "abstract": "Diffusion and flow matching models generate high-fidelity data by simulating paths defined by Ordinary or Stochastic Differential Equations (ODEs/SDEs), starting from a tractable prior distribution. The probability flow ODE formulation enables the use of advanced numerical solvers to accelerate sampling. Orthogonal yet vital to solver design is the discretization strategy. While early approaches employed handcrafted heuristics and recent methods adopt optimization-based techniques, most existing strategies enforce a globally shared timestep schedule across all samples. This uniform treatment fails to account for instance-specific complexity in the generative process, potentially limiting performance. Motivated by controlled experiments on synthetic data, which reveals the suboptimality of global schedules under instance-specific dynamics, we propose an instance-aware discretization framework. Our method learns to adapt timestep allocations based on input-dependent priors, extending gradient-based discretization search to the conditional generative setting. Empirical results across diverse settings, including synthetic data, pixel-space diffusion, latent-space images and video flow matching models, demonstrate that our method consistently improves generation quality with marginal tuning cost compared to training and negligible inference overhead.",
+      "authors": [
+        "Liangyu Yuan",
+        "Ruoyu Wang",
+        "Tong Zhao",
+        "Dingwen Fu",
+        "Mingkun Lei",
+        "Beier Zhu",
+        "Chi Zhang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-18T12:49:38+00:00",
+      "link": "https://arxiv.org/pdf/2603.17671v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "instance-aware discretization in diffusion sampling",
+      "llm_evidence_cn": "扩散采样中的实例感知离散化",
+      "llm_evidence": "扩散采样中的实例感知离散化",
+      "canonical_evidence": "扩散采样中的实例感知离散化",
+      "llm_tldr_en": "Improves diffusion sampling efficiency through instance-specific discretization strategies for ODE/SDE paths.",
+      "llm_tldr_cn": "通过针对 ODE/SDE 路径的实例特定离散化策略提高扩散采样的效率。",
+      "llm_tldr": "通过针对 ODE/SDE 路径的实例特定离散化策略提高扩散采样的效率。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "generative diffusion models and denoising processes",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}
