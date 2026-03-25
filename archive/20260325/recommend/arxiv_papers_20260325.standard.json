@@ -1,0 +1,686 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-03-25T19:42:38.767676+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 12,
+    "deep_cap": 6,
+    "deep_selected": 6,
+    "quick_candidates": 36,
+    "quick_skim_target": 11,
+    "quick_selected": 11
+  },
+  "deep_dive": [
+    {
+      "id": "2603.22430v1",
+      "title": "Model Predictive Control with Differentiable World Models for Offline Reinforcement Learning",
+      "abstract": "Offline Reinforcement Learning (RL) aims to learn optimal policies from fixed offline datasets, without further interactions with the environment. Such methods train an offline policy (or value function), and apply it at inference time without further refinement. We introduce an inference time adaptation framework inspired by model predictive control (MPC) that utilizes a pretrained policy along with a learned world model of state transitions and rewards. While existing world model and diffusion-planning methods use learned dynamics to generate imagined trajectories during training, or to sample candidate plans at inference time, they do not use inference-time information to optimize the policy parameters on the fly. In contrast, our design is a Differentiable World Model (DWM) pipeline that enables endto-end gradient computation through imagined rollouts for policy optimization at inference time based on MPC. We evaluate our algorithm on D4RL continuous-control benchmarks (MuJoCo locomotion tasks and AntMaze), and show that exploiting inference-time information to optimize the policy parameters yields consistent gains over strong offline RL baselines.",
+      "authors": [
+        "Rohan Deb",
+        "Stephen J. Wright",
+        "Arindam Banerjee"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-03-23T18:05:29+00:00",
+      "link": "https://arxiv.org/pdf/2603.22430v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "offline reinforcement learning and diffusion-planning methods",
+      "llm_evidence_cn": "离线强化学习与扩散规划方法",
+      "llm_evidence": "离线强化学习与扩散规划方法",
+      "canonical_evidence": "离线强化学习与扩散规划方法",
+      "llm_tldr_en": "Proposes an MPC framework for offline RL that adapts policies at inference time using world models.",
+      "llm_tldr_cn": "提出了一种离线强化学习的MPC框架，利用世界模型在推理时进行策略自适应。",
+      "llm_tldr": "提出了一种离线强化学习的MPC框架，利用世界模型在推理时进行策略自适应。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "diffusion models for offline reinforcement learning and policy optimization",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.16065v2",
+      "title": "Large Reward Models: Generalizable Online Robot Reward Generation with Vision-Language Models",
+      "abstract": "Reinforcement Learning (RL) has shown great potential in refining robotic manipulation policies, yet its efficacy remains strongly bottlenecked by the difficulty of designing generalizable reward functions. In this paper, we propose a framework for online policy refinement by adapting foundation VLMs into online reward generators. We develop a robust, scalable reward model based on a state-of-the-art VLM, trained on a large-scale, multi-source dataset encompassing real-world robot trajectories, human-object interactions, and diverse simulated environments. Unlike prior approaches that evaluate entire trajectories post-hoc, our method leverages the VLM to formulate a multifaceted reward signal comprising process, completion, and temporal contrastive rewards based on current visual observations. Initializing with a base policy trained via Imitation Learning (IL), we employ these VLM rewards to guide the model to correct sub-optimal behaviors in a closed-loop manner. We evaluate our framework on challenging long-horizon manipulation benchmarks requiring sequential execution and precise control. Crucially, our reward model operates in a purely zero-shot manner within these test environments. Experimental results demonstrate that our method significantly improves the success rate of the initial IL policy within just 30 RL iterations, demonstrating remarkable sample efficiency. This empirical evidence highlights that VLM-generated signals can provide reliable feedback to resolve execution errors, effectively eliminating the need for manual reward engineering and facilitating efficient online refinement for robot learning.",
+      "authors": [
+        "Yanru Wu",
+        "Weiduo Yuan",
+        "Ang Qi",
+        "Vitor Guizilini",
+        "Jiageng Mao",
+        "Yue Wang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-03-17T02:22:16+00:00",
+      "link": "https://arxiv.org/pdf/2603.16065v2",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "reinforcement learning for robotic manipulation and online policy refinement",
+      "llm_evidence_cn": "用于机器人操作和在线策略优化的强化学习",
+      "llm_evidence": "用于机器人操作和在线策略优化的强化学习",
+      "canonical_evidence": "用于机器人操作和在线策略优化的强化学习",
+      "llm_tldr_en": "Adapts Vision-Language Models into online reward generators for robotic reinforcement learning policy refinement.",
+      "llm_tldr_cn": "将视觉语言模型转化为在线奖励生成器，用于机器人强化学习策略的在线优化。",
+      "llm_tldr": "将视觉语言模型转化为在线奖励生成器，用于机器人强化学习策略的在线优化。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.18771v1",
+      "title": "Empathetic Motion Generation for Humanoid Educational Robots via Reasoning-Guided Vision--Language--Motion Diffusion Architecture",
+      "abstract": "This article suggests a reasoning-guided vision-language-motion diffusion framework (RG-VLMD) for generating instruction-aware co-speech gestures for humanoid robots in educational scenarios. The system integrates multi-modal affective estimation, pedagogical reasoning, and teaching-act-conditioned motion synthesis to enable adaptive and semantically consistent robot behavior. A gated mixture-of-experts model predicts Valence/Arousal from input text, visual, and acoustic features, which then mapped to discrete teaching-act categories through an affect-driven policy.These signals condition a diffusion-based motion generator using clip-level intent and frame-level instructional schedules via additive latent restriction with auxiliary action-group supervision. Compared to a baseline diffusion model, our proposed method produces more structured and distinctive motion patterns, as verified by motion statics and pairwise distance analysis. Generated motion sequences remain physically plausible and can be retargeted to a NAO robot for real-time execution. The results reveal that reasoning-guided instructional conditioning improves gesture controllability and pedagogical expressiveness in educational human-robot interaction.",
+      "authors": [
+        "Fuze Sun",
+        "Lingyu Li",
+        "Lekan Dai",
+        "Xinyu Fan"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-03-19T11:26:04+00:00",
+      "link": "https://arxiv.org/pdf/2603.18771v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "diffusion-based motion generator for robot behavior",
+      "llm_evidence_cn": "基于扩散模型的机器人行为动作生成",
+      "llm_evidence": "基于扩散模型的机器人行为动作生成",
+      "canonical_evidence": "基于扩散模型的机器人行为动作生成",
+      "llm_tldr_en": "Develops a diffusion framework for generating instruction-aware and affective robot motions and gestures.",
+      "llm_tldr_cn": "开发了一个扩散框架，用于生成符合指令且具有情感表达的机器人动作与手势。",
+      "llm_tldr": "开发了一个扩散框架，用于生成符合指令且具有情感表达的机器人动作与手势。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "trajectory generation using diffusion models",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.18859v1",
+      "title": "RewardFlow: Topology-Aware Reward Propagation on State Graphs for Agentic RL with Large Language Models",
+      "abstract": "Reinforcement learning (RL) holds significant promise for enhancing the agentic reasoning capabilities of large language models (LLMs) with external environments. However, the inherent sparsity of terminal rewards hinders fine-grained, state-level optimization. Although process reward modeling offers a promising alternative, training dedicated reward models often entails substantial computational costs and scaling difficulties. To address these challenges, we introduce RewardFlow, a lightweight method for estimating state-level rewards tailored to agentic reasoning tasks. RewardFlow leverages the intrinsic topological structure of states within reasoning trajectories by constructing state graphs. This enables an analysis of state-wise contributions to success, followed by topology-aware graph propagation to quantify contributions and yield objective, state-level rewards. When integrated as dense rewards for RL optimization, RewardFlow substantially outperforms prior RL baselines across four agentic reasoning benchmarks, demonstrating superior performance, robustness, and training efficiency. The implementation of RewardFlow is publicly available at https://github.com/tmlr-group/RewardFlow.",
+      "authors": [
+        "Xiao Feng",
+        "Bo Han",
+        "Zhanke Zhou",
+        "Jiaqi Fan",
+        "Jiangchao Yao",
+        "Ka Ho Li",
+        "Dahai Yu",
+        "Michael Kwok-Po Ng"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-03-19T13:07:12+00:00",
+      "link": "https://arxiv.org/pdf/2603.18859v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "reinforcement learning for agentic reasoning and state-level optimization",
+      "llm_evidence_cn": "用于智能体推理和状态级优化的强化学习",
+      "llm_evidence": "用于智能体推理和状态级优化的强化学习",
+      "canonical_evidence": "用于智能体推理和状态级优化的强化学习",
+      "llm_tldr_en": "Introduces RewardFlow to estimate state-level rewards for LLM-based RL agents using state graph topology.",
+      "llm_tldr_cn": "引入 RewardFlow，利用状态图拓扑结构为基于大模型的强化学习智能体估计状态级奖励。",
+      "llm_tldr": "引入 RewardFlow，利用状态图拓扑结构为基于大模型的强化学习智能体估计状态级奖励。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.17919v1",
+      "title": "Training Diffusion Language Models for Black-Box Optimization",
+      "abstract": "We study offline black-box optimization (BBO), aiming to discover improved designs from an offline dataset of designs and labels, a problem common in robotics, DNA, and materials science with limited labeled samples. While recent work applies autoregressive LLMs to BBO by formatting tasks as natural-language prompts, their left-to-right design generation struggles to capture the strong bidirectional dependencies inherent in design problems. To address this, we propose adapting diffusion LLMs to offline BBO to leverage their bidirectional modeling capabilities. However, a domain gap exists between the natural text pre-training of diffusion LLMs and the heterogeneous signals in BBO (prompts, designs, and labels). To bridge this gap, we construct a unified prompt-response corpus and introduce delimiter tokens to explicitly mark field boundaries for domain adaptation. We further propose a two-stage post-training framework to align the diffusion LLM generation with high-label designs. The first stage performs supervised fine-tuning on the unified dataset via masked-response prediction, and the second stage adopts reinforcement learning with rewards defined by label improvements. Our method achieves state-of-the-art results on Design-Bench small-data settings.",
+      "authors": [
+        "Zipeng Sun",
+        "Can Chen",
+        "Ye Yuan",
+        "Haolun Wu",
+        "Jiayao Gu",
+        "Christopher Pal",
+        "Xue Liu"
+      ],
+      "primary_category": "cs.CE",
+      "categories": [
+        "cs.CE"
+      ],
+      "published": "2026-03-18T16:56:23+00:00",
+      "link": "https://arxiv.org/pdf/2603.17919v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Diffusion LLMs for offline black-box optimization in robotics",
+      "llm_evidence_cn": "用于机器人离线黑盒优化的扩散语言模型",
+      "llm_evidence": "用于机器人离线黑盒优化的扩散语言模型",
+      "canonical_evidence": "用于机器人离线黑盒优化的扩散语言模型",
+      "llm_tldr_en": "Adapts diffusion language models to offline black-box optimization to capture bidirectional dependencies in designs.",
+      "llm_tldr_cn": "将扩散语言模型应用于离线黑盒优化，以捕获设计中的双向依赖关系。",
+      "llm_tldr": "将扩散语言模型应用于离线黑盒优化，以捕获设计中的双向依赖关系。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "diffusion models for offline reinforcement learning and policy optimization",
+      "matched_requirement_id": "req-7",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.17919v1"
+    },
+    {
+      "id": "2603.21563v1",
+      "title": "Counterfactual Credit Policy Optimization for Multi-Agent Collaboration",
+      "abstract": "Collaborative multi-agent large language models (LLMs) can solve complex reasoning tasks by decomposing roles and aggregating diverse hypotheses. Yet, reinforcement learning (RL) for such systems is often undermined by credit assignment: a shared global reward obscures individual contributions, inflating update variance and encouraging free-riding. We introduce Counterfactual Credit Policy Optimization (CCPO), a framework that assigns agent-specific learning signals by estimating each agent's marginal contribution through counterfactual trajectories. CCPO builds dynamic counterfactual baselines that simulate outcomes with an agent's contribution removed, yielding role-sensitive advantages for policy optimization. To further improve stability under heterogeneous tasks and data distributions, we propose a global-history-aware normalization scheme that calibrates advantages using global rollout statistics. We evaluate CCPO on two collaboration topologies: a sequential Think--Reason dyad and multi-agent voting. Across mathematical and logical reasoning benchmarks, CCPO mitigates free-riding and outperforms strong multi-agent RL baselines, yielding finer-grained and more effective credit assignment for collaborative LLM training. Our code is available at https://github.com/bhai114/ccpo.",
+      "authors": [
+        "Zhongyi Li",
+        "Wan Tian",
+        "Yikun Ban",
+        "Jinju Chen",
+        "Huiming Zhang",
+        "Yang Liu",
+        "Fuzhen Zhuang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-23T04:35:02+00:00",
+      "link": "https://arxiv.org/pdf/2603.21563v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "policy optimization for multi-agent collaboration",
+      "llm_evidence_cn": "多智能体协作的策略优化",
+      "llm_evidence": "多智能体协作的策略优化",
+      "canonical_evidence": "多智能体协作的策略优化",
+      "llm_tldr_en": "Introduces counterfactual credit assignment to optimize policies in collaborative multi-agent systems.",
+      "llm_tldr_cn": "引入反事实信用分配，以优化协作多智能体系统中的策略。",
+      "llm_tldr": "引入反事实信用分配，以优化协作多智能体系统中的策略。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.21563v1"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2603.20382v1",
+      "title": "Uni-Classifier: Leveraging Video Diffusion Priors for Universal Guidance Classifier",
+      "abstract": "In practical AI workflows, complex tasks often involve chaining multiple generative models, such as using a video or 3D generation model after a 2D image generator. However, distributional mismatches between the output of upstream models and the expected input of downstream models frequently degrade overall generation quality. To address this issue, we propose Uni-Classifier (Uni-C), a simple yet effective plug-and-play module that leverages video diffusion priors to guide the denoising process of preceding models, thereby aligning their outputs with downstream requirements. Uni-C can also be applied independently to enhance the output quality of individual generative models. Extensive experiments across video and 3D generation tasks demonstrate that Uni-C consistently improves generation quality in both workflow-based and standalone settings, highlighting its versatility and strong generalization capability.",
+      "authors": [
+        "Yujie Zhou",
+        "Pengyang Ling",
+        "Jiazi Bu",
+        "Bingjie Gao",
+        "Li Niu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-20T18:00:27+00:00",
+      "link": "https://arxiv.org/pdf/2603.20382v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "universal guidance for denoising process in diffusion models",
+      "llm_evidence_cn": "扩散模型去噪过程中的通用引导",
+      "llm_evidence": "扩散模型去噪过程中的通用引导",
+      "canonical_evidence": "扩散模型去噪过程中的通用引导",
+      "llm_tldr_en": "Proposes Uni-Classifier to guide the denoising process of diffusion models for cross-model alignment.",
+      "llm_tldr_cn": "提出Uni-Classifier模块，利用扩散先验引导去噪过程以实现跨模型对齐。",
+      "llm_tldr": "提出Uni-Classifier模块，利用扩散先验引导去噪过程以实现跨模型对齐。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "classifier-guided and classifier-free diffusion for RL",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.18326v1",
+      "title": "Escaping Offline Pessimism: Vector-Field Reward Shaping for Safe Frontier Exploration",
+      "abstract": "While offline reinforcement learning provides reliable policies for real-world deployment, its inherent pessimism severely restricts an agent's ability to explore and collect novel data online. Drawing inspiration from safe reinforcement learning, exploring near the boundary of regions well covered by the offline dataset and reliably modeled by the simulator allows an agent to take manageable risks--venturing into informative but moderate-uncertainty states while remaining close enough to familiar regions for safe recovery. However, naively rewarding this boundary-seeking behavior can lead to a degenerate parking behavior, where the agent simply stops once it reaches the frontier. To solve this, we propose a novel vector-field reward shaping paradigm designed to induce continuous, safe boundary exploration for non-adaptive deployed policies. Operating on an uncertainty oracle trained from offline data, our reward combines two complementary components: a gradient-alignment term that attracts the agent toward a target uncertainty level, and a rotational-flow term that promotes motion along the local tangent plane of the uncertainty manifold. Through theoretical analysis, we show that this reward structure naturally induces sustained exploratory behavior along the boundary while preventing degenerate solutions. Empirically, by integrating our proposed reward shaping with Soft Actor-Critic on a 2D continuous navigation task, we validate that agents successfully traverse uncertainty boundaries while balancing safe, informative data collection with primary task completion.",
+      "authors": [
+        "Amirhossein Roknilamouki",
+        "Arnob Ghosh",
+        "Eylem Ekici",
+        "Ness B. Shroff"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-03-18T22:18:27+00:00",
+      "link": "https://arxiv.org/pdf/2603.18326v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "reward shaping for exploration in offline reinforcement learning",
+      "llm_evidence_cn": "离线强化学习中用于探索的奖励塑造",
+      "llm_evidence": "离线强化学习中用于探索的奖励塑造",
+      "canonical_evidence": "离线强化学习中用于探索的奖励塑造",
+      "llm_tldr_en": "Proposes vector-field reward shaping to enable safe frontier exploration in offline reinforcement learning.",
+      "llm_tldr_cn": "提出向量场奖励塑造，以实现离线强化学习中的安全边界探索。",
+      "llm_tldr": "提出向量场奖励塑造，以实现离线强化学习中的安全边界探索。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "diffusion models for offline reinforcement learning and policy optimization",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.19146v1",
+      "title": "D5P4: Partition Determinantal Point Process for Diversity in Parallel Discrete Diffusion Decoding",
+      "abstract": "Discrete diffusion models are promising alternatives to autoregressive approaches for text generation, yet their decoding methods remain under-studied. Standard decoding methods for autoregressive models, such as beam search, do not directly apply to iterative denoising, and existing diffusion decoding techniques provide limited control over in-batch diversity. To bridge this gap, we introduce a generalized beam-search framework for discrete diffusion that generates candidates in parallel and supports modular beam-selection objectives. As a diversity-focused instantiation, we propose D5P4, which formulates the selection step as MAP inference over a Determinantal Point Process. Leveraging a scalable greedy solver, D5P4 maintains multi-GPU compatibility and enables an explicit trade-off between model probability and target diversity with near-zero compute overhead. Experiments on free-form generation and question answering demonstrate that D5P4 improves diversity over strong baselines while maintaining competitive generation quality.",
+      "authors": [
+        "Jonathan Lys",
+        "Vincent Gripon",
+        "Bastien Pasdeloup",
+        "Axel Marmoret",
+        "Lukas Mauch",
+        "Fabien Cardinaux",
+        "Ghouthi Boukli Hacene"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-03-19T17:02:08+00:00",
+      "link": "https://arxiv.org/pdf/2603.19146v1",
+      "tags": [
+        "keyword:RL DM"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "decoding methods for discrete diffusion models",
+      "llm_evidence_cn": "离散扩散模型的解码方法",
+      "llm_evidence": "离散扩散模型的解码方法",
+      "canonical_evidence": "离散扩散模型的解码方法",
+      "llm_tldr_en": "Introduces a generalized beam-search framework for diversity in discrete diffusion decoding.",
+      "llm_tldr_cn": "为离散扩散模型引入了一种通用的束搜索框架，以增强解码过程中的多样性。",
+      "llm_tldr": "为离散扩散模型引入了一种通用的束搜索框架，以增强解码过程中的多样性。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "generative diffusion models and denoising processes",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.21972v1",
+      "title": "Demystifying Reinforcement Learning for Long-Horizon Tool-Using Agents: A Comprehensive Recipe",
+      "abstract": "Reinforcement Learning (RL) is essential for evolving Large Language Models (LLMs) into autonomous agents capable of long-horizon planning, yet a practical recipe for scaling RL in complex, multi-turn environments remains elusive. This paper presents a systematic empirical study using TravelPlanner, a challenging testbed requiring tool orchestration to satisfy multifaceted constraints. We decompose the agentic RL design space along 5 axes: reward shaping, model scaling, data composition, algorithm selection, and environmental stability. Our controlled experiments yield 7 key takeaways, e.g., (1) reward and algorithm choices are scale-dependent as smaller models benefit from staged rewards and enhanced exploration, whereas larger models converge efficiently with simpler dense rewards, (2) ~ 1K training samples with a balanced difficulty mixture mark a sweet spot for both in-domain and out-of-domain performance, and (3) environmental stability is critical to prevent policy degradation. Based on our distilled recipe, our RL-trained models achieve state-of-the-art performance on TravelPlanner, significantly outperforming leading LLMs.",
+      "authors": [
+        "Xixi Wu",
+        "Qianguo Sun",
+        "Ruiyang Zhang",
+        "Chao Song",
+        "Junlong Wu",
+        "Yiyan Qi",
+        "Hong Cheng"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CL"
+      ],
+      "published": "2026-03-23T13:40:08+00:00",
+      "link": "https://arxiv.org/pdf/2603.21972v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "reinforcement learning algorithms for long-horizon planning agents",
+      "llm_evidence_cn": "用于长程规划智能体的强化学习算法",
+      "llm_evidence": "用于长程规划智能体的强化学习算法",
+      "canonical_evidence": "用于长程规划智能体的强化学习算法",
+      "llm_tldr_en": "Systematically studies RL design for LLM agents in complex, multi-turn tool-use environments.",
+      "llm_tldr_cn": "系统研究了在复杂多轮工具使用环境下，大模型智能体的强化学习设计方案。",
+      "llm_tldr": "系统研究了在复杂多轮工具使用环境下，大模型智能体的强化学习设计方案。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.18363v1",
+      "title": "PowerFlow: Unlocking the Dual Nature of LLMs via Principled Distribution Matching",
+      "abstract": "Unsupervised Reinforcement Learning from Internal Feedback (RLIF) has emerged as a promising paradigm for eliciting the latent capabilities of Large Language Models (LLMs) without external supervision. However, current methods rely on heuristic intrinsic rewards, which often lack a well-defined theoretical optimization target and are prone to degenerative biases. In this work, we introduce PowerFlow, a principled framework that reformulates unsupervised fine-tuning as a distribution matching problem. By casting GFlowNet as an amortized variational sampler for unnormalized densities, we propose a length-aware Trajectory-Balance objective that explicitly neutralizes the structural length biases inherent in autoregressive generation. By targeting $α$-power distributions, PowerFlow enables the directional elicitation of the dual nature of LLMs: sharpening the distribution ($α> 1$) to intensify logical reasoning, or flattening it ($α< 1$) to unlock expressive creativity. Extensive experiments demonstrate that PowerFlow consistently outperforms existing RLIF methods, matching or even exceeding supervised GRPO. Furthermore, by mitigating over-sharpening in aligned models, our approach achieves simultaneous gains in diversity and quality, shifting the Pareto frontier in creative tasks.",
+      "authors": [
+        "Ruishuo Chen",
+        "Yu Chen",
+        "Zhuoran Li",
+        "Longbo Huang"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-03-19T00:00:36+00:00",
+      "link": "https://arxiv.org/pdf/2603.18363v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Unsupervised Reinforcement Learning from Internal Feedback (RLIF) and GFlowNet as variational sampler",
+      "llm_evidence_cn": "内部反馈的无监督强化学习 (RLIF) 以及将 GFlowNet 作为变分采样器",
+      "llm_evidence": "内部反馈的无监督强化学习 (RLIF) 以及将 GFlowNet 作为变分采样器",
+      "canonical_evidence": "内部反馈的无监督强化学习 (RLIF) 以及将 GFlowNet 作为变分采样器",
+      "llm_tldr_en": "Introduces PowerFlow, a framework using GFlowNet to solve distribution matching in unsupervised LLM fine-tuning.",
+      "llm_tldr_cn": "引入 PowerFlow 框架，利用 GFlowNet 解决大语言模型无监督微调中的分布匹配问题。",
+      "llm_tldr": "引入 PowerFlow 框架，利用 GFlowNet 解决大语言模型无监督微调中的分布匹配问题。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.19939v1",
+      "title": "Timestep-Aware Block Masking for Efficient Diffusion Model Inference",
+      "abstract": "Diffusion Probabilistic Models (DPMs) have achieved great success in image generation but suffer from high inference latency due to their iterative denoising nature. Motivated by the evolving feature dynamics across the denoising trajectory, we propose a novel framework to optimize the computational graph of pre-trained DPMs on a per-timestep basis. By learning timestep-specific masks, our method dynamically determines which blocks to execute or bypass through feature reuse at each inference stage. Unlike global optimization methods that incur prohibitive memory costs via full-chain backpropagation, our method optimizes masks for each timestep independently, ensuring a memory-efficient training process. To guide this process, we introduce a timestep-aware loss scaling mechanism that prioritizes feature fidelity during sensitive denoising phases, complemented by a knowledge-guided mask rectification strategy to prune redundant spatial-temporal dependencies. Our approach is architecture-agnostic and demonstrates significant efficiency gains across a broad spectrum of models, including DDPM, LDM, DiT, and PixArt. Experimental results show that by treating the denoising process as a sequence of optimized computational paths, our method achieves a superior balance between sampling speed and generative quality. Our code will be released.",
+      "authors": [
+        "Haodong He",
+        "Yuan Gao",
+        "Weizhong Zhang",
+        "Gui-Song Xia"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-20T13:35:03+00:00",
+      "link": "https://arxiv.org/pdf/2603.19939v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "optimize computational graph of pre-trained DPMs on a per-timestep basis",
+      "llm_evidence_cn": "按时间步优化预训练扩散概率模型的计算图",
+      "llm_evidence": "按时间步优化预训练扩散概率模型的计算图",
+      "canonical_evidence": "按时间步优化预训练扩散概率模型的计算图",
+      "llm_tldr_en": "Optimizes diffusion model inference latency through timestep-aware block masking and feature reuse.",
+      "llm_tldr_cn": "通过时间步感知的区块掩码和特征重用优化扩散模型的推理延迟。",
+      "llm_tldr": "通过时间步感知的区块掩码和特征重用优化扩散模型的推理延迟。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "generative diffusion models and denoising processes",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.22364v1",
+      "title": "MCLR: Improving Conditional Modeling in Visual Generative Models via Inter-Class Likelihood-Ratio Maximization and Establishing the Equivalence between Classifier-Free Guidance and Alignment Objectives",
+      "abstract": "Diffusion models have achieved state-of-the-art performance in generative modeling, but their success often relies heavily on classifier-free guidance (CFG), an inference-time heuristic that modifies the sampling trajectory. From a theoretical perspective, diffusion models trained with standard denoising score matching (DSM) are expected to recover the target data distribution, raising the question of why inference-time guidance is necessary in practice. In this work, we ask whether the DSM training objective can be modified in a principled manner such that standard reverse-time sampling, without inference-time guidance, yields effects comparable to CFG. We identify insufficient inter-class separation as a key limitation of standard diffusion models. To address this, we propose MCLR, a principled alignment objective that explicitly maximizes inter-class likelihood-ratios during training. Models fine-tuned with MCLR exhibit CFG-like improvements under standard sampling, achieving comparable qualitative and quantitative gains without requiring inference-time guidance. Beyond empirical benefits, we provide a theoretical result showing that the CFG-guided score is exactly the optimal solution to a weighted MCLR objective. This establishes a formal equivalence between classifier-free guidance and alignment-based objectives, offering a mechanistic interpretation of CFG.",
+      "authors": [
+        "Xiang Li",
+        "Yixuan Jia",
+        "Xiao Li",
+        "Jeffrey A. Fessler",
+        "Rongrong Wang",
+        "Qing Qu"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CV"
+      ],
+      "published": "2026-03-23T05:01:47+00:00",
+      "link": "https://arxiv.org/pdf/2603.22364v1",
+      "tags": [
+        "keyword:RL DM"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "theoretical analysis of classifier-free guidance in diffusion models",
+      "llm_evidence_cn": "扩散模型中无分类器指导的理论分析",
+      "llm_evidence": "扩散模型中无分类器指导的理论分析",
+      "canonical_evidence": "扩散模型中无分类器指导的理论分析",
+      "llm_tldr_en": "Establishes equivalence between classifier-free guidance and alignment objectives to improve conditional modeling.",
+      "llm_tldr_cn": "建立了无分类器指导与对齐目标之间的等价性，以改进扩散模型的条件建模。",
+      "llm_tldr": "建立了无分类器指导与对齐目标之间的等价性，以改进扩散模型的条件建模。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "classifier-guided and classifier-free diffusion for RL",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.18444v1",
+      "title": "Discounted Beta--Bernoulli Reward Estimation for Sample-Efficient Reinforcement Learning with Verifiable Rewards",
+      "abstract": "Reinforcement learning with verifiable rewards (RLVR) has emerged as an effective post-training paradigm for improving the reasoning capabilities of large language models. However, existing group-based RLVR methods often suffer from severe sample inefficiency. This inefficiency stems from reliance on point estimation of rewards from a small number of rollouts, leading to high estimation variance, variance collapse, and ineffective utilization of generated responses. In this work, we reformulate RLVR from a statistical estimation perspective by modeling rewards as samples drawn from a policy-induced distribution and casting advantage computation as the problem of estimating the reward distribution from finite data. Building on this view, we propose Discounted Beta--Bernoulli (DBB) reward estimation, which leverages historical reward statistics for the non-stationary distribution. Although biased, the resulting estimator exhibits reduced and stable variance, theoretically avoids estimated variance collapse, and achieves lower mean squared error than standard point estimation. Extensive experiments across six in-distribution and three out-of-distribution reasoning benchmarks demonstrate that GRPO with DBB consistently outperforms naive GRPO, achieving average Acc@8 improvements of 3.22/2.42 points in-distribution and 12.49/6.92 points out-of-distribution on the 1.7B and 8B models, respectively, without additional computational cost or memory usage.",
+      "authors": [
+        "Haechan Kim",
+        "Soohyun Ryu",
+        "Gyouk Chu",
+        "Doohyuk Jang",
+        "Eunho Yang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-19T03:10:47+00:00",
+      "link": "https://arxiv.org/pdf/2603.18444v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Reinforcement learning with verifiable rewards (RLVR) for LLM reasoning",
+      "llm_evidence_cn": "用于大语言模型推理的具有可验证奖励的强化学习 (RLVR)",
+      "llm_evidence": "用于大语言模型推理的具有可验证奖励的强化学习 (RLVR)",
+      "canonical_evidence": "用于大语言模型推理的具有可验证奖励的强化学习 (RLVR)",
+      "llm_tldr_en": "Reformulates RLVR as a statistical estimation problem to improve sample efficiency in LLM post-training.",
+      "llm_tldr_cn": "将 RLVR 重新表述为统计估计问题，以提高大语言模型后训练阶段的样本效率。",
+      "llm_tldr": "将 RLVR 重新表述为统计估计问题，以提高大语言模型后训练阶段的样本效率。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.20295v1",
+      "title": "MARLIN: Multi-Agent Reinforcement Learning for Incremental DAG Discovery",
+      "abstract": "Uncovering causal structures from observational data is crucial for understanding complex systems and making informed decisions. While reinforcement learning (RL) has shown promise in identifying these structures in the form of a directed acyclic graph (DAG), existing methods often lack efficiency, making them unsuitable for online applications. In this paper, we propose MARLIN, an efficient multi agent RL based approach for incremental DAG learning. MARLIN uses a DAG generation policy that maps a continuous real valued space to the DAG space as an intra batch strategy, then incorporates two RL agents state specific and state invariant to uncover causal relationships and integrates these agents into an incremental learning framework. Furthermore, the framework leverages a factored action space to enhance parallelization efficiency. Extensive experiments on synthetic and real datasets demonstrate that MARLIN outperforms state of the art methods in terms of both efficiency and effectiveness.",
+      "authors": [
+        "Dong Li",
+        "Zhengzhang Chen",
+        "Xujiang Zhao",
+        "Linlin Yu",
+        "Zhong Chen",
+        "Yi He",
+        "Haifeng Chen",
+        "Chen Zhao"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-19T02:59:42+00:00",
+      "link": "https://arxiv.org/pdf/2603.20295v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "multi-agent reinforcement learning for DAG discovery",
+      "llm_evidence_cn": "用于DAG发现的多智能体强化学习",
+      "llm_evidence": "用于DAG发现的多智能体强化学习",
+      "canonical_evidence": "用于DAG发现的多智能体强化学习",
+      "llm_tldr_en": "Develops an efficient multi-agent RL approach for incremental causal structure learning.",
+      "llm_tldr_cn": "开发了一种高效的多智能体强化学习方法，用于增量式因果结构学习。",
+      "llm_tldr": "开发了一种高效的多智能体强化学习方法，用于增量式因果结构学习。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.22375v1",
+      "title": "Three Creates All: You Only Sample 3 Steps",
+      "abstract": "Diffusion models deliver high-fidelity generation but remain slow at inference time due to many sequential network evaluations. We find that standard timestep conditioning becomes a key bottleneck for few-step sampling. Motivated by layer-dependent denoising dynamics, we propose Multi-layer Time Embedding Optimization (MTEO), which freeze the pretrained diffusion backbone and distill a small set of step-wise, layer-wise time embeddings from reference trajectories. MTEO is plug-and-play with existing ODE solvers, adds no inference-time overhead, and trains only a tiny fraction of parameters. Extensive experiments across diverse datasets and backbones show state-of-the-art performance in the few-step sampling and substantially narrow the gap between distillation-based and lightweight methods. Code will be available.",
+      "authors": [
+        "Yuren Cai",
+        "Guangyi Wang",
+        "Zongqing Li",
+        "Li Li",
+        "Zhihui Liu",
+        "Songzhi Su"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CV"
+      ],
+      "published": "2026-03-23T09:13:53+00:00",
+      "link": "https://arxiv.org/pdf/2603.22375v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Few-step sampling and denoising dynamics in diffusion models",
+      "llm_evidence_cn": "扩散模型中的少步采样与去噪动力学",
+      "llm_evidence": "扩散模型中的少步采样与去噪动力学",
+      "canonical_evidence": "扩散模型中的少步采样与去噪动力学",
+      "llm_tldr_en": "Proposes MTEO to accelerate diffusion model inference by optimizing layer-wise time embeddings for few-step sampling.",
+      "llm_tldr_cn": "提出 MTEO，通过优化层级时间嵌入来加速扩散模型推理，实现高效的少步采样。",
+      "llm_tldr": "提出 MTEO，通过优化层级时间嵌入来加速扩散模型推理，实现高效的少步采样。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "generative diffusion models and denoising processes",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.18464v1",
+      "title": "AcceRL: A Distributed Asynchronous Reinforcement Learning and World Model Framework for Vision-Language-Action Models",
+      "abstract": "Reinforcement learning (RL) for large-scale Vision-Language-Action (VLA) models faces significant challenges in computational efficiency and data acquisition. We propose AcceRL, a fully asynchronous and decoupled RL framework designed to eliminate synchronization barriers by physically isolating training, inference, and rollouts. Crucially, AcceRL is the first to integrate a plug-and-play, trainable world model into a distributed asynchronous RL pipeline to generate virtual experiences. Experiments on the LIBERO benchmark demonstrate that AcceRL achieves state-of-the-art (SOTA) performance. Systematically, it exhibits super-linear scaling in throughput and highly efficient hardware utilization. Algorithmically, the world-model-augmented variant delivers unprecedented sample efficiency and robust training stability in complex control tasks.",
+      "authors": [
+        "Chengxuan Lu",
+        "Shukuan Wang",
+        "Yanjie Li",
+        "Wei Liu",
+        "Shiji Jin",
+        "Fuyuan Qian",
+        "Peiming Li",
+        "Baigui Sun",
+        "Yang Liu"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-03-19T03:50:45+00:00",
+      "link": "https://arxiv.org/pdf/2603.18464v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "distributed asynchronous RL framework with a trainable world model",
+      "llm_evidence_cn": "带有可训练世界模型的分布式异步强化学习框架",
+      "llm_evidence": "带有可训练世界模型的分布式异步强化学习框架",
+      "canonical_evidence": "带有可训练世界模型的分布式异步强化学习框架",
+      "llm_tldr_en": "AcceRL is an asynchronous RL framework for VLA models that integrates a world model for virtual experiences.",
+      "llm_tldr_cn": "AcceRL 是一个用于 VLA 模型的异步强化学习框架，集成了生成虚拟经验的世界模型。",
+      "llm_tldr": "AcceRL 是一个用于 VLA 模型的异步强化学习框架，集成了生成虚拟经验的世界模型。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}
