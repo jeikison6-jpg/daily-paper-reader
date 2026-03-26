@@ -1,0 +1,1014 @@
+Title: Astrolabe: Steering Forward-Process Reinforcement Learning for Distilled Autoregressive Video Models
+
+URL Source: https://arxiv.org/pdf/2603.17051v1
+
+Published Time: Thu, 19 Mar 2026 00:10:13 GMT
+
+Number of Pages: 53
+
+Markdown Content:
+# Astrolabe: Steering Forward-Process Reinforcement Learning for Distilled Autoregressive Video Models 
+
+Songchun Zhang 1, Zeyue Xue 2,3, Siming Fu 2, Jie Huang 2, Xianghao Kong 1,Yue-Ma 1, Haoyang Huang 2, Nan Duan 2§, and Anyi Rao 1§
+
+> 1
+
+HKUST 2JD Explore Academy 3HKU Project Page +Ours +Ours    
+
+> +Ours
+> +Ours +Ours
+> +Ours
+> Ca usal Forcing Causal Forcing
+> LongL ive LongL ive
+> Inf-RoPE Inf-RoPE
+
+Single-prompt Short Video 
+
+Single-prompt Long Video 
+
+Multi-prompt Long Video   
+
+> A fish driving a tiny submarine , exploring an underwater city
+> Self-Forcing Self-Forcing + Ours Reward-Forcing
+
+Fig. 1: Astrolabe efficiently aligns distilled streaming video models with human preferences without re-distillation, enhancing baselines (e.g., Causal Forcing [64], LongLive [51] and Infinite-RoPE [53]) by mitigating artifacts and improving temporal consistency. We demonstrate boosted perceptual quality across: (Top) single-prompt short, (Middle) single-prompt long, and (Bottom) multi-prompt long video generation. 
+
+Abstract. Distilled autoregressive (AR) video models enable efficient streaming generation but frequently misalign with human visual pref-erences. Existing reinforcement learning (RL) frameworks are not nat-urally suited to these architectures, typically requiring either expensive       
+
+> arXiv:2603.17051v1 [cs.CV] 17 Mar 2026 2Zhang. et al. re-distillation or solver-coupled reverse-process optimization that intro-duces considerable memory and computational overhead. We present As-trolabe, an efficient online RL framework tailored for distilled AR models. To overcome existing bottlenecks, we introduce a forward-process RL formulation based on negative-aware fine-tuning. By contrasting posi-tive and negative samples directly at inference endpoints, this approach establishes an implicit policy improvement direction without requiring reverse-process unrolling. To scale this alignment to long videos, we pro-pose a streaming training scheme that generates sequences progressively via a rolling KV-cache, applying RL updates exclusively to local clip windows while conditioning on prior context to ensure long-range coher-ence. Finally, to mitigate reward hacking, we integrate a multi-reward objective stabilized by uncertainty-aware selective regularization and dy-namic reference updates. Extensive experiments demonstrate that our method consistently enhances generation quality across multiple distilled AR video models, serving as a robust and scalable alignment solution.
+> Keywords: Video Generation ·Distilled Autoregressive Models ·Rein-forcement Fine-tuning
+
+## 1 Introduction 
+
+Recent advances in diffusion models [4,5,8,14,17,18,42,48,59,61,63] have enabled unprecedented quality in video synthesis, yet deploying these systems for real-time interactive applications remains challenging. Conventional video diffusion models rely on extensive multi-step denoising processes, resulting in prohibitive generation latencies. Furthermore, the bidirectional attention mechanism em-ployed by most architectures processes all frames jointly, precluding streaming generation, wherein frames must be produced sequentially. These constraints have motivated a paradigm shift toward efficient, autoregressive alternatives. To overcome these constraints, several distilled autoregressive models [9, 20, 22, 23, 37, 51] have emerged. These methods distill pretrained bidirectional video diffusion models into efficient autoregressive models via distribution matching distillation (DMD) [54]. The resulting models leverage KV-caching for stream-ing inference, enabling real-time generation with the potential to support long video generation. However, while distillation ensures the student mimics the teacher’s distribution, it lacks optimization for human preference. Consequently, the generated outputs frequently exhibit artifacts and unnatural motion dynam-ics, remaining misaligned with human preferences. Concurrently, online RL has demonstrated high efficacy in aligning LLMs with human preferences [12, 33]. This success motivates a natural question: 
+
+can online RL be applied to align distilled streaming video models with human visual expectations without reverting to computationally expensive pre-training or re-distillation pipelines? Aligning these models via existing methods intro-duces non-trivial challenges. Previous attempts at reward-guided distillation [30] merely bias the supervised distillation loss by prioritizing samples with higher rewards. While this shifts the output distribution toward high-reward regions, Astrolabe 3
+
+it lacks a mechanism for active exploration and fails to penalize suboptimal generation samples. On the other hand, applying online RL via reverse-process optimization [28, 49] requires log-probability estimation along the sampling tra-jectory. This couples the algorithm to specific solvers and necessitates storing intermediate trajectory states, adding substantial memory and computational overhead that erodes the efficiency advantages of streaming models. We present Astrolabe , an efficient and stable online RL framework for dis-tilled AR video models, as shown in Figure 2. Firstly, to bypass the limita-tions of reward-weighted distillation and the overhead of reverse-process RL, we introduce a trajectory-free alignment strategy tailored for distilled AR video generation. Drawing on the principles of negative-aware fine-tuning [62], our ap-proach contrasts positive and negative generations to establish an implicit policy improvement direction. Requiring only clean inference endpoints, our method sidesteps solver-specific unrolling and full trajectory storage, better preserv-ing the efficiency inherent to streaming architectures. Then, while this resolves per-clip alignment efficiently, scaling to long videos remains challenging: naively unrolling and backpropagating through extended sequences is prohibitively ex-pensive. To address this, we introduce a streaming training scheme that gen-erates videos progressively while applying RL updates only to short segments, conditioning on prior context to retain long-range coherence. Furthermore, to prevent models from reward hacking at the expense of overall aesthetics, the framework employs a multi-reward formulation covering visual quality, motion dynamics, and text alignment. This optimization process is further stabilized by an uncertainty-aware selective regularization strategy that restricts KL penal-ties to samples lacking auxiliary consensus, alongside a dynamic reference update mechanism that accommodates shifting distributions during online learning. Extensive experiments on various distilled AR models validate the effective-ness of our method. Figure 1 showcases a diverse set of representative results, demonstrating that the proposed framework consistently enhances generation quality across different settings. Comprehensive evaluations demonstrate im-provements across multiple benchmarks. In summary, the primary contributions of our work are as follows: (1) Astrolabe, an online reinforcement learning frame-work formulated to align distilled streaming video models with human visual preferences; (2) a streaming training scheme that enables scalable alignment of long videos via segment-wise optimization under historical context; and (3) a suite of stabilization techniques, encompassing multi-reward optimization and dynamic regularization, to mitigate reward hacking. 
+
+## 2 Related Work 
+
+2.1 Video Generative Models 
+
+Diffusion models achieve remarkable success in video synthesis [4, 5, 8, 14, 17, 18, 38, 48, 57, 59, 61]. The strong scalability of Diffusion Transformers (DiTs) [2, 34] facilitates the emergence of large-scale models [3, 27, 42, 52] that generate high-quality content by jointly denoising all frames. However, this full-sequence gen-4 Zhang. et al. 
+
+eration requires simultaneous processing of all frames, which incurs substantial latency and precludes real-time interaction. Consequently, autoregressive ap-proaches [10, 19, 26, 45–47, 50, 58, 60] emerge to enable streaming generation by producing frames sequentially. 
+
+2.2 Autoregressive Video Generation 
+
+To circumvent the limitation of bidirectional diffusion models, autoregressive (AR) approaches enable streaming generation by producing frames sequentially. While AR models are inherently suitable for real-time applications, early meth-ods [11,21] relying on Teacher Forcing (TF) suffer from severe error accumulation during long-video synthesis. Recent studies explore novel training paradigms to resolve this train-test misalignment. Diffusion Forcing [6] introduces condition-ing at arbitrary noise levels, while CausVid [55] employs block causal attention and distills bidirectional teacher via DMD [54]. More recently, Self-Forcing [22] and its successors [9, 13, 30, 51, 53] establish post-training frameworks that sys-tematically mitigate error accumulation. Identifying an architectural gap in the initial ODE distillation phase of these frameworks, Causal Forcing [64] reveals that distilling from a bidirectional teacher violates frame-level injectivity. By employing an AR teacher for initialization instead, it theoretically bridges this gap to achieve superior real-time generation. 
+
+2.3 Reinforcement Learning for Generative Models 
+
+Recent successes in large language models [12, 33] highlight the efficacy of on-policy reinforcement learning via memory-efficient algorithms like GRPO [36]. For diffusion models, DiffusionDPO [41] utilizes off-policy pairs, while Dance-GRPO [49] and Flow-GRPO [28] perform alignment by estimating reverse-trajectory log-probabilities. These reverse-process methods inherently couple the training objective to specific solvers and demand full trajectory storage. To by-pass this, DiffusionNFT [62] introduces solver-agnostic forward-process policy optimization. Building on this, WorldCompass [44] recently adapted NFT to autoregressive world models [39]. However, their framework directly optimizes heavy pre-distilled teacher models. Extending RL to highly efficient distilled AR video models remains an open problem. 
+
+## 3 Methodology 
+
+Given a distilled autoregressive video diffusion model optimized for real-time generation, our goal is to further align it with human preferences through on-line reinforcement learning in the post-training stage. We propose Astrolabe, a memory-efficient framework combining streaming rollout with forward-process RL optimization. Section 3.1 reviews the foundations of AR video diffusion and forward-process RL. Section 3.2 details our memory-efficient streaming rollout Astrolabe 5Group-Wise      
+
+> Sampling
+> Online RL Optimization
+> Inference
+> Engine
+> Prompts
+> Memory-Efficient Streaming Rollout
+> Shared
+> Context
+> Distilled AR
+> Video Model
+> Frozen
+> Reward Design & Regularization
+> Implicit Policies
+> Candidate
+> Clip
+> Reward Hacking Mitigation
+> Visual
+> Quality (VQ)
+> Motion
+> Quality (MQ)
+> Text
+> Alignment (TA)
+> Forward-Process RL loss Auxiliary Reward
+> Ensemble
+> KL Penalty
+> Multi-Reward System
+> Uncertainty
+> Score
+> Aggregated Reward
+> Rolling KV
+> Cache
+> Distilled AR
+> Video Model
+> Evicted
+> Frames Candidate
+> Clip
+> Shared
+> Context
+> Frozen
+> Noise Clip
+> Velocity
+> Predictor
+> Historical Context Current Clip
+> Detached Grad. Enabled Grad.
+> Stream Tuning
+> Target Velocity
+> Candidate
+> Clip
+> Primary Reward
+> If
+
+Fig. 2: Overview of Astrolabe. We propose a memory-efficient RL framework for distilled streaming video models. The method combines group-wise streaming rollout using a rolling KV cache for efficient group-wise sampling (see left), and clip-level forward-process RL for solver-agnostic optimization (see middle). To scale to long videos, we utilize Streaming Long Tuning with detached historical gradients. Further-more, a multi-reward formulation paired with uncertainty-based selective regulariza-tion is employed to effectively mitigate reward hacking during training (see right). The pseudocode of the algorithm can be found in the supplementary materials. 
+
+mechanism for scalable exploration. Section 3.3 presents the online RL opti-mization strategy, encompassing clip-level forward-process RL and streaming long tuning. Finally, Section 3.4 formulates our multi-reward design and selec-tive regularization approach to mitigate reward hacking. 
+
+3.1 Preliminaries Autoregressive Video Diffusion Models. AR video model factorizes the joint distribution as p(x1: N ) = QNi=1 p(xi|x<i ). Following the flow matching formulation, each conditional p(xi|x<i ) is modeled by defining a probability path xti = (1 − t)xi + tϵ i, where ϵi ∼ N (0 , I ) and t ∈ [0 , 1] . The model pre-dicts the velocity field vθ conditioned on text c and the KV cache of preceding frames. Training paradigms such as Teacher Forcing (TF) and Diffusion Forc-ing (DF) minimize the frame-wise MSE between the predicted and true targets. In TF, timesteps t are shared across frames with clean ground-truth context 
+
+x<i , whereas in DF, independent timesteps ti are sampled for each frame using noisy context xtj
+
+j<i . Both suffer from exposure bias due to the mismatch between training context and inference-time generation. To mitigate this, Self-Forcing [22] employs autoregressive rollouts {xθ
+
+1: N } ∼ QNi=1 pθ (xi|x<i ) to simulate inference dynamics. The objective aligns the velocity predictions of the model on these self-generated trajectories with the scores provided by teacher model. 6 Zhang. et al. 
+
+Forward-Process Reinforcement Learning. To avoid the likelihood esti-mation challenges of reverse-process RL, DiffusionNFT [62] optimizes diffusion models by applying rewards directly to the forward process. Given a clean gen-erated sample x with a normalized reward ˜r ∈ [0 , 1] , a noisy version xt is con-structed for timestep t ∈ [0 , 1] . Using the current ( vθ ) and old ( vθold ) velocity predictors, implicit positive and negative policies are defined via interpolation: 
+
+v+ = (1 − β)vθold + βv θ , v− = (1 + β)vθold − βv θ (1) where β controls the interpolation strength. The policy loss contrasts these im-plicit policies against the target forward velocity vtarget :
+
+Lpolicy = ˜ r∥v+ − vtarget ∥22 + (1 − ˜r)∥v− − vtarget ∥22 (2) This trajectory-free formulation requires only clean generated samples, enabling highly efficient, solver-agnostic training. 
+
+3.2 Memory-Efficient Streaming Rollout 
+
+Standard RL paradigms rely on sequence-level rollouts with global rewards. For autoregressive (AR) video generation, this introduces two critical bottlenecks: the temporal credit assignment problem, where sparse global scores fail to isolate localized visual degradation, and the prohibitive memory overhead of maintain-ing independent KV caches for long sequences. To overcome these limitations, we propose a group-wise streaming rollout strategy. 
+
+Rolling KV Cache with Frame Sinks. We maintain a rolling KV cache to bound memory usage. Let the sequence of generated clips be denoted as 
+
+x1, x 2, . . . , x N . At generation step n, naïvely caching the full history x<n incurs a KV memory cost that grows linearly with video length, quickly becoming pro-hibitive for long-horizon rollouts. To resolve this, we construct a restricted visual context window Cn comprising two components: a frame sink of S permanently retained frames that anchors global semantic context to prevent long-range drift, and a rolling window of the L most recent frames that provides fine-grained local conditioning. The model attends exclusively to the KV cache of Cn to generate the next clip xn ∼ πθ (·|C n, c ). Since S and L are fixed hyperparameters inde-pendent of total video length N , the resident KV memory remains constant regardless of how long the video grows, enabling real-time streaming rollout. 
+
+Clip-level Group-wise Sampling. Rather than generating G independent long trajectories from scratch, we autoregressively sample the visual history ex-actly once and freeze its KV cache as a shared prefix. At the n-th step, utilizing the memory-efficient KV states of Cn, the model decodes G independent candi-date clips in parallel: 
+
+x(i) 
+
+> n
+
+∼ πθ (·|C n, c ), for i ∈ { 1, . . . , G } (3) This clip-level rollout restricts the generation overhead to the local chunk rather than the full sequence. By sharing the frozen context prefix across all G can-didates, the additional cost of group-wise sampling is incurred only once per Astrolabe 7
+
+step rather than once per trajectory, substantially reducing rollout time and eliminating out-of-memory bottlenecks during reinforcement learning. 
+
+3.3 Online RL Optimization Clip-level Forward-Process RL. For each candidate x(i) 
+
+> n
+
+, we evaluate a com-posite reward R(x(i) 
+
+> n
+
+, c ) and compute its advantage A(i) via group-wise mean-centering: 
+
+A(i) = R(x(i) 
+
+> n
+
+, c ) − 1
+
+G
+
+> G
+
+X
+
+> j=1
+
+R(x(j) 
+
+> n
+
+, c ) (4) This advantage is then normalized as ˜ri = clip (A(i)/A max )/2+0 .5. For our T = 4 
+
+distilled model, the timestep t is sampled from Tdistill . Crucially, we discard the adaptive loss weighting of DiffusionNFT [62], as it triggers gradient explosion under large discretization gaps in distilled AR settings. Conditioned on text c
+
+and the shared KV cache Cn, we construct the noised sample xt, (i) 
+
+> n
+
+to predict velocities vθ and vθold . The model is optimized directly via the implicit policy loss 
+
+Lpolicy (Eq. 2) by substituting xt, (i) 
+
+> n
+
+to derive vtarget . To further mitigate reward hacking, this objective is complemented by an uncertainty-aware selective KL penalty (Section 3.4). 
+
+Streaming Long Tuning. Distilled AR models suffer from a train-short/test-long mismatch, where accumulated prediction errors cause inevitable long-horizon degradation. To address this, our training paradigm strictly simulates the dy-namics of long-sequence inference while decoupling the forward rollout from gradient computation. Specifically, we first perform a full forward pass to accu-mulate the KV cache up to the target step. Upon reaching the active training window xn, the KV cache of all preceding frames x<n is explicitly detached from the computation graph. This detached cache serves as historical context, mimicking the progressively noisy conditions encountered during autoregressive generation. Gradients are then backpropagated through the active window. This exact formulation inherently bounds the training memory usage, circumventing the cost of backpropagation through extended trajectories. 
+
+3.4 Reward Design and Regularization Multi-reward Formulation. Scalar reward functions obscure specific quality dimensions and often inadvertently encourage the model to exploit one attribute over others. To address this, we formulate a composite reward integrating three distinct axes: Visual Quality (VQ), Motion Quality (MQ), and Text-Video Align-ment (TA). We compute the Visual Quality (VQ) reward as the mean HPSv3 [31] score over the top 30% of frames. Excluding lower-scoring frames prevents tran-sient motion blur from disproportionately penalizing the overall aesthetic assess-ment. For the Motion Quality (MQ) reward, we evaluate temporal consistency using a pre-trained VideoAlign [29] strictly on grayscale inputs; removing color forces the metric to focus on motion dynamics rather than texture. Finally, the 8 Zhang. et al. 
+
+Text Alignment (TA) reward employs the standard RGB VideoAlign to measure the semantic correspondence between the text and the generated video 
+
+Uncertainty-Aware Penalty. To prevent uniform KL regularization from in-discriminately suppressing high-quality generations, we introduce a selective KL penalty targeting reward hacking via reward rank disagreement [16]. For each candidate x(i) 
+
+> n
+
+, we quantify sample uncertainty as the rank discrepancy between the primary reward model p and M − 1 auxiliary models: ∆(i) 
+
+> rank
+
+= rank (i) 
+
+> p
+
+− 
+
+> 1
+> M−1
+
+P 
+
+> m̸=p
+
+rank (i) 
+
+> m
+
+. High positive values indicate likely reward hacking lacking ensemble consensus. We mask these risky samples using M(i) = 1[∆(i) 
+
+> rank
+
+> τ ],where τ is the (1 − ρ)-th percentile of positive discrepancies (with risk ratio 
+
+ρ). The total objective L = Lpolicy + λKL LKL applies the KL penalty strictly to masked samples, preserving optimization flexibility for clean data. Further-more, to mitigate distributional shifts during online RL, the policy θold follows an EMA update, and the reference policy conditionally resets ( θref ← θ) when policy deviation surpasses τKL or epochs reach Kmax .
+
+## 4 Experiments 
+
+4.1 Experimental Setup Implementation Details. To validate the effectiveness of our method, we eval-uate Astrolabe on distilled autoregressive models. We adopt base models trained via Self-Forcing [22], Causal-Forcing [64], and LongLive [51] as our primary base-lines. Training prompts are sampled from the VidProM dataset [43], specifically utilizing the filtered subset introduced in DanceGRPO [49]. We employ Low-Rank Adaptation (LoRA) with rank r = 256 and scaling factor α = 256 for parameter-efficient fine-tuning. To maximize memory efficiency during optimiza-tion, we do not store separate full-parameter copies for the current policy vθ and the old policy vθold . Instead, both policies share a single frozen base model, and we switch between their respective lightweight LoRA during the forward pass, reducing GPU memory overhead. Training operations are distributed across 48 NVIDIA H200 GPUs. Each epoch processes 48 prompts, maintaining a group size of G = 24 candidate clips per prompt. For reward computation, we integrate VideoAlign [29] and HPSv3 [31] into our pipeline. More details can be found in supplementary material. 
+
+4.2 Short-Video Single-Prompt Generation 
+
+We first validate our method under the short-video, single-prompt setting. Fol-lowing VBench protocols [24], we evaluate models using 946 standard prompts. To ensure a fair comparison with Self-Forcing, we utilize the augmented prompt test set during sampling, where prompts are expanded via Qwen2.5-7B-Instruct [1] using Wan2.1 [42] system prompts. We integrate Astrolabe with various distilled AR models, comparing them against native AR models and bidirectional diffu-sion baselines. Quantitative results in Table 1 show that Astrolabe consistently Astrolabe 9+Ours 
+
+> Reward-Forcing
+> Self-forcing
+> CausVid
+> +Ours
+> Reward-Forcing
+> Self-forcing
+> CausVid
+> +Ours
+> Reward-Forcing
+> Self-forcing
+> CausVid
+> +Ours
+> Reward-Forcing
+> Self-forcing
+> CausVid
+
+Fig. 3: Qualitative comparison under the short-video, single-prompt setting. We eval-uate our framework (+Ours) against other baselines. Visual results confirm that our method generates videos with significantly sharper textures and superior motion co-herence, aligning better with human preferences. More results can be found in supple-mentary material. 
+
+enhances performance across all Self-Forcing variants. Similar gains observed in LongLive [51] and Causal-Forcing [64] further demonstrate the framework’s gen-eralizability across different base architectures. To further assess alignment with human preferences, we curate 100 diverse prompts from MovieGenBench [35] for evaluation. We compute HPSv3 and Motion Quality scores to quantify improve-ments in aesthetic appeal and temporal consistency. Results indicate that our RL-tuned models outperform their base versions in these metrics while main-taining the exact inference speed of the original checkpoints. Qualitative results in Figure 3 further confirm that Astrolabe yields sharper textures and superior motion coherence without sacrificing system throughput. 
+
+4.3 Long-Video Single-Prompt Generation 
+
+Under the single-prompt long-video generation setting, we evaluate our method using VBench-Long protocols. For each prompt in the official dataset, we gen-erate a 30-second video and subsequently partition it into localized clips using 10 Zhang. et al. 
+
+Table 1: Quantitative results on VBench benchmarks. Integrating our approach into existing distilled models yields consistent improvements in motion quality, semantic alignment, and overall generation quality. 
+
+Method Total ↑ Quality ↑ Semantic ↑ HPSv3 ↑ MQ ↑ Throughput ↑
+
+Diffusion Models 
+
+LTX-Video [15] 80.00 82.30 70.79 8.32 1.34 8.98 Wan2.1 [42] 84.26 85.30 80.09 9.26 1.62 0.78 
+
+AR Models 
+
+SkyReels-V2 [7] 82.67 84.70 74.53 9.08 1.59 0.49 MAGI-1 [40] 79.18 82.04 67.74 7.95 1.52 0.19 NOVA [10] 80.12 80.39 79.05 8.21 1.63 0.88 PyramidFlow [25] 81.72 84.74 69.62 8.76 1.50 6.70 
+
+Distilled AR Models 
+
+CausVid [55] 81.20 84.05 69.80 7.56 1.22 17.0 Reward Forcing [30] 84.13 84.84 81.32 8.74 1.65 23.1 Self-Forcing [22] 83.74 84.48 80.77 9.36 1.65 17.0 + Ours 83.79 +.05 84.51 +.03 80.92 +.15 10.72 +1.36 1.71 +.06 17.0 LongLive [51] 83.22 83.68 81.37 9.38 1.51 20.7 + Ours 84.93 +1.71 85.83 +2.15 81.36 -.01 11.03 +1.65 1.64 +.13 20.7 Causal Forcing [64] 84.04 84.59 81.84 9.48 1.69 17.0 + Ours 84.46 +.42 85.15 +.56 81.72 -.12 10.84 +1.36 1.80 +.11 17.0 
+
+Table 2: Quantitative results on VBench-Long benchmarks. Integrating our method consistently improves the performance of long video generation baselines across both video quality and human preference metrics. 
+
+Method Total ↑ Quality ↑ Semantic ↑ HPSv3 ↑ MQ ↑
+
+SkyReels-V2 [7] 75.29 80.77 53.37 8.72 1.54 FramePack [56] 81.95 83.61 75.32 8.94 1.58 Self-Forcing [22] 81.59 83.82 72.70 9.12 1.61 
+
++ Ours 82.03 84.36 72.71 10.38 1.72 
+
+LongLive [51] 83.52 85.44 75.82 9.21 1.48 
+
++ Ours 84.07 86.12 75.87 10.67 1.64 
+
+Causal Forcing [64] 82.87 84.36 76.91 9.28 1.65 
+
++ Ours 84.24 86.18 76.48 10.52 1.74 
+
+the standard VBench-Long evaluation scripts. Notably, while LongLive natively supports long-video generation, Self-Forcing and Causal-Forcing are exclusively trained on 5-second sequences. To enable long-horizon generation for these short-context models, we integrate the Infinity-RoPE [53] to extrapolate their posi-tional embeddings. Furthermore, we rigorously benchmark these configurations against open-source solutions, including SkyReels-V2 [7] and FramePack [56]. Quantitative results in Table 2 report standard VBench-Long metrics measur-ing long-horizon quality and temporal consistency. Results indicate that our RL framework can also improve performance across long-video benchmarks, demon-strating that alignment optimizations conducted on short videos can effectively extrapolate to extended temporal horizons. Qualitative results in Figure 4 further Astrolabe 11 LongLive 
+
+> +Ours
+> LongLive
+> +Ours
+> LongLive
+> +Ours
+
+Fig. 4: Qualitative results under the single-prompt long-video setting. Our framework (+Ours) effectively translates alignment optimizations from short videos to extended temporal horizons. Our approach delivers enhanced visual details and more stable throughout the sequence. 
+
+confirm that Astrolabe yields sharper textures and superior motion coherence over extended durations. 
+
+4.4 Long-Video Multi-Prompt Generation 
+
+To demonstrate that our framework effectively improves human preference align-ment, we evaluate Astrolabe in the setting of interactive multi-prompt long-video generation. We apply our method directly to the baselines, demonstrating how Astrolabe further enhances their capabilities. Following established protocols from LongLive [51], we curate 100 groups of narrative scripts. Each group com-prises six successive 10-second prompts, yielding 60-second long-form videos. To ensure fair comparisons, short-context baselines (Self-Forcing, Causal-Forcing) are adapted for multi-prompt generation via prompt switching during the au-toregressive rollout. LongLive, conversely, natively supports generative extrapo-lation with interactive instructions. We segment the generated videos at prompt boundaries to evaluate text alignment. CLIP scores are subsequently computed at 10-second intervals to measure clip-wise semantic adherence. Quantitative re-sults in Table 3 show that Astrolabe improves overall generation quality, with noticeable gains in visual aesthetics and long-range motion consistency. Qualita-tive examples in Figure 6 further illustrate these enhancements during extended 12 Zhang. et al. 0 120 240 360 480 600 720                               
+
+> Training Steps
+> 10.0
+> 10.5
+> 11.0
+> HPSv3 Score
+> Base Model
+> (a) Causal-Forcing
+> 0120 240 360 480 600 720
+> Training Steps
+> 9.75
+> 10.00
+> 10.25
+> 10.50
+> 10.75
+> 11.00
+> Base Model
+> (b) LongLive
+> 0120 240 360 480 600 720
+> Training Steps
+> 9.8
+> 10.0
+> 10.2
+> 10.4
+> 10.6
+> 10.8
+> Base Model
+> (c) Self-Forcing
+> 0120 240 360 480 600 720
+> Training Steps
+> 1.70
+> 1.72
+> 1.74
+> 1.76
+> 1.78
+> 1.80
+> MQ Score
+> Base Model
+> 0120 240 360 480 600 720
+> Training Steps
+> 1.70
+> 1.72
+> 1.74
+> 1.76
+> 1.78
+> 1.80
+> Base Model
+> 0120 240 360 480 600 720
+> Training Steps
+> 1.72
+> 1.74
+> 1.76
+> 1.78
+> Base Model
+
+Fig. 5: Performance improvements across different models. We evaluate our method on three models. The dashed grey lines indicate the baseline performance of the respective base models. The results demonstrate that our approach consistently improves both HPSv3 and MQ scores across all three models. +Ours 
+
+> LongL ive
+> LongLive
+> +Ours
+
+Fig. 6: Qualitative comparison of multi-prompt long-video generation. We compare the LongLive [51] with our method. The generated sequences exhibit noticeable im-provements in visual aesthetics and fine details during complex narrative transitions. 
+
+video generation. These results suggest that our framework enhances both frame-level aesthetics and temporal consistency in complex multi-prompt setting. 
+
+4.5 Ablation Studies 
+
+We conduct ablation studies to validate each component of our method. All ablations are performed on Causal-Forcing with short-video alignment unless otherwise specified. Additional discussion and details can be found in the Sup-plementary Material. 
+
+Streaming Training Scheme. Table 4 compares different rollout and opti-mization strategies for 30-second video generation. Sequence-level rollout with full backpropagation causes out-of-memory errors. Our clip-level group-wise sam-pling with detached context achieves the best trade-off: it reduces memory con-Astrolabe 13 
+
+Table 3: Quantitative evaluation on long video generation. We compare these overall metrics alongside CLIP Scores evaluated across 10-second intervals (0-60s).                                                                                  
+
+> Method Quality Score ↑Consistency Score ↑Aesthetic Score ↑CLIP Score ↑
+> 0-10 10-20 20-30 30-40 40-50 50-60
+> SkyReels-V2 [7] 81.55 94.72 56.83 25.31 23.40 22.50 21.62 21.67 20.91 FramePack [56] 84.40 96.77 59.44 26.51 22.60 22.18 21.53 21.98 21.62 Self-Forcing [22] 83.94 95.74 58.45 26.24 24.87 23.46 21.92 22.05 21.07 + Ours 84.72 95.98 59.62 26.42 24.75 23.95 22.40 21.85 21.50
+> LongLive [51] 84.28 96.05 59.89 26.63 25.77 24.65 23.99 24.52 24.11 + Ours 85.15 96.16 60.75 26.80 26.15 24.45 24.55 24.30 24.65
+> Causal-Forcing [64] 84.12 95.88 59.15 26.45 25.60 23.98 22.85 22.48 22.45 + Ours 84.95 95.63 60.32 26.58 25.12 23.85 23.40 23.10 22.95 TA
+> TA + VQ
+> TA + MQ + VQ
+> W/o KL reg.
+
+(a) Multi-reward design beta=1  
+
+> beta=0.1
+> beta=1
+> beta=0.1
+
+(b) Different β values 
+
+Fig. 7: Ablation studies on reward formulation and interpolation strength. (a) Optimizing a single objective induces reward hacking and degrades other quality dimensions, whereas our aggregated formulation balances visual aesthetics and motion consistency. (b) The parameter β controls the implicit contrast between positive and negative samples, with β = 1 .0 yielding the optimal trade-off for quality. 
+
+sumption by ≈ 2× compared to clip-level full backpropagation while improving both HPSv3 and MQ. The efficiency gains stem from sharing historical context across candidate clips reducing redundant computation. 
+
+Reward Design and Regularization. Table 4 ablates our objective formula-tion. Single-reward optimization induces hacking: VQ-only training collapses into static frames, improving HPSv3 but degrading MQ. Our multi-reward formula-tion (VQ+MQ+TA) prevents this single-objective overfitting, yielding balanced improvements. Furthermore, uniform KL regularization over-constrains learning, while its omission causes instability and early MQ plateaus (Figure 8a). Our selective KL penalty with EMA reference updates resolves this by adaptively penalizing only high-uncertainty predictions. This targeted approach preserves optimization freedom for confident samples, effectively balancing exploration with stable convergence across all metrics. 
+
+Removing Adaptive Weighting. DiffusionNFT [62] scales the loss using a self-normalized x0 denominator. However, Figure 8b demonstrates this adaptive weighting destabilizes distilled AR setting. Under large discretization gaps, this dynamic denominator becomes volatile, causing the predicted x0 norm to explode 14 Zhang. et al. 
+
+Table 4: Ablation studies on each component. (a) and (b) show the impact of the streaming strategy and selective KL regularization. (c) compares different reward com-binations. 
+
+(a) Streaming Training Config HPSv3 ↑ MQ ↑ Mem ↓
+
+Seq + Full BP OOM OOM >140 Seq + Detach 10.21 1.72 96.4 Clip + Full BP 10.58 1.76 112.3 Clip+Detach 10.84 1.80 54.3 (b) Selective KL Reg. Strategy HPSv3 ↑ MQ ↑ TA ↑
+
+No KL 10.67 1.74 -0.068 Uni. ( λ = 1 e−4) 10.52 1.71 0.012 Uni. ( λ = 5 e−4) 10.28 1.68 0.028 Sel.+EMA 10.84 1.80 0.065 (c) Multi-Reward Formulation Reward HPSv3 ↑ MQ ↑ TA ↑ VB ↑ Reward HPSv3 ↑ MQ ↑ TA ↑ VB ↑
+
+Baseline 9.48 1.69 -0.015 84.04 VQ + MQ 10.67 1.74 -0.068 83.95 VQ only 10.92 1.58 -0.075 83.21 VQ + TA 10.71 1.62 0.055 84.12 MQ only 9.31 1.82 -0.058 83.67 MQ + TA 9.45 1.78 0.051 84.08 TA only 9.42 1.62 0.082 84.25 All (Ours) 10.84 1.80 0.065 84.46 0 60 120 180 240 300 360 420 480                 
+
+> Training Steps
+> 9.8
+> 10.0
+> 10.2
+> 10.4
+> 10.6
+> 10.8
+> 11.0
+> 11.2
+> Eval HPSv3 Score
+> 060 120 180 240 300 360 420 480
+> Training Steps
+> 1.70
+> 1.72
+> 1.74
+> 1.76
+> 1.78
+> 1.80
+> 1.82
+> 1.84
+> Eval MQ Score
+> W/o KL reg. ( = 1 e4)W KL reg. ( = 5 e4)W/o KL reg. ( = 5 e4)
+
+(a) Ablation on KL penalty. 0 50 100 150      
+
+> Training Steps
+> 1.0
+> 1.5
+> 2.0
+> 2.5
+> 3.0
+> 3.5
+> 4.0
+> 4.5
+> x0 Norm
+> 050 100 150
+> Training Steps
+> 8.0
+> 8.5
+> 9.0
+> 9.5
+> 10.0
+> 10.5
+> Eval HPSv3 Score
+> W/o adaptive weight W/ adaptive weight
+
+(b) Ablation on adaptive weight. 
+
+Fig. 8: Ablation study of stabilization techniques in Astrolabe. (a) Effect of the selec-tive KL penalty. (b) Impact of the dynamic adaptive weight mechanism. 
+
+after 50 steps and triggering a sharp collapse in reward. Conversely, removing this scaling factor bounds the x0 norm and ensures steady, monotonic reward improvements. 
+
+Impact of β. Figure 7 ablates the parameter β, which determines the scale of the implicit guidance direction integrated into the old policy. Empirical results indicate that varying β directly influences the temporal dynamics of the gener-ated sequences. In our experimental setup, setting β = 1 yields higher overall visual and motion quality compared to a smaller value such as β = 0 .1. Con-sequently, we adopt β = 1 as the default configuration to maintain generation stability. 
+
+## 5 Conclusion 
+
+We present Astrolabe, an online RL framework for aligning distilled autoregres-sive video models with human preferences. Utilizing a memory-efficient, forward-process RL formulation, our method eliminates the trajectory storage overhead of reverse-process alternatives. For long-video scalability, we introduce a stream-ing training scheme with local-window optimization, achieving constant peak memory. To prevent reward hacking, we implement a multi-reward formulation Astrolabe 15 
+
+coupled with an uncertainty-aware selective KL penalty. Extensive experiments across multiple distilled streaming architectures and benchmarks validate the effectiveness and generality of our approach. 
+
+## References 
+
+1. Bai, J., Bai, S., Chu, Y., Cui, Z., Dang, K., Deng, X., Fan, Y., Ge, W., Han, Y., Huang, F., et al.: Qwen technical report. arXiv preprint arXiv:2309.16609 (2023) 82. Bao, F., Nie, S., Xue, K., Cao, Y., Li, C., Su, H., Zhu, J.: All are worth words: A vit backbone for diffusion models. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 22669–22679 (2023) 3 3. Bao, F., Xiang, C., Yue, G., He, G., Zhu, H., Zheng, K., Zhao, M., Liu, S., Wang, Y., Zhu, J.: Vidu: a highly consistent, dynamic and skilled text-to-video generator with diffusion models. arXiv preprint arXiv:2405.04233 (2024) 3 4. Blattmann, A., Dockhorn, T., Kulal, S., Mendelevitch, D., Kilian, M., Lorenz, D., Levi, Y., English, Z., Voleti, V., Letts, A., et al.: Stable video diffusion: Scaling latent video diffusion models to large datasets. arXiv preprint arXiv:2311.15127 (2023) 2, 3 5. Blattmann, A., Rombach, R., Ling, H., Dockhorn, T., Kim, S.W., Fidler, S., Kreis, K.: Align your latents: High-resolution video synthesis with latent diffusion mod-els. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 22563–22575 (2023) 2, 3 6. Chen, B., Martí Monsó, D., Du, Y., Simchowitz, M., Tedrake, R., Sitzmann, V.: Diffusion forcing: Next-token prediction meets full-sequence diffusion. Advances in Neural Information Processing Systems 37 , 24081–24125 (2024) 4 7. Chen, G., Lin, D., Yang, J., Lin, C., Zhu, J., Fan, M., Zhang, H., Chen, S., Chen, Z., Ma, C., et al.: Skyreels-v2: Infinite-length film generative model. arXiv preprint arXiv:2504.13074 (2025) 10, 13 8. Chen, H., Xia, M., He, Y., Zhang, Y., Cun, X., Yang, S., Xing, J., Liu, Y., Chen, Q., Wang, X., et al.: Videocrafter1: Open diffusion models for high-quality video generation. arXiv preprint arXiv:2310.19512 (2023) 2, 3 9. Cui, J., Wu, J., Li, M., Yang, T., Li, X., Wang, R., Bai, A., Ban, Y., Hsieh, C.J.: Self-forcing++: Towards minute-scale high-quality video generation. arXiv preprint arXiv:2510.02283 (2025) 2, 4 10. Deng, H., Pan, T., Diao, H., Luo, Z., Cui, Y., Lu, H., Shan, S., Qi, Y., Wang, X.: Autoregressive video generation without vector quantization. arXiv preprint arXiv:2412.14169 (2024) 4, 10 11. Gao, K., Shi, J., Zhang, H., Wang, C., Xiao, J., Chen, L.: Ca2-vdm: Efficient autoregressive video diffusion model with causal generation and cache sharing. arXiv preprint arXiv:2411.16375 (2024) 4 12. Guo, D., Yang, D., Zhang, H., Song, J., Zhang, R., Xu, R., Zhu, Q., Ma, S., Wang, P., Bi, X., et al.: Deepseek-r1: Incentivizing reasoning capability in llms via reinforcement learning. arXiv preprint arXiv:2501.12948 (2025) 2, 4 13. Guo, Y., Yang, C., He, H., Zhao, Y., Wei, M., Yang, Z., Huang, W., Lin, D.: End-to-end training for autoregressive video diffusion via self-resampling. arXiv preprint arXiv:2512.15702 (2025) 4 14. Gupta, A., Yu, L., Sohn, K., Gu, X., Hahn, M., Li, F.F., Essa, I., Jiang, L., Lezama, J.: Photorealistic video generation with diffusion models. In: European Conference on Computer Vision. pp. 393–411. Springer (2024) 2, 3 16 Zhang. et al. 15. HaCohen, Y., Chiprut, N., Brazowski, B., Shalem, D., Moshe, D., Richardson, E., Levin, E., Shiran, G., Zabari, N., Gordon, O., et al.: Ltx-video: Realtime video latent diffusion. arXiv preprint arXiv:2501.00103 (2024) 10 16. He, H., Ye, Y., Liu, J., Liang, J., Wang, Z., Yuan, Z., Wang, X., Mao, H., Wan, P., Pan, L.: Gardo: Reinforcing diffusion models without reward hacking. arXiv preprint arXiv:2512.24138 (2025) 8 17. He, Y., Yang, T., Zhang, Y., Shan, Y., Chen, Q.: Latent video diffusion models for high-fidelity long video generation. arXiv preprint arXiv:2211.13221 (2022) 2, 3 18. Ho, J., Salimans, T., Gritsenko, A., Chan, W., Norouzi, M., Fleet, D.J.: Video diffusion models. Advances in neural information processing systems 35 , 8633– 8646 (2022) 2, 3 19. Hong, W., Ding, M., Zheng, W., Liu, X., Tang, J.: Cogvideo: Large-scale pretrain-ing for text-to-video generation via transformers. arXiv preprint arXiv:2205.15868 (2022) 4 20. Hong, Y., Mei, Y., Ge, C., Xu, Y., Zhou, Y., Bi, S., Hold-Geoffroy, Y., Roberts, M., Fisher, M., Shechtman, E., et al.: Relic: Interactive video world model with long-horizon memory. arXiv preprint arXiv:2512.04040 (2025) 2 21. Hu, J., Hu, S., Song, Y., Huang, Y., Wang, M., Zhou, H., Liu, Z., Ma, W.Y., Sun, M.: Acdit: Interpolating autoregressive conditional modeling and diffusion transformer. arXiv preprint arXiv:2412.07720 (2024) 4 22. Huang, X., Li, Z., He, G., Zhou, M., Shechtman, E.: Self forcing: Bridging the train-test gap in autoregressive video diffusion. arXiv preprint arXiv:2506.08009 (2025) 2, 4, 5, 8, 10, 13 23. Huang, Y., Guo, H., Wu, F., Zhang, S., Huang, S., Gan, Q., Liu, L., Zhao, S., Chen, E., Liu, J., et al.: Live avatar: Streaming real-time audio-driven avatar generation with infinite length. arXiv preprint arXiv:2512.04677 (2025) 2 24. Huang, Z., He, Y., Yu, J., Zhang, F., Si, C., Jiang, Y., Zhang, Y., Wu, T., Jin, Q., Chanpaisit, N., et al.: Vbench: Comprehensive benchmark suite for video gener-ative models. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 21807–21818 (2024) 8 25. Jin, Y., Sun, Z., Li, N., Xu, K., Jiang, H., Zhuang, N., Huang, Q., Song, Y., Mu, Y., Lin, Z.: Pyramidal flow matching for efficient video generative modeling. arXiv preprint arXiv:2410.05954 (2024) 10 26. Kondratyuk, D., Yu, L., Gu, X., Lezama, J., Huang, J., Schindler, G., Hornung, R., Birodkar, V., Yan, J., Chiu, M.C., et al.: Videopoet: A large language model for zero-shot video generation. arXiv preprint arXiv:2312.14125 (2023) 4 27. Kong, W., Tian, Q., Zhang, Z., Min, R., Dai, Z., Zhou, J., Xiong, J., Li, X., Wu, B., Zhang, J., et al.: Hunyuanvideo: A systematic framework for large video generative models. arXiv preprint arXiv:2412.03603 (2024) 3 28. Liu, J., Liu, G., Liang, J., Li, Y., Liu, J., Wang, X., Wan, P., Zhang, D., Ouyang, W.: Flow-grpo: Training flow matching models via online rl. arXiv preprint arXiv:2505.05470 (2025) 3, 4 29. Liu, J., Liu, G., Liang, J., Yuan, Z., Liu, X., Zheng, M., Wu, X., Wang, Q., Xia, M., Wang, X., et al.: Improving video generation with human feedback. In: The Thirty-ninth Annual Conference on Neural Information Processing Systems (2025) 7, 8 30. Lu, Y., Zeng, Y., Li, H., Ouyang, H., Wang, Q., Cheng, K.L., Zhu, J., Cao, H., Zhang, Z., Zhu, X., et al.: Reward forcing: Efficient streaming video generation with rewarded distribution matching distillation. arXiv preprint arXiv:2512.04678 (2025) 2, 4, 10 Astrolabe 17 31. Ma, Y., Wu, X., Sun, K., Li, H.: Hpsv3: Towards wide-spectrum human preference score. In: Proceedings of the IEEE/CVF International Conference on Computer Vision. pp. 15086–15095 (2025) 7, 8 32. Millon, E.: Krea realtime 14b: Real-time video generation (2025), https://github. com/krea-ai/realtime-video 433. Ouyang, L., Wu, J., Jiang, X., Almeida, D., Wainwright, C., Mishkin, P., Zhang, C., Agarwal, S., Slama, K., Ray, A., et al.: Training language models to follow instructions with human feedback. Advances in neural information processing sys-tems 35 , 27730–27744 (2022) 2, 4 34. Peebles, W., Xie, S.: Scalable diffusion models with transformers. In: Proceedings of the IEEE/CVF international conference on computer vision. pp. 4195–4205 (2023) 335. Polyak, A., Zohar, A., Brown, A., Tjandra, A., Sinha, A., Lee, A., Vyas, A., Shi, B., Ma, C.Y., Chuang, C.Y., et al.: Movie gen: A cast of media foundation models. arXiv preprint arXiv:2410.13720 (2024) 9 36. Shao, Z., Wang, P., Zhu, Q., Xu, R., Song, J., Bi, X., Zhang, H., Zhang, M., Li, Y., Wu, Y., et al.: Deepseekmath: Pushing the limits of mathematical reasoning in open language models. arXiv preprint arXiv:2402.03300 (2024) 4 37. Shin, J., Li, Z., Zhang, R., Zhu, J.Y., Park, J., Shechtman, E., Huang, X.: Motion-stream: Real-time video generation with interactive motion controls. arXiv preprint arXiv:2511.01266 (2025) 2 38. Singer, U., Polyak, A., Hayes, T., Yin, X., An, J., Zhang, S., Hu, Q., Yang, H., Ashual, O., Gafni, O., et al.: Make-a-video: Text-to-video generation without text-video data. arXiv preprint arXiv:2209.14792 (2022) 3 39. Sun, W., Zhang, H., Wang, H., Wu, J., Wang, Z., Wang, Z., Wang, Y., Zhang, J., Wang, T., Guo, C.: Worldplay: Towards long-term geometric consistency for real-time interactive world modeling. arXiv preprint arXiv:2512.14614 (2025) 4 40. Teng, H., Jia, H., Sun, L., Li, L., Li, M., Tang, M., Han, S., Zhang, T., Zhang, W., Luo, W., et al.: Magi-1: Autoregressive video generation at scale. arXiv preprint arXiv:2505.13211 (2025) 10 41. Wallace, B., Dang, M., Rafailov, R., Zhou, L., Lou, A., Purushwalkam, S., Ermon, S., Xiong, C., Joty, S., Naik, N.: Diffusion model alignment using direct preference optimization. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 8228–8238 (2024) 4 42. Wan, T., Wang, A., Ai, B., Wen, B., Mao, C., Xie, C.W., Chen, D., Yu, F., Zhao, H., Yang, J., et al.: Wan: Open and advanced large-scale video generative models. arXiv preprint arXiv:2503.20314 (2025) 2, 3, 8, 10 43. Wang, W., Yang, Y.: Vidprom: A million-scale real prompt-gallery dataset for text-to-video diffusion models. Advances in Neural Information Processing Systems 37 ,65618–65642 (2024) 8 44. Wang, Z., Wang, T., Zhang, H., Zuo, X., Wu, J., Wang, H., Sun, W., Wang, Z., Cao, C., Zhao, H., et al.: Worldcompass: Reinforcement learning for long-horizon world models. arXiv preprint arXiv:2602.09022 (2026) 4 45. Weissenborn, D., Täckström, O., Uszkoreit, J.: Scaling autoregressive video models. arXiv preprint arXiv:1906.02634 (2019) 4 46. Wu, C., Huang, L., Zhang, Q., Li, B., Ji, L., Yang, F., Sapiro, G., Duan, N.: Godiva: Generating open-domain videos from natural descriptions. arXiv preprint arXiv:2104.14806 (2021) 4 47. Wu, C., Liang, J., Ji, L., Yang, F., Fang, Y., Jiang, D., Duan, N.: Nüwa: Visual synthesis pre-training for neural visual world creation. In: European conference on computer vision. pp. 720–736. Springer (2022) 4 18 Zhang. et al. 48. Xing, J., Xia, M., Zhang, Y., Chen, H., Yu, W., Liu, H., Liu, G., Wang, X., Shan, Y., Wong, T.T.: Dynamicrafter: Animating open-domain images with video diffusion priors. In: European Conference on Computer Vision. pp. 399–417. Springer (2024) 2, 3 49. Xue, Z., Wu, J., Gao, Y., Kong, F., Zhu, L., Chen, M., Liu, Z., Liu, W., Guo, Q., Huang, W., et al.: Dancegrpo: Unleashing grpo on visual generation. arXiv preprint arXiv:2505.07818 (2025) 3, 4, 8 50. Yan, W., Zhang, Y., Abbeel, P., Srinivas, A.: Videogpt: Video generation using vq-vae and transformers. arXiv preprint arXiv:2104.10157 (2021) 4 51. Yang, S., Huang, W., Chu, R., Xiao, Y., Zhao, Y., Wang, X., Li, M., Xie, E., Chen, Y., Lu, Y., et al.: Longlive: Real-time interactive long video generation. arXiv preprint arXiv:2509.22622 (2025) 1, 2, 4, 8, 9, 10, 11, 12, 13 52. Yang, Z., Teng, J., Zheng, W., Ding, M., Huang, S., Xu, J., Yang, Y., Hong, W., Zhang, X., Feng, G., et al.: Cogvideox: Text-to-video diffusion models with an expert transformer. arXiv preprint arXiv:2408.06072 (2024) 3 53. Yesiltepe, H., Meral, T.H.S., Akan, A.K., Oktay, K., Yanardag, P.: Infinity-rope: Action-controllable infinite video generation emerges from autoregressive self-rollout. arXiv preprint arXiv:2511.20649 (2025) 1, 4, 10 54. Yin, T., Gharbi, M., Zhang, R., Shechtman, E., Durand, F., Freeman, W.T., Park, T.: One-step diffusion with distribution matching distillation. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 6613– 6623 (2024) 2, 4 55. Yin, T., Zhang, Q., Zhang, R., Freeman, W.T., Durand, F., Shechtman, E., Huang, X.: From slow bidirectional to fast autoregressive video diffusion models. In: Pro-ceedings of the Computer Vision and Pattern Recognition Conference. pp. 22963– 22974 (2025) 4, 10 56. Zhang, L., Cai, S., Li, M., Wetzstein, G., Agrawala, M.: Frame context packing and drift prevention in next-frame-prediction video diffusion models. arXiv preprint arXiv:2504.12626 (2025) 10, 13 57. Zhao, M., Bao, F., Li, C., Zhu, J.: Egsde: Unpaired image-to-image translation via energy-guided stochastic differential equations. Advances in Neural Information Processing Systems 35 , 3609–3623 (2022) 3 58. Zhao, M., He, G., Chen, Y., Zhu, H., Li, C., Zhu, J.: Riflex: A free lunch for length extrapolation in video diffusion transformers. arXiv preprint arXiv:2502.15894 (2025) 4 59. Zhao, M., Wang, R., Bao, F., Li, C., Zhu, J.: Controlvideo: conditional control for one-shot text-driven video editing and beyond. Science China Information Sciences 
+
+68 (3), 132107 (2025) 2, 3 60. Zhao, M., Zhu, H., Wang, Y., Yan, B., Zhang, J., He, G., Yang, L., Li, C., Zhu, J.: Ultravico: Breaking extrapolation limits in video diffusion transformers. arXiv preprint arXiv:2511.20123 (2025) 4 61. Zhao, M., Zhu, H., Xiang, C., Zheng, K., Li, C., Zhu, J.: Identifying and solving conditional image leakage in image-to-video diffusion model. Advances in Neural Information Processing Systems 37 , 30300–30326 (2024) 2, 3 62. Zheng, K., Chen, H., Ye, H., Wang, H., Zhang, Q., Jiang, K., Su, H., Ermon, S., Zhu, J., Liu, M.Y.: Diffusionnft: Online diffusion reinforcement with forward process. arXiv preprint arXiv:2509.16117 (2025) 3, 4, 6, 7, 13, 1 63. Zheng, Z., Peng, X., Yang, T., Shen, C., Li, S., Liu, H., Zhou, Y., Li, T., You, Y.: Open-sora: Democratizing efficient video production for all. arXiv preprint arXiv:2412.20404 (2024) 2 Astrolabe 164. Zhu, H., Zhao, M., He, G., Su, H., Li, C., Zhu, J.: Causal forcing: Autoregressive diffusion distillation done right for high-quality real-time interactive video genera-tion. arXiv preprint arXiv:2602.02214 (2026) 1, 4, 8, 9, 10, 13 
+
+## A Hyperparameters 
+
+We provide detailed hyperparameter in Table S1. 
+
+Table S1: Comprehensive Hyperparameters for Astrolabe Training. We detail the configurations used across the model architecture, optimization, diffusion process, re-inforcement learning, and streaming rollout. 
+
+Module Hyperparameter Value Model & Video Specs Base Architecture Causal Wan 2.1 Video Resolution ( H × W ) 480 × 832 
+
+LoRA Fine-Tuning 
+
+Rank ( r) 256 Scaling Factor ( α) 256 Dropout Rate 0.0 Gradient Checkpointing True 
+
+Optimization 
+
+Hardware 48 × NVIDIA GPUs Precision Mode bf16 (Mixed Precision) Optimizer AdamW ( β1 = 0 .9, β 2 = 0 .999 )Learning Rate ( η) 1e-5 Weight Decay 1e-4 Epsilon ( ϵ) 1e-8 Max Gradient Norm 1.0 
+
+Diffusion Process 
+
+Distillation Timesteps ( T ) 4 (sampled from [1000 , 750 , 500 , 250] )Timestep Shift 5.0 Forward Process Noise Level 0.7 
+
+Selective Regularization 
+
+Interpolation Strength ( β) 1.0 KL Penalty Weight ( λKL ) 1e-4 Advantage Clip Max 5.0 Reward Normalization Global Std with Per-Prompt Tracking EMA Decay Rate ( γ) 0.9 EMA Update Interval 1 step 
+
+Streaming Rollout 
+
+Window Selection Strategy Random Choice Rolling Window Size ( L) 21 (Self-Forcing) / 15 (Longlive) Frame Sink Size ( S) 3
+
+## B Theoretical Proofs and Analysis 
+
+We extend the theoretical foundation of DiffusionNFT [62] from global, non-autoregressive continuous-time diffusion to the settings of autoregressive (AR) streaming generation and few-step distilled models. Specifically, we prove the optimality of local advantage guidance (Theorem 1), and establish a reward lower bound via selective KL penalty (Theorem 2). 2 Zhang. et al. 
+
+B.1 Conditional Improvement via Advantage Guidance Theorem 1 (Conditional Improvement via Advantage Guidance). Let 
+
+Cn be the frozen context at step n, ˜r(xn, Cn) ∈ [0 , 1] the normalized advantage, and α ≜ α(xtn, Cn) = Eπold [˜ r | xtn, Cn] the posterior positive probability. Define the implicit positive/negative distributions: 
+
+π+(xn | C n) = ˜r · πold 
+
+E[˜ r] , π−(xn | C n) = (1 − ˜r) · πold 
+
+E[1 − ˜r] (5) 
+
+and the local policy loss ( β > 0 controls negative repulsion strength): 
+
+L(n)policy (θ) = Et, x tn
+
+h
+
+∥vθ − v+∥2 + β∥vθ − v−∥2i
+
+(6) 
+
+where v± are conditional flow matching targets under π±. Then the optimal velocity field satisfies: 
+
+v∗ 
+
+> θ
+
+= vold + 1 − α(1 + β)(1 + β)(1 − α)
+
+ v+ − vold 
+
+ (7) 
+
+which strictly shifts the local transition toward the advantage-weighted policy in the typical regime α(1 + β) < 1.Proof. Since the joint distribution factorizes as p(x1: N ) = Q 
+
+> n
+
+p(xn | C n), the velocity field at step n is strictly conditioned on Cn. By Bayes’ theorem, the posterior decomposes as: 
+
+πold (x0 
+
+> n
+
+| xtn, Cn) = α π +(x0 
+
+> n
+
+| xtn, Cn) + (1 − α) π−(x0 
+
+> n
+
+| xtn, Cn) (8) By the law of total expectation, the baseline velocity inherits this mixture: 
+
+vold = α v + + (1 − α) v− (9) Let δ+ = v+ − vold . From Eq. (9), v− − vold = − α 
+
+> 1−α
+
+δ+. Substituting into the loss and writing u = vθ − vold :
+
+L = E
+
+h
+
+∥u − δ+∥2 + β u + α 
+
+> 1−α
+
+δ+ 2i
+
+(10) Setting ∂L/∂u = 0 :
+
+(1 + β) u∗ = δ+ − βα 
+
+1 − α δ+ = 1 − α(1 + β)1 − α δ+ (11) which yields the stated result. When α > 0 and α(1 + β) < 1, the shift aligns with v+ − vold , pushing the model toward the high-advantage region. As β → 0,this degrades to standard reward-weighted regression. Thus, optimizing the local advantage strictly improves πθ (xn | C n) without requiring gradients across the full trajectory. Astrolabe 3
+
+B.2 Performance Lower Bound with Selective Trust Region Theorem 2 (Performance Lower Bound with Selective Trust Region). 
+
+Let ˆR(x) be the proxy reward, R∗(x) the true preference with |R∗| ≤ Rmax , and 
+
+U = {x | ∆rank (x) > τ } the high-uncertainty region. Assume: 
+
+– (A3) For x / ∈ U : | ˆR(x) − R∗(x)| ≤ ϵsafe .
+
+– (A4) Under πref : Eπref [| ˆR − R∗| | x ∈ U ] ≤ ϵrisk , with ϵrisk ≫ ϵsafe .Define the selective velocity MSE in U:
+
+LKL (θ) = Ex∼πθ , x ∈U 
+
+Z 10
+
+∥vθ (xt, t ) − vref (xt, t )∥2
+
+σ2(t) dt  (12) 
+
+Then the true reward of πθ is lower-bounded by: 
+
+Eπθ [R∗] ≥ Eπθ [ ˆR] − ϵsafe − πθ (U) ϵrisk + 2 Rmax 
+
+pLKL 
+
+ (13) 
+
+Proof. Step 1: Regional decomposition. 
+
+Eπθ [R∗] = Eπθ [R∗ | x / ∈ U ] · πθ (UC ) + Eπθ [R∗ | x ∈ U ] · πθ (U) (14) 
+
+Step 2: Safe region. By (A3), Eπθ [R∗ | x / ∈ U ] ≥ Eπθ [ ˆR | x / ∈ U ] − ϵsafe .
+
+Step 3: Risk region. Since (A4) holds for πref , transferring to πθ requires bounding the distribution shift. By the TV dual representation with |f | ≤ 2Rmax :
+
+Eπθ [R∗ | U ] ≥ Eπθ [ ˆR | U ] − ϵrisk − 4Rmax · DTV (πθ ∥πref | U ) (15) 
+
+Step 4: KL–TV connection. By Girsanov’s theorem, the KL divergence restricted to U equals 12 LKL . Pinsker’s inequality then gives: 
+
+DTV ≤
+
+q 12 DKL = 12
+
+pLKL  (16) 
+
+Step 5: Assembly. Combining Steps 1–4 with πθ (UC ) ≤ 1 yields the stated bound. 
+
+Theoretical Insight. Unlike global KL penalties that indiscriminately con-strain all exploration, Astrolabe’s selective penalty acts only through the πθ (U) ·
+
+2Rmax 
+
+√LKL term. In safe regions ( x / ∈ U ), the policy explores freely; the trust region activates only when πθ drifts into the high-uncertainty region U, naturally balancing exploration and stability. 
+
+## C Algorithm 
+
+We provide the detailed pseudocode for the training procedures of the Astro-labe framework. Algorithm 1 outlines the core forward-process reinforcement learning pipeline, termed NFT Training with Selective KL Regularization. It de-tails the multi-reward evaluation, uncertainty quantification via rank disagree-ment, and the selective application of the KL penalty to mitigate reward hacking 4 Zhang. et al. 
+
+during short-clip optimization. To scale this alignment to long-sequence genera-tion without exceeding memory constraints, Algorithm 2 presents the Streaming Training for Long Video. This algorithm leverages a rolling KV cache and de-taches historical context, applying gradient updates exclusively to local active windows while maintaining long-range temporal coherence. 
+
+## D More Qualitative Results 
+
+We present additional qualitative comparisons on 30-second long video genera-tion under the single-prompt setting in Figures S2–S29. Qualitative comparisons showing improvements over baseline distilled models and competing methods. As shown in Figure S1, our method consistently produces higher-quality and more temporally coherent videos compared to the Krea 14B baseline [32], demonstrat-ing that our approach yields notable improvements even when applied on top of large-scale 14B models. Krea 14B 
+
+> +O urs
+> Krea 14B
+> +O urs
+> Krea 14B
+> +O urs
+
+Fig. S1: Qualitative comparison between Krea 14B (odd rows) and with our method (+Ours, even rows) Astrolabe 5
+
+## E Discussion 
+
+While Astrolabe establishes a robust and memory-efficient paradigm for aligning distilled autoregressive video models, several limitations warrant further inves-tigation. 
+
+Reliance on the Capability of Reward Models. Astrolabe fundamentally depends on the accuracy of the selected reward models. Currently, open-source video evaluation models (e.g., VideoAlign) exhibit strong proficiency in assessing short-term aesthetics and text-video alignment. However, their ability to eval-uate complex physics, long-horizon causality, and multi-entity interactions in minute-scale videos remains limited. Consequently, if the reward model fails to penalize subtle temporal hallucinations in extended sequences, Astrolabe cannot explicitly correct them. Developing more robust, physics-aware reward models for long-form video represents a critical next step for the community. 
+
+Inherent Bottlenecks of the Base Architecture. As a post-training RL framework, Astrolabe excels at shifting the generation distribution toward high-reward regions and mitigating error accumulation. However, reinforcement learn-ing cannot arbitrarily instantiate capabilities that are entirely absent from the distilled base model. For instance, if the original streaming models (e.g., Self-Forcing or LongLive) inherently lack the capacity to render highly complex spa-tial geometries or specific domain knowledge due to extreme distillation, our method can optimize the presentation of existing knowledge but cannot over-come the fundamental capacity ceiling of the base architecture. 6 Zhang. et al. 
+
+Algorithm 1 NFT Training with Selective KL Regularization 
+
+Require: Policy πθ , behavior policy πθold , KL reference πθref ; reward functions 
+
+{Rm}Mm=1 ; prompts D; hyperparameters β, λKL , Kmax , τKL 
+
+Ensure: Optimized policy πθ
+
+1: Initialize θold ← θ, θref ← θ
+
+2: Initialize risk buffer B ← ∅ , KL ratio ρ ← ρ0, klast ← 0
+
+3: for each epoch k do 
+
+4: // Phase 1: Rollout and multi-reward evaluation 
+
+5: Sample prompts {ci}Bi=1 ∼ D 
+
+6: Generate samples {x(i)0 } using πθold 
+
+7: Compute rewards {r(i) 
+
+> m
+
+= Rm(x(i)0 , c i)} for each reward model m
+
+8: Compute advantages {A(i)} from primary reward 9: // Compute reward uncertainty via rank disagreement 
+
+10: for each reward model m do 
+
+11: rank (i) 
+
+> m
+
+← Rank ({r(j) 
+
+> m
+
+}Bj=1 ) ▷ Rank samples by reward m
+
+12: end for 
+
+13: ∆(i) 
+
+> rank
+
+← rank (i) 
+
+> primary
+
+− 1 
+
+> M−1
+
+P 
+
+> m̸=primary
+
+rank (i)
+
+> m
+
+14: // Adaptive threshold via risk compensation 
+
+15: ρ ← UpdateRiskRatio (B, {∆(i)
+
+> rank
+
+}, ρ )
+
+16: τ ← Percentile ({∆(i)
+
+> rank
+
+|∆(i) 
+
+> rank
+
+≥ 0}, 100 − 100 ρ)
+
+17: M(i) ← 1[∆(i) 
+
+> rank
+
+> τ ] ▷ High-uncertainty mask 18: // Phase 2: Forward process optimization 
+
+19: for each mini-batch (x0, A, M) do 
+
+20: Sample t ∼ U (T )
+
+21: xt ← (1 − t)x0 + tϵ , ϵ ∼ N (0 , I )
+
+22: vθ , v θold , v θref ← πθ (xt, t ), π θold (xt, t ), π θref (xt, t )
+
+23: // Policy loss 
+
+24: v+ ← β · vθ + (1 − β) · vθold 
+
+25: v− ← (1 + β) · vθold − β · vθ
+
+26: ˜r ← clip (A/A max )/2 + 0 .5
+
+27: Lpolicy ← ˜r∥v+ − x0∥2 + (1 − ˜r)∥v− − x0∥2
+
+28: // Selective KL: only on high-uncertainty samples 
+
+29: LKL ← 1
+
+> |M|
+
+P 
+
+> i:M(i)=1
+
+∥v(i) 
+
+> θ
+
+− v(i) 
+
+> θref
+
+∥2
+
+30: L ← L policy + λKL · L KL 
+
+31: Update: θ ← θ − η∇θ L
+
+32: end for 
+
+33: // Adaptive reference update based on KL divergence 
+
+34: if LKL > τ KL or k − klast > K max then 
+
+35: θref ← θ ▷ Reset KL reference 36: klast ← k
+
+37: end if 
+
+38: θold ← γ · θold + (1 − γ) · θ
+
+39: end for Astrolabe 7
+
+Algorithm 2 Streaming Training for Long Video 
+
+Require: Policy πθ , behavior policy πθold , KL reference πθref ; rewards {Rm}; prompts 
+
+D; window size W , total frames F
+
+Ensure: Optimized policy πθ
+
+1: Initialize θold ← θ, θref ← θ, risk buffer B ← ∅ , ρ ← ρ0
+
+2: for each epoch k do 
+
+3: // Select training window (synced across GPUs) 
+
+4: s ← SelectWindow (F, W ), Freq ← s + W
+
+5: // Phase 1: Efficient rollout with multi-reward 
+
+6: Sample prompts {ci}Bi=1 ∼ D 
+
+7: Generate partial videos {x(i)0 [0 : Freq ]} using πθold 
+
+8: Extract window: x(i)0,W ← x(i)0 [s : s + W ]
+
+9: Compute rewards {r(i) 
+
+> m
+
+= Rm(x(i)0,W , c i)} for each model m
+
+10: Compute advantages {A(i)}
+
+11: // Reward uncertainty via rank disagreement 
+
+12: for each reward model m do 
+
+13: rank (i) 
+
+> m
+
+← Rank ({r(j) 
+
+> m
+
+}Bj=1 )
+
+14: end for 
+
+15: ∆(i) 
+
+> rank
+
+← rank (i) 
+
+> primary
+
+− 1 
+
+> M−1
+
+P 
+
+> m̸=primary
+
+rank (i)
+
+> m
+
+16: ρ ← UpdateRiskRatio (B, {∆(i)
+
+> rank
+
+}, ρ )
+
+17: τ ← Percentile ({∆(i) 
+
+> rank
+
+≥ 0}, 100 − 100 ρ)
+
+18: M(i) ← 1[∆(i) 
+
+> rank
+
+> τ ]
+
+19: // Phase 2: Window-focused optimization with selective KL 
+
+20: for each mini-batch (x0, A, M) do 
+
+21: Sample t ∼ U (T ), xt ← (1 − t)x0 + tϵ 
+
+22: vθ , v θold , v θref ← StreamingNFT (xt, t, s, W )
+
+23: Extract: vθ,W , v θold ,W , v θref ,W , x 0,W 
+
+24: // Policy loss on window 
+
+25: v+ ← β · vθ,W + (1 − β) · vθold ,W 
+
+26: v− ← (1 + β) · vθold ,W − β · vθ,W 
+
+27: ˜r ← clip (A/A max )/2 + 0 .5
+
+28: Lpolicy ← ˜r∥v+ − x0,W ∥2 + (1 − ˜r)∥v− − x0,W ∥2
+
+29: // Selective KL on high-uncertainty samples 
+
+30: LKL ← 1
+
+> |M|
+
+P 
+
+> i:M(i)=1
+
+∥v(i) 
+
+> θ,W
+
+− v(i) 
+
+> θref ,W
+
+∥2
+
+31: Update: θ ← θ − η∇θ (Lpolicy + λKL LKL )
+
+32: end for 
+
+33: // Adaptive reference update 
+
+34: if LKL > τ KL or k − klast > K max then 
+
+35: θref ← θ, klast ← k
+
+36: end if 
+
+37: θold ← γ · θold + (1 − γ) · θ
+
+38: end for 8 Zhang. et al. 
+
+Fig. S2: Qualitative comparison on long video generation (30s) under the single-prompt setting (Set 1). Astrolabe 9
+
+Fig. S3: Additional qualitative comparison on long video generation (30s) under the single-prompt setting (Set 2). 10 Zhang. et al. 
+
+Fig. S4: Additional qualitative comparison on long video generation (30s) under the single-prompt setting (Set 3). Astrolabe 11 
+
+Fig. S5: Additional qualitative comparison on long video generation (30s) under the single-prompt setting (Set 4). 12 Zhang. et al. 
+
+Fig. S6: Additional qualitative comparison on long video generation (30s) under the single-prompt setting (Set 5). Astrolabe 13 
+
+Fig. S7: Additional qualitative comparison on long video generation (30s) under the single-prompt setting (Set 6). 14 Zhang. et al. 
+
+Fig. S8: Additional qualitative comparison on long video generation (30s) under the single-prompt setting (Set 7). Astrolabe 15 
+
+Fig. S9: Additional qualitative comparison on long video generation (30s) under the single-prompt setting (Set 8). 16 Zhang. et al. 
+
+Fig. S10: Additional qualitative comparison on long video generation (30s) under the single-prompt setting (Set 9). Astrolabe 17 
+
+Fig. S11: Additional qualitative comparison on long video generation (30s) under the single-prompt setting (Set 10). 18 Zhang. et al. 
+
+Fig. S12: Additional qualitative comparison on long video generation (30s) under the single-prompt setting (Set 11). Astrolabe 19 
+
+Fig. S13: Additional qualitative comparison on long video generation (30s) under the single-prompt setting (Set 12). 20 Zhang. et al. 
+
+Fig. S14: Additional qualitative comparison on long video generation (30s) under the single-prompt setting (Set 13). Astrolabe 21 
+
+Fig. S15: Additional qualitative comparison on long video generation (30s) under the single-prompt setting (Set 14). 22 Zhang. et al. 
+
+Fig. S16: Additional qualitative comparison on long video generation (30s) under the single-prompt setting (Set 15). Astrolabe 23 
+
+Fig. S17: Additional qualitative comparison on long video generation (30s) under the single-prompt setting (Set 16). 24 Zhang. et al. 
+
+Fig. S18: Additional ualitative comparison on long video generation (30s) under the single-prompt setting (Set 17). Astrolabe 25 
+
+Fig. S19: Additional ualitative comparison on long video generation (30s) under the single-prompt setting (Set 18). 26 Zhang. et al. 
+
+Fig. S20: Additional ualitative comparison on long video generation (30s) under the single-prompt setting (Set 19). Astrolabe 27 
+
+Fig. S21: Additional qualitative comparison on long video generation (30s) under the single-prompt setting (Set 20). 28 Zhang. et al. 
+
+Fig. S22: Additional qualitative comparison on long video generation (30s) under the single-prompt setting (Set 21). Astrolabe 29 
+
+Fig. S23: Additional qualitative comparison on long video generation (30s) under the single-prompt setting (Set 22). 30 Zhang. et al. 
+
+Fig. S24: Additional qualitative comparison on long video generation (30s) under the single-prompt setting (Set 23). Astrolabe 31 
+
+Fig. S25: Additional qualitative comparison on long video generation (30s) under the single-prompt setting (Set 24). 32 Zhang. et al. 
+
+Fig. S26: Additional qualitative comparison on long video generation (30s) under the single-prompt setting (Set 25). Astrolabe 33 
+
+Fig. S27: Additional qualitative comparison on long video generation (30s) under the single-prompt setting (Set 26). 34 Zhang. et al. 
+
+Fig. S28: Additional qualitative comparison on long video generation (30s) under the single-prompt setting (Set 27). Astrolabe 35 
+
+Fig. S29: Additional qualitative comparison on long video generation (30s) under the single-prompt setting (Set 28).

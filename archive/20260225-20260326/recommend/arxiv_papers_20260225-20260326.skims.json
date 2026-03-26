@@ -1,0 +1,2251 @@
+{
+  "mode": "skims",
+  "generated_at": "2026-03-26T12:26:53.771296+00:00",
+  "stats": {
+    "mode": "skims",
+    "forced_all_quick": true,
+    "min_score": 8.0,
+    "deep_divecandidates": 54,
+    "deep_cap": null,
+    "deep_selected": 0,
+    "quick_candidates": 54,
+    "quick_skim_target": null,
+    "quick_selected": 54
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2603.00159v1",
+      "title": "FlowPortrait: Reinforcement Learning for Audio-Driven Portrait Video Generation",
+      "abstract": "Generating realistic talking-head videos remains challenging due to persistent issues such as imperfect lip synchronization, unnatural motion, and evaluation metrics that correlate poorly with human perception. We propose FlowPortrait, a reinforcement-learning framework for audio-driven portrait animation built on a multimodal backbone for autoregressive audio-to-video generation. FlowPortrait introduces a human-aligned evaluation system based on Multimodal Large Language Models (MLLMs) to assess lip-sync accuracy, expressiveness, and motion quality. These signals are combined with perceptual and temporal consistency regularizers to form a stable composite reward, which is used to post-train the generator via Group Relative Policy Optimization (GRPO). Extensive experiments, including both automatic evaluations and human preference studies, demonstrate that FlowPortrait consistently produces higher-quality talking-head videos, highlighting the effectiveness of reinforcement learning for portrait animation.",
+      "authors": [
+        "Weiting Tan",
+        "Andy T. Liu",
+        "Ming Tu",
+        "Xinghua Qu",
+        "Philipp Koehn",
+        "Lu Lu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.MM",
+        "cs.SD"
+      ],
+      "published": "2026-02-25T22:08:15+00:00",
+      "link": "https://arxiv.org/pdf/2603.00159v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "reinforcement learning for audio-driven video generation",
+      "llm_evidence_cn": "用于音频驱动视频生成的强化学习",
+      "llm_evidence": "用于音频驱动视频生成的强化学习",
+      "canonical_evidence": "用于音频驱动视频生成的强化学习",
+      "llm_tldr_en": "Uses Group Relative Policy Optimization and MLLM rewards to improve audio-driven portrait video generation.",
+      "llm_tldr_cn": "利用组相对策略优化和多模态大模型奖励来改进音频驱动的人物视频生成。",
+      "llm_tldr": "利用组相对策略优化和多模态大模型奖励来改进音频驱动的人物视频生成。",
+      "llm_tags": [
+        "query:rl-vg:composite"
+      ],
+      "matched_query_tag": "query:rl-vg:composite",
+      "matched_query_text": "Papers central to 查找强化学习与视频生成相关的学术论文, especially work that connects or combines: Reinforcement learning techniques for video generation; Deep learning models for video generation and synthesis; Reward model design for video quality and consistency; Policy gradient methods applied to video synthesis; Text-to-video generation using reinforcement learning; Generative models for high-fidelity video synthesis; State of the art reinforcement learning methods for video generation; Optimizing video diffusion models using reward based learning; Improving video temporal coherence with reinforcement learning policies; Applications of RLHF in text to video synthesis models.",
+      "matched_requirement_id": "req-composite-rl-vg",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.03505v1",
+      "title": "PhyPrompt: RL-based Prompt Refinement for Physically Plausible Text-to-Video Generation",
+      "abstract": "State-of-the-art text-to-video (T2V) generators frequently violate physical laws despite high visual quality. We show this stems from insufficient physical constraints in prompts rather than model limitations: manually adding physics details reliably produces physically plausible videos, but requires expertise and does not scale. We present PhyPrompt, a two-stage reinforcement learning framework that automatically refines prompts for physically realistic generation. First, we fine-tune a large language model on a physics-focused Chain-of-Thought dataset to integrate principles like object motion and force interactions while preserving user intent. Second, we apply Group Relative Policy Optimization with a dynamic reward curriculum that initially prioritizes semantic fidelity, then progressively shifts toward physical commonsense. This curriculum achieves synergistic optimization: PhyPrompt-7B reaches 40.8\\% joint success on VideoPhy2 (8.6pp gain), improving physical commonsense by 11pp (55.8\\% to 66.8\\%) while simultaneously increasing semantic adherence by 4.4pp (43.4\\% to 47.8\\%). Remarkably, our curriculum exceeds single-objective training on both metrics, demonstrating compositional prompt discovery beyond conventional multi-objective trade-offs. PhyPrompt outperforms GPT-4o (+3.8\\% joint) and DeepSeek-V3 (+2.2\\%, 100$\\times$ larger) using only 7B parameters. The approach transfers zero-shot across diverse T2V architectures (Lavie, VideoCrafter2, CogVideoX-5B) with up to 16.8\\% improvement, establishing that domain-specialized reinforcement learning with compositional curricula surpasses general-purpose scaling for physics-aware generation.",
+      "authors": [
+        "Shang Wu",
+        "Chenwei Xu",
+        "Zhuofan Xia",
+        "Weijian Li",
+        "Lie Lu",
+        "Pranav Maneriker",
+        "Fan Du",
+        "Manling Li",
+        "Han Liu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-03T20:26:14+00:00",
+      "link": "https://arxiv.org/pdf/2603.03505v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "RL-based prompt refinement for text-to-video generation",
+      "llm_evidence_cn": "基于强化学习的文本到视频生成提示词优化",
+      "llm_evidence": "基于强化学习的文本到视频生成提示词优化",
+      "canonical_evidence": "基于强化学习的文本到视频生成提示词优化",
+      "llm_tldr_en": "PhyPrompt uses reinforcement learning to refine prompts for physically plausible text-to-video generation.",
+      "llm_tldr_cn": "PhyPrompt利用强化学习优化提示词，以生成符合物理规律的文本到视频内容。",
+      "llm_tldr": "PhyPrompt利用强化学习优化提示词，以生成符合物理规律的文本到视频内容。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Text-to-video generation using reinforcement learning",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.07700v1",
+      "title": "TDM-R1: Reinforcing Few-Step Diffusion Models with Non-Differentiable Reward",
+      "abstract": "While few-step generative models have enabled powerful image and video generation at significantly lower cost, generic reinforcement learning (RL) paradigms for few-step models remain an unsolved problem. Existing RL approaches for few-step diffusion models strongly rely on back-propagating through differentiable reward models, thereby excluding the majority of important real-world reward signals, e.g., non-differentiable rewards such as humans' binary likeness, object counts, etc. To properly incorporate non-differentiable rewards to improve few-step generative models, we introduce TDM-R1, a novel reinforcement learning paradigm built upon a leading few-step model, Trajectory Distribution Matching (TDM). TDM-R1 decouples the learning process into surrogate reward learning and generator learning. Furthermore, we developed practical methods to obtain per-step reward signals along the deterministic generation trajectory of TDM, resulting in a unified RL post-training method that significantly improves few-step models' ability with generic rewards. We conduct extensive experiments ranging from text-rendering, visual quality, and preference alignment. All results demonstrate that TDM-R1 is a powerful reinforcement learning paradigm for few-step text-to-image models, achieving state-of-the-art reinforcement learning performances on both in-domain and out-of-domain metrics. Furthermore, TDM-R1 also scales effectively to the recent strong Z-Image model, consistently outperforming both its 100-NFE and few-step variants with only 4 NFEs. Project page: https://github.com/Luo-Yihong/TDM-R1",
+      "authors": [
+        "Yihong Luo",
+        "Tianyang Hu",
+        "Weijian Luo",
+        "Jing Tang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-08T15:57:10+00:00",
+      "link": "https://arxiv.org/pdf/2603.07700v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Reinforcing few-step diffusion models with non-differentiable rewards for video generation",
+      "llm_evidence_cn": "利用不可微奖励强化少步扩散模型进行视频生成",
+      "llm_evidence": "利用不可微奖励强化少步扩散模型进行视频生成",
+      "canonical_evidence": "利用不可微奖励强化少步扩散模型进行视频生成",
+      "llm_tldr_en": "TDM-R1 introduces a reinforcement learning paradigm to optimize few-step diffusion models using non-differentiable rewards.",
+      "llm_tldr_cn": "TDM-R1引入了一种强化学习范式，利用不可微奖励优化少步扩散模型。",
+      "llm_tldr": "TDM-R1引入了一种强化学习范式，利用不可微奖励优化少步扩散模型。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Optimizing video diffusion models using reward based learning",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.16271v1",
+      "title": "VIGOR: VIdeo Geometry-Oriented Reward for Temporal Generative Alignment",
+      "abstract": "Video diffusion models lack explicit geometric supervision during training, leading to inconsistency artifacts such as object deformation, spatial drift, and depth violations in generated videos. To address this limitation, we propose a geometry-based reward model that leverages pretrained geometric foundation models to evaluate multi-view consistency through cross-frame reprojection error. Unlike previous geometric metrics that measure inconsistency in pixel space, where pixel intensity may introduce additional noise, our approach conducts error computation in a pointwise fashion, yielding a more physically grounded and robust error metric. Furthermore, we introduce a geometry-aware sampling strategy that filters out low-texture and non-semantic regions, focusing evaluation on geometrically meaningful areas with reliable correspondences to improve robustness. We apply this reward model to align video diffusion models through two complementary pathways: post-training of a bidirectional model via SFT or Reinforcement Learning and inference-time optimization of a Causal Video Model (e.g., Streaming video generator) via test-time scaling with our reward as a path verifier. Experimental results validate the effectiveness of our design, demonstrating that our geometry-based reward provides superior robustness compared to other variants. By enabling efficient inference-time scaling, our method offers a practical solution for enhancing open-source video models without requiring extensive computational resources for retraining.",
+      "authors": [
+        "Tengjiao Yin",
+        "Jinglei Shi",
+        "Heng Guo",
+        "Xi Wang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-17T09:04:10+00:00",
+      "link": "https://arxiv.org/pdf/2603.16271v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "geometry-based reward model for temporal consistency in video diffusion",
+      "llm_evidence_cn": "视频扩散模型中用于时间一致性的几何奖励模型",
+      "llm_evidence": "视频扩散模型中用于时间一致性的几何奖励模型",
+      "canonical_evidence": "视频扩散模型中用于时间一致性的几何奖励模型",
+      "llm_tldr_en": "Proposes VIGOR, a geometry-oriented reward model to improve temporal consistency in video generation.",
+      "llm_tldr_cn": "提出VIGOR，一种面向几何的奖励模型，旨在提高视频生成的时间一致性。",
+      "llm_tldr": "提出VIGOR，一种面向几何的奖励模型，旨在提高视频生成的时间一致性。",
+      "llm_tags": [
+        "query:rl-vg:composite"
+      ],
+      "matched_query_tag": "query:rl-vg:composite",
+      "matched_query_text": "Papers central to 查找强化学习与视频生成相关的学术论文, especially work that connects or combines: Reinforcement learning techniques for video generation; Deep learning models for video generation and synthesis; Reward model design for video quality and consistency; Policy gradient methods applied to video synthesis; Text-to-video generation using reinforcement learning; Generative models for high-fidelity video synthesis; State of the art reinforcement learning methods for video generation; Optimizing video diffusion models using reward based learning; Improving video temporal coherence with reinforcement learning policies; Applications of RLHF in text to video synthesis models.",
+      "matched_requirement_id": "req-composite-rl-vg",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.16271v2",
+      "title": "VIGOR: VIdeo Geometry-Oriented Reward for Temporal Generative Alignment",
+      "abstract": "Video diffusion models lack explicit geometric supervision during training, leading to inconsistency artifacts such as object deformation, spatial drift, and depth violations in generated videos. To address this limitation, we propose a geometry-based reward model that leverages pretrained geometric foundation models to evaluate multi-view consistency through cross-frame reprojection error. Unlike previous geometric metrics that measure inconsistency in pixel space, where pixel intensity may introduce additional noise, our approach conducts error computation in a pointwise fashion, yielding a more physically grounded and robust error metric. Furthermore, we introduce a geometry-aware sampling strategy that filters out low-texture and non-semantic regions, focusing evaluation on geometrically meaningful areas with reliable correspondences to improve robustness. We apply this reward model to align video diffusion models through two complementary pathways: post-training of a bidirectional model via SFT or Reinforcement Learning and inference-time optimization of a Causal Video Model (e.g., Streaming video generator) via test-time scaling with our reward as a path verifier. Experimental results validate the effectiveness of our design, demonstrating that our geometry-based reward provides superior robustness compared to other variants. By enabling efficient inference-time scaling, our method offers a practical solution for enhancing open-source video models without requiring extensive computational resources for retraining.",
+      "authors": [
+        "Tengjiao Yin",
+        "Jinglei Shi",
+        "Heng Guo",
+        "Xi Wang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-17T09:04:10+00:00",
+      "link": "https://arxiv.org/pdf/2603.16271v2",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "geometry-oriented reward for video diffusion",
+      "llm_evidence_cn": "面向几何的视频扩散奖励模型",
+      "llm_evidence": "面向几何的视频扩散奖励模型",
+      "canonical_evidence": "面向几何的视频扩散奖励模型",
+      "llm_tldr_en": "Proposes VIGOR, a geometry-based reward model to improve temporal consistency in video diffusion models.",
+      "llm_tldr_cn": "提出VIGOR，一种基于几何的奖励模型，用于提升视频扩散模型的时间一致性。",
+      "llm_tldr": "提出VIGOR，一种基于几何的奖励模型，用于提升视频扩散模型的时间一致性。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Reward model design for video quality and consistency",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.17051v1",
+      "title": "Astrolabe: Steering Forward-Process Reinforcement Learning for Distilled Autoregressive Video Models",
+      "abstract": "Distilled autoregressive (AR) video models enable efficient streaming generation but frequently misalign with human visual preferences. Existing reinforcement learning (RL) frameworks are not naturally suited to these architectures, typically requiring either expensive re-distillation or solver-coupled reverse-process optimization that introduces considerable memory and computational overhead. We present Astrolabe, an efficient online RL framework tailored for distilled AR models. To overcome existing bottlenecks, we introduce a forward-process RL formulation based on negative-aware fine-tuning. By contrasting positive and negative samples directly at inference endpoints, this approach establishes an implicit policy improvement direction without requiring reverse-process unrolling. To scale this alignment to long videos, we propose a streaming training scheme that generates sequences progressively via a rolling KV-cache, applying RL updates exclusively to local clip windows while conditioning on prior context to ensure long-range coherence. Finally, to mitigate reward hacking, we integrate a multi-reward objective stabilized by uncertainty-aware selective regularization and dynamic reference updates. Extensive experiments demonstrate that our method consistently enhances generation quality across multiple distilled AR video models, serving as a robust and scalable alignment solution.",
+      "authors": [
+        "Songchun Zhang",
+        "Zeyue Xue",
+        "Siming Fu",
+        "Jie Huang",
+        "Xianghao Kong",
+        "Y Ma",
+        "Haoyang Huang",
+        "Nan Duan",
+        "Anyi Rao"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-17T18:32:18+00:00",
+      "link": "https://arxiv.org/pdf/2603.17051v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "forward-process reinforcement learning for distilled video models",
+      "llm_evidence_cn": "针对蒸馏视频模型的正向过程强化学习",
+      "llm_evidence": "针对蒸馏视频模型的正向过程强化学习",
+      "canonical_evidence": "针对蒸馏视频模型的正向过程强化学习",
+      "llm_tldr_en": "Astrolabe introduces an efficient RL framework to align distilled autoregressive video models with human preferences.",
+      "llm_tldr_cn": "Astrolabe引入了一种高效的强化学习框架，使蒸馏自回归视频模型符合人类偏好。",
+      "llm_tldr": "Astrolabe引入了一种高效的强化学习框架，使蒸馏自回归视频模型符合人类偏好。",
+      "llm_tags": [
+        "query:rl-vg:composite"
+      ],
+      "matched_query_tag": "query:rl-vg:composite",
+      "matched_query_text": "Papers central to 查找强化学习与视频生成相关的学术论文, especially work that connects or combines: Reinforcement learning techniques for video generation; Deep learning models for video generation and synthesis; Reward model design for video quality and consistency; Policy gradient methods applied to video synthesis; Text-to-video generation using reinforcement learning; Generative models for high-fidelity video synthesis; State of the art reinforcement learning methods for video generation; Optimizing video diffusion models using reward based learning; Improving video temporal coherence with reinforcement learning policies; Applications of RLHF in text to video synthesis models.",
+      "matched_requirement_id": "req-composite-rl-vg",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.17426v1",
+      "title": "SHIFT: Motion Alignment in Video Diffusion Models with Adversarial Hybrid Fine-Tuning",
+      "abstract": "Image-conditioned Video diffusion models achieve impressive visual realism but often suffer from weakened motion fidelity, e.g., reduced motion dynamics or degraded long-term temporal coherence, especially after fine-tuning. We study the problem of motion alignment in video diffusion models post-training. To address this, we introduce pixel-motion rewards based on pixel flux dynamics, capturing both instantaneous and long-term motion consistency. We further propose Smooth Hybrid Fine-tuning (SHIFT), a scalable reward-driven fine-tuning framework for video diffusion models. SHIFT fuses the normal supervised fine-tuning and advantage weighted fine-tuning into a unified framework. Benefiting from novel adversarial advantages, SHIFT improves convergence speed and mitigates reward hacking. Experiments show that our approach efficiently resolves dynamic-degree collapse in modern video diffusion models supervised fine-tuning.",
+      "authors": [
+        "Xi Ye",
+        "Wenjia Yang",
+        "Yangyang Xu",
+        "Xiaoyang Liu",
+        "Duo Su",
+        "Mengfei Xia",
+        "Jun Zhu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-18T07:04:02+00:00",
+      "link": "https://arxiv.org/pdf/2603.17426v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Reward-driven fine-tuning for video diffusion models using pixel-motion rewards",
+      "llm_evidence_cn": "使用像素运动奖励的视频扩散模型奖励驱动微调",
+      "llm_evidence": "使用像素运动奖励的视频扩散模型奖励驱动微调",
+      "canonical_evidence": "使用像素运动奖励的视频扩散模型奖励驱动微调",
+      "llm_tldr_en": "Introduces SHIFT, a framework using motion rewards to align video diffusion models post-training.",
+      "llm_tldr_cn": "引入 SHIFT 框架，利用运动奖励在训练后对齐视频扩散模型。",
+      "llm_tldr": "引入 SHIFT 框架，利用运动奖励在训练后对齐视频扩散模型。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Optimizing video diffusion models using reward based learning",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.17461v1",
+      "title": "AR-CoPO: Align Autoregressive Video Generation with Contrastive Policy Optimization",
+      "abstract": "Streaming autoregressive (AR) video generators combined with few-step distillation achieve low-latency, high-quality synthesis, yet remain difficult to align via reinforcement learning from human feedback (RLHF). Existing SDE-based GRPO methods face challenges in this setting: few-step ODEs and consistency model samplers deviate from standard flow-matching ODEs, and their short, low-stochasticity trajectories are highly sensitive to initialization noise, rendering intermediate SDE exploration ineffective. We propose AR-CoPO (AutoRegressive Contrastive Policy Optimization), a framework that adapts the Neighbor GRPO contrastive perspective to streaming AR generation. AR-CoPO introduces chunk-level alignment via a forking mechanism that constructs neighborhood candidates at a randomly selected chunk, assigns sequence-level rewards, and performs localized GRPO updates. We further propose a semi-on-policy training strategy that complements on-policy exploration with exploitation over a replay buffer of reference rollouts, improving generation quality across domains. Experiments on Self-Forcing demonstrate that AR-CoPO improves both out-of-domain generalization and in-domain human preference alignment over the baseline, providing evidence of genuine alignment rather than reward hacking.",
+      "authors": [
+        "Dailan He",
+        "Guanlin Feng",
+        "Xingtong Ge",
+        "Yi Zhang",
+        "Bingqi Ma",
+        "Guanglu Song",
+        "Yu Liu",
+        "Hongsheng Li"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-18T08:07:01+00:00",
+      "link": "https://arxiv.org/pdf/2603.17461v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Aligning autoregressive video generation with RLHF using contrastive policy optimization",
+      "llm_evidence_cn": "使用对比策略优化将自回归视频生成与RLHF对齐",
+      "llm_evidence": "使用对比策略优化将自回归视频生成与RLHF对齐",
+      "canonical_evidence": "使用对比策略优化将自回归视频生成与RLHF对齐",
+      "llm_tldr_en": "AR-CoPO introduces a contrastive policy optimization framework to align streaming video generators via RLHF.",
+      "llm_tldr_cn": "AR-CoPO 引入了对比策略优化框架，通过 RLHF 对齐流式自回归视频生成器。",
+      "llm_tldr": "AR-CoPO 引入了对比策略优化框架，通过 RLHF 对齐流式自回归视频生成器。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Applications of RLHF in text to video synthesis models",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.19370v1",
+      "title": "VAMPO: Policy Optimization for Improving Visual Dynamics in Video Action Models",
+      "abstract": "Video action models are an appealing foundation for Vision--Language--Action systems because they can learn visual dynamics from large-scale video data and transfer this knowledge to downstream robot control. Yet current diffusion-based video predictors are trained with likelihood-surrogate objectives, which encourage globally plausible predictions without explicitly optimizing the precision-critical visual dynamics needed for manipulation. This objective mismatch often leads to subtle errors in object pose, spatial relations, and contact timing that can be amplified by downstream policies. We propose VAMPO, a post-training framework that directly improves visual dynamics in video action models through policy optimization. Our key idea is to formulate multi-step denoising as a sequential decision process and optimize the denoising policy with rewards defined over expert visual dynamics in latent space. To make this optimization practical, we introduce an Euler Hybrid sampler that injects stochasticity only at the first denoising step, enabling tractable low-variance policy-gradient estimation while preserving the coherence of the remaining denoising trajectory. We further combine this design with GRPO and a verifiable non-adversarial reward. Across diverse simulated and real-world manipulation tasks, VAMPO improves task-relevant visual dynamics, leading to better downstream action generation and stronger generalization. The homepage is https://vampo-robot.github.io/VAMPO/.",
+      "authors": [
+        "Zirui Ge",
+        "Pengxiang Ding",
+        "Baohua Yin",
+        "Qishen Wang",
+        "Zhiyong Xie",
+        "Yemin Wang",
+        "Jinbo Wang",
+        "Hengtao Li",
+        "Runze Suo",
+        "Wenxuan Song",
+        "Han Zhao",
+        "Shangke Lyu",
+        "Zhaoxin Fan",
+        "Haoang Li",
+        "Ran Cheng",
+        "Cheng Chi",
+        "Huibin Ge",
+        "Yaozhi Luo",
+        "Donglin Wang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-03-19T18:04:03+00:00",
+      "link": "https://arxiv.org/pdf/2603.19370v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "policy optimization for improving visual dynamics in video models",
+      "llm_evidence_cn": "通过策略优化改进视频模型中的视觉动力学",
+      "llm_evidence": "通过策略优化改进视频模型中的视觉动力学",
+      "canonical_evidence": "通过策略优化改进视频模型中的视觉动力学",
+      "llm_tldr_en": "VAMPO uses policy optimization to refine visual dynamics in diffusion-based video action models.",
+      "llm_tldr_cn": "VAMPO利用策略优化来改进基于扩散的视频动作模型中的视觉动力学。",
+      "llm_tldr": "VAMPO利用策略优化来改进基于扩散的视频动作模型中的视觉动力学。",
+      "llm_tags": [
+        "query:rl-vg:composite"
+      ],
+      "matched_query_tag": "query:rl-vg:composite",
+      "matched_query_text": "Papers central to 查找强化学习与视频生成相关的学术论文, especially work that connects or combines: Reinforcement learning techniques for video generation; Deep learning models for video generation and synthesis; Reward model design for video quality and consistency; Policy gradient methods applied to video synthesis; Text-to-video generation using reinforcement learning; Generative models for high-fidelity video synthesis; State of the art reinforcement learning methods for video generation; Optimizing video diffusion models using reward based learning; Improving video temporal coherence with reinforcement learning policies; Applications of RLHF in text to video synthesis models.",
+      "matched_requirement_id": "req-composite-rl-vg",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.21872v1",
+      "title": "Manifold-Aware Exploration for Reinforcement Learning in Video Generation",
+      "abstract": "Group Relative Policy Optimization (GRPO) methods for video generation like FlowGRPO remain far less reliable than their counterparts for language models and images. This gap arises because video generation has a complex solution space, and the ODE-to-SDE conversion used for exploration can inject excess noise, lowering rollout quality and making reward estimates less reliable, which destabilizes post-training alignment. To address this problem, we view the pre-trained model as defining a valid video data manifold and formulate the core problem as constraining exploration within the vicinity of this manifold, ensuring that rollout quality is preserved and reward estimates remain reliable. We propose SAGE-GRPO (Stable Alignment via Exploration), which applies constraints at both micro and macro levels. At the micro level, we derive a precise manifold-aware SDE with a logarithmic curvature correction and introduce a gradient norm equalizer to stabilize sampling and updates across timesteps. At the macro level, we use a dual trust region with a periodic moving anchor and stepwise constraints so that the trust region tracks checkpoints that are closer to the manifold and limits long-horizon drift. We evaluate SAGE-GRPO on HunyuanVideo1.5 using the original VideoAlign as the reward model and observe consistent gains over previous methods in VQ, MQ, TA, and visual metrics (CLIPScore, PickScore), demonstrating superior performance in both reward maximization and overall video quality. The code and visual gallery are available at https://dungeonmassster.github.io/SAGE-GRPO-Page/.",
+      "authors": [
+        "Mingzhe Zheng",
+        "Weijie Kong",
+        "Yue Wu",
+        "Dengyang Jiang",
+        "Yue Ma",
+        "Xuanhua He",
+        "Bin Lin",
+        "Kaixiong Gong",
+        "Zhao Zhong",
+        "Liefeng Bo",
+        "Qifeng Chen",
+        "Harry Yang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-23T12:04:38+00:00",
+      "link": "https://arxiv.org/pdf/2603.21872v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Group Relative Policy Optimization (GRPO) methods for video generation",
+      "llm_evidence_cn": "用于视频生成的组相对策略优化 (GRPO) 方法",
+      "llm_evidence": "用于视频生成的组相对策略优化 (GRPO) 方法",
+      "canonical_evidence": "用于视频生成的组相对策略优化 (GRPO) 方法",
+      "llm_tldr_en": "SAGE-GRPO improves RL-based video generation by constraining exploration within the valid data manifold.",
+      "llm_tldr_cn": "SAGE-GRPO 通过将探索限制在有效数据流形内，改进了基于强化学习的视频生成。",
+      "llm_tldr": "SAGE-GRPO 通过将探索限制在有效数据流形内，改进了基于强化学习的视频生成。",
+      "llm_tags": [
+        "query:rl-vg:composite"
+      ],
+      "matched_query_tag": "query:rl-vg:composite",
+      "matched_query_text": "Papers central to 查找强化学习与视频生成相关的学术论文, especially work that connects or combines: Reinforcement learning techniques for video generation; Deep learning models for video generation and synthesis; Reward model design for video quality and consistency; Policy gradient methods applied to video synthesis; Text-to-video generation using reinforcement learning; Generative models for high-fidelity video synthesis; State of the art reinforcement learning methods for video generation; Optimizing video diffusion models using reward based learning; Improving video temporal coherence with reinforcement learning policies; Applications of RLHF in text to video synthesis models.",
+      "matched_requirement_id": "req-composite-rl-vg",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2602.22745v1",
+      "title": "SPATIALALIGN: Aligning Dynamic Spatial Relationships in Video Generation",
+      "abstract": "Most text-to-video (T2V) generators prioritize aesthetic quality, but often ignoring the spatial constraints in the generated videos. In this work, we present SPATIALALIGN, a self-improvement framework that enhances T2V models capabilities to depict Dynamic Spatial Relationships (DSR) specified in text prompts. We present a zeroth-order regularized Direct Preference Optimization (DPO) to fine-tune T2V models towards better alignment with DSR. Specifically, we design DSR-SCORE, a geometry-based metric that quantitatively measures the alignment between generated videos and the specified DSRs in prompts, which is a step forward from prior works that rely on VLM for evaluation. We also conduct a dataset of text-video pairs with diverse DSRs to facilitate the study. Extensive experiments demonstrate that our fine-tuned model significantly out performs the baseline in spatial relationships. The code will be released in Link.",
+      "authors": [
+        "Fengming Liu",
+        "Tat-Jen Cham",
+        "Chuanxia Zheng"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-02-26T08:34:09+00:00",
+      "link": "https://arxiv.org/pdf/2602.22745v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Direct Preference Optimization (DPO) for aligning spatial relationships in video",
+      "llm_evidence_cn": "使用直接偏好优化（DPO）对齐视频中的空间关系",
+      "llm_evidence": "使用直接偏好优化（DPO）对齐视频中的空间关系",
+      "canonical_evidence": "使用直接偏好优化（DPO）对齐视频中的空间关系",
+      "llm_tldr_en": "A self-improvement framework using DPO and geometry-based metrics to align spatial relationships in video generation.",
+      "llm_tldr_cn": "一种利用DPO和几何指标来对齐视频生成中空间关系的自我改进框架。",
+      "llm_tldr": "一种利用DPO和几何指标来对齐视频生成中空间关系的自我改进框架。",
+      "llm_tags": [
+        "query:rl-vg:composite"
+      ],
+      "matched_query_tag": "query:rl-vg:composite",
+      "matched_query_text": "Papers central to 查找强化学习与视频生成相关的学术论文, especially work that connects or combines: Reinforcement learning techniques for video generation; Deep learning models for video generation and synthesis; Reward model design for video quality and consistency; Policy gradient methods applied to video synthesis; Text-to-video generation using reinforcement learning; Generative models for high-fidelity video synthesis; State of the art reinforcement learning methods for video generation; Optimizing video diffusion models using reward based learning; Improving video temporal coherence with reinforcement learning policies; Applications of RLHF in text to video synthesis models.",
+      "matched_requirement_id": "req-composite-rl-vg",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2602.22745v2",
+      "title": "SPATIALALIGN: Aligning Dynamic Spatial Relationships in Video Generation",
+      "abstract": "Most text-to-video (T2V) generators prioritize aesthetic quality, but often ignoring the spatial constraints in the generated videos. In this work, we present SPATIALALIGN, a self-improvement framework that enhances T2V models capabilities to depict Dynamic Spatial Relationships (DSR) specified in text prompts. We present a zeroth-order regularized Direct Preference Optimization (DPO) to fine-tune T2V models towards better alignment with DSR. Specifically, we design DSR-SCORE, a geometry-based metric that quantitatively measures the alignment between generated videos and the specified DSRs in prompts, which is a step forward from prior works that rely on VLM for evaluation. We also conduct a dataset of text-video pairs with diverse DSRs to facilitate the study. Extensive experiments demonstrate that our fine-tuned model significantly out performs the baseline in spatial relationships. The code will be released in Link. Project page: https://fengming001ntu.github.io/SpatialAlign/",
+      "authors": [
+        "Fengming Liu",
+        "Tat-Jen Cham",
+        "Chuanxia Zheng"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-02-26T08:34:09+00:00",
+      "link": "https://arxiv.org/pdf/2602.22745v2",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Direct Preference Optimization (DPO) for aligning text-to-video models",
+      "llm_evidence_cn": "使用直接偏好优化 (DPO) 对齐文本到视频模型",
+      "llm_evidence": "使用直接偏好优化 (DPO) 对齐文本到视频模型",
+      "canonical_evidence": "使用直接偏好优化 (DPO) 对齐文本到视频模型",
+      "llm_tldr_en": "SPATIALALIGN uses DPO and a geometry-based metric to align video generation with spatial text constraints.",
+      "llm_tldr_cn": "SPATIALALIGN采用DPO算法和几何指标，使视频生成更好地符合文本中的空间关系约束。",
+      "llm_tldr": "SPATIALALIGN采用DPO算法和几何指标，使视频生成更好地符合文本中的空间关系约束。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Applications of RLHF in text to video synthesis models",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.01694v1",
+      "title": "MVR: Multi-view Video Reward Shaping for Reinforcement Learning",
+      "abstract": "Reward design is of great importance for solving complex tasks with reinforcement learning. Recent studies have explored using image-text similarity produced by vision-language models (VLMs) to augment rewards of a task with visual feedback. A common practice linearly adds VLM scores to task or success rewards without explicit shaping, potentially altering the optimal policy. Moreover, such approaches, often relying on single static images, struggle with tasks whose desired behavior involves complex, dynamic motions spanning multiple visually different states. Furthermore, single viewpoints can occlude critical aspects of an agent's behavior. To address these issues, this paper presents Multi-View Video Reward Shaping (MVR), a framework that models the relevance of states regarding the target task using videos captured from multiple viewpoints. MVR leverages video-text similarity from a frozen pre-trained VLM to learn a state relevance function that mitigates the bias towards specific static poses inherent in image-based methods. Additionally, we introduce a state-dependent reward shaping formulation that integrates task-specific rewards and VLM-based guidance, automatically reducing the influence of VLM guidance once the desired motion pattern is achieved. We confirm the efficacy of the proposed framework with extensive experiments on challenging humanoid locomotion tasks from HumanoidBench and manipulation tasks from MetaWorld, verifying the design choices through ablation studies.",
+      "authors": [
+        "Lirui Luo",
+        "Guoxi Zhang",
+        "Hongming Xu",
+        "Yaodong Yang",
+        "Cong Fang",
+        "Qing Li"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-03-02T10:24:04+00:00",
+      "link": "https://arxiv.org/pdf/2603.01694v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "multi-view video reward shaping for reinforcement learning",
+      "llm_evidence_cn": "用于强化学习的多视角视频奖励塑造",
+      "llm_evidence": "用于强化学习的多视角视频奖励塑造",
+      "canonical_evidence": "用于强化学习的多视角视频奖励塑造",
+      "llm_tldr_en": "Introduces MVR to improve reinforcement learning reward design using multi-view video feedback.",
+      "llm_tldr_cn": "引入 MVR 框架，利用多视角视频反馈改进强化学习中的奖励设计。",
+      "llm_tldr": "引入 MVR 框架，利用多视角视频反馈改进强化学习中的奖励设计。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Reward model design for video quality and consistency",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.08403v1",
+      "title": "SPIRAL: A Closed-Loop Framework for Self-Improving Action World Models via Reflective Planning Agents",
+      "abstract": "We introduce SPIRAL, a self-improving planning and iterative reflective action world modeling closed-loop framework that enables controllable long-horizon video generation conditioned on high-level semantic actions. Existing one-shot video generation models operate in open-loop, often resulting in incomplete action execution, weak semantic grounding, and temporal drift. SPIRAL formulates ActWM as a closed-loop think-act-reflect process, where generation proceeds step by step under explicit planning and feedback. A PlanAgent decomposes abstract actions into object-centric sub-actions, while a CriticAgent evaluates intermediate results and guides iterative refinement with long-horizon memory. This closed-loop design naturally supports RL evolving optimization, improving semantic alignment and temporal consistency over extended horizons. We further introduce the ActWM-Dataset and ActWM-Bench for training and evaluation. Experiments across multiple TI2V backbones demonstrate consistent gains on ActWM-Bench and mainstream video generation benchmarks, validating SPIRAL's effectiveness.",
+      "authors": [
+        "Yu Yang",
+        "Yue Liao",
+        "Jianbiao Mei",
+        "Baisen Wang",
+        "Xuemeng Yang",
+        "Licheng Wen",
+        "Jiangning Zhang",
+        "Xiangtai Li",
+        "Hanlin Chen",
+        "Botian Shi",
+        "Yong Liu",
+        "Shuicheng Yan",
+        "Gim Hee Lee"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-09T14:00:36+00:00",
+      "link": "https://arxiv.org/pdf/2603.08403v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Closed-loop framework with reflective agents for controllable video generation",
+      "llm_evidence_cn": "带有反射代理的闭环框架，用于可控视频生成",
+      "llm_evidence": "带有反射代理的闭环框架，用于可控视频生成",
+      "canonical_evidence": "带有反射代理的闭环框架，用于可控视频生成",
+      "llm_tldr_en": "Introduces a self-improving closed-loop framework for controllable long-horizon video generation using agents.",
+      "llm_tldr_cn": "引入 SPIRAL 闭环框架，通过规划和反馈代理实现可控的长时视频生成与自我改进。",
+      "llm_tldr": "引入 SPIRAL 闭环框架，通过规划和反馈代理实现可控的长时视频生成与自我改进。",
+      "llm_tags": [
+        "query:rl-vg:composite"
+      ],
+      "matched_query_tag": "query:rl-vg:composite",
+      "matched_query_text": "Papers central to 查找强化学习与视频生成相关的学术论文, especially work that connects or combines: Reinforcement learning techniques for video generation; Deep learning models for video generation and synthesis; Reward model design for video quality and consistency; Policy gradient methods applied to video synthesis; Text-to-video generation using reinforcement learning; Generative models for high-fidelity video synthesis; State of the art reinforcement learning methods for video generation; Optimizing video diffusion models using reward based learning; Improving video temporal coherence with reinforcement learning policies; Applications of RLHF in text to video synthesis models.",
+      "matched_requirement_id": "req-composite-rl-vg",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.08403v2",
+      "title": "SPIRAL: A Closed-Loop Framework for Self-Improving Action World Models via Reflective Planning Agents",
+      "abstract": "We introduce SPIRAL, a self-improving planning and iterative reflective action world modeling closed-loop framework that enables controllable long-horizon video generation conditioned on high-level semantic actions. Existing one-shot video generation models operate in open-loop, often resulting in incomplete action execution, weak semantic grounding, and temporal drift. SPIRAL formulates ActWM as a closed-loop think-act-reflect process, where generation proceeds step by step under explicit planning and feedback. A PlanAgent decomposes abstract actions into object-centric sub-actions, while a CriticAgent evaluates intermediate results and guides iterative refinement with long-horizon memory. This closed-loop design naturally supports RL evolving optimization, improving semantic alignment and temporal consistency over extended horizons. We further introduce the ActWM-Dataset and ActWM-Bench for training and evaluation. Experiments across multiple TI2V backbones demonstrate consistent gains on ActWM-Bench and mainstream video generation benchmarks, validating SPIRAL's effectiveness.",
+      "authors": [
+        "Yu Yang",
+        "Yue Liao",
+        "Jianbiao Mei",
+        "Baisen Wang",
+        "Xuemeng Yang",
+        "Licheng Wen",
+        "Jiangning Zhang",
+        "Xiangtai Li",
+        "Hanlin Chen",
+        "Botian Shi",
+        "Yong Liu",
+        "Shuicheng Yan",
+        "Gim Hee Lee"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-09T14:00:36+00:00",
+      "link": "https://arxiv.org/pdf/2603.08403v2",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "closed-loop framework with agents and feedback for video generation",
+      "llm_evidence_cn": "带有智能体和反馈的闭环视频生成框架",
+      "llm_evidence": "带有智能体和反馈的闭环视频生成框架",
+      "canonical_evidence": "带有智能体和反馈的闭环视频生成框架",
+      "llm_tldr_en": "SPIRAL uses a closed-loop agent framework with planning and reflection for controllable long-horizon video generation.",
+      "llm_tldr_cn": "SPIRAL 采用带有规划和反思的闭环智能体框架，实现可控的长时程视频生成。",
+      "llm_tldr": "SPIRAL 采用带有规划和反思的闭环智能体框架，实现可控的长时程视频生成。",
+      "llm_tags": [
+        "query:rl-vg:composite"
+      ],
+      "matched_query_tag": "query:rl-vg:composite",
+      "matched_query_text": "Papers central to 查找强化学习与视频生成相关的学术论文, especially work that connects or combines: Reinforcement learning techniques for video generation; Deep learning models for video generation and synthesis; Reward model design for video quality and consistency; Policy gradient methods applied to video synthesis; Text-to-video generation using reinforcement learning; Generative models for high-fidelity video synthesis; State of the art reinforcement learning methods for video generation; Optimizing video diffusion models using reward based learning; Improving video temporal coherence with reinforcement learning policies; Applications of RLHF in text to video synthesis models.",
+      "matched_requirement_id": "req-composite-rl-vg",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.08812v1",
+      "title": "VisionCreator-R1: A Reflection-Enhanced Native Visual-Generation Agentic Model",
+      "abstract": "Visual content generation has advanced from single-image to multi-image workflows, yet existing agents remain largely plan-driven and lack systematic reflection mechanisms to correct mid-trajectory visual errors. To address this limitation, we propose VisionCreator-R1, a native visual generation agent with explicit reflection, together with a Reflection-Plan Co-Optimization (RPCO) training methodology. Through extensive experiments and trajectory-level analysis, we uncover reflection-plan optimization asymmetry in reinforcement learning (RL): planning can be reliably optimized via plan rewards, while reflection learning is hindered by noisy credit assignment. Guided by this insight, our RPCO first trains on the self-constructed VCR-SFT dataset with reflection-strong single-image trajectories and planning-strong multi-image trajectories, then co-optimization on VCR-RL dataset via RL. This yields our unified VisionCreator-R1 agent, which consistently outperforms Gemini2.5Pro on existing benchmarks and our VCR-bench covering single-image and multi-image tasks.",
+      "authors": [
+        "Jinxiang Lai",
+        "Wenzhe Zhao",
+        "Zexin Lu",
+        "Hualei Zhang",
+        "Qinyu Yang",
+        "Rongwei Quan",
+        "Zhimin Li",
+        "Shuai Shao",
+        "Song Guo",
+        "Qinglin Lu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-09T18:10:49+00:00",
+      "link": "https://arxiv.org/pdf/2603.08812v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Reinforcement learning for visual generation with reflection-plan co-optimization",
+      "llm_evidence_cn": "具有反射-计划协同优化的强化学习视觉生成",
+      "llm_evidence": "具有反射-计划协同优化的强化学习视觉生成",
+      "canonical_evidence": "具有反射-计划协同优化的强化学习视觉生成",
+      "llm_tldr_en": "An agentic model using RL and reflection to correct mid-trajectory errors in visual content generation.",
+      "llm_tldr_cn": "一种利用强化学习和反射机制来纠正视觉内容生成中轨迹中途错误的智能体模型。",
+      "llm_tldr": "一种利用强化学习和反射机制来纠正视觉内容生成中轨迹中途错误的智能体模型。",
+      "llm_tags": [
+        "query:rl-dm:composite"
+      ],
+      "matched_query_tag": "query:rl-dm:composite",
+      "matched_query_text": "Papers central to 强化学习与扩散模型相关的学术论文检索, especially work that connects or combines: reinforcement learning algorithms and frameworks; generative diffusion models and denoising processes; classifier-guided and classifier-free diffusion for RL; generative models for decision making and planning; trajectory generation using diffusion models; advancements in reinforcement learning using diffusion models; diffusion models for offline reinforcement learning and policy optimization; integrating generative diffusion processes into decision making agents.",
+      "matched_requirement_id": "req-composite-rl-dm",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.12257v1",
+      "title": "DreamVideo-Omni: Omni-Motion Controlled Multi-Subject Video Customization with Latent Identity Reinforcement Learning",
+      "abstract": "While large-scale diffusion models have revolutionized video synthesis, achieving precise control over both multi-subject identity and multi-granularity motion remains a significant challenge. Recent attempts to bridge this gap often suffer from limited motion granularity, control ambiguity, and identity degradation, leading to suboptimal performance on identity preservation and motion control. In this work, we present DreamVideo-Omni, a unified framework enabling harmonious multi-subject customization with omni-motion control via a progressive two-stage training paradigm. In the first stage, we integrate comprehensive control signals for joint training, encompassing subject appearances, global motion, local dynamics, and camera movements. To ensure robust and precise controllability, we introduce a condition-aware 3D rotary positional embedding to coordinate heterogeneous inputs and a hierarchical motion injection strategy to enhance global motion guidance. Furthermore, to resolve multi-subject ambiguity, we introduce group and role embeddings to explicitly anchor motion signals to specific identities, effectively disentangling complex scenes into independent controllable instances. In the second stage, to mitigate identity degradation, we design a latent identity reward feedback learning paradigm by training a latent identity reward model upon a pretrained video diffusion backbone. This provides motion-aware identity rewards in the latent space, prioritizing identity preservation aligned with human preferences. Supported by our curated large-scale dataset and the comprehensive DreamOmni Bench for multi-subject and omni-motion control evaluation, DreamVideo-Omni demonstrates superior performance in generating high-quality videos with precise controllability.",
+      "authors": [
+        "Yujie Wei",
+        "Xinyu Liu",
+        "Shiwei Zhang",
+        "Hangjie Yuan",
+        "Jinbo Xing",
+        "Zhekai Chen",
+        "Xiang Wang",
+        "Haonan Qiu",
+        "Rui Zhao",
+        "Yutong Feng",
+        "Ruihang Chu",
+        "Yingya Zhang",
+        "Yike Guo",
+        "Xihui Liu",
+        "Hongming Shan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-12T17:59:12+00:00",
+      "link": "https://arxiv.org/pdf/2603.12257v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "latent identity reinforcement learning for multi-subject video customization",
+      "llm_evidence_cn": "用于多主体视频定制的潜空间身份强化学习",
+      "llm_evidence": "用于多主体视频定制的潜空间身份强化学习",
+      "canonical_evidence": "用于多主体视频定制的潜空间身份强化学习",
+      "llm_tldr_en": "DreamVideo-Omni uses latent identity RL for precise multi-subject and motion control in video synthesis.",
+      "llm_tldr_cn": "DreamVideo-Omni 使用潜空间身份强化学习实现视频合成中精确的多主体和运动控制。",
+      "llm_tldr": "DreamVideo-Omni 使用潜空间身份强化学习实现视频合成中精确的多主体和运动控制。",
+      "llm_tags": [
+        "query:rl-vg:composite"
+      ],
+      "matched_query_tag": "query:rl-vg:composite",
+      "matched_query_text": "Papers central to 查找强化学习与视频生成相关的学术论文, especially work that connects or combines: Reinforcement learning techniques for video generation; Deep learning models for video generation and synthesis; Reward model design for video quality and consistency; Policy gradient methods applied to video synthesis; Text-to-video generation using reinforcement learning; Generative models for high-fidelity video synthesis; State of the art reinforcement learning methods for video generation; Optimizing video diffusion models using reward based learning; Improving video temporal coherence with reinforcement learning policies; Applications of RLHF in text to video synthesis models.",
+      "matched_requirement_id": "req-composite-rl-vg",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.12310v1",
+      "title": "VQQA: An Agentic Approach for Video Evaluation and Quality Improvement",
+      "abstract": "Despite rapid advancements in video generation models, aligning their outputs with complex user intent remains challenging. Existing test-time optimization methods are typically either computationally expensive or require white-box access to model internals. To address this, we present VQQA (Video Quality Question Answering), a unified, multi-agent framework generalizable across diverse input modalities and video generation tasks. By dynamically generating visual questions and using the resulting Vision-Language Model (VLM) critiques as semantic gradients, VQQA replaces traditional, passive evaluation metrics with human-interpretable, actionable feedback. This enables a highly efficient, closed-loop prompt optimization process via a black-box natural language interface. Extensive experiments demonstrate that VQQA effectively isolates and resolves visual artifacts, substantially improving generation quality in just a few refinement steps. Applicable to both text-to-video (T2V) and image-to-video (I2V) tasks, our method achieves absolute improvements of +11.57% on T2V-CompBench and +8.43% on VBench2 over vanilla generation, significantly outperforming state-of-the-art stochastic search and prompt optimization techniques.",
+      "authors": [
+        "Yiwen Song",
+        "Tomas Pfister",
+        "Yale Song"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.LG",
+        "cs.MA"
+      ],
+      "published": "2026-03-12T18:00:00+00:00",
+      "link": "https://arxiv.org/pdf/2603.12310v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "agentic approach for video quality improvement and prompt optimization",
+      "llm_evidence_cn": "用于视频质量改进和提示优化的智能体方法",
+      "llm_evidence": "用于视频质量改进和提示优化的智能体方法",
+      "canonical_evidence": "用于视频质量改进和提示优化的智能体方法",
+      "llm_tldr_en": "Uses VLM critiques as semantic gradients for closed-loop video generation quality improvement.",
+      "llm_tldr_cn": "利用VLM评论作为语义梯度，实现闭环视频生成质量优化。",
+      "llm_tldr": "利用VLM评论作为语义梯度，实现闭环视频生成质量优化。",
+      "llm_tags": [
+        "query:rl-vg:composite"
+      ],
+      "matched_query_tag": "query:rl-vg:composite",
+      "matched_query_text": "Papers central to 查找强化学习与视频生成相关的学术论文, especially work that connects or combines: Reinforcement learning techniques for video generation; Deep learning models for video generation and synthesis; Reward model design for video quality and consistency; Policy gradient methods applied to video synthesis; Text-to-video generation using reinforcement learning; Generative models for high-fidelity video synthesis; State of the art reinforcement learning methods for video generation; Optimizing video diffusion models using reward based learning; Improving video temporal coherence with reinforcement learning policies; Applications of RLHF in text to video synthesis models.",
+      "matched_requirement_id": "req-composite-rl-vg",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.13438v1",
+      "title": "Draft-and-Target Sampling for Video Generation Policy",
+      "abstract": "Video generation models have been used as a robot policy to predict the future states of executing a task conditioned on task description and observation. Previous works ignore their high computational cost and long inference time. To address this challenge, we propose Draft-and-Target Sampling, a novel diffusion inference paradigm for video generation policy that is training-free and can improve inference efficiency. We introduce a self-play denoising approach by utilizing two complementary denoising trajectories in a single model, draft sampling takes large steps to generate a global trajectory in a fast manner and target sampling takes small steps to verify it. To further speedup generation, we introduce token chunking and progressive acceptance strategy to reduce redundant computation. Experiments on three benchmarks show that our method can achieve up to 2.1x speedup and improve the efficiency of current state-of-the-art methods with minimal compromise to the success rate. Our code is available.",
+      "authors": [
+        "Qikang Zhang",
+        "Yingjie Lei",
+        "Wei Liu",
+        "Daochang Liu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-13T09:54:18+00:00",
+      "link": "https://arxiv.org/pdf/2603.13438v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Video generation model used as a robot policy with diffusion inference",
+      "llm_evidence_cn": "将视频生成模型用作机器人策略，并采用扩散推理",
+      "llm_evidence": "将视频生成模型用作机器人策略，并采用扩散推理",
+      "canonical_evidence": "将视频生成模型用作机器人策略，并采用扩散推理",
+      "llm_tldr_en": "Proposes an efficient diffusion inference paradigm for using video generation as a robotic action policy.",
+      "llm_tldr_cn": "提出一种高效的扩散推理范式，将视频生成模型转化为机器人执行任务的动作策略。",
+      "llm_tldr": "提出一种高效的扩散推理范式，将视频生成模型转化为机器人执行任务的动作策略。",
+      "llm_tags": [
+        "query:rl-dm:composite"
+      ],
+      "matched_query_tag": "query:rl-dm:composite",
+      "matched_query_text": "Papers central to 强化学习与扩散模型相关的学术论文检索, especially work that connects or combines: reinforcement learning algorithms and frameworks; generative diffusion models and denoising processes; classifier-guided and classifier-free diffusion for RL; generative models for decision making and planning; trajectory generation using diffusion models; advancements in reinforcement learning using diffusion models; diffusion models for offline reinforcement learning and policy optimization; integrating generative diffusion processes into decision making agents.",
+      "matched_requirement_id": "req-composite-rl-dm",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.13739v1",
+      "title": "UniVid: Pyramid Diffusion Model for High Quality Video Generation",
+      "abstract": "Diffusion-based text-to-video generation (T2V) or image-to-video (I2V) generation have emerged as a prominent research focus. However, there exists a challenge in integrating the two generative paradigms into a unified model. In this paper, we present a unified video generation model (UniVid) with hybrid conditions of the text prompt and reference image. Given these two available controls, our model can extract objects' appearance and their motion descriptions from textual prompts, while obtaining texture details and structural information from image clues to guide the video generation process. Specifically, we scale up the pre-trained text-to-image diffusion model for generating temporally coherent frames via introducing our temporal-pyramid cross-frame spatial-temporal attention modules and convolutions. To support bimodal control, we introduce a dual-stream cross-attention mechanism, whose attention scores can be freely re-weighted for interpolation of between single and two modalities controls during inference. Extensive experiments showcase that our UniVid achieves superior temporal coherence on T2V, I2V and (T+I)2V tasks.",
+      "authors": [
+        "Xinyu Xiao",
+        "Binbin Yang",
+        "Tingtian Li",
+        "Yipeng Yu",
+        "Sen Lei"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.MM"
+      ],
+      "published": "2026-03-14T03:51:16+00:00",
+      "link": "https://arxiv.org/pdf/2603.13739v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Unified video generation model with text and image conditions",
+      "llm_evidence_cn": "结合文本和图像条件的统一视频生成模型",
+      "llm_evidence": "结合文本和图像条件的统一视频生成模型",
+      "canonical_evidence": "结合文本和图像条件的统一视频生成模型",
+      "llm_tldr_en": "Introduces UniVid, a pyramid diffusion model for high-quality, temporally coherent video synthesis.",
+      "llm_tldr_cn": "引入 UniVid，一种用于高质量、时间连贯视频合成的金字塔扩散模型。",
+      "llm_tldr": "引入 UniVid，一种用于高质量、时间连贯视频合成的金字塔扩散模型。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Generative models for high-fidelity video synthesis",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.14128v1",
+      "title": "Diffusion Reinforcement Learning via Centered Reward Distillation",
+      "abstract": "Diffusion and flow models achieve State-Of-The-Art (SOTA) generative performance, yet many practically important behaviors such as fine-grained prompt fidelity, compositional correctness, and text rendering are weakly specified by score or flow matching pretraining objectives. Reinforcement Learning (RL) fine-tuning with external, black-box rewards is a natural remedy, but diffusion RL is often brittle. Trajectory-based methods incur high memory cost and high-variance gradient estimates; forward-process approaches converge faster but can suffer from distribution drift, and hence reward hacking. In this work, we present \\textbf{Centered Reward Distillation (CRD)}, a diffusion RL framework derived from KL-regularized reward maximization built on forward-process-based fine-tuning. The key insight is that the intractable normalizing constant cancels under \\emph{within-prompt centering}, yielding a well-posed reward-matching objective. To enable reliable text-to-image fine-tuning, we introduce techniques that explicitly control distribution drift: (\\textit{i}) decoupling the sampler from the moving reference to prevent ratio-signal collapse, (\\textit{ii}) KL anchoring to a CFG-guided pretrained model to control long-run drift and align with the inference-time semantics of the pre-trained model, and (\\textit{iii}) reward-adaptive KL strength to accelerate early learning under large KL regularization while reducing late-stage exploitation of reward-model loopholes. Experiments on text-to-image post-training with \\texttt{GenEval} and \\texttt{OCR} rewards show that CRD achieves competitive SOTA reward optimization results with fast convergence and reduced reward hacking, as validated on unseen preference metrics.",
+      "authors": [
+        "Yuanzhi Zhu",
+        "Xi Wang",
+        "Stéphane Lathuilière",
+        "Vicky Kalogeiton"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-03-14T21:29:33+00:00",
+      "link": "https://arxiv.org/pdf/2603.14128v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "diffusion RL framework for reward maximization",
+      "llm_evidence_cn": "用于奖励最大化的扩散强化学习框架",
+      "llm_evidence": "用于奖励最大化的扩散强化学习框架",
+      "canonical_evidence": "用于奖励最大化的扩散强化学习框架",
+      "llm_tldr_en": "Introduces Centered Reward Distillation, a diffusion RL framework for fine-tuning generative models with rewards.",
+      "llm_tldr_cn": "介绍了中心化奖励蒸馏，这是一种用于通过奖励微调生成模型的扩散强化学习框架。",
+      "llm_tldr": "介绍了中心化奖励蒸馏，这是一种用于通过奖励微调生成模型的扩散强化学习框架。",
+      "llm_tags": [
+        "query:rl-dm:composite"
+      ],
+      "matched_query_tag": "query:rl-dm:composite",
+      "matched_query_text": "Papers central to 强化学习与扩散模型相关的学术论文检索, especially work that connects or combines: reinforcement learning algorithms and frameworks; generative diffusion models and denoising processes; classifier-guided and classifier-free diffusion for RL; generative models for decision making and planning; trajectory generation using diffusion models; advancements in reinforcement learning using diffusion models; diffusion models for offline reinforcement learning and policy optimization; integrating generative diffusion processes into decision making agents.",
+      "matched_requirement_id": "req-composite-rl-dm",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.14526v1",
+      "title": "LatSearch: Latent Reward-Guided Search for Faster Inference-Time Scaling in Video Diffusion",
+      "abstract": "The recent success of inference-time scaling in large language models has inspired similar explorations in video diffusion. In particular, motivated by the existence of \"golden noise\" that enhances video quality, prior work has attempted to improve inference by optimising or searching for better initial noise. However, these approaches have notable limitations: they either rely on priors imposed at the beginning of noise sampling or on rewards evaluated only on the denoised and decoded videos. This leads to error accumulation, delayed and sparse reward signals, and prohibitive computational cost, which prevents the use of stronger search algorithms. Crucially, stronger search algorithms are precisely what could unlock substantial gains in controllability, sample efficiency and generation quality for video diffusion, provided their computational cost can be reduced. To fill in this gap, we enable efficient inference-time scaling for video diffusion through latent reward guidance, which provides intermediate, informative and efficient feedback along the denoising trajectory. We introduce a latent reward model that scores partially denoised latents at arbitrary timesteps with respect to visual quality, motion quality, and text alignment. Building on this model, we propose LatSearch, a novel inference-time search mechanism that performs Reward-Guided Resampling and Pruning (RGRP). In the resampling stage, candidates are sampled according to reward-normalised probabilities to reduce over-reliance on the reward model. In the pruning stage, applied at the final scheduled step, only the candidate with the highest cumulative reward is retained, improving both quality and efficiency. We evaluate LatSearch on the VBench-2.0 benchmark and demonstrate that it consistently improves video generation across multiple evaluation dimensions compared to the baseline Wan2.1 model.",
+      "authors": [
+        "Zengqun Zhao",
+        "Ziquan Liu",
+        "Yu Cao",
+        "Shaogang Gong",
+        "Zhensong Zhang",
+        "Jifei Song",
+        "Jiankang Deng",
+        "Ioannis Patras"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-15T18:07:29+00:00",
+      "link": "https://arxiv.org/pdf/2603.14526v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "latent reward-guided search for video diffusion",
+      "llm_evidence_cn": "视频扩散中的潜空间奖励引导搜索",
+      "llm_evidence": "视频扩散中的潜空间奖励引导搜索",
+      "canonical_evidence": "视频扩散中的潜空间奖励引导搜索",
+      "llm_tldr_en": "LatSearch uses latent rewards to guide the search process in video diffusion for better quality and faster inference.",
+      "llm_tldr_cn": "LatSearch利用潜空间奖励引导视频扩散搜索，以实现更高质量和更快的推理。",
+      "llm_tldr": "LatSearch利用潜空间奖励引导视频扩散搜索，以实现更高质量和更快的推理。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Optimizing video diffusion models using reward based learning",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.17808v1",
+      "title": "EVA: Aligning Video World Models with Executable Robot Actions via Inverse Dynamics Rewards",
+      "abstract": "Video generative models are increasingly used as world models for robotics, where a model generates a future visual rollout conditioned on the current observation and task instruction, and an inverse dynamics model (IDM) converts the generated frames into executable robot actions. However, current video world models lack explicit executability constraints. As a result, visually coherent rollouts may still violate rigid-body and kinematic consistency, producing unstable or infeasible control commands when decoded by an IDM. We refer to this mismatch between visual generation and physically executable control as the executability gap. While this gap can be mitigated at inference time using techniques such as rejection sampling, such approaches are inefficient due to the high cost of video generation. In this paper, we leverage the executability gap as a training signal and introduce Executable Video Alignment (EVA), a reinforcement-learning post-training framework for aligning video world models. EVA trains an inverse dynamics model on real robot trajectories and repurposes it as a reward model that evaluates generated videos through the action sequences they induce, encouraging smooth motions measured by velocity, acceleration, and jerk while penalizing actions that violate embodiment constraints. Importantly, the reward remains informative even when generated videos contain severe visual artifacts, since such artifacts typically translate into unstable or out-of-bound actions. Experiments on the RoboTwin benchmark and a real bimanual robot show that EVA reduces embodiment-specific artifacts in generated rollouts and improves downstream task execution success.",
+      "authors": [
+        "Ruixiang Wang",
+        "Qingming Liu",
+        "Yueci Deng",
+        "Guiliang Liu",
+        "Zhen Liu",
+        "Kui Jia"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-03-18T15:02:19+00:00",
+      "link": "https://arxiv.org/pdf/2603.17808v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Aligning video world models using inverse dynamics rewards",
+      "llm_evidence_cn": "使用逆动力学奖励对齐视频世界模型",
+      "llm_evidence": "使用逆动力学奖励对齐视频世界模型",
+      "canonical_evidence": "使用逆动力学奖励对齐视频世界模型",
+      "llm_tldr_en": "Uses rewards to align video generation with physical executability for robotic world models.",
+      "llm_tldr_cn": "利用奖励机制使视频生成与机器人世界模型的物理可执行性相对齐。",
+      "llm_tldr": "利用奖励机制使视频生成与机器人世界模型的物理可执行性相对齐。",
+      "llm_tags": [
+        "query:rl-vg:composite"
+      ],
+      "matched_query_tag": "query:rl-vg:composite",
+      "matched_query_text": "Papers central to 查找强化学习与视频生成相关的学术论文, especially work that connects or combines: Reinforcement learning techniques for video generation; Deep learning models for video generation and synthesis; Reward model design for video quality and consistency; Policy gradient methods applied to video synthesis; Text-to-video generation using reinforcement learning; Generative models for high-fidelity video synthesis; State of the art reinforcement learning methods for video generation; Optimizing video diffusion models using reward based learning; Improving video temporal coherence with reinforcement learning policies; Applications of RLHF in text to video synthesis models.",
+      "matched_requirement_id": "req-composite-rl-vg",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.21175v1",
+      "title": "Reward Sharpness-Aware Fine-Tuning for Diffusion Models",
+      "abstract": "Reinforcement learning from human feedback (RLHF) has proven effective in aligning large language models with human preferences, inspiring the development of reward-centric diffusion reinforcement learning (RDRL) to achieve similar alignment and controllability. While diffusion models can generate high-quality outputs, RDRL remains susceptible to reward hacking, where the reward score increases without corresponding improvements in perceptual quality. We demonstrate that this vulnerability arises from the non-robustness of reward model gradients, particularly when the reward landscape with respect to the input image is sharp. To mitigate this issue, we introduce methods that exploit gradients from a robustified reward model without requiring its retraining. Specifically, we employ gradients from a flattened reward model, obtained through parameter perturbations of the diffusion model and perturbations of its generated samples. Empirically, each method independently alleviates reward hacking and improves robustness, while their joint use amplifies these benefits. Our resulting framework, RSA-FT (Reward Sharpness-Aware Fine-Tuning), is simple, broadly compatible, and consistently enhances the reliability of RDRL.",
+      "authors": [
+        "Kwanyoung Kim",
+        "Byeongsu Sim"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-22T11:32:50+00:00",
+      "link": "https://arxiv.org/pdf/2603.21175v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Reward-centric diffusion reinforcement learning and fine-tuning",
+      "llm_evidence_cn": "以奖励为中心的扩散模型强化学习与微调",
+      "llm_evidence": "以奖励为中心的扩散模型强化学习与微调",
+      "canonical_evidence": "以奖励为中心的扩散模型强化学习与微调",
+      "llm_tldr_en": "Introduces sharpness-aware fine-tuning to prevent reward hacking in diffusion model reinforcement learning.",
+      "llm_tldr_cn": "引入锐度感知微调，以防止扩散模型强化学习中的奖励作弊问题。",
+      "llm_tldr": "引入锐度感知微调，以防止扩散模型强化学习中的奖励作弊问题。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Optimizing video diffusion models using reward based learning",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2602.21818v2",
+      "title": "SkyReels-V4: Multi-modal Video-Audio Generation, Inpainting and Editing model",
+      "abstract": "SkyReels V4 is a unified multi modal video foundation model for joint video audio generation, inpainting, and editing. The model adopts a dual stream Multimodal Diffusion Transformer (MMDiT) architecture, where one branch synthesizes video and the other generates temporally aligned audio, while sharing a powerful text encoder based on the Multimodal Large Language Models (MMLM). SkyReels V4 accepts rich multi modal instructions, including text, images, video clips, masks, and audio references. By combining the MMLMs multi modal instruction following capability with in context learning in the video branch MMDiT, the model can inject fine grained visual guidance under complex conditioning, while the audio branch MMDiT simultaneously leverages audio references to guide sound generation. On the video side, we adopt a channel concatenation formulation that unifies a wide range of inpainting style tasks, such as image to video, video extension, and video editing under a single interface, and naturally extends to vision referenced inpainting and editing via multi modal prompts. SkyReels V4 supports up to 1080p resolution, 32 FPS, and 15 second duration, enabling high fidelity, multi shot, cinema level video generation with synchronized audio. To make such high resolution, long-duration generation computationally feasible, we introduce an efficiency strategy: Joint generation of low resolution full sequences and high-resolution keyframes, followed by dedicated super-resolution and frame interpolation models. To our knowledge, SkyReels V4 is the first video foundation model that simultaneously supports multi-modal input, joint video audio generation, and a unified treatment of generation, inpainting, and editing, while maintaining strong efficiency and quality at cinematic resolutions and durations.",
+      "authors": [
+        "Guibin Chen",
+        "Dixuan Lin",
+        "Jiangping Yang",
+        "Youqiang Zhang",
+        "Zhengcong Fei",
+        "Debang Li",
+        "Sheng Chen",
+        "Chaofeng Ao",
+        "Nuo Pang",
+        "Yiming Wang",
+        "Yikun Dou",
+        "Zheng Chen",
+        "Mingyuan Fan",
+        "Tuanhui Li",
+        "Mingshan Chang",
+        "Hao Zhang",
+        "Xiaopeng Sun",
+        "Jingtao Xu",
+        "Yuqiang Xie",
+        "Jiahua Wang",
+        "Zhiheng Xu",
+        "Weiming Xiong",
+        "Yuzhe Jin",
+        "Baoxuan Gu",
+        "Binjie Mao",
+        "Yunjie Yu",
+        "Jujie He",
+        "Yuhao Feng",
+        "Shiwen Tu",
+        "Chaojie Wang",
+        "Rui Yan",
+        "Wei Shen",
+        "Jingchen Wu",
+        "Peng Zhao",
+        "Xuanyue Zhong",
+        "Zhuangzhuang Liu",
+        "Kaifei Wang",
+        "Fuxiang Zhang",
+        "Weikai Xu",
+        "Wenyan Liu",
+        "Binglu Zhang",
+        "Yu Shen",
+        "Tianhui Xiong",
+        "Bin Peng",
+        "Liang Zeng",
+        "Xuchen Song",
+        "Haoxiang Guo",
+        "Peiyu Wang",
+        "Max W. Y. Lam",
+        "Chien-Hung Liu",
+        "Yahui Zhou"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-02-25T11:47:00+00:00",
+      "link": "https://arxiv.org/pdf/2602.21818v2",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "multi-modal video foundation model for generation",
+      "llm_evidence_cn": "多模态视频生成基础模型",
+      "llm_evidence": "多模态视频生成基础模型",
+      "canonical_evidence": "多模态视频生成基础模型",
+      "llm_tldr_en": "Presents SkyReels-V4, a unified diffusion transformer model for joint video and audio generation.",
+      "llm_tldr_cn": "推出了SkyReels-V4，这是一个用于视频和音频联合生成的统一扩散Transformer模型。",
+      "llm_tldr": "推出了SkyReels-V4，这是一个用于视频和音频联合生成的统一扩散Transformer模型。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Generative models for high-fidelity video synthesis",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2602.22461v1",
+      "title": "EgoAVFlow: Robot Policy Learning with Active Vision from Human Egocentric Videos via 3D Flow",
+      "abstract": "Egocentric human videos provide a scalable source of manipulation demonstrations; however, deploying them on robots requires active viewpoint control to maintain task-critical visibility, which human viewpoint imitation often fails to provide due to human-specific priors. We propose EgoAVFlow, which learns manipulation and active vision from egocentric videos through a shared 3D flow representation that supports geometric visibility reasoning and transfers without robot demonstrations. EgoAVFlow uses diffusion models to predict robot actions, future 3D flow, and camera trajectories, and refines viewpoints at test time with reward-maximizing denoising under a visibility-aware reward computed from predicted motion and scene geometry. Real-world experiments under actively changing viewpoints show that EgoAVFlow consistently outperforms prior human-demo-based baselines, demonstrating effective visibility maintenance and robust manipulation without robot demonstrations.",
+      "authors": [
+        "Daesol Cho",
+        "Youngseok Jang",
+        "Danfei Xu",
+        "Sehoon Ha"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-02-25T22:50:51+00:00",
+      "link": "https://arxiv.org/pdf/2602.22461v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Diffusion models for robot policy learning and reward-maximizing denoising",
+      "llm_evidence_cn": "用于机器人策略学习的扩散模型和奖励最大化去噪",
+      "llm_evidence": "用于机器人策略学习的扩散模型和奖励最大化去噪",
+      "canonical_evidence": "用于机器人策略学习的扩散模型和奖励最大化去噪",
+      "llm_tldr_en": "Uses diffusion models to predict robot actions and trajectories with reward-based refinement.",
+      "llm_tldr_cn": "利用扩散模型预测机器人动作和轨迹，并通过基于奖励的去噪进行优化。",
+      "llm_tldr": "利用扩散模型预测机器人动作和轨迹，并通过基于奖励的去噪进行优化。",
+      "llm_tags": [
+        "query:rl-dm:composite"
+      ],
+      "matched_query_tag": "query:rl-dm:composite",
+      "matched_query_text": "Papers central to 强化学习与扩散模型相关的学术论文检索, especially work that connects or combines: reinforcement learning algorithms and frameworks; generative diffusion models and denoising processes; classifier-guided and classifier-free diffusion for RL; generative models for decision making and planning; trajectory generation using diffusion models; advancements in reinforcement learning using diffusion models; diffusion models for offline reinforcement learning and policy optimization; integrating generative diffusion processes into decision making agents.",
+      "matched_requirement_id": "req-composite-rl-dm",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2602.24289v1",
+      "title": "Mode Seeking meets Mean Seeking for Fast Long Video Generation",
+      "abstract": "Scaling video generation from seconds to minutes faces a critical bottleneck: while short-video data is abundant and high-fidelity, coherent long-form data is scarce and limited to narrow domains. To address this, we propose a training paradigm where Mode Seeking meets Mean Seeking, decoupling local fidelity from long-term coherence based on a unified representation via a Decoupled Diffusion Transformer. Our approach utilizes a global Flow Matching head trained via supervised learning on long videos to capture narrative structure, while simultaneously employing a local Distribution Matching head that aligns sliding windows to a frozen short-video teacher via a mode-seeking reverse-KL divergence. This strategy enables the synthesis of minute-scale videos that learns long-range coherence and motions from limited long videos via supervised flow matching, while inheriting local realism by aligning every sliding-window segment of the student to a frozen short-video teacher, resulting in a few-step fast long video generator. Evaluations show that our method effectively closes the fidelity-horizon gap by jointly improving local sharpness, motion and long-range consistency. Project website: https://primecai.github.io/mmm/.",
+      "authors": [
+        "Shengqu Cai",
+        "Weili Nie",
+        "Chao Liu",
+        "Julius Berner",
+        "Lvmin Zhang",
+        "Nanye Ma",
+        "Hansheng Chen",
+        "Maneesh Agrawala",
+        "Leonidas Guibas",
+        "Gordon Wetzstein",
+        "Arash Vahdat"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.LG"
+      ],
+      "published": "2026-02-27T18:59:02+00:00",
+      "link": "https://arxiv.org/pdf/2602.24289v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "long video generation using decoupled diffusion transformers",
+      "llm_evidence_cn": "使用解耦扩散Transformer的长视频生成",
+      "llm_evidence": "使用解耦扩散Transformer的长视频生成",
+      "canonical_evidence": "使用解耦扩散Transformer的长视频生成",
+      "llm_tldr_en": "Decouples local fidelity and long-term coherence to enable high-quality minute-scale video synthesis.",
+      "llm_tldr_cn": "解耦局部保真度和长期连贯性，实现高质量的分钟级视频合成。",
+      "llm_tldr": "解耦局部保真度和长期连贯性，实现高质量的分钟级视频合成。",
+      "llm_tags": [
+        "query:rl-vg:composite"
+      ],
+      "matched_query_tag": "query:rl-vg:composite",
+      "matched_query_text": "Papers central to 查找强化学习与视频生成相关的学术论文, especially work that connects or combines: Reinforcement learning techniques for video generation; Deep learning models for video generation and synthesis; Reward model design for video quality and consistency; Policy gradient methods applied to video synthesis; Text-to-video generation using reinforcement learning; Generative models for high-fidelity video synthesis; State of the art reinforcement learning methods for video generation; Optimizing video diffusion models using reward based learning; Improving video temporal coherence with reinforcement learning policies; Applications of RLHF in text to video synthesis models.",
+      "matched_requirement_id": "req-composite-rl-vg",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.00461v1",
+      "title": "ReMoT: Reinforcement Learning with Motion Contrast Triplets",
+      "abstract": "We present ReMoT, a unified training paradigm to systematically address the fundamental shortcomings of VLMs in spatio-temporal consistency -- a critical failure point in navigation, robotics, and autonomous driving. ReMoT integrates two core components: (1) A rule-based automatic framework that generates ReMoT-16K, a large-scale (16.5K triplets) motion-contrast dataset derived from video meta-annotations, surpassing costly manual or model-based generation. (2) Group Relative Policy Optimization, which we empirically validate yields optimal performance and data efficiency for learning this contrastive reasoning, far exceeding standard Supervised Fine-Tuning. We also construct the first benchmark for fine-grained motion contrast triplets to measure a VLM's discrimination of subtle motion attributes (e.g., opposing directions). The resulting model achieves state-of-the-art performance on our new benchmark and multiple standard VLM benchmarks, culminating in a remarkable 25.1% performance leap on spatio-temporal reasoning tasks.",
+      "authors": [
+        "Cong Wan",
+        "Zeyu Guo",
+        "Jiangyang Li",
+        "SongLin Dong",
+        "Yifan Bai",
+        "Lin Peng",
+        "Zhiheng Ma",
+        "Yihong Gong"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-02-28T04:42:34+00:00",
+      "link": "https://arxiv.org/pdf/2603.00461v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "reinforcement learning for spatio-temporal consistency in video-related tasks",
+      "llm_evidence_cn": "强化学习用于视频相关任务的时空一致性",
+      "llm_evidence": "强化学习用于视频相关任务的时空一致性",
+      "canonical_evidence": "强化学习用于视频相关任务的时空一致性",
+      "llm_tldr_en": "Uses Group Relative Policy Optimization to improve spatio-temporal reasoning in vision models.",
+      "llm_tldr_cn": "使用组相对策略优化（GRPO）来提升视觉模型中的时空推理能力。",
+      "llm_tldr": "使用组相对策略优化（GRPO）来提升视觉模型中的时空推理能力。",
+      "llm_tags": [
+        "query:rl-vg:composite"
+      ],
+      "matched_query_tag": "query:rl-vg:composite",
+      "matched_query_text": "Papers central to 查找强化学习与视频生成相关的学术论文, especially work that connects or combines: Reinforcement learning techniques for video generation; Deep learning models for video generation and synthesis; Reward model design for video quality and consistency; Policy gradient methods applied to video synthesis; Text-to-video generation using reinforcement learning; Generative models for high-fidelity video synthesis; State of the art reinforcement learning methods for video generation; Optimizing video diffusion models using reward based learning; Improving video temporal coherence with reinforcement learning policies; Applications of RLHF in text to video synthesis models.",
+      "matched_requirement_id": "req-composite-rl-vg",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.01509v1",
+      "title": "Retrieval, Refinement, and Ranking for Text-to-Video Generation via Prompt Optimization and Test-Time Scaling",
+      "abstract": "While large-scale datasets have driven significant progress in Text-to-Video (T2V) generative models, these models remain highly sensitive to input prompts, demonstrating that prompt design is critical to generation quality. Current methods for improving video output often fall short: they either depend on complex, post-editing models, risking the introduction of artifacts, or require expensive fine-tuning of the core generator, which severely limits both scalability and accessibility. In this work, we introduce 3R, a novel RAG based prompt optimization framework. 3R utilizes the power of current state-of-the-art T2V diffusion model and vision language model. It can be used with any T2V model without any kind of model training. The framework leverages three key strategies: RAG-based modifiers extraction for enriched contextual grounding, diffusion-based Preference Optimization for aligning outputs with human preferences, and temporal frame interpolation for producing temporally consistent visual contents. Together, these components enable more accurate, efficient, and contextually aligned text-to-video generation. Experimental results demonstrate the efficacy of 3R in enhancing the static fidelity and dynamic coherence of generated videos, underscoring the importance of optimizing user prompts.",
+      "authors": [
+        "Zillur Rahman",
+        "Alex Sheng",
+        "Cristian Meo"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-02T06:35:59+00:00",
+      "link": "https://arxiv.org/pdf/2603.01509v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Prompt optimization for text-to-video generation models",
+      "llm_evidence_cn": "文本到视频生成模型的提示词优化",
+      "llm_evidence": "文本到视频生成模型的提示词优化",
+      "canonical_evidence": "文本到视频生成模型的提示词优化",
+      "llm_tldr_en": "A RAG-based framework to optimize prompts for improving text-to-video generation quality without fine-tuning.",
+      "llm_tldr_cn": "一种基于RAG的提示词优化框架，无需微调即可提高文本到视频生成的质量。",
+      "llm_tldr": "一种基于RAG的提示词优化框架，无需微调即可提高文本到视频生成的质量。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Deep learning models for video generation and synthesis",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.03646v1",
+      "title": "InfinityStory: Unlimited Video Generation with World Consistency and Character-Aware Shot Transitions",
+      "abstract": "Generating long-form storytelling videos with consistent visual narratives remains a significant challenge in video synthesis. We present a novel framework, dataset, and a model that address three critical limitations: background consistency across shots, seamless multi-subject shot-to-shot transitions, and scalability to hour-long narratives. Our approach introduces a background-consistent generation pipeline that maintains visual coherence across scenes while preserving character identity and spatial relationships. We further propose a transition-aware video synthesis module that generates smooth shot transitions for complex scenarios involving multiple subjects entering or exiting frames, going beyond the single-subject limitations of prior work. To support this, we contribute with a synthetic dataset of 10,000 multi-subject transition sequences covering underrepresented dynamic scene compositions. On VBench, InfinityStory achieves the highest Background Consistency (88.94), highest Subject Consistency (82.11), and the best overall average rank (2.80), showing improved stability, smoother transitions, and better temporal coherence.",
+      "authors": [
+        "Mohamed Elmoghany",
+        "Liangbing Zhao",
+        "Xiaoqian Shen",
+        "Subhojyoti Mukherjee",
+        "Yang Zhou",
+        "Gang Wu",
+        "Viet Dac Lai",
+        "Seunghyun Yoon",
+        "Ryan Rossi",
+        "Abdullah Rashwan",
+        "Puneet Mathur",
+        "Varun Manjunatha",
+        "Daksh Dangi",
+        "Chien Nguyen",
+        "Nedim Lipka",
+        "Trung Bui",
+        "Krishna Kumar Singh",
+        "Ruiyi Zhang",
+        "Xiaolei Huang",
+        "Jaemin Cho",
+        "Yu Wang",
+        "Namyong Park",
+        "Zhengzhong Tu",
+        "Hongjie Chen",
+        "Hoda Eldardiry",
+        "Nesreen Ahmed",
+        "Thien Nguyen",
+        "Dinesh Manocha",
+        "Mohamed Elhoseiny",
+        "Franck Dernoncourt"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-04T02:10:32+00:00",
+      "link": "https://arxiv.org/pdf/2603.03646v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "long-form storytelling video synthesis with visual coherence",
+      "llm_evidence_cn": "具有视觉连贯性的长篇叙事视频合成",
+      "llm_evidence": "具有视觉连贯性的长篇叙事视频合成",
+      "canonical_evidence": "具有视觉连贯性的长篇叙事视频合成",
+      "llm_tldr_en": "A framework for long-form video generation ensuring background consistency and smooth shot transitions.",
+      "llm_tldr_cn": "一种长视频生成框架，确保背景一致性和平滑的分镜转换。",
+      "llm_tldr": "一种长视频生成框架，确保背景一致性和平滑的分镜转换。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Generative models for high-fidelity video synthesis",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.04291v1",
+      "title": "CubeComposer: Spatio-Temporal Autoregressive 4K 360° Video Generation from Perspective Video",
+      "abstract": "Generating high-quality 360° panoramic videos from perspective input is one of the crucial applications for virtual reality (VR), whereby high-resolution videos are especially important for immersive experience. Existing methods are constrained by computational limitations of vanilla diffusion models, only supporting $\\leq$ 1K resolution native generation and relying on suboptimal post super-resolution to increase resolution. We introduce CubeComposer, a novel spatio-temporal autoregressive diffusion model that natively generates 4K-resolution 360° videos. By decomposing videos into cubemap representations with six faces, CubeComposer autoregressively synthesizes content in a well-planned spatio-temporal order, reducing memory demands while enabling high-resolution output. Specifically, to address challenges in multi-dimensional autoregression, we propose: (1) a spatio-temporal autoregressive strategy that orchestrates 360° video generation across cube faces and time windows for coherent synthesis; (2) a cube face context management mechanism, equipped with a sparse context attention design to improve efficiency; and (3) continuity-aware techniques, including cube-aware positional encoding, padding, and blending to eliminate boundary seams. Extensive experiments on benchmark datasets demonstrate that CubeComposer outperforms state-of-the-art methods in native resolution and visual quality, supporting practical VR application scenarios. Project page: https://lg-li.github.io/project/cubecomposer",
+      "authors": [
+        "Lingen Li",
+        "Guangzhi Wang",
+        "Xiaoyu Li",
+        "Zhaoyang Zhang",
+        "Qi Dou",
+        "Jinwei Gu",
+        "Tianfan Xue",
+        "Ying Shan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-04T17:06:56+00:00",
+      "link": "https://arxiv.org/pdf/2603.04291v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "spatio-temporal autoregressive diffusion for 4K video generation",
+      "llm_evidence_cn": "用于4K视频生成的时空自回归扩散模型",
+      "llm_evidence": "用于4K视频生成的时空自回归扩散模型",
+      "canonical_evidence": "用于4K视频生成的时空自回归扩散模型",
+      "llm_tldr_en": "A spatio-temporal autoregressive diffusion model for high-resolution 4K 360-degree video synthesis.",
+      "llm_tldr_cn": "一种用于高分辨率4K 360度视频合成的时空自回归扩散模型。",
+      "llm_tldr": "一种用于高分辨率4K 360度视频合成的时空自回归扩散模型。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Generative models for high-fidelity video synthesis",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.05449v1",
+      "title": "RealWonder: Real-Time Physical Action-Conditioned Video Generation",
+      "abstract": "Current video generation models cannot simulate physical consequences of 3D actions like forces and robotic manipulations, as they lack structural understanding of how actions affect 3D scenes. We present RealWonder, the first real-time system for action-conditioned video generation from a single image. Our key insight is using physics simulation as an intermediate bridge: instead of directly encoding continuous actions, we translate them through physics simulation into visual representations (optical flow and RGB) that video models can process. RealWonder integrates three components: 3D reconstruction from single images, physics simulation, and a distilled video generator requiring only 4 diffusion steps. Our system achieves 13.2 FPS at 480x832 resolution, enabling interactive exploration of forces, robot actions, and camera controls on rigid objects, deformable bodies, fluids, and granular materials. We envision RealWonder opens new opportunities to apply video models in immersive experiences, AR/VR, and robot learning. Our code and model weights are publicly available in our project website: https://liuwei283.github.io/RealWonder/",
+      "authors": [
+        "Wei Liu",
+        "Ziyu Chen",
+        "Zizhang Li",
+        "Yue Wang",
+        "Hong-Xing Yu",
+        "Jiajun Wu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.GR"
+      ],
+      "published": "2026-03-05T18:22:54+00:00",
+      "link": "https://arxiv.org/pdf/2603.05449v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Action-conditioned video generation using distilled diffusion models",
+      "llm_evidence_cn": "使用蒸馏扩散模型的动作条件视频生成",
+      "llm_evidence": "使用蒸馏扩散模型的动作条件视频生成",
+      "canonical_evidence": "使用蒸馏扩散模型的动作条件视频生成",
+      "llm_tldr_en": "RealWonder enables real-time action-conditioned video generation by bridging physics simulation and diffusion.",
+      "llm_tldr_cn": "RealWonder通过物理模拟与扩散模型的结合，实现了实时的动作条件视频生成。",
+      "llm_tldr": "RealWonder通过物理模拟与扩散模型的结合，实现了实时的动作条件视频生成。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Deep learning models for video generation and synthesis",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.08210v1",
+      "title": "Video2LoRA: Unified Semantic-Controlled Video Generation via Per-Reference-Video LoRA",
+      "abstract": "Achieving semantic alignment across diverse video generation conditions remains a significant challenge. Methods that rely on explicit structural guidance often enforce rigid spatial constraints that limit semantic flexibility, whereas models tailored for individual control types lack interoperability and adaptability. These design bottlenecks hinder progress toward flexible and efficient semantic video generation. To address this, we propose Video2LoRA, a scalable and generalizable framework for semantic-controlled video generation that conditions on a reference video. Video2LoRA employs a lightweight hypernetwork to predict personalized LoRA weights for each semantic input, which are combined with auxiliary matrices to form adaptive LoRA modules integrated into a frozen diffusion backbone. This design enables the model to generate videos consistent with the reference semantics while preserving key style and content variations, eliminating the need for any per-condition training. Notably, the final model weights less than 150MB, making it highly efficient for storage and deployment. Video2LoRA achieves coherent, semantically aligned generation across diverse conditions and exhibits strong zero-shot generalization to unseen semantics.",
+      "authors": [
+        "Zexi Wu",
+        "Qinghe Wang",
+        "Jing Dai",
+        "Baolu Li",
+        "Yiming Zhang",
+        "Yue Ma",
+        "Xu Jia",
+        "Hongming Xu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-09T10:40:03+00:00",
+      "link": "https://arxiv.org/pdf/2603.08210v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "semantic-controlled video generation framework",
+      "llm_evidence_cn": "语义控制的视频生成框架",
+      "llm_evidence": "语义控制的视频生成框架",
+      "canonical_evidence": "语义控制的视频生成框架",
+      "llm_tldr_en": "Proposes Video2LoRA for flexible semantic-controlled video generation using reference videos and hypernetworks.",
+      "llm_tldr_cn": "提出 Video2LoRA 框架，通过参考视频和超网络实现灵活的语义控制视频生成。",
+      "llm_tldr": "提出 Video2LoRA 框架，通过参考视频和超网络实现灵活的语义控制视频生成。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Generative models for high-fidelity video synthesis",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.08850v1",
+      "title": "HECTOR: Hybrid Editable Compositional Object References for Video Generation",
+      "abstract": "Real-world videos naturally portray complex interactions among distinct physical objects, effectively forming dynamic compositions of visual elements. However, most current video generation models synthesize scenes holistically and therefore lack mechanisms for explicit compositional manipulation. To address this limitation, we propose HECTOR, a generative pipeline that enables fine-grained compositional control. In contrast to prior methods,HECTOR supports hybrid reference conditioning, allowing generation to be simultaneously guided by static images and/or dynamic videos. Moreover, users can explicitly specify the trajectory of each referenced element, precisely controlling its location, scale, and speed (see Figure1). This design allows the model to synthesize coherent videos that satisfy complex spatiotemporal constraints while preserving high-fidelity adherence to references. Extensive experiments demonstrate that HECTOR achieves superior visual quality, stronger reference preservation, and improved motion controllability compared with existing approaches.",
+      "authors": [
+        "Guofeng Zhang",
+        "Angtian Wang",
+        "Jacob Zhiyuan Fang",
+        "Liming Jiang",
+        "Haotian Yang",
+        "Alan Yuille",
+        "Chongyang Ma"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-09T19:09:40+00:00",
+      "link": "https://arxiv.org/pdf/2603.08850v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "compositional object references and trajectory control for video generation",
+      "llm_evidence_cn": "视频生成的组合对象引用和轨迹控制",
+      "llm_evidence": "视频生成的组合对象引用和轨迹控制",
+      "canonical_evidence": "视频生成的组合对象引用和轨迹控制",
+      "llm_tldr_en": "A generative pipeline enabling fine-grained compositional control and trajectory specification for video objects.",
+      "llm_tldr_cn": "一种支持对视频对象进行细粒度组合控制和轨迹指定的生成流水线。",
+      "llm_tldr": "一种支持对视频对象进行细粒度组合控制和轨迹指定的生成流水线。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Generative models for high-fidelity video synthesis",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.09488v2",
+      "title": "Streaming Autoregressive Video Generation via Diagonal Distillation",
+      "abstract": "Large pretrained diffusion models have significantly enhanced the quality of generated videos, and yet their use in real-time streaming remains limited. Autoregressive models offer a natural framework for sequential frame synthesis but require heavy computation to achieve high fidelity. Diffusion distillation can compress these models into efficient few-step variants, but existing video distillation approaches largely adapt image-specific methods that neglect temporal dependencies. These techniques often excel in image generation but underperform in video synthesis, exhibiting reduced motion coherence, error accumulation over long sequences, and a latency-quality trade-off. We identify two factors that result in these limitations: insufficient utilization of temporal context during step reduction and implicit prediction of subsequent noise levels in next-chunk prediction (i.e., exposure bias). To address these issues, we propose Diagonal Distillation, which operates orthogonally to existing approaches and better exploits temporal information across both video chunks and denoising steps. Central to our approach is an asymmetric generation strategy: more steps early, fewer steps later. This design allows later chunks to inherit rich appearance information from thoroughly processed early chunks, while using partially denoised chunks as conditional inputs for subsequent synthesis. By aligning the implicit prediction of subsequent noise levels during chunk generation with the actual inference conditions, our approach mitigates error propagation and reduces oversaturation in long-range sequences. We further incorporate implicit optical flow modeling to preserve motion quality under strict step constraints. Our method generates a 5-second video in 2.61 seconds (up to 31 FPS), achieving a 277.3x speedup over the undistilled model.",
+      "authors": [
+        "Jinxiu Liu",
+        "Xuanming Liu",
+        "Kangfu Mei",
+        "Yandong Wen",
+        "Ming-Hsuan Yang",
+        "Weiyang Liu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-10T10:45:24+00:00",
+      "link": "https://arxiv.org/pdf/2603.09488v2",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "autoregressive video generation and diffusion distillation",
+      "llm_evidence_cn": "自回归视频生成与扩散蒸馏",
+      "llm_evidence": "自回归视频生成与扩散蒸馏",
+      "canonical_evidence": "自回归视频生成与扩散蒸馏",
+      "llm_tldr_en": "Diagonal distillation improves temporal coherence and efficiency in streaming autoregressive video generation.",
+      "llm_tldr_cn": "对角线蒸馏提高了流式自回归视频生成的时序连贯性和效率。",
+      "llm_tldr": "对角线蒸馏提高了流式自回归视频生成的时序连贯性和效率。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Deep learning models for video generation and synthesis",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.09721v1",
+      "title": "FrameDiT: Diffusion Transformer with Frame-Level Matrix Attention for Efficient Video Generation",
+      "abstract": "High-fidelity video generation remains challenging for diffusion models due to the difficulty of modeling complex spatio-temporal dynamics efficiently. Recent video diffusion methods typically represent a video as a sequence of spatio-temporal tokens which can be modeled using Diffusion Transformers (DiTs). However, this approach faces a trade-off between the strong but expensive Full 3D Attention and the efficient but temporally limited Local Factorized Attention. To resolve this trade-off, we propose Matrix Attention, a frame-level temporal attention mechanism that processes an entire frame as a matrix and generates query, key, and value matrices via matrix-native operations. By attending across frames rather than tokens, Matrix Attention effectively preserves global spatio-temporal structure and adapts to significant motion. We build FrameDiT-G, a DiT architecture based on MatrixAttention, and further introduce FrameDiT-H, which integrates Matrix Attention with Local Factorized Attention to capture both large and small motion. Extensive experiments show that FrameDiT-H achieves state-of-the-art results across multiple video generation benchmarks, offering improved temporal coherence and video quality while maintaining efficiency comparable to Local Factorized Attention.",
+      "authors": [
+        "Minh Khoa Le",
+        "Kien Do",
+        "Duc Thanh Nguyen",
+        "Truyen Tran"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-10T14:28:32+00:00",
+      "link": "https://arxiv.org/pdf/2603.09721v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Diffusion Transformer for high-fidelity video generation",
+      "llm_evidence_cn": "用于高保真视频生成的扩散 Transformer",
+      "llm_evidence": "用于高保真视频生成的扩散 Transformer",
+      "canonical_evidence": "用于高保真视频生成的扩散 Transformer",
+      "llm_tldr_en": "Proposes FrameDiT with Matrix Attention for efficient and high-fidelity spatio-temporal video modeling.",
+      "llm_tldr_cn": "提出具有矩阵注意力的 FrameDiT，用于高效且高保真的时空视频建模。",
+      "llm_tldr": "提出具有矩阵注意力的 FrameDiT，用于高效且高保真的时空视频建模。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Generative models for high-fidelity video synthesis",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.10178v1",
+      "title": "Video-Based Reward Modeling for Computer-Use Agents",
+      "abstract": "Computer-using agents (CUAs) are becoming increasingly capable; however, it remains difficult to scale evaluation of whether a trajectory truly fulfills a user instruction. In this work, we study reward modeling from execution video: a sequence of keyframes from an agent trajectory that is independent of the agent's internal reasoning or actions. Although video-execution modeling is method-agnostic, it presents key challenges, including highly redundant layouts and subtle, localized cues that determine success. We introduce Execution Video Reward 53k (ExeVR-53k), a dataset of 53k high-quality video--task--reward triplets. We further propose adversarial instruction translation to synthesize negative samples with step-level annotations. To enable learning from long, high-resolution execution videos, we design spatiotemporal token pruning, which removes homogeneous regions and persistent tokens while preserving decisive UI changes. Building on these components, we fine-tune an Execution Video Reward Model (ExeVRM) that takes only a user instruction and a video-execution sequence to predict task success. Our ExeVRM 8B achieves 84.7% accuracy and 87.7% recall on video-execution assessment, outperforming strong proprietary models such as GPT-5.2 and Gemini-3 Pro across Ubuntu, macOS, Windows, and Android, while providing more precise temporal attribution. These results show that video-execution reward modeling can serve as a scalable, model-agnostic evaluator for CUAs.",
+      "authors": [
+        "Linxin Song",
+        "Jieyu Zhang",
+        "Huanxin Sheng",
+        "Taiwei Shi",
+        "Gupta Rahul",
+        "Yang Liu",
+        "Ranjay Krishna",
+        "Jian Kang",
+        "Jieyu Zhao"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.CL"
+      ],
+      "published": "2026-03-10T19:17:22+00:00",
+      "link": "https://arxiv.org/pdf/2603.10178v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "video-based reward modeling for agent trajectories",
+      "llm_evidence_cn": "基于视频的智能体轨迹奖励建模",
+      "llm_evidence": "基于视频的智能体轨迹奖励建模",
+      "canonical_evidence": "基于视频的智能体轨迹奖励建模",
+      "llm_tldr_en": "Introduces a dataset and method for learning reward models directly from execution videos.",
+      "llm_tldr_cn": "引入了一个直接从执行视频中学习奖励模型的数据集和方法。",
+      "llm_tldr": "引入了一个直接从执行视频中学习奖励模型的数据集和方法。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Reward model design for video quality and consistency",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.11421v1",
+      "title": "ShotVerse: Advancing Cinematic Camera Control for Text-Driven Multi-Shot Video Creation",
+      "abstract": "Text-driven video generation has democratized film creation, but camera control in cinematic multi-shot scenarios remains a significant block. Implicit textual prompts lack precision, while explicit trajectory conditioning imposes prohibitive manual overhead and often triggers execution failures in current models. To overcome this bottleneck, we propose a data-centric paradigm shift, positing that aligned (Caption, Trajectory, Video) triplets form an inherent joint distribution that can connect automated plotting and precise execution. Guided by this insight, we present ShotVerse, a \"Plan-then-Control\" framework that decouples generation into two collaborative agents: a VLM (Vision-Language Model)-based Planner that leverages spatial priors to obtain cinematic, globally aligned trajectories from text, and a Controller that renders these trajectories into multi-shot video content via a camera adapter. Central to our approach is the construction of a data foundation: we design an automated multi-shot camera calibration pipeline aligns disjoint single-shot trajectories into a unified global coordinate system. This facilitates the curation of ShotVerse-Bench, a high-fidelity cinematic dataset with a three-track evaluation protocol that serves as the bedrock for our framework. Extensive experiments demonstrate that ShotVerse effectively bridges the gap between unreliable textual control and labor-intensive manual plotting, achieving superior cinematic aesthetics and generating multi-shot videos that are both camera-accurate and cross-shot consistent.",
+      "authors": [
+        "Songlin Yang",
+        "Zhe Wang",
+        "Xuyi Yang",
+        "Songchun Zhang",
+        "Xianghao Kong",
+        "Taiyi Wu",
+        "Xiaotong Zhao",
+        "Ran Zhang",
+        "Alan Zhao",
+        "Anyi Rao"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-12T01:27:08+00:00",
+      "link": "https://arxiv.org/pdf/2603.11421v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "cinematic camera control for text-driven multi-shot video creation",
+      "llm_evidence_cn": "文本驱动多镜头视频创作的电影级摄像机控制",
+      "llm_evidence": "文本驱动多镜头视频创作的电影级摄像机控制",
+      "canonical_evidence": "文本驱动多镜头视频创作的电影级摄像机控制",
+      "llm_tldr_en": "A plan-then-control framework using VLMs to automate cinematic camera plotting and execution in video generation.",
+      "llm_tldr_cn": "一种利用VLM在视频生成中自动规划和执行电影级摄像机调度的框架。",
+      "llm_tldr": "一种利用VLM在视频生成中自动规划和执行电影级摄像机调度的框架。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Generative models for high-fidelity video synthesis",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.13402v1",
+      "title": "Event-Driven Video Generation",
+      "abstract": "State-of-the-art text-to-video models often look realistic frame-by-frame yet fail on simple interactions: motion starts before contact, actions are not realized, objects drift after placement, and support relations break. We argue this stems from frame-first denoising, which updates latent state everywhere at every step without an explicit notion of when and where an interaction is active. We introduce Event-Driven Video Generation (EVD), a minimal DiT-compatible framework that makes sampling event-grounded: a lightweight event head predicts token-aligned event activity, event-grounded losses couple activity to state change during training, and event-gated sampling (with hysteresis and early-step scheduling) suppresses spurious updates while concentrating updates during interactions. On EVD-Bench, EVD consistently improves human preference and VBench dynamics, substantially reducing failure modes in state persistence, spatial accuracy, support relations, and contact stability without sacrificing appearance. These results indicate that explicit event grounding is a practical abstraction for reducing interaction hallucinations in video generation.",
+      "authors": [
+        "Chika Maduabuchi"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.LG"
+      ],
+      "published": "2026-03-12T00:16:56+00:00",
+      "link": "https://arxiv.org/pdf/2603.13402v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Event-driven video generation framework for temporal consistency and interaction",
+      "llm_evidence_cn": "用于时间一致性和交互的事件驱动视频生成框架",
+      "llm_evidence": "用于时间一致性和交互的事件驱动视频生成框架",
+      "canonical_evidence": "用于时间一致性和交互的事件驱动视频生成框架",
+      "llm_tldr_en": "EVD introduces event-grounded sampling to improve interaction realism and temporal consistency in video generation.",
+      "llm_tldr_cn": "EVD引入了事件驱动采样，以提高视频生成中的交互真实感和时间一致性。",
+      "llm_tldr": "EVD引入了事件驱动采样，以提高视频生成中的交互真实感和时间一致性。",
+      "llm_tags": [
+        "query:rl-vg:composite"
+      ],
+      "matched_query_tag": "query:rl-vg:composite",
+      "matched_query_text": "Papers central to 查找强化学习与视频生成相关的学术论文, especially work that connects or combines: Reinforcement learning techniques for video generation; Deep learning models for video generation and synthesis; Reward model design for video quality and consistency; Policy gradient methods applied to video synthesis; Text-to-video generation using reinforcement learning; Generative models for high-fidelity video synthesis; State of the art reinforcement learning methods for video generation; Optimizing video diffusion models using reward based learning; Improving video temporal coherence with reinforcement learning policies; Applications of RLHF in text to video synthesis models.",
+      "matched_requirement_id": "req-composite-rl-vg",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.13402v2",
+      "title": "Event-Driven Video Generation",
+      "abstract": "State-of-the-art text-to-video models often look realistic frame-by-frame yet fail on simple interactions: motion starts before contact, actions are not realized, objects drift after placement, and support relations break. We argue this stems from frame-first denoising, which updates latent state everywhere at every step without an explicit notion of when and where an interaction is active. We introduce Event-Driven Video Generation (EVD), a minimal DiT-compatible framework that makes sampling event-grounded: a lightweight event head predicts token-aligned event activity, event-grounded losses couple activity to state change during training, and event-gated sampling (with hysteresis and early-step scheduling) suppresses spurious updates while concentrating updates during interactions. On EVD-Bench, EVD consistently improves human preference and VBench dynamics, substantially reducing failure modes in state persistence, spatial accuracy, support relations, and contact stability without sacrificing appearance. These results indicate that explicit event grounding is a practical abstraction for reducing interaction hallucinations in video generation.",
+      "authors": [
+        "Chika Maduabuchi"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.LG"
+      ],
+      "published": "2026-03-12T00:16:56+00:00",
+      "link": "https://arxiv.org/pdf/2603.13402v2",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Event-driven video generation with event-grounded losses for better consistency",
+      "llm_evidence_cn": "事件驱动的视频生成，利用事件接地损失提高一致性",
+      "llm_evidence": "事件驱动的视频生成，利用事件接地损失提高一致性",
+      "canonical_evidence": "事件驱动的视频生成，利用事件接地损失提高一致性",
+      "llm_tldr_en": "Improves video interaction realism by introducing event-driven denoising and grounded losses in DiT models.",
+      "llm_tldr_cn": "引入事件驱动框架 EVD，通过事件接地损失和采样策略提升视频生成的物理交互真实性。",
+      "llm_tldr": "引入事件驱动框架 EVD，通过事件接地损失和采样策略提升视频生成的物理交互真实性。",
+      "llm_tags": [
+        "query:rl-vg:composite"
+      ],
+      "matched_query_tag": "query:rl-vg:composite",
+      "matched_query_text": "Papers central to 查找强化学习与视频生成相关的学术论文, especially work that connects or combines: Reinforcement learning techniques for video generation; Deep learning models for video generation and synthesis; Reward model design for video quality and consistency; Policy gradient methods applied to video synthesis; Text-to-video generation using reinforcement learning; Generative models for high-fidelity video synthesis; State of the art reinforcement learning methods for video generation; Optimizing video diffusion models using reward based learning; Improving video temporal coherence with reinforcement learning policies; Applications of RLHF in text to video synthesis models.",
+      "matched_requirement_id": "req-composite-rl-vg",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.14320v1",
+      "title": "Early Failure Detection and Intervention in Video Diffusion Models",
+      "abstract": "Text-to-video (T2V) diffusion models have rapidly advanced, yet generations still occasionally fail in practice, such as low text-video alignment or low perceptual quality. Since diffusion sampling is non-deterministic, it is difficult to know during inference whether a generation will succeed or fail, incurring high computational cost due to trial-and-error regeneration. To address this, we propose an early failure detection and diagnostic intervention pipeline for latent T2V diffusion models. For detection, we design a Real-time Inspection (RI) module that converts latents into intermediate video previews, enabling the use of established text-video alignment scorers for inspection in the RGB space. The RI module completes the conversion and inspection process in just 39.2ms. This is highly efficient considering that CogVideoX-5B requires 4.3s per denoising step when generating a 480p, 49-frame video on an NVIDIA A100 GPU. Subsequently, we trigger a hierarchical and early-exit intervention pipeline only when failure is predicted. Experiments on CogVideoX-5B and Wan2.1-1.3B demonstrate consistency gains on VBench with up to 2.64 times less time overhead compared to post-hoc regeneration. Our method also generalizes to a higher-capacity setting, remaining effective on Wan2.1-14B with 720p resolution and 81-frame generation. Furthermore, our pipeline is plug-and-play and orthogonal to existing techniques, showing seamless compatibility with prompt refinement and sampling guidance methods. We also provide evidence that failure signals emerge early in the denoising process and are detectable within intermediate video previews using standard vision-language evaluators.",
+      "authors": [
+        "Kwon Byung-Ki",
+        "Sohwi Lim",
+        "Nam Hyeon-Woo",
+        "Moon Ye-Bin",
+        "Tae-Hyun Oh"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-15T10:32:41+00:00",
+      "link": "https://arxiv.org/pdf/2603.14320v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "early failure detection and intervention for video diffusion models",
+      "llm_evidence_cn": "视频扩散模型的早期故障检测与干预",
+      "llm_evidence": "视频扩散模型的早期故障检测与干预",
+      "canonical_evidence": "视频扩散模型的早期故障检测与干预",
+      "llm_tldr_en": "Develops a pipeline for real-time inspection and intervention in text-to-video diffusion models.",
+      "llm_tldr_cn": "开发了一个用于文本到视频扩散模型实时检查和干预的流水线。",
+      "llm_tldr": "开发了一个用于文本到视频扩散模型实时检查和干预的流水线。",
+      "llm_tags": [
+        "query:rl-vg:composite"
+      ],
+      "matched_query_tag": "query:rl-vg:composite",
+      "matched_query_text": "Papers central to 查找强化学习与视频生成相关的学术论文, especially work that connects or combines: Reinforcement learning techniques for video generation; Deep learning models for video generation and synthesis; Reward model design for video quality and consistency; Policy gradient methods applied to video synthesis; Text-to-video generation using reinforcement learning; Generative models for high-fidelity video synthesis; State of the art reinforcement learning methods for video generation; Optimizing video diffusion models using reward based learning; Improving video temporal coherence with reinforcement learning policies; Applications of RLHF in text to video synthesis models.",
+      "matched_requirement_id": "req-composite-rl-vg",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.15614v1",
+      "title": "Tri-Prompting: Video Diffusion with Unified Control over Scene, Subject, and Motion",
+      "abstract": "Recent video diffusion models have made remarkable strides in visual quality, yet precise, fine-grained control remains a key bottleneck that limits practical customizability for content creation. For AI video creators, three forms of control are crucial: (i) scene composition, (ii) multi-view consistent subject customization, and (iii) camera-pose or object-motion adjustment. Existing methods typically handle these dimensions in isolation, with limited support for multi-view subject synthesis and identity preservation under arbitrary pose changes. This lack of a unified architecture makes it difficult to support versatile, jointly controllable video. We introduce Tri-Prompting, a unified framework and two-stage training paradigm that integrates scene composition, multi-view subject consistency, and motion control. Our approach leverages a dual-condition motion module driven by 3D tracking points for background scenes and downsampled RGB cues for foreground subjects. To ensure a balance between controllability and visual realism, we further propose an inference ControlNet scale schedule. Tri-Prompting supports novel workflows, including 3D-aware subject insertion into any scenes and manipulation of existing subjects in an image. Experimental results demonstrate that Tri-Prompting significantly outperforms specialized baselines such as Phantom and DaS in multi-view subject identity, 3D consistency, and motion accuracy.",
+      "authors": [
+        "Zhenghong Zhou",
+        "Xiaohang Zhan",
+        "Zhiqin Chen",
+        "Soo Ye Kim",
+        "Nanxuan Zhao",
+        "Haitian Zheng",
+        "Qing Liu",
+        "He Zhang",
+        "Zhe Lin",
+        "Yuqian Zhou",
+        "Jiebo Luo"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-16T17:59:05+00:00",
+      "link": "https://arxiv.org/pdf/2603.15614v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "unified control over scene, subject, and motion in video diffusion",
+      "llm_evidence_cn": "视频扩散中场景、主体和动作的统一控制",
+      "llm_evidence": "视频扩散中场景、主体和动作的统一控制",
+      "canonical_evidence": "视频扩散中场景、主体和动作的统一控制",
+      "llm_tldr_en": "A unified framework for fine-grained control of scene composition, subject identity, and motion in video synthesis.",
+      "llm_tldr_cn": "一个统一的框架，用于在视频合成中对场景构图、主体身份和动作进行细粒度控制。",
+      "llm_tldr": "一个统一的框架，用于在视频合成中对场景构图、主体身份和动作进行细粒度控制。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Generative models for high-fidelity video synthesis",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.17117v1",
+      "title": "MosaicMem: Hybrid Spatial Memory for Controllable Video World Models",
+      "abstract": "Video diffusion models are moving beyond short, plausible clips toward world simulators that must remain consistent under camera motion, revisits, and intervention. Yet spatial memory remains a key bottleneck: explicit 3D structures can improve reprojection-based consistency but struggle to depict moving objects, while implicit memory often produces inaccurate camera motion even with correct poses. We propose Mosaic Memory (MosaicMem), a hybrid spatial memory that lifts patches into 3D for reliable localization and targeted retrieval, while exploiting the model's native conditioning to preserve prompt-following generation. MosaicMem composes spatially aligned patches in the queried view via a patch-and-compose interface, preserving what should persist while allowing the model to inpaint what should evolve. With PRoPE camera conditioning and two new memory alignment methods, experiments show improved pose adherence compared to implicit memory and stronger dynamic modeling than explicit baselines. MosaicMem further enables minute-level navigation, memory-based scene editing, and autoregressive rollout.",
+      "authors": [
+        "Wei Yu",
+        "Runjia Qian",
+        "Yumeng Li",
+        "Liquan Wang",
+        "Songheng Yin",
+        "Sri Siddarth Chakaravarthy P",
+        "Dennis Anthony",
+        "Yang Ye",
+        "Yidi Li",
+        "Weiwei Wan",
+        "Animesh Garg"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-17T20:19:44+00:00",
+      "link": "https://arxiv.org/pdf/2603.17117v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Controllable video world models using diffusion and spatial memory",
+      "llm_evidence_cn": "使用扩散和空间记忆的可控视频世界模型",
+      "llm_evidence": "使用扩散和空间记忆的可控视频世界模型",
+      "canonical_evidence": "使用扩散和空间记忆的可控视频世界模型",
+      "llm_tldr_en": "MosaicMem uses hybrid spatial memory to improve consistency and controllability in video diffusion world models.",
+      "llm_tldr_cn": "MosaicMem利用混合空间记忆提高了视频扩散世界模型的一致性和可控性。",
+      "llm_tldr": "MosaicMem利用混合空间记忆提高了视频扩散世界模型的一致性和可控性。",
+      "llm_tags": [
+        "query:rl-vg:composite"
+      ],
+      "matched_query_tag": "query:rl-vg:composite",
+      "matched_query_text": "Papers central to 查找强化学习与视频生成相关的学术论文, especially work that connects or combines: Reinforcement learning techniques for video generation; Deep learning models for video generation and synthesis; Reward model design for video quality and consistency; Policy gradient methods applied to video synthesis; Text-to-video generation using reinforcement learning; Generative models for high-fidelity video synthesis; State of the art reinforcement learning methods for video generation; Optimizing video diffusion models using reward based learning; Improving video temporal coherence with reinforcement learning policies; Applications of RLHF in text to video synthesis models.",
+      "matched_requirement_id": "req-composite-rl-vg",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.17240v1",
+      "title": "GigaWorld-Policy: An Efficient Action-Centered World--Action Model",
+      "abstract": "World-Action Models (WAM) initialized from pre-trained video generation backbones have demonstrated remarkable potential for robot policy learning. However, existing approaches face two critical bottlenecks that hinder performance and deployment. First, jointly reasoning over future visual dynamics and corresponding actions incurs substantial inference overhead. Second, joint modeling often entangles visual and motion representations, making motion prediction accuracy heavily dependent on the quality of future video forecasts. To address these issues, we introduce GigaWorld-Policy, an action-centered WAM that learns 2D pixel-action dynamics while enabling efficient action decoding, with optional video generation. Specifically, we formulate policy training into two coupled components: the model predicts future action sequences conditioned on the current observation, and simultaneously generates future videos conditioned on the predicted actions and the same observation. The policy is supervised by both action prediction and video generation, providing richer learning signals and encouraging physically plausible actions through visual-dynamics constraints. With a causal design that prevents future-video tokens from influencing action tokens, explicit future-video generation is optional at inference time, allowing faster action prediction during deployment. To support this paradigm, we curate a diverse, large-scale robot dataset to pre-train an action-centered video generation model, which is then adapted as the backbone for robot policy learning. Experimental results on real-world robotic platforms show that GigaWorld-Policy runs 9x faster than the leading WAM baseline, Motus, while improving task success rates by 7%. Moreover, compared with pi-0.5, GigaWorld-Policy improves performance by 95% on RoboTwin 2.0.",
+      "authors": [
+        "Angen Ye",
+        "Boyuan Wang",
+        "Chaojun Ni",
+        "Guan Huang",
+        "Guosheng Zhao",
+        "Hao Li",
+        "Hengtao Li",
+        "Jie Li",
+        "Jindi Lv",
+        "Jingyu Liu",
+        "Min Cao",
+        "Peng Li",
+        "Qiuping Deng",
+        "Wenjun Mei",
+        "Xiaofeng Wang",
+        "Xinze Chen",
+        "Xinyu Zhou",
+        "Yang Wang",
+        "Yifan Chang",
+        "Yifan Li",
+        "Yukun Zhou",
+        "Yun Ye",
+        "Zhichao Liu",
+        "Zheng Zhu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-18T00:52:02+00:00",
+      "link": "https://arxiv.org/pdf/2603.17240v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "world-action model with video generation backbones",
+      "llm_evidence_cn": "基于视频生成骨干的世界动作模型",
+      "llm_evidence": "基于视频生成骨干的世界动作模型",
+      "canonical_evidence": "基于视频生成骨干的世界动作模型",
+      "llm_tldr_en": "Develops an action-centered world model from video generation backbones for robot policy learning.",
+      "llm_tldr_cn": "基于视频生成骨干网络开发了以动作为中心的世界模型，用于机器人策略学习。",
+      "llm_tldr": "基于视频生成骨干网络开发了以动作为中心的世界模型，用于机器人策略学习。",
+      "llm_tags": [
+        "query:rl-dm:composite"
+      ],
+      "matched_query_tag": "query:rl-dm:composite",
+      "matched_query_text": "Papers central to 强化学习与扩散模型相关的学术论文检索, especially work that connects or combines: reinforcement learning algorithms and frameworks; generative diffusion models and denoising processes; classifier-guided and classifier-free diffusion for RL; generative models for decision making and planning; trajectory generation using diffusion models; advancements in reinforcement learning using diffusion models; diffusion models for offline reinforcement learning and policy optimization; integrating generative diffusion processes into decision making agents.",
+      "matched_requirement_id": "req-composite-rl-dm",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.17240v2",
+      "title": "GigaWorld-Policy: An Efficient Action-Centered World--Action Model",
+      "abstract": "World-Action Models (WAM) initialized from pre-trained video generation backbones have demonstrated remarkable potential for robot policy learning. However, existing approaches face two critical bottlenecks that hinder performance and deployment. First, jointly reasoning over future visual dynamics and corresponding actions incurs substantial inference overhead. Second, joint modeling often entangles visual and motion representations, making motion prediction accuracy heavily dependent on the quality of future video forecasts. To address these issues, we introduce GigaWorld-Policy, an action-centered WAM that learns 2D pixel-action dynamics while enabling efficient action decoding, with optional video generation. Specifically, we formulate policy training into two coupled components: the model predicts future action sequences conditioned on the current observation, and simultaneously generates future videos conditioned on the predicted actions and the same observation. The policy is supervised by both action prediction and video generation, providing richer learning signals and encouraging physically plausible actions through visual-dynamics constraints. With a causal design that prevents future-video tokens from influencing action tokens, explicit future-video generation is optional at inference time, allowing faster action prediction during deployment. To support this paradigm, we curate a diverse, large-scale robot dataset to pre-train an action-centered video generation model, which is then adapted as the backbone for robot policy learning. Experimental results on real-world robotic platforms show that GigaWorld-Policy runs 9x faster than the leading WAM baseline, Motus, while improving task success rates by 7%. Moreover, compared with pi-0.5, GigaWorld-Policy improves performance by 95% on RoboTwin 2.0.",
+      "authors": [
+        "Angen Ye",
+        "Boyuan Wang",
+        "Chaojun Ni",
+        "Guan Huang",
+        "Guosheng Zhao",
+        "Hao Li",
+        "Hengtao Li",
+        "Jie Li",
+        "Jindi Lv",
+        "Jingyu Liu",
+        "Min Cao",
+        "Peng Li",
+        "Qiuping Deng",
+        "Wenjun Mei",
+        "Xiaofeng Wang",
+        "Xinze Chen",
+        "Xinyu Zhou",
+        "Yang Wang",
+        "Yifan Chang",
+        "Yifan Li",
+        "Yukun Zhou",
+        "Yun Ye",
+        "Zhichao Liu",
+        "Zheng Zhu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-18T00:52:02+00:00",
+      "link": "https://arxiv.org/pdf/2603.17240v2",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "world-action models initialized from video generation backbones",
+      "llm_evidence_cn": "基于视频生成骨干网络初始化的世界动作模型",
+      "llm_evidence": "基于视频生成骨干网络初始化的世界动作模型",
+      "canonical_evidence": "基于视频生成骨干网络初始化的世界动作模型",
+      "llm_tldr_en": "Introduces an action-centered world model using video generation backbones for robot policy learning.",
+      "llm_tldr_cn": "引入一种以动作为中心的世界模型，利用视频生成骨干进行机器人策略学习。",
+      "llm_tldr": "引入一种以动作为中心的世界模型，利用视频生成骨干进行机器人策略学习。",
+      "llm_tags": [
+        "query:rl-dm:composite"
+      ],
+      "matched_query_tag": "query:rl-dm:composite",
+      "matched_query_text": "Papers central to 强化学习与扩散模型相关的学术论文检索, especially work that connects or combines: reinforcement learning algorithms and frameworks; generative diffusion models and denoising processes; classifier-guided and classifier-free diffusion for RL; generative models for decision making and planning; trajectory generation using diffusion models; advancements in reinforcement learning using diffusion models; diffusion models for offline reinforcement learning and policy optimization; integrating generative diffusion processes into decision making agents.",
+      "matched_requirement_id": "req-composite-rl-dm",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.17808v2",
+      "title": "EVA: Aligning Video World Models with Executable Robot Actions via Inverse Dynamics Rewards",
+      "abstract": "Video generative models are increasingly used as world models for robotics, where a model generates a future visual rollout conditioned on the current observation and task instruction, and an inverse dynamics model (IDM) converts the generated frames into executable robot actions. However, current video world models lack explicit executability constraints. As a result, visually coherent rollouts may still violate rigid-body and kinematic consistency, producing unstable or infeasible control commands when decoded by an IDM. We refer to this mismatch between visual generation and physically executable control as the executability gap. While this gap can be mitigated at inference time using techniques such as rejection sampling, such approaches are inefficient due to the high cost of video generation. In this paper, we leverage the executability gap as a training signal and introduce Executable Video Alignment (EVA), a reinforcement-learning post-training framework for aligning video world models. EVA trains an inverse dynamics model on real robot trajectories and repurposes it as a reward model that evaluates generated videos through the action sequences they induce, encouraging smooth motions measured by velocity, acceleration, and jerk while penalizing actions that violate embodiment constraints. Importantly, the reward remains informative even when generated videos contain severe visual artifacts, since such artifacts typically translate into unstable or out-of-bound actions. Experiments on the RoboTwin benchmark and a real bimanual robot show that EVA reduces embodiment-specific artifacts in generated rollouts and improves downstream task execution success.",
+      "authors": [
+        "Ruixiang Wang",
+        "Qingming Liu",
+        "Yueci Deng",
+        "Guiliang Liu",
+        "Zhen Liu",
+        "Kui Jia"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-03-18T15:02:19+00:00",
+      "link": "https://arxiv.org/pdf/2603.17808v2",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Aligning video world models using inverse dynamics rewards for robot actions",
+      "llm_evidence_cn": "使用逆动力学奖励对齐视频世界模型以执行机器人动作",
+      "llm_evidence": "使用逆动力学奖励对齐视频世界模型以执行机器人动作",
+      "canonical_evidence": "使用逆动力学奖励对齐视频世界模型以执行机器人动作",
+      "llm_tldr_en": "EVA aligns video world models with robot actions using inverse dynamics rewards to bridge the executability gap.",
+      "llm_tldr_cn": "EVA通过逆动力学奖励将视频世界模型与机器人动作对齐，解决了生成视频与物理执行之间的差距。",
+      "llm_tldr": "EVA通过逆动力学奖励将视频世界模型与机器人动作对齐，解决了生成视频与物理执行之间的差距。",
+      "llm_tags": [
+        "query:rl-vg:composite"
+      ],
+      "matched_query_tag": "query:rl-vg:composite",
+      "matched_query_text": "Papers central to 查找强化学习与视频生成相关的学术论文, especially work that connects or combines: Reinforcement learning techniques for video generation; Deep learning models for video generation and synthesis; Reward model design for video quality and consistency; Policy gradient methods applied to video synthesis; Text-to-video generation using reinforcement learning; Generative models for high-fidelity video synthesis; State of the art reinforcement learning methods for video generation; Optimizing video diffusion models using reward based learning; Improving video temporal coherence with reinforcement learning policies; Applications of RLHF in text to video synthesis models.",
+      "matched_requirement_id": "req-composite-rl-vg",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.18639v1",
+      "title": "PhysVideo: Physically Plausible Video Generation with Cross-View Geometry Guidance",
+      "abstract": "Recent progress in video generation has led to substantial improvements in visual fidelity, yet ensuring physically consistent motion remains a fundamental challenge. Intuitively, this limitation can be attributed to the fact that real-world object motion unfolds in three-dimensional space, while video observations provide only partial, view-dependent projections of such dynamics. To address these issues, we propose PhysVideo, a two-stage framework that first generates physics-aware orthogonal foreground videos and then synthesizes full videos with background. In the first stage, Phys4View leverages physics-aware attention to capture the influence of physical attributes on motion dynamics, and enhances spatio-temporal consistency by incorporating geometry-enhanced cross-view attention and temporal attention. In the second stage, VideoSyn uses the generated foreground videos as guidance and learns the interactions between foreground dynamics and background context for controllable video synthesis. To support training, we construct PhysMV, a dataset containing 40K scenes, each consisting of four orthogonal viewpoints, resulting in a total of 160K video sequences. Extensive experiments demonstrate that PhysVideo significantly improves physical realism and spatial-temporal coherence over existing video generation methods. Home page: https://anonymous.4open.science/w/Phys4D/.",
+      "authors": [
+        "Cong Wang",
+        "Hanxin Zhu",
+        "Xiao Tang",
+        "Jiayi Luo",
+        "Xin Jin",
+        "Long Chen",
+        "Fei-Yue Wang",
+        "Zhibo Chen"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-19T09:03:06+00:00",
+      "link": "https://arxiv.org/pdf/2603.18639v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Physically plausible video generation with spatio-temporal consistency",
+      "llm_evidence_cn": "具有时空一致性的物理真实视频生成",
+      "llm_evidence": "具有时空一致性的物理真实视频生成",
+      "canonical_evidence": "具有时空一致性的物理真实视频生成",
+      "llm_tldr_en": "PhysVideo uses cross-view geometry and physics-aware attention to ensure physically consistent motion in videos.",
+      "llm_tldr_cn": "PhysVideo利用跨视图几何和物理感知注意力机制，确保视频生成中运动的物理一致性。",
+      "llm_tldr": "PhysVideo利用跨视图几何和物理感知注意力机制，确保视频生成中运动的物理一致性。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Generative models for high-fidelity video synthesis",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.19672v1",
+      "title": "Making Video Models Adhere to User Intent with Minor Adjustments",
+      "abstract": "With the recent drastic advancements in text-to-video diffusion models, controlling their generations has drawn interest. A popular way for control is through bounding boxes or layouts. However, enforcing adherence to these control inputs is still an open problem. In this work, we show that by slightly adjusting user-provided bounding boxes we can improve both the quality of generations and the adherence to the control inputs. This is achieved by simply optimizing the bounding boxes to better align with the internal attention maps of the video diffusion model while carefully balancing the focus on foreground and background. In a sense, we are modifying the bounding boxes to be at places where the model is familiar with. Surprisingly, we find that even with small modifications, the quality of generations can vary significantly. To do so, we propose a smooth mask to make the bounding box position differentiable and an attention-maximization objective that we use to alter the bounding boxes. We conduct thorough experiments, including a user study to validate the effectiveness of our method. Our code is made available on the project webpage to foster future research from the community.",
+      "authors": [
+        "Daniel Ajisafe",
+        "Eric Hedlin",
+        "Helge Rhodin",
+        "Kwang Moo Yi"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-20T06:14:35+00:00",
+      "link": "https://arxiv.org/pdf/2603.19672v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Optimizing bounding boxes to improve adherence to user intent in video diffusion",
+      "llm_evidence_cn": "优化边界框以提高视频扩散模型对用户意图的遵循度",
+      "llm_evidence": "优化边界框以提高视频扩散模型对用户意图的遵循度",
+      "canonical_evidence": "优化边界框以提高视频扩散模型对用户意图的遵循度",
+      "llm_tldr_en": "Improves video generation quality and control adherence by optimizing bounding boxes to align with attention maps.",
+      "llm_tldr_cn": "通过优化边界框以对齐注意力图，提高了视频生成的质量和控制遵循度。",
+      "llm_tldr": "通过优化边界框以对齐注意力图，提高了视频生成的质量和控制遵循度。",
+      "llm_tags": [
+        "query:rl-vg:composite"
+      ],
+      "matched_query_tag": "query:rl-vg:composite",
+      "matched_query_text": "Papers central to 查找强化学习与视频生成相关的学术论文, especially work that connects or combines: Reinforcement learning techniques for video generation; Deep learning models for video generation and synthesis; Reward model design for video quality and consistency; Policy gradient methods applied to video synthesis; Text-to-video generation using reinforcement learning; Generative models for high-fidelity video synthesis; State of the art reinforcement learning methods for video generation; Optimizing video diffusion models using reward based learning; Improving video temporal coherence with reinforcement learning policies; Applications of RLHF in text to video synthesis models.",
+      "matched_requirement_id": "req-composite-rl-vg",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.21366v1",
+      "title": "Relax Forcing: Relaxed KV-Memory for Consistent Long Video Generation",
+      "abstract": "Autoregressive (AR) video diffusion has recently emerged as a promising paradigm for long video generation, enabling causal synthesis beyond the limits of bidirectional models. To address training-inference mismatch, a series of self-forcing strategies have been proposed to improve rollout stability by conditioning the model on its own predictions during training. While these approaches substantially mitigate exposure bias, extending generation to minute-scale horizons remains challenging due to progressive temporal degradation. In this work, we show that this limitation is not primarily caused by insufficient memory, but by how temporal memory is utilised during inference. Through empirical analysis, we find that increasing memory does not consistently improve long-horizon generation, and that the temporal placement of historical context significantly influences motion dynamics while leaving visual quality largely unchanged. These findings suggest that temporal memory should not be treated as a homogeneous buffer. Motivated by this insight, we introduce Relax Forcing, a structured temporal memory mechanism for AR diffusion. Instead of attending to the dense generated history, Relax Forcing decomposes temporal context into three functional roles: Sink for global stability, Tail for short-term continuity, and dynamically selected History for structural motion guidance, and selectively incorporates only the most relevant past information. This design mitigates error accumulation during extrapolation while preserving motion evolution. Experiments on VBench-Long demonstrate that Relax Forcing improves motion dynamics and overall temporal consistency while reducing attention overhead. Our results suggest that structured temporal memory is essential for scalable long video generation, complementing existing forcing-based training strategies.",
+      "authors": [
+        "Zengqun Zhao",
+        "Yanzuo Lu",
+        "Ziquan Liu",
+        "Jifei Song",
+        "Jiankang Deng",
+        "Ioannis Patras"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-22T18:59:24+00:00",
+      "link": "https://arxiv.org/pdf/2603.21366v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "improving temporal coherence and stability in long video generation",
+      "llm_evidence_cn": "提高长视频生成的时间连贯性和稳定性",
+      "llm_evidence": "提高长视频生成的时间连贯性和稳定性",
+      "canonical_evidence": "提高长视频生成的时间连贯性和稳定性",
+      "llm_tldr_en": "Relax Forcing improves long video generation stability by optimizing how temporal memory is used during inference.",
+      "llm_tldr_cn": "Relax Forcing 通过优化推理过程中时间记忆的使用方式，提高了长视频生成的稳定性。",
+      "llm_tldr": "Relax Forcing 通过优化推理过程中时间记忆的使用方式，提高了长视频生成的稳定性。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Improving video temporal coherence with reinforcement learning policies",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.21864v1",
+      "title": "Adaptive Video Distillation: Mitigating Oversaturation and Temporal Collapse in Few-Step Generation",
+      "abstract": "Video generation has recently emerged as a central task in the field of generative AI. However, the substantial computational cost inherent in video synthesis makes model distillation a critical technique for efficient deployment. Despite its significance, there is a scarcity of methods specifically designed for video diffusion models. Prevailing approaches often directly adapt image distillation techniques, which frequently lead to artifacts such as oversaturation, temporal inconsistency, and mode collapse. To address these challenges, we propose a novel distillation framework tailored specifically for video diffusion models. Its core innovations include: (1) an adaptive regression loss that dynamically adjusts spatial supervision weights to prevent artifacts arising from excessive distribution shifts; (2) a temporal regularization loss to counteract temporal collapse, promoting smooth and physically plausible sampling trajectories; and (3) an inference-time frame interpolation strategy that reduces sampling overhead while preserving perceptual quality. Extensive experiments and ablation studies on the VBench and VBench2 benchmarks demonstrate that our method achieves stable few-step video synthesis, significantly enhancing perceptual fidelity and motion realism. It consistently outperforms existing distillation baselines across multiple metrics.",
+      "authors": [
+        "Yuyang You",
+        "Yongzhi Li",
+        "Jiahui Li",
+        "Yadong Mu",
+        "Quan Chen",
+        "Peng Jiang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-23T11:54:33+00:00",
+      "link": "https://arxiv.org/pdf/2603.21864v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Distillation framework for video diffusion models to improve temporal consistency",
+      "llm_evidence_cn": "用于提高视频扩散模型时间一致性的蒸馏框架",
+      "llm_evidence": "用于提高视频扩散模型时间一致性的蒸馏框架",
+      "canonical_evidence": "用于提高视频扩散模型时间一致性的蒸馏框架",
+      "llm_tldr_en": "Proposes an adaptive distillation framework to mitigate artifacts in few-step video generation.",
+      "llm_tldr_cn": "提出一种自适应蒸馏框架，以减少少步视频生成中的伪影。",
+      "llm_tldr": "提出一种自适应蒸馏框架，以减少少步视频生成中的伪影。",
+      "llm_tags": [
+        "query:rl-vg:composite"
+      ],
+      "matched_query_tag": "query:rl-vg:composite",
+      "matched_query_text": "Papers central to 查找强化学习与视频生成相关的学术论文, especially work that connects or combines: Reinforcement learning techniques for video generation; Deep learning models for video generation and synthesis; Reward model design for video quality and consistency; Policy gradient methods applied to video synthesis; Text-to-video generation using reinforcement learning; Generative models for high-fidelity video synthesis; State of the art reinforcement learning methods for video generation; Optimizing video diffusion models using reward based learning; Improving video temporal coherence with reinforcement learning policies; Applications of RLHF in text to video synthesis models.",
+      "matched_requirement_id": "req-composite-rl-vg",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.22892v1",
+      "title": "VLGOR: Visual-Language Knowledge Guided Offline Reinforcement Learning for Generalizable Agents",
+      "abstract": "Combining Large Language Models (LLMs) with Reinforcement Learning (RL) enables agents to interpret language instructions more effectively for task execution. However, LLMs typically lack direct perception of the physical environment, which limits their understanding of environmental dynamics and their ability to generalize to unseen tasks. To address this limitation, we propose Visual-Language Knowledge-Guided Offline Reinforcement Learning (VLGOR), a framework that integrates visual and language knowledge to generate imaginary rollouts, thereby enriching the interaction data. The core premise of VLGOR is to fine-tune a vision-language model to predict future states and actions conditioned on an initial visual observation and high-level instructions, ensuring that the generated rollouts remain temporally coherent and spatially plausible. Furthermore, we employ counterfactual prompts to produce more diverse rollouts for offline RL training, enabling the agent to acquire knowledge that facilitates following language instructions while grounding in environments based on visual cues. Experiments on robotic manipulation benchmarks demonstrate that VLGOR significantly improves performance on unseen tasks requiring novel optimal policies, achieving a success rate over 24% higher than the baseline methods.",
+      "authors": [
+        "Pengsen Liu",
+        "Maosen Zeng",
+        "Nan Tang",
+        "Kaiyuan Li",
+        "Jing-Cheng Pang",
+        "Yunan Liu",
+        "Yang Yu"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-03-24T07:40:30+00:00",
+      "link": "https://arxiv.org/pdf/2603.22892v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Offline reinforcement learning using vision-language models for imaginary rollouts",
+      "llm_evidence_cn": "利用视觉语言模型生成虚构回放的离线强化学习",
+      "llm_evidence": "利用视觉语言模型生成虚构回放的离线强化学习",
+      "canonical_evidence": "利用视觉语言模型生成虚构回放的离线强化学习",
+      "llm_tldr_en": "VLGOR integrates visual and language knowledge to improve generalization in offline reinforcement learning.",
+      "llm_tldr_cn": "VLGOR 框架整合视觉与语言知识，通过生成虚构交互数据提升离线强化学习的泛化能力。",
+      "llm_tldr": "VLGOR 框架整合视觉与语言知识，通过生成虚构交互数据提升离线强化学习的泛化能力。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "diffusion models for offline reinforcement learning and policy optimization",
+      "matched_requirement_id": "req-7",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.22892v1"
+    },
+    {
+      "id": "2603.23232v1",
+      "title": "GEM: Guided Expectation-Maximization for Behavior-Normalized Candidate Action Selection in Offline RL",
+      "abstract": "Offline reinforcement learning (RL) can fit strong value functions from fixed datasets, yet reliable deployment still hinges on the action selection interface used to query them. When the dataset induces a branched or multimodal action landscape, unimodal policy extraction can blur competing hypotheses and yield \"in-between\" actions that are weakly supported by data, making decisions brittle even with a strong critic. We introduce GEM (Guided Expectation-Maximization), an analytical framework that makes action selection both multimodal and explicitly controllable. GEM trains a Gaussian Mixture Model (GMM) actor via critic-guided, advantage-weighted EM-style updates that preserve distinct components while shifting probability mass toward high-value regions, and learns a tractable GMM behavior model to quantify support. During inference, GEM performs candidate-based selection: it generates a parallel candidate set and reranks actions using a conservative ensemble lower-confidence bound together with behavior-normalized support, where the behavior log-likelihood is standardized within each state's candidate set to yield stable, comparable control across states and candidate budgets. Empirically, GEM is competitive across D4RL benchmarks, and offers a simple inference-time budget knob (candidate count) that trades compute for decision quality without retraining.",
+      "authors": [
+        "Haoyu Wang",
+        "Jingcheng Wang",
+        "Shunyu Wu",
+        "Xinwei Xiao"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-03-24T14:04:43+00:00",
+      "link": "https://arxiv.org/pdf/2603.23232v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "offline RL action selection and multimodal policy extraction",
+      "llm_evidence_cn": "离线强化学习动作选择与多模态策略提取",
+      "llm_evidence": "离线强化学习动作选择与多模态策略提取",
+      "canonical_evidence": "离线强化学习动作选择与多模态策略提取",
+      "llm_tldr_en": "Introduces GEM to improve action selection in offline RL by using a guided GMM for multimodal policy extraction.",
+      "llm_tldr_cn": "提出GEM框架，通过引导式高斯混合模型改进离线强化学习中的多模态动作选择。",
+      "llm_tldr": "提出GEM框架，通过引导式高斯混合模型改进离线强化学习中的多模态动作选择。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.23232v1"
+    },
+    {
+      "id": "2603.23326v1",
+      "title": "ViBe: Ultra-High-Resolution Video Synthesis Born from Pure Images",
+      "abstract": "Transformer-based video diffusion models rely on 3D attention over spatial and temporal tokens, which incurs quadratic time and memory complexity and makes end-to-end training for ultra-high-resolution videos prohibitively expensive. To overcome this bottleneck, we propose a pure image adaptation framework that upgrades a video Diffusion Transformer pre-trained at its native scale to synthesize higher-resolution videos. Unfortunately, naively fine-tuning with high-resolution images alone often introduces noticeable noise due to the image-video modality gap. To address this, we decouple the learning objective to separately handle modality alignment and spatial extrapolation. At the core of our approach is Relay LoRA, a two-stage adaptation strategy. In the first stage, the video diffusion model is adapted to the image domain using low-resolution images to bridge the modality gap. In the second stage, the model is further adapted with high-resolution images to acquire spatial extrapolation capability. During inference, only the high-resolution adaptation is retained to preserve the video generation modality while enabling high-resolution video synthesis. To enhance fine-grained detail synthesis, we further propose a High-Frequency-Awareness-Training-Objective, which explicitly encourages the model to recover high-frequency components from degraded latent representations via a dedicated reconstruction loss. Extensive experiments demonstrate that our method produces ultra-high-resolution videos with rich visual details without requiring any video training data, even outperforming previous state-of-the-art models trained on high-resolution videos by 0.8 on the VBench benchmark. Code will be available at https://github.com/WillWu111/ViBe.",
+      "authors": [
+        "Yunfeng Wu",
+        "Hongying Cheng",
+        "Zihao He",
+        "Songhua Liu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-24T15:27:22+00:00",
+      "link": "https://arxiv.org/pdf/2603.23326v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Ultra-high-resolution video synthesis using Diffusion Transformers",
+      "llm_evidence_cn": "使用扩散Transformer进行超高分辨率视频合成",
+      "llm_evidence": "使用扩散Transformer进行超高分辨率视频合成",
+      "canonical_evidence": "使用扩散Transformer进行超高分辨率视频合成",
+      "llm_tldr_en": "Proposes Relay LoRA to upgrade video Diffusion Transformers for ultra-high-resolution synthesis from images.",
+      "llm_tldr_cn": "提出 Relay LoRA 框架，通过图像适配将预训练视频扩散模型升级为超高分辨率合成模型。",
+      "llm_tldr": "提出 Relay LoRA 框架，通过图像适配将预训练视频扩散模型升级为超高分辨率合成模型。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Generative models for high-fidelity video synthesis",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.23500v1",
+      "title": "UniGRPO: Unified Policy Optimization for Reasoning-Driven Visual Generation",
+      "abstract": "Unified models capable of interleaved generation have emerged as a promising paradigm, with the community increasingly converging on autoregressive modeling for text and flow matching for image generation. To advance this direction, we propose a unified reinforcement learning framework tailored for interleaved generation. We validate our approach on its fundamental unit: a single round of reasoning-driven image generation, where the model first expands the user prompt through reasoning, followed by image synthesis. Formulating this multimodal generation process as a Markov Decision Process with sparse terminal rewards, we introduce UniGRPO to jointly optimize text and image generation policies using GRPO. Adopting a minimalist methodology to avoid over-design, we leverage established training recipes for both modalities by seamlessly integrating standard GRPO for reasoning and FlowGRPO for visual synthesis. To ensure scalability to multi-round interleaved generation, we introduce two critical modifications to the original FlowGRPO: (1) eliminating classifier-free guidance to maintain linear, unbranched rollouts, which is essential for scaling to complex scenarios involving multi-turn interactions and multi-condition generation (e.g., editing); and (2) replacing the standard latent KL penalty with an MSE penalty directly on the velocity fields, providing a more robust and direct regularization signal to mitigate reward hacking effectively. Our experiments demonstrate that this unified training recipe significantly enhances image generation quality through reasoning, providing a robust and scalable baseline for the future post-training of fully interleaved models.",
+      "authors": [
+        "Jie Liu",
+        "Zilyu Ye",
+        "Linxiao Yuan",
+        "Shenhan Zhu",
+        "Yu Gao",
+        "Jie Wu",
+        "Kunchang Li",
+        "Xionghui Wang",
+        "Xiaonan Nie",
+        "Weilin Huang",
+        "Wanli Ouyang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-24T17:59:17+00:00",
+      "link": "https://arxiv.org/pdf/2603.23500v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "unified reinforcement learning framework for visual generation using GRPO",
+      "llm_evidence_cn": "使用GRPO进行视觉生成的统一强化学习框架",
+      "llm_evidence": "使用GRPO进行视觉生成的统一强化学习框架",
+      "canonical_evidence": "使用GRPO进行视觉生成的统一强化学习框架",
+      "llm_tldr_en": "Proposes UniGRPO, a RL framework to jointly optimize reasoning and image synthesis policies.",
+      "llm_tldr_cn": "提出UniGRPO，一个联合优化推理和图像生成策略的强化学习框架。",
+      "llm_tldr": "提出UniGRPO，一个联合优化推理和图像生成策略的强化学习框架。",
+      "llm_tags": [
+        "query:rl-dm:composite"
+      ],
+      "matched_query_tag": "query:rl-dm:composite",
+      "matched_query_text": "Papers central to 强化学习与扩散模型相关的学术论文检索, especially work that connects or combines: reinforcement learning algorithms and frameworks; generative diffusion models and denoising processes; classifier-guided and classifier-free diffusion for RL; generative models for decision making and planning; trajectory generation using diffusion models; advancements in reinforcement learning using diffusion models; diffusion models for offline reinforcement learning and policy optimization; integrating generative diffusion processes into decision making agents.",
+      "matched_requirement_id": "req-composite-rl-dm",
+      "selection_source": "fresh_fetch"
+    }
+  ]
+}

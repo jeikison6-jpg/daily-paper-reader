@@ -1,0 +1,313 @@
+Title: Draft-and-Target Sampling for Video Generation Policy
+
+URL Source: https://arxiv.org/pdf/2603.13438v1
+
+Published Time: Tue, 17 Mar 2026 00:31:30 GMT
+
+Number of Pages: 17
+
+Markdown Content:
+A PREPRINT 
+
+# DRAFT -AND -T ARGET SAMPLING FOR VIDEO GENER -
+
+# ATION POLICY 
+
+Qikang Zhang 
+
+South China Normal University 
+
+20223801087@m.scnu.edu.cn 
+
+Yingjie Lei 
+
+South China Normal University 
+
+chacelei04@gmail.com 
+
+Wei Liu *
+
+University of Western Australia 
+
+wei.liu@uwa.edu.au 
+
+Daochang Liu *
+
+University of Western Australia 
+
+daochang.liu@uwa.edu.au 
+
+# ABSTRACT 
+
+Video generation models have been used as a robot policy to predict the future states of executing a task conditioned on task description and observation. Pre-vious works ignore their high computational cost and long inference time. To address this challenge, we propose Draft-and-Target Sampling, a novel diffusion inference paradigm for video generation policy that is training-free and can im-prove inference efficiency. We introduce a self-play denoising approach by utiliz-ing two complementary denoising trajectories in a single model, draft sampling takes large steps to generate a global trajectory in a fast manner and target sam-pling takes small steps to verify it. To further speedup generation, we introduce token chunking and progressive acceptance strategy to reduce redundant compu-tation. Experiments on three benchmarks show that our method can achieve up to 2.1x speedup and improve the efficiency of current state-of-the-art methods with minimal compromise to the success rate. Our code is available at DTS. 
+
+# 1 INTRODUCTION 
+
+Recent years have seen growing research interests in building an embodied agent with a video gen-eration policy as its core (Du et al., 2023b; Hu et al., 2025). Video generation policy consists of two models, a video generation model and an action prediction model (Ko et al., 2024; Luo & Du, 2025). Unlike Vision Language Action (VLA) models (Kim et al., 2025) that directly map obser-vations and instructions to actions and often overlook the underlying dynamics of the environment, video generation policies naturally model the progression of external states over time, they generate frames that capture the environment dynamics and implicitly contain actionable information on how to reach next visual state. In building video generation policy, research efforts are either focused on action predictor or on video generation. To improve the action predictor, (Ko et al., 2024) reconstruct objects movements from depth maps and optical flows, whereas (Luo & Du, 2025) give attention on constructing a replay buffer to train the action predictor through self-supervised learning. Vision Language Models have been applied to assess and refine the quality of generated video content (Soni et al., 2024), while Vidman (Wen et al., 2024) introduces a dual stage pre-training on a large-scale robotics dataset to improve generalization on the downstream manipulation tasks. Although previous works have achieved remarkable progress, little attention has been paid to the inference efficiency of video generation policies. The need for efficiency is critical in embodied agents, as a robot must be able to react in real time. Inspired by the idea of speculative decoding (SD) (Leviathan et al., 2023), we propose a novel diffusion inference paradigm to reduce long inference time of video generation policy. The success of this technique in LLM decoding is due to its idea to transform the decoding process from memory bandwidth bound to compute bound. However, this does not hold for most visual generation tasks as they generate high-resolution images, commonly 512×512 or higher, so the effect of speculative decoding is very small as they can easily reach the compute bound. On the other hand, in visual generation for robotics, the generated content 1
+
+> arXiv:2603.13438v1 [cs.CV] 13 Mar 2026
+
+A PREPRINT usually has a relatively low resolution, leaving room for better utilizing compute units to accelerate inference. In this research, we introduce Draft-and-Target Sampling (DTS), a novel training-free diffusion in-ference framework for accelerating video generation policy. DTS does not need an independent draft model instead two complementary trajectories from the same model. We consider the denoising tra-jectory as a collaboration between two sampling strategies on the same model. Draft sampling takes large steps along the trajectory to generate a chunk of tokens, which is cheaper but may accumulate more errors. Then target sampling takes small steps to verify and refine this chunk in parallel to make sure the results are reliable. This collaboration lets a single model play both the draft and the target roles, which makes our inference framework simple and training-free. To further speedup inference, we propose token chunking and a progressive acceptance strateg to divide the entire de-noising trajectories into several chunks and allow a wider range of acceptance bound to replace the strict matching of draft and target distribution in the original setting. Most similar to our work, researchers explore SD-like diffusion samplers without training a separate draft model and they con-cluded that SD is not applicable to deterministic samplers (De Bortoli et al.), our work challenged this claim to make it possible. While another work on multi-view image editing also proposed to utilized one trajectories from multi-view image distribution to guild the 2D image generation models to generate high quality multi-view edits (Hadi et al., 2025). In summary, our main contributions are: (1) We propose a novel training-free diffusion inference framework for video generation policy, our work is the first to show that SD is applicable to deter-ministic samplers by utilizing two complementary denoising trajectories. (2) To further accelerate inference, we propose token chunking and progressive acceptance strategy, which divide the infer-ence process into several chunks and progressively relax the acceptance bound, respectively. (3) Our inference framework achieves up to 2.1x speedup across three video generation policy benchmarks. It achieves the state-of-the-art on iThor while resulting in a minimal compromise to success rate on Meta-World and Libero. 
+
+# 2 RELATED WORK 
+
+Video Generation as Robot Planner Video Generation Policy is a new paradigm that has been recently studied in the field of embodied intelligence (Zhou et al., 2024; Hu et al., 2025; Du et al., 2023a; Wu et al.; Black et al.; Guo et al., 2024; Chen et al., 2024; Ye et al., 2024; Bharadhwaj et al., 2024; Cheang et al., 2024). Unipi (Du et al., 2023b) was the first to formulate the video generation as policy in sequential decision making problem. It used a video generation model to synthesize videos about furture state and an inverse dynamics model to extract actions from generated videos. Building upon this, AVDC (Ko et al., 2024) designed a light-weighted video model and used optical flow to extract actions from videos. To further improve the performance of action model, GCP (Luo & Du, 2025) proposed to learn a diffusion policy to ground video models to action in an unsupervised manner. Another work, VideoAgent (Soni et al., 2024) utilized a vision language model to refine the visual trajectory, this approach achieved marginal improvement with significant time cost, which is unexpected in robot tasks. Our method used the video model itself to refine the visual trajectory in parallel, making the inference faster. 
+
+Speculative Decoding Speculative decoding is an inference paradigm that has been widely explored in large language models (Chen et al., 2023; Leviathan et al., 2023; Xia et al., 2022; 2024; Christo-pher et al., 2024; Spector & Re, 2023), which can speedup decoding by increasing the computation intensity to reach the GPU compute bound. Recent works have imporved this paradigm by scaling the paraller computation to further speedup generation (Cai et al., 2024; Li et al., 2024; Gao et al., 2025; Miao et al., 2023). Speculative decoding has also been explored in the domain of visual gen-eration (De Bortoli et al.; Hu et al.), where some work show how to better relax the acceptance in order to solve the problem of token selection ambiguity (Jang et al., 2025; Park et al., 2025). Similar to our work, Spec-VLA (Wang et al., 2025) studied speculative decoding on embodied intelligence, while they focused on vision language action models which takes action as tokens. And our work focused on diffusion-based video generation policy, in which the tokens are denoising trajectory. Moreover, Spec-VLA utilized the OpenVLA (Kim et al., 2025) as the target model and trained a draft model from scratch, while we made two complementary denoising trajectories within a single 2A PREPRINT Observation           
+
+> Draft Sampling
+> Instruction
+> Draft Token
+> Target Token
+> x𝑇 x𝑇 −𝑛 1x𝑇 −2𝑛 1x0
+> x𝑇 x𝑇 −𝑛 1
+> തx𝑇 −𝑛 1തx𝑇 −2𝑛 1തx0
+> Target Samplin g
+> x𝑛 1
+> Handle -press
+> Action Model
+> Synthesized Visual Plans
+> Control Actions
+> ∆𝑝𝑜𝑠 𝑥 ,∆𝑝𝑜𝑠 𝑦
+> ∆𝑟𝑜𝑡𝑎 …
+> Tokenizer
+> Sequence
+> Parallel
+> or
+
+Figure 1: The Draft-and-Target Sampling Framework. In the first stage of DTS, the draft sam-pling generates a coarse denoising trajectory by taking large steps in a sequence manner, which provides a fast approximation of the denoising trajectory. Then the target sampling refines this tra-jectory in parallel by taking small steps, which leads to a more precise denoising trajectory. Finally, in verification stage we compare these two trajectories to determine if tokens are accepted or re-jected. If a token is rejected, the draft sampling restarts from this position with its corresponding target token as the new starting point. model to play a role of draft and target model, which avoids training a draft model and makes our method training-free. 
+
+# 3 PRELIMINARIES 
+
+In this section, we first provide the formulation of video generation policy in Section 3.1. Then, in Section 3.2 we introduce the basic design of speculative decoding. 3.1 FORMULATION OF VIDEO GENERATION POLICY 
+
+Video Generation Policy is a type of embodied agent policy P , equipped with a video generation model at its core, conditioned on the observation o and task instruction i. Compared to vision language action models a = P (o, i ) which directly map the observation o and instruction i to an action a, the video generation policy adopts a two-stage design. First, a video generation model generates a sequence of frames V = {v1, v 2, . . . , v T } that represent sub-goals of executing the task, given the inputs o and i. Then, an action prediction model extracts a sequence of actions 
+
+A = {a1, a 2, . . . , a T } that shows the agent how to complete the task from V .3.2 SPECULATIVE DECODING FRAMEWORK 
+
+Speculative Decoding is a simple yet effective framework that was first proposed to accelerate LLM inference (Leviathan et al., 2023). In the draft sampling stage, it utilized a smaller and faster draft model Dm to generates multiple draft tokens D = {x1, x2, . . . , xn} in a fast manner. In the verifi-cation stage, a target model Tm computes the target distribution G = {¯x1, ¯x2, . . . , ¯xn} of these draft tokens in parallel. Then we decide to accept or reject each draft token based on corresponding target token. Finally, during the resampling stage, the draft model resumes sampling from the first rejected token and continues until all tokens are accepted. 3A PREPRINT 
+
+# 4 METHOD 
+
+4.1 DRAFT -AND -T ARGET SAMPLING INFERENCE FRAMEWORK 
+
+A core idea behind original SD lies in using a draft model that can generate multiple tokens much faster than the target model, and a key challenge is how to design and train such a cheaper model that can balance generation speed and quality, which in practice requires empirical works in designing model architecture and a huge amount of GPU hours to train such a model. For diffusion-based video generation models, we know that these models can generate high-quality denoising trajectories by running hundreds of continues denoising steps, and the DDIM solver can skip steps to significantly reduce inference time but struggle to generate reliably good trajectories when they jump too far because the issue of error accumulation. The interaction between the draft model and the target model in speculative decoding inspired us to utilize these two complementary trajectories — a coarse but fast trajectory and a fine but slow trajectory — in a single inference framework. In our DTS inference framework, unlike most prior work that relies on independent draft and target models, we do not separate the draft model and target model, instead we separate the sampling strategy into two complementary roles. It means DTS only uses a single video generation model, while two sampling strategies: draft sampling and target sampling. The draft sampling stage is the same as the process of using a large-step DDIM solver. We start from a standard Gaussian noise ϵ ∼ N (0 , I ), the video generation model receives the visual feature from the visual encoder and the task feature from the tokenizer, together with the noise scheduling parameters αt. Instead of following the original fine-grained schedule, we take large steps of size n1 to quickly generate the denoising trajectory. This produces a sequence of draft tokens D that approximate the denoising trajectory in a coarse but fast way. Formally, the diffusion iteration is given as: 
+
+xt−n = √αt−n
+
+ xt − √1 − αt · ϵθ (x t, t )
+
+√αt
+
+
+
++ p1 − αt−n · ϵθ (x t, t ) (1) We define two different step sizes, where the draft trajectory uses a large step n1 and the target trajectory uses a smaller step n2:
+
+n2 < n 1 (2) The draft trajectory D is then sampled with step size n1:
+
+{xT −kn 1 }, k = 0 , 1, 2, ..., T /n 1 − 1 (3) where D = {xT , xT −n1 , xT −2n1 , . . . , x0} denotes the draft trajectory obtained by skipping n1 steps at a time and the first token xT is the same as the initial noise ϵ. T is the maximum time step in the diffusion schedule. These draft tokens can be seen as a fast approximation of the full denoising trajectory and will later be verified in the target sampling stage. During the target sampling stage, we first reuse the same initial Gaussian noise ϵ as xT at the be-ginning of the draft sequence D, while removing the final noiseless token x0. Then, the updated sequence D, together with the visual feature and the task feature, is fed into the video model. The model revisits each position of the draft sequence in a progressive manner parallelly: for each to-ken in D, the video model refines it with a small step size n2 along the denoising trajectory until it reaches the same timestep as its corresponding draft token, guided by the corresponding noise scheduling parameters αt. This process refines each draft token into a more accurate estimate of its true denoised state. There are T /n 1 sequences processed in parallel, for each draft token xT −kn 1 ,we refine it using smaller steps of size n2 to obtain the target trajectory: 
+
+{¯x(T −kn 1)−jn 2 }, j = 0 , 1, 2, ..., n 1/n 2 and ¯ xT −kn 1 = x T −kn 1 (4) Specifically, each draft token xT −kn 1 corresponds to one target sequence, which can be written as: 
+
+Gk = {x(T −kn 1), ¯x(T −kn 1)−n2 , ¯x(T −kn 1)−2n2 , . . . , ¯x(T −(k+1) n1)} (5) Finally, we get Gall = {¯xT −n1 , ¯xT −2n1 , . . . , ¯x0} which denotes the final target trajectory, and each target token is a better approximation of the corresponding draft token in D. For instance, ¯xT −n1 is a better approximation than xT −n1 , ¯x0 is a better approximation than x0.Accept xt if xt = ¯ xt , else Resample xt (6) 4A PREPRINT By iteratively applying small step sampling, the target tokens accumulate less error compared with the draft tokens. Then, in the verification phase 6, we compute the distance between each pair of corresponding tokens in D and G and follow the strict matching to decide whether to accept or reject them. If the distance between two tokens is not 0 then the draft token is rejected, the draft sampling restarts from the position of the first rejected token using the corresponding target token as a new starting point. For instance, if a comparison between ¯xT −2n1 and xT −2n1 leads to rejection, it indicates that the sequence sampled starting from xT −2n1 (and any subsequent tokens derived from it) has an unacceptable error. Then the algorithm returns to using ¯xT −2n1 as the starting point for sampling because ¯xT −2n1 was derived from the accepted token xT −n1 . If all tokens are accepted, we directly return the last target token. 4.2 CHALLENGES OF DIRECT APPLICATION 
+
+When we directly apply the DTS inference framework to accelerate video generation policy, we observe two main problems: one is about compute bottleneck and error accumulation, the other is about high complexity of tokens. 
+
+Compute Bottleneck and Error Accumulation The implementation of target sampling relies on parallel computation of the GPU. As explained in Sec 4.1, the target sampling process the sequence 
+
+D as a batch, and similar to Medusa (Cai et al., 2024) , the target sampling improves the compute-to-memory ratio by scaling the batch size of each forward pass. However, since GPU has its compute bound, if we keep scaling the batch size of a single forward pass, we reach the compute bound quickly, which makes the total forward time longer. At the same time, as D is generated by draft sampling with large step sizes, small errors gradually accumulate as the denoising process goes on, and this problem of error accumulation leads to a fact that if the draft sampling produces a long sequence of draft tokens, then the target sampling has to run the same batch size of tokens to obtain a sequence of more accurate target tokens. However, many tokens in the later positions are often rejected in the verification phase. This means time and computation is wasted and unnecessary. Without Chunking 
+
+> Sequential Execution
+> Concurrent Execution
+> 𝒟 0
+> With Chunking
+> Sequential Execution
+> Concurrent Execution  𝒟 0
+> …
+> 𝒢 0
+> 0
+> 𝒢 1
+> 0
+> 𝒢 2
+> 0
+> 𝒢 𝐾
+> 0
+> 𝒟 1
+> …
+> 𝒢 0
+> 1
+> 𝒢 1
+> 1
+> 𝒢 2
+> 1
+> 𝒢 𝐾
+> 1
+> …
+> …
+> 𝒢 0
+> 𝒢 0
+> 𝒢 0
+> 𝒢 0
+
+Figure 2: Token Chunking. In naive DTS, the draft sampling generates a long sequence in one pass, while token chunking divides the draft tra-jectory into smaller chunks that are processed chunk by chunk. 
+
+High Complexity of Tokens Similar to the problem described in Spec-VLA (Wang et al., 2025), unlike LLMs which work on words, VLA models work on action tokens, they must generate robot control actions by understanding both the external environment and natural lan-guage instructions. These action tokens are nat-urally more complex and diverse than words. As for video generation policy, the tokens we work on are the denoising trajectory, the com-plexity and diversity of these tokens are even higher, the video model must understand the temporal and spatial motion patterns of the ob-jects, the robot, and the environment dynamics, and then generate the visual trajectories of the objects and the robot. Moreover, the original speculative decoding setup requires the draft and target tokens to match strictly in order to guarantee the same distribution. Since the to-ken we work on is denoising trajectory, achiev-ing such strict alignment between two denoising trajectories is almost impossible, and it leads to frequent resampling and significant time consumption. 4.3 TOKEN CHUNKING AND PROGRESSIVE ACCEPTANCE STRATEGY 
+
+To address these challenges, we design two strategies to make DTS inference framework more efficient for video generation policy. 
+
+Token Chunking We first introduce a token chunking strategy to solve the problem of compute bottleneck and error accumulation. As explained in Sec 4.2, this problem is caused by too many draft tokens being sampled at one time during the draft sampling stage. We therefore divide the 5A PREPRINT process into smaller chunks instead of letting the draft sampling stage produce a long sequence of draft tokens in one step. Each chunk is verified with corresponding target tokens before moving to the next, which reduces the time that later tokens are rejected due to errors propagated from earlier steps. This design not only reduce time and computational costs but also can reduce accumulated error like target sampling, as each chunk returns the last target token when it ends, which then serves as the starting point for the next draft sampling stage, rather than the previous draft token. Formally, draft sampling no longer generates the entire sequence D as in Eq. 3 at a time. Instead, it generates tokens in smaller chunks identified by an index i, each of which contains L tokens: 
+
+Di = {xT −(k+iL )n1 }, k = 0 , 1, 2, ..., L − 1, and i = 0 , 1, ..., n 1/L (7) where Di denotes the i-th draft chunk, L is the chunk length, and the entire sequence D =
+
+{D 0, D1, . . . , Dn1/L }. For each draft chunk Di, the target sampling generates k corresponding sequence in parallel: 
+
+Gik = {¯x(T −(k+iL )n1)−jn 2 }, j = 0 , 1, 2, ..., n 1/n 2 (8) And each draft token xT −(k+iL )n1 corresponds to one target sequence, which can be written as: 
+
+Gik = {xT −(k+iL )n1 , ¯x(T −(k+iL )n1)−n2 , ¯x(T −(k+iL )n1)−2n2 , . . . , ¯xT −(k+1+ iL )n1 } (9) where Gi refines the tokens in Di, and the final sequence Gall = {G 0, G1, . . . , Gn1/L }. The target sampling is responsible for refining the draft tokens within the current chunk Di. And the final target token of each chunk becomes the starting point for the next chunk. We visualize this strategy as shown in the figure 2. 
+
+Progressive Acceptance Strategy We introduce a progressive acceptance strategy to gradually relax the matching threshold instead of the original strict setting. Let’s first explain how to calculate the distance between draft token xt and target token ¯xt. During the verification stage, xt and ¯xt can be consider as two different approximations of the same point t along the denoising trajectory. Their distance is naturally close, so we directly use L2 distance to measure this proximity. We choose L2 here because it is easier to amplify cumulative deviations across dimensions, unlike other methods such as MSE which tend to spread errors evenly over all dimensions and dilute the overall difference. In the progressive acceptance strategy, we allow to accept draft token xt within a wider range instead of the strict match, and this range expands as the chunk moves. Specifically, we introduce the matching threshold π to decide whether to accept or reject a token, and another hyperparameter ∆π
+
+that controls the increment of π at each round. This setup expands the token acceptance region to be a more flexible range instead of the strict match between draft token xt and target token ¯xt.Accept xt if ∥xt − ¯xt∥2 ≤ πk, πk+1 = πk + ∆ π (10) In this way, the algorithm allows for minor deviations in local while keeping the overall trajectory consistent. This flexibility is crucial for efficiency, where perfect alignment between such two gen-erated sequences is almost impossible. By combining token chunking and progressive acceptance strategy, the overall DTS framework achieves a balance between efficiency and accuracy. It avoids token waste without sacrificing the generation quality. 
+
+# 5 EXPERIMENTS 
+
+We evaluate and analyze the proposed DTS framework and two components in this section. In Section 5.1, we first introduce the baselines and benchmarks. In Section 5.2, we compare DTS framework to the baselines across two robot manipulation task and one navigation task on simulator. Finally, in Section 5.3, we conduct the ablation studies to show the importance of token chunking and progressive acceptance strategy. All the experiments are conducted with a Nvidia 4090 GPU. 5.1 EXPERIMENT SETUP 
+
+Baselines We conduct experiments on two state-of-the-art video generation policies and compare their performance across three benchmarks to validate the effect of our DTS framework. The first one is AVDC (Ko et al., 2024), it utilizes a text-conditioned video diffusion model as the robot visual planner to generate a video represented a sequence of sub-goals and optical flow prediction as the 6A PREPRINT action predictor to extract robot control actions from the generated video. Another baseline is GCP (Luo & Du, 2025), it utilizes the same video diffusion model as AVDC, while it trains a diffusion policy as the action predictor which can achieve a better alignment between generated video and actions. 
+
+Benchmarks Following these baselines, we evaluate our DTS framework on three widely used benchmarks, including two robot manipulation tasks (Libero and Meta-World) and one navigation task (iThor). Libero (Liu et al., 2023) is a benchmark for life-long robot learning, which contains diverse household tasks. Meta-World (Yu et al., 2020) is a benchmark which includes a wide range of short-horizon tasks for evaluating the robot policy. iThor (Kolve et al., 2017) is a simulator for visual navigation, in which the embodied agents are asked to navigate to a given object in room scenarios. Since the released pretrained model of GCP only covers Libero, and AVDC releases their pretrained model on Meta-World and iThor, we align our experiment setup with these resources and fix the random seed to make the experiments reproducible. 5.2 OVERALL RESULT 
+
+iThor (Kolve et al., 2017) is a simulator for embodied visual navigation and common sense reason-ing. In our experiments, the agent is randomly started in a room and asked to navigate to a target object, such as a toaster or television. At each step, the agent can move forward, rotate left, rotate right, or declare the episode done. We select 12 objects distributed across four room types, with three tasks per room. A trajectory is considered successful if the agent reaches within 1.5 meters of the target object and has it in view before the maximum number of steps is reached or the agent signals completion. We compare AVDC with and without our DTS inference framework on 12 object navigation tasks across in iThor, which are distributed across four different types of rooms, and we run 20 trials for each task. We follow the original paper setting and reproduce AVDC with the DDIM solver using 100 denoising steps, and we also show AVDC with only 10 denoising steps as a fast but less accurate variant, the resolution of all the generated frames is (64 x 64). For the DTS inference framework, we set the step size n1 to 10 and n2 to 2, the length of a chunk as 6, the matching threshold π as 11, and ∆π as 1.5. In Table 1, we can see that AVDC with 100 denoising steps achieves an overall mean success rate of 27.1% across 4 rooms, with an average runtime of 3.013s. The AVDC with 10 denoising steps tasks only 0.341s to generate a video but drops in performance, reaching only 22.1% overall success rate. Surprisingly, the AVDC equipped with our DTS framework achieves a much better balance between efficiency and success rate, since it reaches an overall success rate of 29.15% with an average runtime of 1.405s, which means a 2.14x speedup over the baseline while also improving the success rate by 2.05%. We evaluate different chunk lengths and matching thresholds to show the robustness of our method, as shown in Section 5.3. We record the total number of functino evaluations (NFEs) during the policy rollout, as the agent may occasionally get stuck, resample and result in different NFEs. However, since the draft and target models have different costs per function call, we consider the sampling time/speedup is a more faithful metric. We can see that our method used four times less NFE than DDIM-100 and achieved a higher SR. We also report the results of two baselines used in the original paper (Ko et al., 2024). BC-Scratch is a multi-task behavioral cloning method that uses a ResNet-18 (He et al., 2016) trained from scratch as its visual encoder. BC-R3M uses the R3M model (Nair et al., 2022), which was pre-trained on robot manipulation tasks and it performs worse on navigation tasks. 
+
+Meta-World (Yu et al., 2020) provides a set of short-horizon robot manipulation tasks performed by a Sawyer robotic arm. In our study, we evaluate our method on 11 tasks with three fixed camera angles. During evaluation, the starting positions of the robot and the objects are randomized accord-ing to the seed. A rollout is considered successful if the agent reaches a position very close to the goal state. We run 25 seeds per camera angle and aggregate the results to compare baselines and our method. Following the original paper setting, we reproduce AVDC with its released model using the DDIM solver and run 100 denoising steps. The resolution of all the generated frames is (128 x 128). For our DTS inference framework, we set the step size n1 to 10 and n2 to 2, the length of a chunk as 10, the matching threshold π as 11, and ∆π as 1.5, which means that in the first run, the draft 7A PREPRINT Table 1: Comparison results on 4 types of rooms in iThor. We reproduce AVDC with 100 denois-ing steps as in the original paper as our baseline, while AVDC-10 is a faster variant that uses only 10 denoising steps. * denotes the reported results from the original paper. 
+
+Method Kitchen Living Room Bedroom Bathroom Overall Speedup NFEs 
+
+BC-Scratch* 1.7 3.3 1.7 1.7 2.1 / /BC-R3M* 0.0 0.0 1.7 0.0 0.4 / /AVDC-100* 26.7 23.3 38.3 36.7 31.3 1x 84800 
+
+AVDC-100 30 16.7 35 26.7 27.1 1x 84800 
+
+AVDC-50 21.7 21.7 25 20 22.1 2.0154x 45950 
+
+AVDC-25 26.7 21.7 23.3 18.3 22.5 3.9593x 22525 
+
+AVDC-10 25 11.7 30 21.7 22.1 8.8358x 9380 
+
++ Ours 30 25 38.3 23.3 29.15 2.1445x 19896 Start Obs (b) DDIM-100  
+
+> (c) Ours
+> (a) DDIM-10 (d)
+> (e)
+
+Figure 3: Meta-World: faucet-close. In this task, the agent is required to rotate the faucet handle and close it. As shown in comparison (d), the trajectory generated by DDIM-10 is markedly differ-ent from DDIM-100, with the faucet being rotated in an entirely different direction. As shown in comparison (e), our trajectory closely align with DDIM-100, both successfully closing the faucet. sampling generates a complete denoising trajectory of ten tokens, then we send these tokens to target sampling for verification, and if any token is rejected then the next draft sampling generates the denoising trajectory starting from the rejection position until the target frame, which is the final noise-free one. Since our DTS framework can be regarded as a refinement to correct the accumulated error of AVDC with the DDIM solver using only ten denoising steps, we also show the results of AVDC with 10 denoising steps in Table 2. For each task, the policy is evaluated with three camera poses and 25 trials. On all 11 tasks, our baseline AVDC with 100 denoising steps takes an average of 6.03s and achieves an overall mean success rate of 42.4%, while AVDC with ten denoising steps takes only 0.806s on average but the success rate drops to 38.3%, which is similar to the original paper. Our DTS inference framework achieves a balance between efficiency and accuracy, since it speeds up AVDC by about 1.3487x with only 1.2% loss in success rate, reaching an overall success rate of 41.2%. Different chunk length can lead to even faster acceleration, as discussed in Sec 5.3. We visualize several tasks from iThor and Meta-World to show the difference among three generated trajectories in Appendix. Here we take the faucet-close task as an example in Figure 3, it can be seen that the pose and rotation of the robotic arm in our trajectory is closer to the DDIM with 100 denoising steps. 
+
+Libero (Liu et al., 2023) is a benchmark for life-long robot learning and contains a diverse set of household manipulation tasks. In our experiments, we follow the original evaluation setup and compare baselines and our method on 8 manipulation tasks. A task is considered successful if the target object reaches a range of predefined goal state. If a success is detected during the rollout, the 8A PREPRINT Table 2: Comparison results on 11 tasks in Meta-World. We reproduce AVDC with 100 denoising steps as in the original paper as our baseline, while AVDC-10 is a faster variant that uses only 10 denoising steps. Following the original setting, we evaluate each task for 25 trials with 3 camera poses, 825 in total. * denotes the reported results from the original paper. 
+
+Task BC-Scratch* BC-R3M* AVDC* AVDC AVDC-10 + Ours 
+
+door-open 21.3 1.3 72 72 69.3 69.3 door-close 36 58.7 89.3 97.3 100 97.3 basketball 0.0 0.0 37.3 33.3 16 26.6 shelf-place 0.0 0.0 18.7 21.3 5.3 4btn-press 34.7 36 60 52 52 45.3 btn-press-top 12 4 24 14.7 4 18.6 faucet-close 18.7 18.7 53.3 49.3 50.6 48 faucet-open 17.3 22.7 24 30.7 32 29.3 handle-press 37.3 28.0 81.3 81.3 79.9 84 hammer 0.0 0.0 8 9.3 24 26.7 assembly 1.3 0.0 6.7 5.3 2.6 4
+
+Overall 16.2 15.4 43.1 42.4 38.3 41.2 
+
+Speedup / / 1x 1x 7.4814x 1.3487x Table 3: Comparison results with different solvers on 8 tasks across two different scenes in Libero. GCP* denotes the baseline method goal-conditioned policy and the reported results are directly taken from the original paper. GCP-P and GCP-I represent reproduced results using DDPM and DDIM samplers with 100 denosing steps, respectively. DDIM10 represents DDIM with 10 denosing steps and DPM represents the DPM-Solver with 10 denosing steps. The success rates are in increments of 5% because each task is evaluated over 20 trials, leading to discrete averages. 
+
+Task GCP* GCP-P GCP-I DDIM10 DPM +Ours 
+
+put-red-mug-left 38.4±15.3 45 30 40 30 30 put-red-mug-right 40.8±7.8 40 40 25 40 40 
+
+put-white-mug-left 51.2±3.9 55 40 50 45 70 
+
+put-Y/W-mug-right 38.4±8.6 30 40 40 35 25 put-choc-left 70.4±12.8 70 50 45 50 65 put-choc-right 79.2±3.9 80 70 85 80 90 
+
+put-red-mug-plate 72.8±6.4 65 70 50 55 65 put-white-mug-plate 25.6±11.5 15 15 25 5 15 
+
+Overall 52.1±8.8 50 44.375 45 42.5 50 
+
+Time cost(s) / 10.8335 10.8089 1.002 1.004 6.7578 
+
+Speedup / 1x 1.002x 10.8119x 10.7903X 1.6031x 
+
+episode ends immediately and counts as a successful rollout. Otherwise, if all synthesized video are executed without reaching the goal, the episode is counted as a failure. We compare the performance of GCP with and without our DTS inference framework, as well as the sampling time of the video model.The resolution of all the generated frames is (128 x 128). We run 20 trials for each task to reproduce GCP using DDPM and DDIM solvers with 100 denoising steps and to evaluate our method. In our setting, we set the step size n1 to 10 and n2 to 2, the length of a chunk as 6, the matching threshold π as 10, and ∆π as 1.5, which means that each draft sampling step generates a sequence of 6 draft tokens, and the target sampling verifies a batch of 6 tokens in parallel. For each chunk, the acceptance or rejection of a token is determined by a progressively increasing threshold that starts at 10 and grows by 1.5 with each subsequent round. See Table 3 for the overall results. The experiments show that our DTS inference framework is effective for video generation policy, since it enables GCP to achieve about 1.6x speedup without compromise to the success rate, and we also try different numbers of chunk length to show the robustness to hyperparameters, this can be seen in Section 5.3. 9A PREPRINT Table 4: Ablation on 8 tasks across two different scenes in Libero. We evaulate different chunk length. 
+
+Task Chunk-2 Chunk-4 Chunk-6 Chunk-8 Chunk-10 
+
+put-red-mug-left 25 25 40 30 35 put-red-mug-right 45 45 50 55 40 put-white-mug-left 40 60 60 45 50 put-Y/W-mug-right 25 25 30 30 15 Overall 33.75 38.75 45 40 35 Time cost(s) 5.5872 4.9862 5.4128 5.6836 6.8004 Speedup 1.9393x 2.173x 2.002x 1.9064x 1.5933x 
+
+Task Chunk-2 Chunk-4 Chunk-6 Chunk-8 Chunk-10 
+
+put-choc-left 55 65 70 50 60 put-choc-right 70 60 70 65 80 put-red-mug-plate 60 65 60 55 50 put-white-mug-plate 10 25 10 5 15 Overall 48.75 53.75 52.5 43.75 51.25 Time cost(s) 5.5968 5.0231 5.4558 5.7299 6.8162 Speedup 1.9354x 2.1564x 1.985x 1.8904x 1.5891x 5.3 ABLATION STUDY 
+
+In this section, we conduct ablation studies to analyze the contribution of token chunking and pro-gressive acceptance strategy to the DTS inference framework. We focus on the effect of different chunk lengths and matching thresholds on efficiency and success rate. 
+
+Token Chunking We first analyze the effect of token chunking on the efficiency and success rate. In this experiment, we fix the matching threshold with an increment of 1.5 and compare different chunk lengths on three benchmarks. The ablation results of Libero can be seen in figure 4 and the results on the other benchmarks are summarized in Appendix. From the results, we can observe a clear pattern on efficiency. Smaller chunks, such as 2 or 4 tokens, consistently lead to faster inference, often achieving the highest speedup across all settings. In contrast, larger chunks, such as 8 or 10 tokens, tend to produce lower acceleration, since the target sampling needs to handle longer draft sequences at once, which reduces efficiency. A medium chunk length, especially 6 tokens, consistently shows the best balance across all three benchmarks. In Meta-World, Chunk-6 improves the success rate compared to shorter or longer chunks while still achieving 1.47x speedup. In iThor, Chunk-6 gives a strong gain by reaching about 2.14x acceleration and even higher success rates compared to the baseline. In Libero, Chunk-6 achieves around 2x acceleration and the highest average success among all chunk length. These findings indicate that while chunk length directly controls the efficiency of our DTS framework, its effect on success rate is less predictable. In practice, chunk length 6 appears to be a robust choice, as it avoids severe performance drops while still providing expected speedup. 
+
+Progressive Acceptance Strategy We further study the effect of the Progressive Acceptance Strat-egy, which accepts draft tokens under different matching thresholds with a fix chunk length of 6. The results on Libero are shown in Appendix. From the results we can observe a consistent trend regarding efficiency. Lower thresholds usually result in higher computation cost , because they re-quire the draft tokens and target tokens to have a stricter distribution match, so draft tokens are more likely to be rejected and need to be resampled. On the other hand, higher thresholds allow a more relaxed acceptance , and this directly leads to faster acceleration. However, threshold 8 gives slower speedup than threshold 6. At the same time, when the threshold is set to 10, our method finishes in-ference in only 5.43s, which means that in time-sensitive tasks we can speed up inference by around 2x compared to the baseline while losing only 1.2% in success rate. 10 A PREPRINT 
+
+# 6 CONCLUSIONS 
+
+We introduce a training-free inference framework by utilizing two complementary diffusion trajec-tories. We utilizes a coarse but fast trajectory to approach the denoising path and a fine but slow trajectory to refine it without having to train a separate draft model. In addition, we propose to-ken chunking and progressive acceptance strategy to reduce redundant computation. Experiments show that our method can significantly accelerate the inference with minimal compromise to the per-formance. We believe our method can inspire more efficient inference designs for diffusion-based models and broader robotic applications. 
+
+# REFERENCES 
+
+Homanga Bharadhwaj, Debidatta Dwibedi, Abhinav Gupta, Shubham Tulsiani, Carl Doersch, Ted Xiao, Dhruv Shah, Fei Xia, Dorsa Sadigh, and Sean Kirmani. Gen2act: Human video generation in novel scenarios enables generalizable robot manipulation. arXiv preprint arXiv:2409.16283 ,2024. Kevin Black, Mitsuhiko Nakamoto, Pranav Atreya, Homer Rich Walke, Chelsea Finn, Aviral Ku-mar, and Sergey Levine. Zero-shot robotic manipulation with pre-trained image-editing diffusion models. In The Twelfth International Conference on Learning Representations .Tianle Cai, Yuhong Li, Zhengyang Geng, Hongwu Peng, Jason D Lee, Deming Chen, and Tri Dao. Medusa: Simple llm inference acceleration framework with multiple decoding heads. In 
+
+Proceedings of the 41st International Conference on Machine Learning , pp. 5209–5235, 2024. Chi-Lam Cheang, Guangzeng Chen, Ya Jing, Tao Kong, Hang Li, Yifeng Li, Yuxiao Liu, Hongtao Wu, Jiafeng Xu, Yichu Yang, et al. Gr-2: A generative video-language-action model with web-scale knowledge for robot manipulation. arXiv preprint arXiv:2410.06158 , 2024. Charlie Chen, Sebastian Borgeaud, Geoffrey Irving, Jean-Baptiste Lespiau, Laurent Sifre, and John Jumper. Accelerating large language model decoding with speculative sampling. arXiv preprint arXiv:2302.01318 , 2023. Xiaoyu Chen, Junliang Guo, Tianyu He, Chuheng Zhang, Pushi Zhang, Derek Cathera Yang, Li Zhao, and Jiang Bian. Igor: Image-goal representations are the atomic control units for foun-dation models in embodied ai. arXiv preprint arXiv:2411.00785 , 2024. Jacob K Christopher, Brian R Bartoldson, Tal Ben-Nun, Michael Cardei, Bhavya Kailkhura, and Ferdinando Fioretto. Speculative diffusion decoding: Accelerating language generation through diffusion. arXiv preprint arXiv:2408.05636 , 2024. Valentin De Bortoli, Alexandre Galashov, Arthur Gretton, and Arnaud Doucet. Accelerated dif-fusion models via speculative sampling. In Forty-second International Conference on Machine Learning .Yilun Du, Mengjiao Yang, Pete Florence, Fei Xia, Ayzaan Wahid, Brian Ichter, Pierre Sermanet, Tianhe Yu, Pieter Abbeel, Joshua B. Tenenbaum, Leslie Kaelbling, Andy Zeng, and Jonathan Tompson. Video language planning, 2023a. Yilun Du, Sherry Yang, Bo Dai, Hanjun Dai, Ofir Nachum, Josh Tenenbaum, Dale Schuurmans, and Pieter Abbeel. Learning universal policies via text-guided video generation. Advances in neural information processing systems , 36:9156–9172, 2023b. Xiangxiang Gao, Weisheng Xie, Yiwei Xiang, and Feng Ji. Falcon: Faster and parallel inference of large language models through enhanced semi-autoregressive drafting and custom-designed decoding tree. In Proceedings of the AAAI Conference on Artificial Intelligence , volume 39, pp. 23933–23941, 2025. Yanjiang Guo, Yucheng Hu, Jianke Zhang, Yen-Jen Wang, Xiaoyu Chen, Chaochao Lu, and Jianyu Chen. Prediction with action: Visual policy learning via joint denoising process. Advances in Neural Information Processing Systems , 37:112386–112410, 2024. 11 A PREPRINT Alzayer Hadi, Zhang Yunzhi, Geng Chen, Huang Jia-Bin, and Wu Jiajun. Coupled diffusion sam-pling for training-free multi-view image editing. arXiv preprint arXiv:2510.14981 , 2025. Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recog-nition. In Proceedings of the IEEE conference on computer vision and pattern recognition , pp. 770–778, 2016. Hengyuan Hu, Aniket Das, Dorsa Sadigh, and Nima Anari. Diffusion models are secretly ex-changeable: Parallelizing ddpms via auto speculation. In Forty-second International Conference on Machine Learning .Yucheng Hu, Yanjiang Guo, Pengchao Wang, Xiaoyu Chen, Yen-Jen Wang, Jianke Zhang, Koushil Sreenath, Chaochao Lu, and Jianyu Chen. Video prediction policy: A generalist robot policy with predictive visual representations. In Forty-second International Conference on Machine Learning ,2025. Doohyuk Jang, Sihwan Park, June Yong Yang, Yeonsung Jung, Jihun Yun, Souvik Kundu, Sungyub Kim, and Eunho Yang. Lantern: Accelerating visual autoregressive models with relaxed specula-tive decoding. In ICLR , 2025. Moo Jin Kim, Karl Pertsch, Siddharth Karamcheti, Ted Xiao, Ashwin Balakrishna, Suraj Nair, Rafael Rafailov, Ethan P Foster, Pannag R Sanketi, Quan Vuong, et al. Openvla: An open-source vision-language-action model. In Conference on Robot Learning , pp. 2679–2713. PMLR, 2025. Po-Chen Ko, Jiayuan Mao, Yilun Du, Shao-Hua Sun, and Joshua B. Tenenbaum. Learning to act from actionless videos through dense correspondences. In The Twelfth International Conference on Learning Representations , 2024. Eric Kolve, Roozbeh Mottaghi, Winson Han, Eli VanderBilt, Luca Weihs, Alvaro Herrasti, Matt Deitke, Kiana Ehsani, Daniel Gordon, Yuke Zhu, et al. Ai2-thor: An interactive 3d environment for visual ai. arXiv preprint arXiv:1712.05474 , 2017. Yaniv Leviathan, Matan Kalman, and Yossi Matias. Fast inference from transformers via speculative decoding. In International Conference on Machine Learning , pp. 19274–19286. PMLR, 2023. Yuhui Li, Fangyun Wei, Chao Zhang, and Hongyang Zhang. Eagle-2: Faster inference of language models with dynamic draft trees. In Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing , pp. 7421–7432, 2024. Bo Liu, Yifeng Zhu, Chongkai Gao, Yihao Feng, Qiang Liu, Yuke Zhu, and Peter Stone. Libero: Benchmarking knowledge transfer for lifelong robot learning. Advances in Neural Information Processing Systems , 36:44776–44791, 2023. Yunhao Luo and Yilun Du. Grounding video models to actions through goal conditioned exploration. In The Thirteenth International Conference on Learning Representations , 2025. Xupeng Miao, Gabriele Oliaro, Zhihao Zhang, Xinhao Cheng, Zeyu Wang, Zhengxin Zhang, Rae Ying Yee Wong, Alan Zhu, Lijie Yang, Xiaoxiang Shi, et al. Specinfer: Accelerating genera-tive large language model serving with tree-based speculative inference and verification. arXiv preprint arXiv:2305.09781 , 2023. Suraj Nair, Aravind Rajeswaran, Vikash Kumar, Chelsea Finn, and Abhinav Gupta. R3m: A univer-sal visual representation for robot manipulation. arXiv preprint arXiv:2203.12601 , 2022. Sihwan Park, Doohyuk Jang, Sungyub Kim, Souvik Kundu, and Eunho Yang. Lantern++: Enhanc-ing relaxed speculative decoding with static tree drafting for visual auto-regressive models. arXiv preprint arXiv:2502.06352 , 2025. Achint Soni, Sreyas Venkataraman, Abhranil Chandra, Sebastian Fischmeister, Percy Liang, Bo Dai, and Sherry Yang. Videoagent: Self-improving video generation. arXiv preprint arXiv:2410.10076 , 2024. Benjamin Spector and Chris Re. Accelerating llm inference with staged speculative decoding. arXiv preprint arXiv:2308.04623 , 2023. 12 A PREPRINT Songsheng Wang, Rucheng Yu, Zhihang Yuan, Chao Yu, Feng Gao, Yu Wang, and Derek F Wong. Spec-vla: Speculative decoding for vision-language-action models with relaxed acceptance. arXiv preprint arXiv:2507.22424 , 2025. Youpeng Wen, Junfan Lin, Yi Zhu, Jianhua Han, Hang Xu, Shen Zhao, and Xiaodan Liang. Vid-man: Exploiting implicit dynamics from video diffusion model for effective robot manipulation. 
+
+Advances in Neural Information Processing Systems , 37:41051–41075, 2024. Hongtao Wu, Ya Jing, Chilam Cheang, Guangzeng Chen, Jiafeng Xu, Xinghang Li, Minghuan Liu, Hang Li, and Tao Kong. Unleashing large-scale video generative pre-training for visual robot manipulation. In The Twelfth International Conference on Learning Representations .Heming Xia, Tao Ge, Peiyi Wang, Si-Qing Chen, Furu Wei, and Zhifang Sui. Speculative de-coding: Exploiting speculative execution for accelerating seq2seq generation. arXiv preprint arXiv:2203.16487 , 2022. Heming Xia, Zhe Yang, Qingxiu Dong, Peiyi Wang, Yongqi Li, Tao Ge, Tianyu Liu, Wenjie Li, and Zhifang Sui. Unlocking efficiency in large language model inference: A comprehensive survey of speculative decoding. arXiv preprint arXiv:2401.07851 , 2024. Seonghyeon Ye, Joel Jang, Byeongguk Jeon, Sejune Joo, Jianwei Yang, Baolin Peng, Ajay Man-dlekar, Reuben Tan, Yu-Wei Chao, Bill Yuchen Lin, et al. Latent action pretraining from videos. 
+
+arXiv preprint arXiv:2410.11758 , 2024. Tianhe Yu, Deirdre Quillen, Zhanpeng He, Ryan Julian, Karol Hausman, Chelsea Finn, and Sergey Levine. Meta-world: A benchmark and evaluation for multi-task and meta reinforcement learning. In Conference on robot learning , pp. 1094–1100. PMLR, 2020. Siyuan Zhou, Yilun Du, Jiaben Chen, Yandong Li, Dit-Yan Yeung, and Chuang Gan. Robodreamer: learning compositional world models for robot imagination. In Proceedings of the 41st Interna-tional Conference on Machine Learning , pp. 61885–61896, 2024. 13 A PREPRINT 
+
+# APPENDIX 
+
+# A ABLATION STUDIES 
+
+A.1 DIFFERENT CHUNK LENGTH 
+
+In this section, we present the ablation results of different chunk lengths on three benchmarks: iThor, Meta-World, and Libero. We set the chunk length to 2, 4, 6, 8, and 10 tokens. Table 5: Ablation on 4 types of rooms in iThor. We evaulate different chunk length. 
+
+Method Kitchen Living Room Bedroom Bathroom Overall Speedup 
+
+Chunk-2 30 20 31.7 18.3 25 1.934x Chunk-4 28.3 16.7 31.7 28.3 26.25 2.1107x Chunk-6 26.7 23.3 38.3 36.7 31.3 2.1445x Chunk-8 28.3 15 26.7 21.7 22.9 2.0655x Chunk-10 16.7 30 33.3 31.7 27.9 1.9935x Table 6: Ablation on 11 tasks in Meta-World. We evaluate different chunk lengths. 
+
+Task Chunk-2 Chunk-4 Chunk-6 Chunk-8 Chunk-10 
+
+door-open 60 68 70.7 64 69.3 door-close 97.3 98.7 97.3 100 97.3 basketball 14.7 13.3 21.3 22.7 26.6 shelf-place 1.3 1.3 1.3 0 4btn-press 53 60 50.7 42.7 45.3 btn-press-top 2.7 8 5.3 0 18.6 faucet-close 44 49.3 45.3 42.7 48 faucet-open 33 32 30.7 32 29.3 handle-press 76 76 84 76 84 hammer 29.3 19.9 21.3 24 26.7 assembly 4 2.7 8 4 4Overall 37.8 39 39.6 37.1 41.2 Speedup 1.5351x 1.5944x 1.475x 1.4747x 1.3487x A.2 DIFFERENT MATCHING THRESHOLD 
+
+In this section, we present the ablation results of different matching thresholds on iThor and Libero. We set the matching threshold to 4, 6, 8, 10, and 12. Table 7: Ablation on 4 types of rooms in iThor. We evaulate different matching threshold. 
+
+Method Kitchen Living Room Bedroom Bathroom Overall Speedup 
+
+Thre-4 21.7 23.3 15 23.3 20.8 1.8074x Thre-6 31.7 20 38.3 23.3 28.3 1.8831x Thre-8 30 20 36.7 21.7 27.1 1.8962x Thre-10 30 23.3 33.3 16.7 25.8 1.8691x Thre-12 25 23.3 33.3 20 25.4 1.889x 14 A PREPRINT Table 8: Ablation on 8 tasks across two different scenes in Libero. We evaulate different matching threshold. 
+
+Task Thre-4 Thre-6 Thre-8 Thre-10 Thre-12 
+
+put-red-mug-left 45 35 30 30 40 put-red-mug-right 45 40 40 40 50 put-white-mug-left 55 35 50 70 60 put-Y/W-mug-right 20 20 20 25 30 put-choc-left 45 70 50 65 70 put-choc-right 60 75 60 90 70 put-red-mug-plate 65 65 70 65 60 put-white-mug-plate 10 20 5 15 10 Overall 43.125 45 40.625 50 48.75 Time cost(s) 9.6118 7.1290 8.2853 6.7578 5.4343 Speedup 1.1271x 1.5196x 1.3076x 1.6031x 1.994x 
+
+# B VISUALIZATION 
+
+In this section, we provide the visualization of different tasks from the Meta-World and iThor bench-mark, comparing three approaches: DDIM-10, DDIM-100, and our method. And we analyze three trajectories and the reasons for failure or success in the caption, more demo can be seen in the supplementary material. Start Obs (b) DDIM-100 
+
+> (c) Ours
+> (a) DDIM-10
+> (d)
+> (e)
+
+Figure 4: Meta-World: Basketball. In this task, the agent needs to place the basketball into the basket. As shown in comparison (d), although the trajectory generated by DDIM-10 is close to DDIM-100, a ghosting artifact appears in the second-to-last frame where an extra fragment of the robotic arm is generated near the true arm, and in the final frame the basketball is positioned slightly off-center relative to the basket, which leads to fail in this task. In contrast, our trajectory closely aligned with DDIM-100, both successfully placing the basketball directly above the center of the basket. 15 A PREPRINT Start Obs (b) DDIM-100  
+
+> (c) Ours
+> (a) DDIM-10 (d)
+> (e)
+
+Figure 5: Meta-World: Button-press-topdown. In this task, the agent is required to press the but-ton from a top-down direction. As shown in comparison (d), although the trajectory generated by DDIM-10 is close to DDIM-100, a ghosting artifact appears in the second-to-last frame where an extra fragment of the robotic arm is generated near the true arm, and in the final framethe button not completely pushed down. In contrast, our trajectory closely aligned with DDIM-100, both success-fully press the button all the way down. Start Obs (b) DDIM-100  
+
+> (c) Ours
+> (a) DDIM-10 (d)
+> (e)
+
+Figure 6: Meta-World: Hammer. In this task, the agent is required to use a hammer to drive a nail into the wooden block. As shown in the figure, the trajectory generated by DDIM-10 is different from DDIM-100, losing track of it in the final two frames and failing to drive the nail into the block. In contrast, our trajectory closely match DDIM-100, with both successfully embedding the nail into the block. 16 A PREPRINT Start Obs (b) DDIM-100  
+
+> (c) Ours
+> (a) DDIM-10 (d)
+> (e)
+
+Figure 7: iTHOR: desk-lamp. In this task, the agent starts in a bedroom and must find the desk lamp among other furniture. As shown in the figure, both DDIM-10 and DDIM-100 fail to locate the desk lamp. In contrast, our method successfully finds the desk lamp and navigates toward it beyond the final frame. 17

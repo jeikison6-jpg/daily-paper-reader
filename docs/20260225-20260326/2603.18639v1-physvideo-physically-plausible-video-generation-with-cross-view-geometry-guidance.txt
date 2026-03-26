@@ -1,0 +1,730 @@
+Title: PhysVideo: Physically Plausible Video Generation with Cross-View Geometry Guidance
+
+URL Source: https://arxiv.org/pdf/2603.18639v1
+
+Published Time: Fri, 20 Mar 2026 01:00:51 GMT
+
+Number of Pages: 19
+
+Markdown Content:
+# PhysVideo: Physically Plausible Video Generation with Cross-View Geometry Guidance 
+
+Cong Wang * 1 2 Hanxin Zhu * 3 Xiao Tang 4 Jiayi Luo 5 Xin Jin 6 Long Chen † 1 Fei-Yue Wang 1
+
+Zhibo Chen † 2 3 
+
+Abstract 
+
+Recent progress in video generation has led to substantial improvements in visual fidelity, yet ensuring physically consistent motion remains a fundamental challenge. Intuitively, this lim-itation can be attributed to the fact that real-world object motion unfolds in three-dimensional space, while video observations provide only partial, view-dependent projections of such dy-namics. To address these issues, we propose 
+
+PhysVideo , a two-stage framework that first generates physics-aware orthogonal foreground videos and then synthesizes full videos with back-ground. In the first stage, Phys4View lever-ages physics-aware attention to capture the in-fluence of physical attributes on motion dynam-ics, and enhances spatio-temporal consistency by incorporating geometry-enhanced cross-view attention and temporal attention. In the sec-ond stage, VideoSyn uses the generated fore-ground videos as guidance and learns the inter-actions between foreground dynamics and back-ground context for controllable video synthesis. To support training, we construct PhysMV , a dataset containing 40K scenes, each consisting of four orthogonal viewpoints, resulting in a to-tal of 160K video sequences. Extensive experi-ments demonstrate that PhysVideo significantly improves physical realism and spatial-temporal coherence over existing video generation methods. Home page: https://anonymous.4open. science/w/Phys4D/ .
+
+> 1
+
+the State Key Laboratory of Multimodal Artificial Intelli-gence Systems, Institute of Automation, Chinese Academy of Sciences. 2Zhongguancun Academy 3School of Information Sci-ence and Technology, University of Science and Technology of China 4College of Automotive and Energy Engineering, Tongji University 5SKLCCSE, School of Computer Science and Engi-neering, Beihang University 6Eastern Institute of Technology. Cor-respondence to: Long Chen <long.chen@ia.ac.cn >, Zhibo Chen 
+
+<chenzhibo@ustc.edu.cn >.
+
+Preprint. March 20, 2026. Textual 
+
+> Prompt
+> Stage 2:
+> Forces
+> Material
+> Textual Prompt
+> Physics Properties
+> (b)
+> (a)
+> (c)
+> Multi -view Motion
+
+Figure 1. Comparison of our method with prior video genera-tion paradigms . (a) Data-driven generative models. (b) Physics-engine-based methods. (c) Our physics-aware two-stage frame-work utilizing foreground multi-view videos. 
+
+1. Introduction 
+
+Recent advances in video generation have significantly ex-panded the capability of visual synthesis models, enabling the generation of high-fidelity and temporally coherent videos conditioned on multimodal inputs such as text and images (Blattmann et al., 2023; Zheng et al., 2024; Kong et al., 2024; Yang et al., 2025b; Wan et al., 2025). In partic-ular, text- and image-conditioned video generation (TI2V) has emerged as a powerful paradigm for synthesizing dy-namic visual content that aligns semantic intent with visual appearance. As perceptual quality improves, these models are increasingly seen as a foundation for interactive content creation, simulation-based reasoning, and embodied AI in dynamic visual environments. Despite this progress, current video generation models still struggle to produce physically plausible and spatially consis-tent motion (Bansal et al., 2024; Meng et al., 2024). While visually convincing at the pixel level, generated videos of-ten violate basic physical principles, exhibiting implausible accelerations, inconsistent object interactions, or motion pat-terns that are insensitive to intrinsic object properties such as mass or elasticity, as shown in Fig. 1.(a). These issues become particularly evident in background-aware synthe-sis, where realistic interactions between moving foreground objects and the surrounding scene are essential. We attribute these limitations to a mismatch between pixel-1
+
+> arXiv:2603.18639v1 [cs.CV] 19 Mar 2026 PhysVideo: Physically Plausible Video Generation with Cross-View Geometry Guidance
+
+space motion modeling and physically constrained motion. Existing video generators typically learn dynamics as ap-pearance transformations across frames, yet physically plau-sible motion and deformation are governed by geometry and material properties and should remain consistent across viewpoints. Explicit 3D representations and physics-based simulation (Xie et al., 2024; Lin et al., 2025a; Liu et al., 2024a) can produce valid trajectories, but they often rely on multi-stage pipelines that are difficult to scale and hard to integrate into end-to-end training, and they can hinder efficient feed-forward generation under flexible multimodal conditioning. Instead, we consider a setting that directly out-puts synchronized multi-view foreground motion (e.g., four viewpoints) conditioned on physical attributes, and evalu-ates physical realism through both input-consistency with the specified physical properties and cross-view consistency, without explicitly outputting 3D structure or performing explicit 3D modeling. In this work, we take a foreground-first view of physically grounded motion: we generate synchronized multi-view foreground dynamics under explicit physical attributes, and then use them to guide final video synthesis. Building on this idea, we propose PhysVideo , a physics-driven frame-work that enables geometry-aware motion modeling for video generation without explicitly reconstructing 3D geom-etry. PhysVideo adopts a two-stage design. In the first stage, 
+
+Phys4View generates multi-view foreground motion condi-tioned on a single image, a textual prompt, and explicit phys-ical attributes. By injecting physical parameters directly into the attention mechanism and conditioning on control videos constructed from foreground masks and multi-view priors, Phys4View incorporates physical and geometric cues into motion generation. We further introduce a geometry-aware cross-view attention module together with temporal atten-tion to enhance cross-view alignment and spatiotemporal co-herence, enabling simultaneous generation of synchronized four-view videos. In the second stage, VideoSyn synthe-sizes background-aware image-to-video results by leverag-ing the generated multi-view motion as guidance, allowing the model to learn data-driven foreground–background in-teractions such as contact, occlusion, and context-consistent motion. To support training of the four-view video gen-eration model, we employ a physics engine together with 3D-GS object representations to construct a physics-driven multi-view dataset, PhysMV, which comprises 10K 3D ob-jects and 40K orthogonal video sets, totaling 160K videos. Our contributions can be summarized as follows: • We introduce PhysVideo , a feed-forward framework for physics-driven, geometry-aware motion modeling in video generation, conditioned on images, text, and explicit physical attributes. • We propose Phys4View , which integrates physics-aware attention with spatiotemporal and cross-view modeling to generate temporally coherent and geometrically consistent multi-view motion. • We develop VideoSyn for background-aware image-to-video synthesis, where multi-view motion guidance enables data-driven learning of realistic foreground– background interactions without explicit physical sim-ulation at inference. • We construct a large-scale physics-oriented multi-view video dataset using a physics engine. We further show that PhysVideo, leveraging multi-view foreground motion generation followed by motion-aware video synthesis, achieves superior physical realism, temporal coherence, and cross-view consistency compared to prior video gen-eration methods. 
+
+2. Related Works 
+
+2.1. Controllable Video Generation 
+
+Video generation models trained on large-scale text–video paired datasets have demonstrated remarkable capabilities in synthesizing high-quality videos (Ho et al., 2022; Blattmann et al., 2023; Kong et al., 2024; Yang et al., 2025b). Previous studies have shown that pretrained models can be addition-ally guided by various control signals, including camera motion (Fu et al., 2024; He et al., 2024), point trajecto-ries (Geng et al., 2025; Gu et al., 2025; Burgert et al., 2025), and anchor-frame videos (Chen et al., 2025b; Romero et al., 2025), enabling more controllable video generation. Mean-while, other research efforts have explored leveraging dif-ferent modalities to guide motion-aware video synthesis. Some approaches (Li et al., 2024; Jin et al., 2025) employ optical flow videos as guidance, using flow maps to charac-terize motion dynamics and subsequently synthesize RGB videos based on them. Other methods (Liang et al., 2024; Lv et al., 2024) use depth videos as conditioning inputs to guide the generation of temporally coherent video sequences. In addition, several text-driven approaches (Xue et al., 2025) attempt to infer more fine-grained descriptions of motion dynamics from textual instructions, thereby enabling more precise control over motion behaviors during video genera-tion. However, these methods generally lack the modeling of physical laws and often produce results that violate basic principles of physical plausibility. To address this limitation, our method generates physics-aware multi-view videos as motion representations and subsequently renders them into plausible video outputs. 
+
+2.2. Physics-grounded Video Generation 
+
+Physics engines typically use the 3D representation of fore-ground objects as input to simulate and generate the 3D state at each time step, based on defined material and motion 2PhysVideo: Physically Plausible Video Generation with Cross-View Geometry Guidance Physics 
+
+> Prompt
+
+Phys4View   
+
+> Image 𝐼
+> Orthogonal Video V!
+
+VideoSyn   
+
+> 𝑉 !
+> 𝑉 "
+> Video "𝑉
+> Figure 2. Pipeline of PhysVideo . PhysVideo generates physically plausible videos via a two-stage pipeline: 1) generating physics-aware orthogonal foreground videos, 2) generating a plausible video with the guidance of foreground motion.
+
+properties (Xie et al., 2024; Chen et al., 2025a). Leveraging the renderable 3D-GS representation (Kerbl et al., 2023), some methods (Xie et al., 2024) propose using the Material Point Method (MPM) solver to update the 3D Gaussian representation at each time step after force-induced motion. However, due to the limitations of MPM, it is only suitable for simulating elastic objects. To address the shortcomings of MPM solvers, some approaches (Feng et al., 2024; Gao et al., 2025) incorporate Position-Based Dynamics (PBD) solvers to simulate fluid motion. The use of physics engines requires additional definition of physical properties, and some methods (Zhao et al., 2025; Mao et al., 2025) pro-pose using MLLMs to estimate properties such as Young’s modulus, Poisson’s ratio, and density. Furthermore, other methods (Huang et al., 2025; Lin et al., 2025b; Zhang et al., 2024) suggest utilizing the prior knowledge of pre-trained video generation models to iteratively optimize the material properties of objects through SDS loss (Poole et al., 2022) after rendering the video. Although physics-engine-based methods ensure physical plausibility, they require manual definition of simulation conditions such as material proper-ties and external forces and depend on high-quality explicit 3D representations, limiting their ability to automatically generate high-quality videos from a single image. 
+
+3. Methodology 
+
+We propose a two-stage generation framework that first pro-duces orthogonal videos with physically grounded motion and subsequently synthesizes visually realistic videos with foreground–background interactions, as shown in Fig. 2. The orthogonal video generation model, Phys4View , is presented in Sec. 3.1 and Sec. 3.2, followed by the video synthesis model, VideoSyn , in Sec. 3.3. 
+
+3.1. Physics Conditioning and Video Prior Fusion 
+
+Phys4View aims to generate temporally coherent and ge-ometrically consistent orthogonal videos conditioned on a single image I, a textual prompt T , and physical attributes 
+
+P . Given an input image containing both foreground and background regions, we first extract a foreground object mask Mf using a semantic segmentation model (Ren et al., 2024b). Based on Mf , we isolate the foreground image 
+
+If and construct a foreground-initialized video Vf by repli-cating If across the temporal dimension. To provide 3D structural priors for subsequent video generation, we further employ a pretrained image-to-3D generation model (Xiang et al., 2025) to obtain a static multi-view video Vm, which serves as geometric guidance. 
+
+Video prior conditioning. We condition video genera-tion on two complementary video priors: a foreground-initialized video Vf and a multi-view structural prior Vm.Both priors are encoded into latent features Hf and Hm,and are adaptively fused via a lightweight gating mecha-nism. Specifically, we predict a gating tensor from their concatenation and compute the fused representation as 
+
+Hv = G ⊙ Hf + (1 − G) ⊙ Hm, (1) where G = Proj( Hf ⊕ Hm) and Proj( ·) is a lightweight 3D convolutional projector. We then inject Hv into the inter-mediate hidden representation Hi by replacing a designated subset of channels: 
+
+Hc = Inject( Hi, H v ). (2) 
+
+Physical and semantic conditioning. We condition gener-ation on object-level physical attributes, including motion cues (e.g., acceleration a and velocity v) and material prop-erties (e.g., density ρ, Young’s modulus E, and Poisson’s ratio ν). To avoid semantic distortion from an expressive attribute encoder, we adopt a parameter-free tokenization scheme and obtain a unified physical conditioning token sequence Cphys .We incorporate Cphys into the generator via a physics-aware attention module that modulates the intermediate represen-tation Hc:
+
+Hphys = Hc + αphys · Attn phys ([ Hc; Cphys ]) , (3) where αphys is a learnable scaling factor. For textual condi-tioning, we follow the standard text cross-attention used in 3PhysVideo: Physically Plausible Video Generation with Cross-View Geometry Guidance Multi -view Video 
+
+# 📷 
+
+# 📷 
+
+# 📷 
+
+# 📷     
+
+> "material":
+> {"density" :"800", "youngs_modulus" :"3e7", "
+> poissons_ratio" :"0.48"},
+> "motion":
+> {"acceleration" :"[0.0, -9.8, 0.0]",
+> "velocity" :"[2.5, -0, -0]"}
+> Physical Properties
+> A basketball falls on the ground ...
+> Text Prompt 2
+> Image 1
+
+Physics4View 
+
+> Temporal -
+> Attention
+> Semantic -aware Attention
+> Physics -aware Attention
+
+Geometry Enhanced Cross -view Attention 
+
+> RGB+D
+> RGB+D
+> RGB+D
+> RGB+D
+> Fused 3D
+
+🔥 🔥 🔥  
+
+> Temporal -
+> Attention
+
+🔥  
+
+> Temporal -
+> Attention
+
+🔥  
+
+> Temporal -
+> Attention
+
+🔥 
+
+❄Foreground 
+
+> 3
+
+Figure 3. Overview of Phys4View . The framework incorporates physics-aware attention to model physical motion and introduces a geometry-enhanced cross-view attention module to generate spatially and temporally consistent orthogonal videos. 
+
+the pretrained TI2V model (Yang et al., 2025b): 
+
+H = Hphys + αt · Attn t(Hphys ; Cp), (4) where Cp denotes the encoded prompt. 
+
+3.2. Geometry-enhanced Cross-view and Temporal Attention 
+
+To prove spatial and temporal consistency, we introduce a geometry-enhanced cross-view and temporal attention, as illustrated in Fig. 3. 
+
+Camera pose fusion. Before applying spatiotemporal atten-tion, we inject camera pose information into the four-view latent features in a lightweight manner. Specifically, we encode the per-view camera pose into a learnable embed-ding, concatenate it with the corresponding latent along the channel dimension, and use a small convolutional block to fuse them, yielding pose-aware features for subsequent cross-view interaction. 
+
+Geometry-enhanced cross-view attention. To encourage spatially coherent cross-view interactions while avoiding explicit 3D representation, we introduce a geometry-guided bias into the cross-view attention mechanism based on pre-dicted depth. Given the latent feature map H, we predict a dense depth map at the same spatial resolution: 
+
+D = Pθ (H), (5) where Pθ denotes a learnable depth prediction head. Each spatial location i in the latent grid, associated with coordi-nates (ui, v i), is lifted into the camera coordinate system via 
+
+xcam  
+
+> i
+
+= Di K−1
+
+
+
+ui
+
+vi
+
+1
+
+ , (6) where K is the camera intrinsic matrix. Using the reconstructed 3D points in camera coordinates, we compute the pairwise geometric distance between locations 
+
+i and j as 
+
+dij = xcam  
+
+> i
+
+− xcam   
+
+> j2
+
+. (7) This distance is converted into a geometry-based affinity weight: 
+
+wij,d = exp − d2
+
+> ij
+
+τ
+
+!
+
+, (8) where τ controls the spatial sensitivity of the geometric prior. Since depth prediction may be unreliable near occlusion boundaries or textureless regions, we further introduce a depth-confidence term to downweight ambiguous correspon-dences. Specifically, we define: 
+
+wij, conf = α + (1 − α)
+
+
+
+1 − fθ
+
+ ∥∇ Di∥2 + ∥∇ Dj ∥2
+
+|Di| + |Dj | + ϵ
+
+ 
+
+,
+
+(9) where ∇Di denotes the local spatial depth gradient at loca-tion i, fθ (·) is a learnable confidence mapping function, ϵ
+
+is a small constant for numerical stability, and α provides a lower bound on the confidence weight. The final geometry-aware affinity between locations i and j
+
+is given by: 
+
+wij = wij,d · wij, conf . (10) We incorporate this geometric prior into cross-view attention by augmenting the attention logits as: 
+
+sgeo  
+
+> ij
+
+= Qi · Kj
+
+√d + log( wij ), (11) where Qi and Kj denote the query and key features at lo-cations i and j, respectively. This formulation softly biases 4PhysVideo: Physically Plausible Video Generation with Cross-View Geometry Guidance Original -view          
+
+> Video 𝑉 !
+> VideoSyn
+> Frame
+> Interpolation
+> Interpolated
+> Video 𝑉 !"
+> Optical Flow
+> Video 𝑉 #$%&
+> Optical Flow
+> Estimation
+> Input Image 𝐼
+> A basketball falls on the ground ...
+> Text Prompt 𝑃 Video 𝑉
+
+Figure 4. Overview of VideoSyn . The framework extracts fore-ground motion cues from a pre-generated physics-aware video and leverages them to guide the full video generation process. 
+
+the attention mechanism toward spatially compatible and geometrically plausible regions under the predicted depth, while suppressing unreliable interactions. 
+
+Temporal attention. To further enhance temporal consis-tency in the generated videos, we introduce a lightweight temporal attention mechanism. Given the feature represen-tation H, we first partition it into four disjoint components along the channel dimension as H = [ H1; H2; H3; H4],where [·; ·] denotes channel-wise concatenation. For each component Hi, we apply an independent temporal self-attention operation to model temporal dependencies: 
+
+H′ 
+
+> i
+
+= Hi + αt · Attn( Hi), (12) where Attn( ·) denotes the temporal attention module and 
+
+αt is a learnable scaling factor that controls the strength of temporal aggregation. Finally, the temporally enhanced features from all groups are concatenated to form the final representation Hfinal =[H′
+
+> 1
+
+; H′
+
+> 2
+
+; H′
+
+> 3
+
+; H′
+
+> 4
+
+].
+
+3.3. Motion-guided Plausible Video Generation 
+
+After obtaining a physics-aware four-view video V4, our goal is to synthesize a visually coherent RGB video that captures realistic foreground–background interactions. To this end, we first extract the original-view video V1 from V4.We then apply a frame interpolation model (Wu et al., 2024) to densify the temporal resolution by interpolating four in-termediate frames between consecutive frames, resulting in an extended video sequence V1i.To explicitly leverage the motion information encoded in 
+
+V1i as guidance for video generation, we adopt optical flow as a motion control signal. Specifically, we employ a pre-trained optical flow estimation model (Dong & Fu, 2024) to compute the corresponding flow video Vflow from V1i.The resulting optical flow captures fine-grained motion dy-namics while remaining agnostic to appearance variations, making it a suitable representation for motion conditioning. We then incorporate Vflow as an explicit motion control condition in the video generation process: 
+
+˜V = Attn([ H; Hflow ; Cp]) , (13) where Hflow is the encoded latent of the optical flow video 
+
+Vflow . The attention module integrates appearance, motion, and semantic guidance for prediction. The final video latent ˆV is obtained through the diffusion denoising process: 
+
+ˆV = Dθ ( ˜Vt, t ), (14) where ˜Vt denotes the noisy latent sampled at diffusion timestep t.
+
+3.4. Training PhysMV dataset. To facilitate the training of our physics-aware, multi-view video generation model, we construct PhysMV, a large-scale dataset comprising 40K distinct mo-tion sequences, each captured from four orthogonal view-points, resulting in a total of 160K single-view videos. Exist-ing physics-engine–based video datasets predominantly fo-cus on synthesizing single-view dynamic videos. In contrast, PhysMV generates orthogonal videos simultaneously while maintaining physically grounded simulations, enabling ex-plicit multi-view geometric supervision. To build up the dataset, we generate 10K foreground objects represented as 3D Gaussian Splatting (3D-GS) models using Trellis (Xi-ang et al., 2025). Additional dataset details are provided in Appendix C. 
+
+Phys4View training. We train the proposed Phys4View model using a standard diffusion objective. Specifically, the base training loss is defined as 
+
+Lbase = E ˜F ,t 
+
+h
+
+w1(t) Dθ ( ˜Ft, t ) − ¯F 22
+
+i
+
+, (15) where ˜Ft denotes the noisy latent at diffusion timestep t,
+
+¯F is the target latent, and w1(t) is a timestep-dependent weighting function. To provide geometric supervision, we additionally impose a depth consistency loss using relative depth estimates. Given the predicted depth map D and the estimated relative depth 
+
+Dr , we define the depth supervision loss as 
+
+Ldepth = Cov( D, D r )
+
+pVar( D) Var( Dr ) 1
+
+, (16) which measures the scale-invariant correlation between the predicted and reference depth maps. 5PhysVideo: Physically Plausible Video Generation with Cross-View Geometry Guidance PhysGen3D CogVideoX Wan2.2 Ours                        
+
+> Prompt :Atoy pig falls onto the ground .Prompt :Atoy tiger falls onto the ground .
+> Physics :
+> "material ":{"density" :"900 ","youngs_modulus" :"1e6",
+> "poissons_ratio" :"0.45 "},
+> "motion ":{"acceleration" :"[ 0.0,-9.8,-0.0]",
+> "velocity" :"[ -0.1,-2.0,0.1]"}
+> Physics :
+> "material ":{"density" :"900 ","youngs_modulus ":”2e7",
+> "poissons_ratio" :"0.45 "},
+> "motion ":{”acceleration" :"[ 0.0,-9.8,-0.0]",
+> "velocity" :"[ -0.5,-1.5,0.1]"}
+
+Figure 5. Qualitative comparisons. The top row shows the given image, text prompt and corresponding physics settings. For the definition of velocity and acceleration directions, the positive x-axis is defined as horizontal left, the positive y-axis as vertical upward, and the positive z-axis as perpendicular to the paper plane inward. 
+
+VideoSyn training. To train VideoSyn, we adopt a diffusion-based image-to-video learning paradigm in which the model learns to generate a video conditioned on the motion guidance from the original view. We preprocess the OpenVid (Nan et al., 2024) and WISA (Wang et al., 2025) datasets and train the VideoSyn model on both datasets. Dur-ing training, we minimize the mean squared error between the denoised prediction and the ground-truth frame under random diffusion steps: 
+
+L2 = E ˜R, t 
+
+h
+
+w2(t) Dθ ( ˜Rt, t ) − ¯R 22
+
+i
+
+, (17) where ¯R is the ground-truth RGB video. This training ob-jective guides VideoSyn to synthesize temporally coherent and visually realistic video sequences that faithfully follow the motion guidance. 
+
+4. Experiments 
+
+4.1. Experimental Setups Implementation details. Our model is trained on 8 NVIDIA A100 GPUs, each with 80GB of memory, while all inference experiments are performed on a single A100 GPU. To assess the effectiveness of the proposed approach, we construct a benchmark dataset consisting of 33 test sam-ples. Each sample comprises a single RGB image I with a resolution of 720 × 480 , an associated textual prompt P ,and object-level physical attributes generated by GPT-4o. The benchmark set includes both rigid and deformable ob-jects to evaluate the model’s generalization across diverse physical regimes. All input images are synthesized in a pho-torealistic style using a text-to-image generation model (Wu et al., 2025). For each input image, we obtain the fore-ground object mask Mf using Grounded-SAM (Ren et al., 2024b). Based on the extracted foreground, we further gen-erate multi-view videos and corresponding 3D Gaussian Splatting (3D-GS) representations with Trellis (Xiang et al., 2025), which are used for downstream evaluation. 
+
+Baselines. We compare the proposed method with two cat-egories of baselines: physics-engine–based approaches and learning-based video generation models. For the physics-engine–based category, we include representative methods such as PhysGen (Liu et al., 2024b), PhysGen3D (Chen et al., 2025a), and OmniPhysGS (Lin et al., 2025b). These methods explicitly rely on physical simulation to model object dynamics and serve as strong references for physics-grounded video generation. We also evaluate against state-of-the-art video generation models, including general-purpose frameworks such as CogVideoX (Yang et al., 2025b) and Wan (Wan et al., 2025). In addition, we consider Force Prompting (Gillman et al., 2025), a recent method that enhances video generation with explicit physical priors. 
+
+Metrics. We evaluate the quality of the generated videos using a combination of automatic metrics and VLM–based assessments. Specifically, WorldScore (Duan et al., 2025) is used to quantify photometric consistency (Photo), multi-view geometric consistency (3D Consist), and motion smoothness (Motion). Complementarily, we employ VBench (Huang et al., 2024) to assess motion quality (Mo-tion), subject consistency (Subject), temporal flickering (Flickering), and overall visual fidelity (Image). To fur-ther measure adherence to the input prompts, following the evaluation protocol of PhysGen3D (Chen et al., 2025a), we 6PhysVideo: Physically Plausible Video Generation with Cross-View Geometry Guidance  
+
+> Table 1. Quantitative comparisons on WorldScore and VBench. Bold : Best. Underline: Second Best.
+
+Method WorldScore VBench 
+
+Photo ↑ Motion ↑ 3D Consist ↑ Motion ↑ Subject ↑ Flickering ↑ Image ↑
+
+CogVideoX-I2V-5B (Yang et al., 2025b) 64.72 67.39 74.43 0.993 0.886 0.989 0.636 Wan2.2-TI2V-5B (Wan et al., 2025) 65.97 64.90 63.86 0.994 0.926 0.991 0.653 Force Prompting (Gillman et al., 2025) 74.38 72.53 50.97 0.994 0.938 0.992 0.641 OmniPhysGS (Lin et al., 2025b) 58.67 90.65 37.24 0.995 0.929 0.995 0.378 PhysGen (Liu et al., 2024b) 90.80 82.45 84.27 0.995 0.956 0.994 0.648 PhysGen3D (Chen et al., 2025a) 86.68 86.34 86.89 0.996 0.910 0.998 0.605 
+
+Ours 94.09 93.62 87.19 0.996 0.970 0.996 0.655  
+
+> Table 2. GPT-4o Evaluation Results . Three metrics: Physical Re-alism (Physical), Photorealism (Photo) and Semantic Consistency (Semantic).
+
+Method Physical ↑ Photo ↑ Semantic ↑
+
+CogVideoX-5B 0.612 0.858 0.617 Wan2.2-5B 0.609 0.877 0.630 ForcePrompt 0.615 0.875 0.611 OmniPhysGS 0.622 0.723 0.402 PhysGen 0.547 0.808 0.550 PhysGen3D 0.621 0.879 0.589 
+
+Ours 0.627 0.885 0.636 
+
+utilize GPT-4o to score the generated videos along three aspects: physical realism, photorealism, and semantic align-ment with the textual prompt. 
+
+4.2. Comparisons with State-Of-The-Art Methods Physics plausibility comparison. We aim to generate physically plausible, high-quality videos with consistent object motion and realistic interactions with the background. We compare our method with existing approaches on our constructed evaluation dataset. Quantitatively, as shown in Table 1, our method achieves superior motion coherence, consistently outperforming prior video generative models and showing comparable results with physical-engine-based methods across key dynamic metrics. Moreover, the gen-erated videos exhibit higher visual quality than physical-engine-based methods. Regarding physical plausibility, as demonstrated in Table 2, our method surpasses all com-peting approaches on the physics realism metric, while si-multaneously maintaining strong alignment with the input text, thereby ensuring high semantic consistency. Fig. 5 shows two qualitative comparisons. Existing methods suffer from texture degradation, incorrect motion dynamics, or inconsistent object–background interactions, often leading to object replacement. In contrast, our method consistently generates physically plausible and coherent object motion. More comparisons can be found in Appendix Sec. D.  
+
+> Table 3. Evaluation of foreground multi-view video synthesis. Bold : Best. Underline: Second Best.
+
+Method View1 View2 Motion ↑Subject ↑Image ↑Motion ↑Subject ↑Image ↑
+
+DG4D 0.986 0.892 0.268 0.987 0.883 0.260 Diffusion 2 0.970 0.637 0.371 0.979 0.666 0.362 L4GM 0.994 0.898 0.368 0.992 0.899 0.305 
+
+Ours 0.995 0.912 0.389 0.994 0.901 0.368 Physical 4D quality comparison. We propose a two-stage framework that first generates multi-view foreground videos and then synthesizes the final video. To evaluate the quality of the generated orthogonal videos, we compare our method with existing 4D generation approaches, including DG4D (Ren et al., 2023), Diffusion 2 (Yang et al., 2025a), and L4GM (Ren et al., 2024a). For quantitative evaluation, we adopt VBench metrics to assess video quality from differ-ent views. As shown in Table 3, our method outperforms the competing approaches in terms of both motion consistency and visual quality. For qualitative comparison, represen-tative results are shown in Fig. 6. Our method generates motion that follows physical principles, whereas existing 4D generation methods often fail to do so. Moreover, our ap-proach effectively captures multi-view structure, producing consistent results from novel viewpoints. 
+
+4.3. Ablation Study 
+
+We introduce a physics-aware multi-view generation frame-work and conduct ablation studies to verify the effectiveness of key components in Phys4View. Specifically, we incre-mentally incorporate physics-aware attention (Phys-Attn), geometry-enhanced cross-view attention (Cross-view Attn), and temporal attention (Temporal-Attn). We evaluate re-sults using two VBench metrics, namely Motion and Im-age, together with a physical realism score by GPT-4o. As shown in Table 4, introducing physics-aware attention leads to a significant improvement in physical realism. Adding geometry-enhanced cross-view attention further enhances motion smoothness and image quality, while temporal atten-7PhysVideo: Physically Plausible Video Generation with Cross-View Geometry Guidance Prompt : A soft ball falls            
+
+> onto the ground .
+> Physics :
+> "material ":{"density" :"900 "
+> ,"youngs_modulus" :”2e7",
+> "poissons_ratio" :"0.45 "},
+> "motion ":{”acceleration" :"[
+> 0.0,-9.8,-0.0]", "velocity" :
+> "[ -0.5,-1.5,0.1]"}
+> View
+> Time
+> Prompt :An elastic toy
+> doll falls onto the ground .
+> Physics :
+> "material ":{"density" :"900
+> ","youngs_modulus" :”2e7",
+> "poissons_ratio" :"0.45 "},
+> "motion ":{”acceleration" :"[
+> 0.0,-9.8,-0.0]", "velocity" :
+> "[ -1.0,-1.3,0.1]"}
+
+Ours DG4D L4GM Inputs 
+
+> View
+> Time  View
+> Time
+
+Figure 6. Qualitative comparison of multi-view video synthesis results . Each example includes the input image, prompt, and physics attributes, followed by synthesized videos rendered from two distinct views, illustrating temporal coherence and cross-view consistency. 
+
+Table 4. Ablation study of attention modules in Phys4View . The Motion and Image metrics are adopted from VBench, while the Physical metric is estimated using GPT-4o. 
+
+Method Motion ↑ Image ↑ Physical ↑
+
+Baseline* 0.994 0.594 0.636 + Physics-Attn 0.994 0.613 0.682 + Cross-View Attn 0.995 0.648 0.689 + Temporal-Attn 0.996 0.655 0.691 
+
+tion provides additional gains in motion consistency. The qualitative ablation comparison is shown in Appendix Fig. 8. Additional ablation study on condition videos is detailed in Appendix Fig. 9. 
+
+5. Downstream Applications 
+
+While our primary focus is video generation rather than full 4D modeling, the orthogonal four-view foreground videos produced by our method naturally enable several down-stream applications. As a demonstration, we show that the generated four-view foreground videos are well-suited for video editing. As illustrated in Fig. 7, we modify the rotation of the foreground object and leverage the foreground video segment from one of the generated views to guide the synthe-sis of an edited video. Additionally, although not a central goal of our method, for scenes with simple backgrounds, our approach can generate four-view videos with background, producing spatially consistent foreground–background ren-Original Rotate  𝟗𝟎 。
+
+Figure 7. Results of object editing . The top row shows the original results, and the bottom row shows edited videos with the object rotated by 90 ◦, maintaining multi-view consistency. 
+
+derings across views, as shown in Appendix Fig. 11. 
+
+6. Conclusion 
+
+In this work, we propose PhysVideo, a physics-driven frame-work for geometry-aware motion modeling in video gener-ation. PhysVideo introduces physics-aware and geometry-enhanced inductive biases to improve motion consistency and physical plausibility without relying on explicit 3D rep-resentation. The framework combines physics-conditioned multi-view motion modeling with background-aware video synthesis, enabling controllable video generation. Extensive experiments demonstrate that PhysVideo achieves superior motion coherence, visual quality, and physical realism com-pared to existing methods. In addition, we introduce a large-scale physics-oriented multi-view video dataset to facilitate future research. 8PhysVideo: Physically Plausible Video Generation with Cross-View Geometry Guidance 
+
+Impact Statement 
+
+This paper presents work whose goal is to advance the field of machine learning, with a focus on physically plausible video generation. There are many potential societal con-sequences of this work, none of which we feel must be specifically highlighted here. 
+
+References 
+
+Bansal, H., Lin, Z., Xie, T., Zong, Z., Yarom, M., Bitton, Y., Jiang, C., Sun, Y., Chang, K.-W., and Grover, A. Videophy: Evaluating physical commonsense for video generation. arXiv preprint arXiv:2406.03520 , 2024. Blattmann, A., Dockhorn, T., Kulal, S., Mendelevitch, D., Kilian, M., Lorenz, D., Levi, Y., English, Z., Voleti, V., Letts, A., et al. Stable video diffusion: Scaling latent video diffusion models to large datasets. arXiv preprint arXiv:2311.15127 , 2023. Burgert, R., Xu, Y., Xian, W., Pilarski, O., Clausen, P., He, M., Ma, L., Deng, Y., Li, L., Mousavi, M., et al. Go-with-the-flow: Motion-controllable video diffusion models using real-time warped noise. In Proceedings of the Computer Vision and Pattern Recognition Conference ,pp. 13–23, 2025. Chen, B., Jiang, H., Liu, S., Gupta, S., Li, Y., Zhao, H., and Wang, S. Physgen3d: Crafting a miniature interac-tive world from a single image. In Proceedings of the Computer Vision and Pattern Recognition Conference , pp. 6178–6189, 2025a. Chen, Z., Xu, T., Wu, L., Wang, L., Yan, D., You, Z., Luo, W., Zhang, G., and Chen, Y. Stance: Motion coherent video generation via sparse-to-dense anchored encoding. 
+
+arXiv preprint arXiv:2510.14588 , 2025b. Dong, Q. and Fu, Y. Memflow: Optical flow estimation and prediction with memory. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,pp. 19068–19078, 2024. Duan, H., Yu, H.-X., Chen, S., Fei-Fei, L., and Wu, J. World-score: A unified evaluation benchmark for world genera-tion. arXiv preprint arXiv:2504.00983 , 2025. Feng, Y., Feng, X., Shang, Y., Jiang, Y., Yu, C., Zong, Z., Shao, T., Wu, H., Zhou, K., Jiang, C., et al. Gaussian splashing: Dynamic fluid synthesis with gaussian splat-ting. CoRR , 2024. Fu, X., Liu, X., Wang, X., Peng, S., Xia, M., Shi, X., Yuan, Z., Wan, P., Zhang, D., and Lin, D. 3dtrajmaster: Master-ing 3d trajectory for multi-entity motion in video genera-tion. arXiv preprint arXiv:2412.07759 , 2024. Gao, Y., Yu, H.-X., Zhu, B., and Wu, J. Fluidnexus: 3d fluid reconstruction and prediction from a single video. In Pro-ceedings of the Computer Vision and Pattern Recognition Conference , pp. 26091–26101, 2025. Geng, D., Herrmann, C., Hur, J., Cole, F., Zhang, S., Pfaff, T., Lopez-Guevara, T., Aytar, Y., Rubinstein, M., Sun, C., et al. Motion prompting: Controlling video generation with motion trajectories. In Proceedings of the Computer Vision and Pattern Recognition Conference , pp. 1–12, 2025. Gillman, N., Herrmann, C., Freeman, M., Aggarwal, D., Luo, E., Sun, D., and Sun, C. Force prompting: Video generation models can learn and generalize physics-based control signals. arXiv preprint arXiv:2505.19386 , 2025. Gu, Z., Yan, R., Lu, J., Li, P., Dou, Z., Si, C., Dong, Z., Liu, Q., Lin, C., Liu, Z., et al. Diffusion as shader: 3d-aware video diffusion for versatile video generation control. In 
+
+Proceedings of the Special Interest Group on Computer Graphics and Interactive Techniques Conference Confer-ence Papers , pp. 1–12, 2025. He, H., Xu, Y., Guo, Y., Wetzstein, G., Dai, B., Li, H., and Yang, C. Cameractrl: Enabling camera control for text-to-video generation. arXiv preprint arXiv:2404.02101 ,2024. Ho, J., Salimans, T., Gritsenko, A., Chan, W., Norouzi, M., and Fleet, D. J. Video diffusion models. Advances in neural information processing systems , 35:8633–8646, 2022. Hu, Y., Li, T.-M., Anderson, L., Ragan-Kelley, J., and Du-rand, F. Taichi: a language for high-performance compu-tation on spatially sparse data structures. ACM Transac-tions on Graphics (TOG) , pp. 1–16, 2019. Huang, T., Zhang, H., Zeng, Y., Zhang, Z., Li, H., Zuo, W., and Lau, R. W. Dreamphysics: Learning physics-based 3d dynamics with video diffusion priors. In Proceedings of the AAAI Conference on Artificial Intelligence , pp. 3733–3741, 2025. Huang, Z., He, Y., Yu, J., Zhang, F., Si, C., Jiang, Y., Zhang, Y., Wu, T., Jin, Q., Chanpaisit, N., et al. Vbench: Compre-hensive benchmark suite for video generative models. In 
+
+Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pp. 21807–21818, 2024. Jin, W., Dai, Q., Luo, C., Baek, S.-H., and Cho, S. Flovd: Optical flow meets video diffusion model for enhanced camera-controlled video synthesis. In Proceedings of the Computer Vision and Pattern Recognition Conference , pp. 2040–2049, 2025. 9PhysVideo: Physically Plausible Video Generation with Cross-View Geometry Guidance 
+
+Kerbl, B., Kopanas, G., Leimk ¨uhler, T., and Drettakis, G. 3d gaussian splatting for real-time radiance field rendering. 
+
+ACM Trans. Graph. , 42(4):139–1, 2023. Kong, W., Tian, Q., Zhang, Z., Min, R., Dai, Z., Zhou, J., Xiong, J., Li, X., Wu, B., Zhang, J., et al. Hunyuan-video: A systematic framework for large video generative models. arXiv preprint arXiv:2412.03603 , 2024. Langley, P. Crafting papers on machine learning. In Langley, P. (ed.), Proceedings of the 17th International Conference on Machine Learning (ICML 2000) , pp. 1207–1216, Stan-ford, CA, 2000. Morgan Kaufmann. Li, Z., Tucker, R., Snavely, N., and Holynski, A. Genera-tive image dynamics. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,pp. 24142–24153, 2024. Liang, F., Wu, B., Wang, J., Yu, L., Li, K., Zhao, Y., Misra, I., Huang, J.-B., Zhang, P., Vajda, P., et al. Flowvid: Tam-ing imperfect optical flows for consistent video-to-video synthesis. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pp. 8207– 8216, 2024. Lin, J., Wang, Z., Xu, D., Jiang, S., Gong, Y., and Jiang, M. Phys4dgen: Physics-compliant 4d generation with multi-material composition perception. In Proceedings of the 33rd ACM International Conference on Multimedia ,pp. 10398–10407, 2025a. Lin, Y., Lin, C., Xu, J., and Mu, Y. Omniphysgs: 3d con-stitutive gaussians for general physics-based dynamics generation. arXiv preprint arXiv:2501.18982 , 2025b. Liu, F., Wang, H., Yao, S., Zhang, S., Zhou, J., and Duan, Y. Physics3d: Learning physical properties of 3d gaussians via video diffusion. arXiv preprint arXiv:2406.04338 ,2024a. Liu, S., Ren, Z., Gupta, S., and Wang, S. Physgen: Rigid-body physics-grounded image-to-video generation. In 
+
+European Conference on Computer Vision , pp. 360–378, 2024b. Lv, J., Huang, Y., Yan, M., Huang, J., Liu, J., Liu, Y., Wen, Y., Chen, X., and Chen, S. Gpt4motion: Scripting physical motions in text-to-video generation via blender-oriented gpt planning. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition ,pp. 1430–1440, 2024. Mao, H., Xu, Z., Wei, S., Quan, Y., Deng, N., and Yang, X. Live-gs: Llm powers interactive vr by enhancing gaussian splatting. In 2025 IEEE Conference on Virtual Reality and 3D User Interfaces Abstracts and Workshops (VRW) ,pp. 1234–1235. IEEE, 2025. Meng, F., Liao, J., Tan, X., Shao, W., Lu, Q., Zhang, K., Cheng, Y., Li, D., Qiao, Y., and Luo, P. To-wards world simulator: Crafting physical commonsense-based benchmark for video generation. arXiv preprint arXiv:2410.05363 , 2024. Nan, K., Xie, R., Zhou, P., Fan, T., Yang, Z., Chen, Z., Li, X., Yang, J., and Tai, Y. Openvid-1m: A large-scale high-quality dataset for text-to-video generation. arXiv preprint arXiv:2407.02371 , 2024. Poole, B., Jain, A., Barron, J. T., and Mildenhall, B. Dream-fusion: Text-to-3d using 2d diffusion. arXiv preprint arXiv:2209.14988 , 2022. Ren, J., Pan, L., Tang, J., Zhang, C., Cao, A., Zeng, G., and Liu, Z. Dreamgaussian4d: Generative 4d gaussian splatting. arXiv preprint arXiv:2312.17142 , 2023. Ren, J., Xie, C., Mirzaei, A., Kreis, K., Liu, Z., Torralba, A., Fidler, S., Kim, S. W., Ling, H., et al. L4gm: Large 4d gaussian reconstruction model. Advances in Neural In-formation Processing Systems , 37:56828–56858, 2024a. Ren, T., Liu, S., Zeng, A., Lin, J., Li, K., Cao, H., Chen, J., Huang, X., Chen, Y., Yan, F., et al. Grounded sam: Assembling open-world models for diverse visual tasks. 
+
+arXiv preprint arXiv:2401.14159 , 2024b. Romero, D., Bermudez, A., Li, H., Pizzati, F., and Laptev, I. Learning to generate object interactions with physics-guided video diffusion. arXiv preprint arXiv:2510.02284 ,2025. Wan, T., Wang, A., Ai, B., Wen, B., Mao, C., Xie, C.-W., Chen, D., Yu, F., Zhao, H., Yang, J., et al. Wan: Open and advanced large-scale video generative models. arXiv preprint arXiv:2503.20314 , 2025. Wang, J., Ma, A., Cao, K., Zheng, J., Zhang, Z., Feng, J., Liu, S., Ma, Y., Cheng, B., Leng, D., et al. Wisa: World simulator assistant for physics-aware text-to-video generation. arXiv preprint arXiv:2503.08153 , 2025. Wu, C., Li, J., Zhou, J., Lin, J., Gao, K., Yan, K., Yin, S.-m., Bai, S., Xu, X., Chen, Y., et al. Qwen-image technical report. arXiv preprint arXiv:2508.02324 , 2025. Wu, G., Tao, X., Li, C., Wang, W., Liu, X., and Zheng, Q. Perception-oriented video frame interpolation via asymmetric blending. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,pp. 2753–2762, 2024. Xiang, J., Lv, Z., Xu, S., Deng, Y., Wang, R., Zhang, B., Chen, D., Tong, X., and Yang, J. Structured 3d latents for scalable and versatile 3d generation. In Proceedings of the Computer Vision and Pattern Recognition Conference ,pp. 21469–21480, 2025. 10 PhysVideo: Physically Plausible Video Generation with Cross-View Geometry Guidance 
+
+Xie, T., Zong, Z., Qiu, Y., Li, X., Feng, Y., Yang, Y., and Jiang, C. Physgaussian: Physics-integrated 3d gaussians for generative dynamics. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,pp. 4389–4398, 2024. Xue, Q., Yin, X., Yang, B., and Gao, W. Phyt2v: Llm-guided iterative self-refinement for physics-grounded text-to-video generation. In Proceedings of the Computer Vision and Pattern Recognition Conference , pp. 18826– 18836, 2025. Yang, L., Kang, B., Huang, Z., Zhao, Z., Xu, X., Feng, J., and Zhao, H. Depth anything v2. Advances in Neural Information Processing Systems , 37:21875–21911, 2024. Yang, Z., Pan, Z., Gu, C., and Zhang, L. Diffusion²: Dy-namic 3d content generation via score composition of video and multi-view diffusion models. In International Conference on Learning Representations (ICLR) , 2025a. Yang, Z., Teng, J., Zheng, W., Ding, M., Huang, S., Xu, J., Yang, Y., Hong, W., Zhang, X., Feng, G., et al. Cogvideox: Text-to-video diffusion models with an ex-pert transformer. In The Thirteenth International Confer-ence on Learning Representations , 2025b. Zhang, T., Yu, H.-X., Wu, R., Feng, B. Y., Zheng, C., Snavely, N., Wu, J., and Freeman, W. T. Physdreamer: Physics-based interaction with 3d objects via video gen-eration. In European Conference on Computer Vision , pp. 388–406, 2024. Zhao, H., Wang, H., Zhao, X., Fei, H., Wang, H., Long, C., and Zou, H. Physsplat: Efficient physics simulation for 3d scenes via mllm-guided gaussian splatting. In 
+
+Proceedings of the IEEE/CVF International Conference on Computer Vision , pp. 5242–5252, 2025. Zheng, Z., Peng, X., Yang, T., Shen, C., Li, S., Liu, H., Zhou, Y., Li, T., and You, Y. Open-sora: Democratiz-ing efficient video production for all. arXiv preprint arXiv:2412.20404 , 2024. 11 PhysVideo: Physically Plausible Video Generation with Cross-View Geometry Guidance 
+
+# Appendix 
+
+A. Additional Experiments Baseline + Phys -Attn + Cross -View Attn + Temporal -Attn  
+
+> Figure 8. Qualitative ablation results . We compare the baseline with variants that incorporate individual components, including Phys-Attn, Cross-View Attn, and Temporal-Attn. Each row corresponds to one setting.
+
+A.1. Ablation Study of Attention Modules. 
+
+In the main manuscript, we report quantitative ablation results in Table 4 to evaluate the contribution of different attention modules. Here, we further provide qualitative ablation results in Fig. 8 to offer visual insights into their effects on orthogonal foreground video generation. As shown in Fig. 8, progressively introducing physics-aware attention, geometry-enhanced cross-view attention, and temporal attention leads to more coherent motion patterns and improved visual quality. These qualitative results complement the quantitative analysis and further validate the effectiveness of each proposed component. 
+
+A.2. Ablation Study of Condition Videos. 
+
+We employ two types of video conditions to guide the four-view generation process. To evaluate the effectiveness of these conditions, we conduct an ablation study with qualitative comparisons shown in Fig. 9. The foreground mask video condition provides explicit guidance for foreground object motion, while the multi-view video condition implicitly encodes 3D structural information, leading to more spatially consistent four-view video generation. 
+
+A.3. Evaluation with GPT-4o. 
+
+Since no widely accepted, physics-focused evaluation metrics for image-to-video generation currently exist, we follow the approach of PhysGen3D (Chen et al., 2025a) and employ GPT-4o to conduct subjective assessments. These evaluations score multiple dimensions relevant to physical plausibility, including physical realism, photorealism, and semantic alignment. We adopt the evaluation prompt design originally proposed in PhysGen3D (Chen et al., 2025a); as their work has empirically demonstrated strong alignment with human judgment, we apply only minor adaptations to tailor the prompt to our dataset, 12 PhysVideo: Physically Plausible Video Generation with Cross-View Geometry Guidance Input Image w/o. 𝐕 𝐦 w/o 𝐕 𝐦𝐯 Ours  
+
+> Figure 9. Ablation study on conditional videos . The left column shows the input single image, and the three right columns each display one representative frame from the generated RGB video.
+
+without introducing substantial modifications. The complete evaluation prompt is illustrated in Fig. 10. 
+
+B. Application of 4D Synthesis 
+
+Our method not only supports object editing while preserving a stable background, but also enables four-view video generation with simple backgrounds. As shown in Fig. 11, we render four-view videos from the front, left, back, and right viewpoints. The generated results exhibit strong cross-view consistency, and the interactions between foreground objects and background remain visually plausible. 
+
+C. Details of PhysMV Dataset 
+
+In the main manuscript, we introduce the PhysMV dataset. Here we provide further detailed information. We generate 10K 3D objects and reconstruct 10 diverse background scenes, each represented by a 3D-GS model that supports viewpoint exploration. Following the design of OmniPhysGS (Lin et al., 2025b), we employ TaiChi (Hu et al., 2019) as the physics engine and adopt the Material Point Method (MPM) as the physics solver to simulate object dynamics conditioned on the specified physical properties. Leveraging the rendering capability of 3D-GS, we render four-view foreground videos after the physical simulation. Note that the generated four-view videos contain only foreground objects, as the background scenes do not support full 360-degree rendering across all views. The dataset examples are shown in Fig. 12. For each simulated sample, the textual prompt, motion attributes, and material parameters used to control the physics simulation are automatically recorded as metadata. During post-processing, we apply Grounded-SAM (Ren et al., 2024b) to obtain semantic foreground masks and DepthAnything V2 (Yang et al., 2024) to get relative depth maps. Finally, Trellis (Xiang et al., 2025) is again utilized to generate multi-view videos of the segmented foreground objects, which are used to provide multi-view video priors. 
+
+D. More Visual Comparisons with Baselines 
+
+As shown in Fig. 13, Fig. 14, Fig. 15, and Fig. 16, we provide additional visual comparisons with all baseline methods. These results highlight that our method achieves state-of-the-art quality, characterized by high visual fidelity, strong physical plausibility, and fine-grained controllability. 13 PhysVideo: Physically Plausible Video Generation with Cross-View Geometry Guidance I would like you to evaluate the quality of generated videos based on the following criteria : physical                                                                                                                                                                                                           
+
+> realism, photorealism, and semantic consistency .The evaluation will be based on 15 evenly sampled
+> frames from each video .Given the following instructions :'{ instructions }', please evaluate the quality
+> of each video on the three criteria mentioned above .And for the definition of velocity and acceleration
+> directions, the positive x-axis is defined as horizontal left, the positive y-axis as vertical upward,
+> and the positive z-axis as perpendicular to the paper plane inward .
+> Note that :Physical realism focuses on input -conditioned physical fidelity :the object’s motion and
+> deformation must be consistent with the physical properties specified in the input (e .g.,motion
+> direction and deformation magnitude) .Any noticeable mismatch with the provided physical attributes
+> should be considered adegradation in physical realism .Photorealism assesses the overall visual quality
+> of the video, including the presence of visual artifacts, discontinuities, and how accurately the video
+> replicates details of light, texture, and materials .Semantic Consistency evaluates how well the content
+> of the generated video aligns with the intended meaning of the text prompt .
+> Please provide scores from 0-1,with 1being the best .The output must follow this exact format :
+> Physical Realism Score :[a score] ;Photorealism Score :[a score] ;Semantic Consistency Score :[a score]
+> Note that your output should strictly follow the above format, with a';'after each score .Do not give
+> any other explanations .
+
+User Prompt 
+
+System Prompt                         
+
+> You are ahelpful assistant that pays attention to context and estimates the perceptual quality of a
+> video based on physical realism, photorealism, and semantic consistency .
+
+Figure 10. Prompt used for GPT-4o evaluation. 
+
+E. Limitations and Future Work 
+
+While our method introduces a novel framework for generating physics-aware 4D foreground video with background interaction from a given viewpoint, it still exhibits several limitations. In particular, our approach is currently constrained in its ability to model and synthesize complex and highly dynamic backgrounds. Although the proposed method can generate diverse and physically plausible 4D foreground motions, synthesizing complete videos from novel viewpoints remains challenging when the background contains rich geometric structures or intricate appearance variations. This limitation primarily stems from the inherent difficulty of holistic scene modeling, which has not yet been fully addressed by existing 3D generation and reconstruction methods, and becomes even more challenging in the 4D setting where temporal dynamics must be consistently preserved. As a result, background reconstruction quality may degrade when extrapolating to unseen viewpoints, which in turn affects the overall visual coherence of the generated video. In future work, we plan to explore more advanced scene representations and background modeling strategies to better capture complex geometry and long-range temporal consistency. Integrating explicit scene decomposition, multi-view supervision, or hybrid 3D-4D representations may help alleviate these limitations and enable more robust whole-scene generation from novel viewpoints. 14 PhysVideo: Physically Plausible Video Generation with Cross-View Geometry Guidance Time 1 Time 2 Time 3 Time 4 
+
+> View 1 View 2 View 3 View 4
+
+Figure 11. Four-view video generation results . Views 1 through 4 correspond to the front, left, rear, and right viewpoints, respectively. Prompt : A hard toy model 
+
+falls onto the ground .
+
+Physics :
+
+"material ":{"density" :"573 
+
+.00 ","youngs_modulus" :"8.8
+
+6e+ 06 ","poissons_ratio" :"0
+
+.44 "}, 
+
+"motion ":{"force" :"[ -0.0,
+
+-9.8, 0]","velocity" :"[ -
+
+1.82 , -2.73 , -0.15 ]"} 
+
+View 
+
+> Time
+
+Prompt : A metal Annulus 
+
+falls onto the ground .
+
+Physics :
+
+"material ":{"density" :"1982 
+
+.60 ","youngs_modulus" :"4.16 
+
+e+ 07 ","poissons_ratio" :"0.2
+
+6"}, 
+
+"motion ":{"force" :"[ -0.0, -
+
+9.8, 0]","velocity" :"[ 1.91 ,
+
+-4.85, -0.24]"} 
+
+View 
+
+> Time
+
+Prompt : An elastic stool 
+
+falls onto the ground .
+
+Physics :
+
+"material ":{"density" :"829 .
+
+10 ","youngs_modulus" :"6.33 e
+
++06 ","poissons_ratio" :"0.39 
+
+"}, 
+
+"motion ":{"force" :"[ -0.0, -
+
+9.8, 0]","velocity" :"[ -0.38 ,
+
+-2.27 , -0.43 ]"} 
+
+View 
+
+> Time
+
+Prompt : A clay cup 
+
+falls onto the ground .
+
+Physics :
+
+"material ":{"density" :"804 .
+
+90 ","youngs_modulus" :"5.47 e
+
++05 ","poissons_ratio" :"0.43 
+
+"}, 
+
+"motion ":{"force" :"[ -0.0, -
+
+9.8, 0]","velocity" :"[ -0.39 ,
+
+-4.16 , -0.88 ]"} 
+
+View 
+
+> Time
+
+Prompt : A metal hammer 
+
+falls onto the ground .
+
+Physics :
+
+"material ":{"density" :"1613 
+
+.70 ","youngs_modulus" :"4.45 
+
+e+ 07 ","poissons_ratio" :"0.2
+
+2"}, 
+
+"motion ":{"force" :"[ -0.0, -
+
+9.8, 0]","velocity" :"[ -1.48 ,
+
+-2.79, 0.23]"} 
+
+View 
+
+> Time
+
+Prompt : An elastic toy 
+
+car falls onto the ground .
+
+Physics :
+
+"material ":{"density" :"1090 
+
+.20 ","youngs_modulus" :"2.18 
+
+e+ 06 ","poissons_ratio" :"0.3
+
+1"}, 
+
+"motion ":{"force" :"[ -0.0, -
+
+9.8, 0]","velocity" :"[ -0.82 ,
+
+-2.29 , -0.39 ]" 
+
+View 
+
+> Time
+
+643 
+
+8506 
+
+Figure 12. Dataset demonstration . Our dataset contains various objects and motion patterns. 
+
+15 PhysVideo: Physically Plausible Video Generation with Cross-View Geometry Guidance PhysGen3D PhysGen Wan CogVideo Force Prompting OmniPhysGS 
+
+Prompt: A toy pig falls onto the ground. 
+
+Physics: 
+
+"material ":{"density":"900", "youngs_modulus":”2e7", "poissons_ratio":"0.45"}, 
+
+"motion ":{”acceleration":"[0.0, -9.8, -0.0]", "velocity":"[ -0.5, -1.5, 0.1]"}  
+
+> Ours
+> Figure 13. Qualitative visualization results of our method and the baselines .
+
+16 PhysVideo: Physically Plausible Video Generation with Cross-View Geometry Guidance PhysGen3D PhysGen Wan CogVideo Force Prompting OmniPhysGS 
+
+Prompt: A banana falls onto the ground. 
+
+Physics: 
+
+"material ":{"density":”1000", "youngs_modulus":”1e7", "poissons_ratio":"0.48"}, 
+
+"motion ":{”acceleration":"[0.0, -9.8, -0.0]", "velocity":"[ -0.0, -1.0, 0.0]"}  
+
+> Ours
+> Figure 14. Qualitative visualization results of our method and the baselines .
+
+17 PhysVideo: Physically Plausible Video Generation with Cross-View Geometry Guidance PhysGen3D PhysGen Wan CogVideo Force Prompting OmniPhysGS 
+
+Prompt: A cap falls onto the ground. 
+
+Physics: 
+
+"material ":{"density":”1000", "youngs_modulus ":”7e6", "poissons_ratio ":" 0.45"}, 
+
+"motion ":{”acceleration":"[0.0, -9.8, -0.0]", "velocity":"[ -0.0, -0.5, 0.0]"}  
+
+> Ours
+> Figure 15. Qualitative visualization results of our method and the baselines .
+
+18 PhysVideo: Physically Plausible Video Generation with Cross-View Geometry Guidance PhysGen3D PhysGen Wan CogVideo Force Prompting OmniPhysGS 
+
+Prompt: A watermelon falls into the wate r.
+
+Physics: 
+
+"material ":{"density":”1000", "youngs_modulus ":"2e6 ", "poissons_ratio":"0.45"}, 
+
+"motion ":{”acceleration":"[0.0, -9.8, -0.0]", "velocity ":"[1.0 , -1.5 , 0.0]"}  
+
+> Ours
+> Figure 16. Qualitative visualization results of our method and the baselines .
+
+19

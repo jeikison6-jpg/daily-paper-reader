@@ -1,0 +1,1138 @@
+Title: ReMoT: Reinforcement Learning with Motion Contrast Triplets
+
+URL Source: https://arxiv.org/pdf/2603.00461v1
+
+Published Time: Tue, 03 Mar 2026 01:31:21 GMT
+
+Number of Pages: 43
+
+Markdown Content:
+# ReMoT: Reinforcement Learning with Motion Contrast Triplets 
+
+# Cong Wan 1 Zeyu Guo 1 Jiangyang Li 1 SongLin Dong 2* Yifan Bai 3 Lin Peng 1
+
+# Zhiheng Ma 2 Yihong Gong 1
+
+> 1Xi’an Jiaotong University
+> 2Faculty of Computility Microelectronics, Shenzhen University of Advanced Technology
+> 3DAMO Academy, Alibaba Group
+
+# Abstract 
+
+We present ReMoT , a unified training paradigm to sys-tematically address the fundamental shortcomings of VLMs in spatio-temporal consistency—a critical failure point in navigation, robotics, and autonomous driving. ReMoT 
+
+integrates two core components: (i) A rule-based auto-matic framework that generates ReMoT -16K, a large-scale (16.5K triplets) motion-contrast dataset derived from video meta-annotations, surpassing costly manual or model-based generation. (ii) Group Relative Policy Optimization, which we empirically validate, yields optimal performance and data efficiency for learning this contrastive reasoning, far exceeding standard Supervised Fine-Tuning. We also construct the first benchmark for fine-grained motion con-trast triplets to measure a VLM’s discrimination of subtle motion attributes (e.g., opposing directions). The resulting model achieves SOTA performance on our new benchmark and multiple standard VLM benchmarks, culminating in a remarkable 25.1% performance leap on spatio-temporal reasoning tasks. 
+
+# 1. Introduction 
+
+Vision–Language Models (VLMs) have rapidly evolved into general-purpose perception systems that unify visual understanding and language reasoning [42, 47, 77, 92]. They are increasingly being deployed in critical domains involving physical world interaction, such as AIGC [22, 64, 81–84, 94, 100], embodied intelligence [13, 15, 16, 37, 50], and autonomous driving [10, 102]. These tasks fundamen-tally require models to move beyond static, single-frame perception and instead reason about how physical scenes evolve in space and time, for example, tracking 3D object motion [17, 118], interpreting dynamic changes across con-secutive frames [102], or inferring global orientation [45, 
+
+> *dongsl@suat-sz.edu.cn
+
+110]. However, current mainstream VLMs [2, 9, 26, 46, 62] exhibit significant limitations in this regard: While they ex-cel at aligning visual semantics, they suffer from fundamen-tal deficiencies in the core capability of ensuring spatial-temporal consistency. Our empirical analysis, spanning diverse scenarios such as navigation, robotic manipulation, indoor explo-ration, and game simulation, reveals the pervasiveness of this shortcoming. As illustrated in Fig. 1, even top-tier general-purpose large models, including Qwen3-VL, Claude-Sonnet-4.5, and the GPT series, due to lacking a robust understanding of spatial-physical regularities, fre-quently confound camera rotation with real object motion (Case 1,3), misinterpret gripper status (Case 2), and erro-neously infer the direction of character movement (Case 4). However, existing methods, including architectural modifi-cations [36, 101] or data augmentation [14, 23, 65, 66], are largely limited to piecemeal fixes. They fail to provide a systematic solution that addresses this fundamental limita-tion across the paradigms of data, training, and evaluation. To systematically address this fundamental deficiency, our solution unfolds across three dimensions: 
+
+Data: Existing VLM training data predominantly relies on static image-text pairs, lacking explicit modeling of fine-grained motion attributes and proving insufficient for learn-ing fine-grained spatio-temporal reasoning. To address this, we construct ReMoT -16K, a large-scale motion-contrast triplet dataset to explicitly model fine-grained inter-frame motion attributes (e.g., “camera rotates left” vs. “cam-era rotates right”). For large-scale, high-quality genera-tion, we propose a multi-expert collaborative pipeline .This pipeline orchestrates specialized components oper-ating on structured meta-annotations from video datasets (e.g. , camera pose matrices, robot action logs): motion estimation experts extract precise geometric and physical motion properties, triplet construction experts synthesize hard negatives via property-conditioned transformations, and VQA formulation experts design multi-perspective rea-            
+
+> arXiv:2603.00461v1 [cs.CV] 28 Feb 2026 Question: Is the gripper more open or closed from Image 1 to 2?
+> Claude -Sonnet -4.5: The gripper is more closed in Image 2 than
+> in Image 1.
+> Gemini -2.5 -Pro: The gripper moved from open to closed position,
+> more closed in Image 2 than Image 1.
+> Question: Describe the change in camera view from Image 1 to Image 2.
+> Qwen3 -VL: Camera view rotates left about 90 degrees, from facing
+> "Harbor Place" building to facing the street.
+> Claude -Sonnet -4.5: From facing Harbor Place building to facing the
+> street, this is a left rotation.
+> Question: Does the camera view rotate from Image 1 to other images?
+> Qwen3 -VL: Camera rotates left. Image 2 shows more left cabinet and
+> countertop than Image 1, less right door...
+> GPT -4o: From Image 1 to Image 2, the fridge and trash can positions
+> change, kitchen counter more visible, so camera rotates left…
+> Question: From Pig's perspective, describe Monkey's movement.
+> GPT -5: He was in front of me to the right, almost against the
+> chest, facing me. Then he leaped to my front right.
+> Gemini -2.5 -Pro: He jumped from the chest in front of me to
+> the dock edge at my front right, taking a fighting stance.
+
+Case 1  Case 2 
+
+Case 3  Case 4 Figure 1. Common failure modes of large Vision–Language Models (VLMs) in spatio–temporal reasoning. The figure presents four multi-image examples drawn from navigation, robotic manipulation, indoor exploration, and game simulation scenarios. Each example provides multiple related images and a question about their spatial or temporal relationship. Recent VLMs (GPT-4o, Claude-Sonnet-4.5, Gemini-2.5-Pro, Qwen3-VL) give incorrect responses—such as reversing camera rotation, misjudging object openness, or confusing char-acter motion—which are indicated by red crosses. The errors illustrate that current VLMs struggle to reason consistently about spatial correspondence and physical change across multiple views. 
+
+soning chains. This expert-driven approach significantly surpasses the scale and consistency of manual annotation or direct VLM-based generation (which suffers from 55% format errors and limited valid outputs). 
+
+Training: Based on the constructed motion-contrast data, we systematically investigate the effectiveness of various optimization paradigms. Beyond standard Supervised Fine-Tuning (SFT), we explore Reinforcement Learning with composite rewards (combining task accuracy, reasoning compactness, and logical consistency within the GRPO framework), as well as hybrid strategies including sequen-tial (SFT →GRPO) and alternating (SFT ↔GRPO) integra-tion schedules. 
+
+Benchmark: For evaluation, we constructed a benchmark focusing on fine-grained motion contrast. Unlike existing benchmarks [105, 106], we systematically design sample pairs that are visually highly similar yet possess opposing motion attributes (e.g., “translate left” vs. “translate right” in ego-motion). Through diverse question formats (e.g., single-choice, multiple-choice, fill-in-the-blank), the model is required to reason about complex inter-frame dynamics, such as object motion, camera rotation, and physical conti-nuity, rather than static recognition. The benchmark encom-passes tasks including embodied navigation, robotic manip-ulation, and simulated game scenarios. Our systematic exploration demonstrates that ReMoT ,a complete training paradigm integrating “rule-driven motion-contrast data construction” with “GRPO optimiza-tion”, provides a scalable and efficient solution for enhanc-ing the spatio-temporal reasoning capabilities of VLMs. Compared to traditional manual annotation or SFT meth-ods, ReMoT exhibits significant advantages in data genera-tion efficiency, training sample utilization, and final perfor-mance, achieving SOTA on our new benchmark and mul-tiple standard VLM benchmarks, and culminating in a re-markable 25.1% performance leap on spatio-temporal rea-soning tasks. 
+
+# 2. Related Work 
+
+VLM Spatio-Temporal Reasoning Vision-language mod-els [9, 28, 46] have advanced significantly, yet bench-marks [60, 105, 106, 111] consistently reveal failures in spatio-temporal reasoning: VLMs perform adequately on egocentric spatial judgments but fail at allocentric view-point reasoning and cross-viewpoint comprehension [23, 55]. Works [17, 80] generate static 3D relationships through depth lifting and scene graphs, scaling to billions of QA pairs. Temporal reasoning methods employ time-aware en-coders [51], disentangled attention [5], or textual temporal transfer [56], yet struggle with temporal concepts and rely on temporal proximity rather than contrastive motion se-mantics. 3D/4D approaches integrate geometry priors via reconstructive tuning [36] or world model latents [86, 103], but static encoders weaken spatial grounding with sequen-tial cues [112] and require costly depth sensors. However, these methods tackle isolated aspects (data scale, architec-tural design, or evaluation metrics) without a unified frame-work addressing motion understanding holistically. Our work systematically addresses this gap through: (i) motion-contrast triplet construction from metadata, (ii) hybrid SFT-GRPO training for reasoning consistency, and (iii) allocen-tric evaluation protocols capturing fine-grained motion se-mantics. 
+
+Data Construction for Motion Supervision Existing training data for motion understanding suffers from insuf-ficient granularity: video-text datasets provide only coarse clip-level captions [11, 40], while embodied datasets of-fer structured metadata (poses, actions), but limited seman-tic annotations [31, 76]. Recent advances explore self-supervised learning [3, 66], contrastive training [23, 33], and temporal modeling [78], yet they either focus on spatial geometry over motion semantics [66], require massive unla-beled video [3], or use temporal proximity as a weak motion proxy [33]—failing to explicitly model contrastive motion attributes. In contrast, our motion-contrast triplets explicitly encode directional semantics by pairing each anchor with a motion-aligned positive (e.g., “left rotation by 20°”) and a motion-opposing hard negative synthesized from meta-data. This enables scalable supervision for fine-grained motion discrimination unavailable in proximity-based or reconstruction-based paradigms. 
+
+Training Paradigms for Reasoning Enhancement 
+
+Vision-Language Models (VLMs) for spatio-temporal reasoning typically employ supervised fine-tuning (SFT) with techniques like LoRA [44], yet struggle with long-horizon consistency due to limited reasoning data [41]. Reinforcement learning paradigms address these limita-tions through Direct Preference Optimization (DPO) [75] and Group Relative Policy Optimization (GRPO) [43], which demonstrate significant improvements in chain-of-thought generation for visual domains [24, 73, 116]. Hybrid strategies combine SFT with RL through preference learning [87], yet systematic explorations across diverse data sources remain limited [58, 99]. We further explore hybrid optimization schedules beyond standard sequential integration (SFT →GRPO) [87], introducing an alternating strategy (SFT ↔GRPO) that jointly evolves linguistic fluency and reward alignment. 
+
+# 3. Method 
+
+## 3.1. ReMoT-16k Data Construction 
+
+Existing video datasets predominantly provide clip-level captions or static scene descriptions, lacking explicit super-vision for distinguishing physically valid frame transitions from invalid ones. To address this gap, we propose ReMoT -16k that systematically generates motion-contrast triplets 
+
+from videos with meta-annotations. 
+
+Motion-Contrast Triplets. Each triplet consists of 
+
+(Ianchor , I pos , I neg ), where the anchor-positive pair exhibits a specific motion property m while the anchor-negative pair violates this property despite visual similarity. This design forces models to learn fine-grained motion discrimination rather than relying on superficial visual patterns. Construc-tion requires three critical capabilities: (1) extracting mo-tion properties from frame sequences, (2) constructing mo-tion contrast triplets, and (3) generating VQA formulations. The most straightforward approach is leveraging vision-language models as unified agents to perform all three stages. We explore this direction using state-of-the-art LVLMs (Qwen-3-VL, Gemini-2.5-Pro), prompting them to analyze video frames and metadata, identify salient motion patterns, and generate structured triplets in JSON format. However, practical deployment reveals severe limita-tions. Manual inspection shows 55% of outputs contain format violations (e.g., mismatched option counts). The ap-proach also incurs prohibitive API costs and time overhead. After quality filtering, we obtain 632 valid triplets. These challenges motivate a more systematic alternative. 
+
+Multi-Expert Collaborative Construction. Our primary contribution is a multi-expert pipeline where each stage is handled by specialized components operating on structured meta-annotations A:1. Motion Estimation Experts (g : ( It, I t′ , A) → m): Domain-specific extractors parse metadata to derive mo-tion properties. For example, navigation experts com-pute rigid transformations from SE (3) pose matrices to indicate camera rotation between frames, and manipula-tion experts extract end-effector trajectories from robot telemetry to indicate robot actions. Each expert outputs compositional properties m encoding motion semantics and attributes. 2. Triplet Construction Expert (ϕ, N ): This expert first selects salient positive pairs and then synthesizes hard negatives. Selection filters for perceptible yet coherent 
+
+transitions via property-specific magnitude thresholds: 
+
+ϕ(It, I t′ , m ) = 
+
+(
+
+(Ianchor , I pos , m ) if ∥m∥ ∈ T m
+
+None otherwise (1) frame 1   
+
+> Rotate the camera 20 degrees to the left Right arm forward -right and lift, closed Which image is masked
+> Motion Contrasts
+> Next frame
+
+SFT  SFT+GRPO  GRPO Train 
+
+. . .  . . . Figure 2. Overview of the Triplet Motion Contrasts pipeline. Raw videos and meta-annotations like camera parameters, are processed with rule-based operations to construct motion-contrast triplets that encode spatial and temporal changes. The figure shows representative cases, including camera rotation, manipulation, and masked-frame contrast, as well as the training paradigms (SFT,SFT+GRPO,GRPO) 
+
+where Tm balances discriminability and coherence (e.g., camera rotation in [10°, 50°]). Negative generation em-ploys property-conditioned synthesis: 
+
+N (Ianchor , I pos , m ) = 
+
+(
+
+Tgeo (Ipos , m )
+
+R(V, ¯m, sim (Ipos , ·)) (2) where ¯m denotes reversed/conflicting attributes. Ge-ometric synthesis Tgeo applies spatial transformations simulating opposite motion, while retrieval R searches video V for visually similar frames with mismatched properties. 3. VQA Formulation Expert : Given constructed triplets, this expert designs comprehensive question-answer pairs that probe motion understanding from multiple perspec-tives. Rather than single isolated questions, each triplet 
+
+(Ianchor , I pos , I neg ) is interrogated through multi-question reasoning chains that examine motion properties at dif-ferent granularities and logical dependencies. Question design spans diverse formats, such as multiple-choice (selecting valid transitions among options), true/false judgments (verifying motion descriptions), fill-in-the-blank (completing property attributes), and comparative reasoning (relating pairwise motions across all frames). Complete descriptions of expert implementations, domain-specific instantiation details, data statistics, and qualitative examples are provided in the supplementary material. 
+
+ReMoT-16k-Test Benchmark. To enable rigorous eval-uation of fine-grained spatiao-temporal reasoning, we con-struct ReMoT-16k-Test by combining samples from both construction pipelines. We randomly sample 500 triplets from the multi-expert pipeline as held-out test data, ensur-ing coverage across all domains: navigation ( ∼50), robotic manipulation ( ∼250), others ( ∼200). We then integrate the 100 VLM-generated triplets covering object tracking and game scenarios, forming a final benchmark of 600 eval-uation triplets, with 1776 total evaluation questions. The benchmark exhibits high visual hardness. 
+
+## 3.2. Training Variants 
+
+Based on the motion–contrast corpus described in Sec-tion 3.1, we systematically evaluate different optimization paradigms under a unified framework, covering supervised fine–tuning (SFT), reinforcement learning (RL), and their hybrid combinations. All variants use identical training data and comparable configurations. As illustrated in Fig. 2, three regimes are investigated: pure SFT, pure GRPO, and hybrid forms where the two are combined either sequen-tially or alternately. 
+
+Base Architecture. We choose Qwen3-VL-4B-Thinking as our base model, as it is one of the most capable open–source vision language models for spatio-temporal reasoning. The 4B variant provides the best balance between accuracy and computational feasibility. We keep the Thinking mode to re-tain its intrinsic CoT capability rather than re-learning rea-soning from scratch. Each sample is formatted as 
+
+reasoning <think> <answer>ans</answer> 
+
+and the loss is computed solely on tokens within 
+
+<answer> for effective supervision of factual results. For reinforcement learning, we adopt Group Relative Policy Optimization (GRPO) [79], the state–of–the–art paradigm. Given query q and G sampled responses {oi}Gi=1 from the old policy πθold , the objective is: 
+
+J(θ) = Eq, {oi}
+
+"
+
+1
+
+G
+
+> G
+
+X
+
+> i=1
+
+min 
+
+
+
+ri ˆAi, clip (ri, 1−ε, 1+ ε) ˆAi
+
+
+
+− βD KL (πθ∥πref )
+
+#
+
+,
+
+(3) where ri = πθ (oi|q)/π θold (oi|q) is the probability ratio. The group-normalized advantages ˆAi are computed as: 
+
+ˆAi = Ri − ¯Rσ({Rj }Gj=1 ) , where ¯R = 1
+
+G
+
+> G
+
+X
+
+> j=1
+
+Rj , (4) with σ(·) denoting standard deviation and Ri the total re-ward for response oi.
+
+CoT Length Regularization. The base model tends to gen-erate excessively verbose and repetitive reasoning traces, leading to slower inference and increased memory con-sumption during training, as shown in Fig.3. To address this, we introduce a length penalty into the reward: 
+
+Rlength (oi) = − max(0 , |othink  
+
+> i
+
+| − Ltarget ), (5) where |othink  
+
+> i
+
+| denotes the thinking token count of response 
+
+oi. This discourages unnecessarily long chains while pre-serving reasoning quality. 
+
+Logical Consistency Refinement. After baseline train-ing, we analyze failure cases and find that 31.4% of er-rors exhibit logical inconsistency . For queries with in-terdependent questions, models sometimes produce con-tradictory answers. For instance, when comparing object lengths across three images, a model might claim L1 < L 2,
+
+L2 < L 3, yet L3 < L 1 that violates transitivity. Such contradictions, detectable without ground truth, expose the model’s failure to maintain coherent cross-image reasoning. We formalize a logic verification reward: 
+
+Rlogic (o) = 
+
+
+
++1 answers satisfy logic 
+
+−1 answers contain contradictions 
+
+0 no verifiable relation exists (6) The checker applies transitivity to extracted relational sym-bols. 
+
+Composite Reward Design. We integrate all reward com-ponents: 
+
+Ri = Rtask (q, o i) + λ1 · Rlogic (oi) + λ2 · Rlength (oi), (7) where Rtask is the task-specific accuracy reward, and λ1, λ 2
+
+control the strength of logical and length supervision. These rewards influence the advantages ˆAi in Eq. (3), guiding the policy without altering the GRPO objective structure. 
+
+Algorithm 1 SFT-GRPO with Composite Rewards  
+
+> 1:
+
+Input: Dataset D, policy πθ , old policy πθold , reference 
+
+πref , max steps Tmax , group size G, clip ratio ε, learning rate η, Phase lengths (KSFT , K GRPO ), weights λ1, λ 2 
+
+> 2:
+
+Output: Optimized parameters θ 
+
+> 3:
+
+for t = 1 to Tmax do  
+
+> 4:
+
+if (t mod ( KSFT + KGRPO )) < K SFT then  
+
+> 5:
+
+Sample ground-truth pair (q, y ∗) ∼ D  
+
+> 6:
+
+Compute cross-entropy loss:  
+
+> 7:
+
+LSFT = −P
+
+> u∈<answer>
+
+log πθ (yu|q) 
+
+> 8:
+
+Update: θ ← θ − η∇θ LSFT  
+
+> 9:
+
+else  
+
+> 10:
+
+Sample prompt q ∼ D  
+
+> 11:
+
+Generate group responses: {oi}Gi=1 ∼ πθold (·| q) 
+
+> 12:
+
+for i = 1 to G do  
+
+> 13:
+
+Evaluate task reward: Rtask (q, o i) 
+
+> 14:
+
+Evaluate logical reward: Rlogic (oi) via Eq. (6)  
+
+> 15:
+
+Evaluate length penalty: Rlength (oi) via Eq. (5)  
+
+> 16:
+
+Compute Ri via Eq. (7)  
+
+> 17:
+
+end for  
+
+> 18:
+
+Compute group baseline: ¯R = 1
+
+> G
+
+PGi=1 Ri 
+
+> 19:
+
+Compute advantages: ˆAi = Ri− ¯Rσ({Ri}) 
+
+> 20:
+
+for i = 1 to G do  
+
+> 21:
+
+Compute importance ratio: ri = πθ (oi|q)  
+
+> πθold (oi|q)
+> 22:
+
+end for  
+
+> 23:
+
+Compute objective J(θ) via Eq. (3)  
+
+> 24:
+
+Update: θ ← θ − η∇θ J(θ) 
+
+> 25:
+
+Sync old policy: πθold ← πθ 
+
+> 26:
+
+end if  
+
+> 27:
+
+end for Hybrid Optimization. Beyond single-paradigm training, we design two integration schemes: (1) Sequential hybrid 
+
+(SFT →GRPO), where SFT first provides a stable initializa-tion before the entire policy switches to GRPO refinement; and (2) Alternating hybrid (SFT ↔GRPO), where SFT and GRPO steps alternate every few updates, allowing linguis-tic alignment and reward alignment to evolve jointly. The alternating procedure is summarized in Algorithm 1. 
+
+# 4. Experiment 
+
+## 4.1. Experimental Setup 
+
+Hyper-parameters. We use Qwen3-VL-4B-Thinking [74] as our base model. During SFT, we use a batch size of 16, learning rate 8 × 10 −5, and apply AdamW optimizer with a cosine decay schedule. For reinforcement learning, we follow the GRPO [79] scheme and use four rewards: a for-mat reward that encourages valid answer syntax, an accu-racy reward based on correctness against ground truth, a 
+
+conciseness reward that penalizes excessively long reason-ing chains to regulate CoT length, and a logic consistency Table 1. Overall and partial accuracies (%) across capability groups on ReMoT-16k-Test. We evaluate models across three fine-grained motion reasoning capabilities: Navigation , Perceptual Grounding , and Manipulation . The rightmost columns show macro-averaged performance across all tasks. Rows compare baseline VLMs against our trained variants: GRPO, SFT →GRPO (sequential training), and SFT ↔GRPO (alternating training on held-out data highlighted in gray). 
+
+Model Navigation Perception Manipulation Avg. 
+
+Camera Rel-Pos Grounding Counting Gripper-Move Gripper-State Composite Ov. Par. Ov. Ov. Ov. Ov. Par. Ov. Par. Ov. Par. Ov. Par. Qwen2.5-VL-7B [96] 4.8 34.7 0.0 23.9 0.0 4.0 36.6 8.1 31.7 0.0 16.7 5.1 25.4 Qwen3-VL-CoT-4B [74] 2.4 25.9 22.5 35.8 79.0 15.3 46.2 3.2 35.5 4.8 22.0 20.7 38.9 InternVL3-2B [26] 1.6 21.5 20.0 31.3 60.5 0.8 29.8 6.5 35.0 0.0 17.7 14.9 29.3 InternVL3-8B [26] 2.8 23.8 15.0 30.6 51.7 1.6 28.5 8.1 38.7 0.0 18.3 12.2 28.9 LLaVA-One-Vision [54] 2.0 30.4 17.5 32.9 0.0 10.5 37.6 21.0 47.3 0.0 14.8 9.7 27.9 GRPO 27.0 62.4 24.3 44.3 94.1 54.5 74.3 27.3 44.7 61.3 79.2 33.6 61.6 SFT →GRPO 26.6 62.1 22.5 35.8 82.5 57.3 78.8 32.3 60.2 62.9 82.3 35.0 63.3 SFT ↔GRPO 21.4 61.2 26.7 46.7 82.7 68.6 82.0 45.2 65.1 69.4 86.6 38.0 64.0 
+
+Table 2. Effect of training data composition. All results are re-ported in percentage accuracy on our spatio–temporal benchmark. 
+
+Training data Overall Acc. Partial Acc. 
+
+Without training 20.7 38.9 Manipulation only 23.9 46.7 + Navigation 32.4 57.6 + Simulation 38.0 64.0 Table 3. Effect of logic reward decoupling. We ablate the contri-bution of explicit logic consistency reward to model performance. Logic. measures the proportion of responses with consistency. 
+
+Method Ov. Par. Logic. 
+
+Qwen3-VL-4B-CoT 16.2 39.6 46.6 + GRPO w/o logic reward 68.6 77.3 98.6 + GRPO w/ logic reward 78.0 81.3 99.3 
+
+reward that promotes self-consistent reasoning throughout the inference process. weighted at 3.5:3 .5:1 .3:1 .7. Notably, the format reward is an internal reward function provided by the ms-swift library rather than a custom-designed mod-ule; therefore, we do not discuss its implementation details in this paper. A KL regularization term with coefficient 0.01 
+
+constrains reward drift from the SFT distribution. The RL stage uses a batch size of 16 and generates 4 rollouts per sample. Each training run lasts 2 epochs on 8× A800 GPUs using mixed precision. 
+
+Evaluation protocols. We follow the default inference configuration of Qwen3-VL [74] and evaluate using the 
+
+VLMEvalKit toolkit [35]. For all benchmarks, we unify the prompting format and answer extraction rules. Each question is decoded through the model’s reasoning head and parsed from the final <answer> token. Accuracy is com-puted under both overall and partial criteria. (a) 
+
+> (b)
+
+Figure 3. Data scaling analysis across construction pipelines. (a) Our multi-expert pipeline shows smooth scaling with GRPO reaching 0.61 and cross-validation variants peaking at 0.64–0.66. 
+
+(b) VLM-generated data exhibits volatile scaling and lower ceiling (∼0.49). Dashed lines show average word counts, which decline as models learn more concise reasoning with increased data. 
+
+## 4.2. Main Results 
+
+Evaluation metrics. Our ReMoT -16k-test benchmark fo-cuses on measuring fine–grained spatial–temporal reason-ing consistency. Each sample in the benchmark contains multiple sub-questions that jointly evaluate different aspects of reasoning. For every sample, we define two complemen-tary metrics: (i) Overall Accuracy , which marks a sample Models Spatial & Temporal Benchmarks General Multimodal Benchmarks VLM2 [111] VSI [105] MMSI [106] BLINK [38] MUIR [95] MMStar [21] MMMU [109] Proprietary                                                                          
+
+> Gemini-2.5-Pro [29] 54.2 53.6 36.9 59.1 77.2 73.6 74.7 GPT-4o [46] 60.4 42.5 30.3 59.0 68.0 70.2 70.7 GPT-5 [93] -55.0 41.8 57.9 77.5 75.7 81.8 Open-source
+> Qwen2.5-VL-7B [9] 45.1 33.0 25.9 56.4 59.6 64.1 58.0 InternVL2.5-8B [26] 55.4 46.6 28.7 56.6 55.0 61.5 51.2 LLaVA-Next-7B [114] 44.3 35.6 24.5 51.3 -45.3 41.7 Qwen3-VL-4B-CoT [74] 66.4 55.2 26.8 59.5 73.8 68.4 70.8 Qwen3-VL-30B-CoT [74] 68.2 56.1 28.5 65.4 77.6 75.5 76.0 ReMoT-4b-CoT(Ours) 70.0 58.8 30.8 62.2 72.8 70.4 71.4
+> ∆Improvement +3.6 +3.6 +4.0 +2.7 -1.0 +2.0 +0.6 Table 4. Evaluation on other VLM benchmarks. The first three benchmarks focus on spatio–temporal reasoning, and the latter four evaluate general multimodal understanding. All scores are reported in accuracy (%). Best ( dark purple ) and second-best ( light purple ) results are highlighted within each group.
+
+as correct only when all its sub-questions are answered cor-rectly—that is, any incorrect sub-question results in the en-tire sample being scored as wrong; and (ii) Partial Accu-racy , which assigns a proportional score based on the ra-tio of correctly answered sub-questions within each sam-ple, allowing partial credit when the reasoning is only par-tially correct. The former emphasizes integral reasoning and cross-frame consistency, while the latter reflects local-ized correctness under partial understanding. 
+
+Quantitative results. Table 1 presents comprehensive re-sults across three motion reasoning capabilities. State-of-the-art VLMs achieve below 15% overall accuracy with near-zero performance on multi-step tasks (Composite Ma-nipulation: 0.0%–4.8%), while even reasoning-enhanced Qwen3-VL-CoT shows limited improvement (20.7%). No-tably, alternating SFT–GRPO training achieves 38.0% on Ov and 64.0% on Par , representing relative gains of 
+
++18.7% and +25.1% over the base model. 
+
+## 4.3. Ablation and Comparative Studies 
+
+Training Data Composition. Table 2 shows incremen-tal improvements from different task types. Starting from the Qwen3-VL baseline (20.7%), manipulation data pro-vides modest gains (+3.25%), while adding navigation data brings substantial improvement to 32.35% (+8.4%), indi-cating spatial relation reasoning is crucial. Incorporating simulation data further achieves 38.0% (+5.65%). 
+
+Logic Reward Decoupling. Table 3 validates our ex-plicit logic supervision on the Manipulation subset. The logic-ability test data are mainly drawn from the Manip-ulation subset of our benchmark, which specifically mea-sures reasoning consistency. Therefore, the base model performance here may differ slightly from the overall re-sults reported in Table 1. We compare three settings: The base model shows poor logic correctness (46.62%), GRPO without logic reward improves this to 98.6% but achieves limited accuracy (68.6%), while our decoupled logic re-ward reaches 99.3% logic correctness and 78.0% accuracy (+10.6%). This strong correlation demonstrates that main-taining self-consistent reasoning chains is crucial for per-formance improvement. 
+
+Data Scaling Analysis. Figure 3 compares scaling be-haviors between pipelines. Our multi-expert construction (Figure 3a) exhibits smooth scaling from 0.42 to 0.66 with no saturation, while VLM-generated data (Figure 3b) shows volatile fluctuations and plateaus at ∼0.49. This demonstrates that construction quality fundamentally limits achievable performance regardless of scale. Both pipelines show declining response verbosity as data increases. 
+
+## 4.4. Evaluation on Other VLM Benchmarks 
+
+To assess generalizability, we evaluate ReMoT on ex-isting benchmarks covering spatial-temporal reasoning (VLM2 [111], VSI [105], MMSI [106]) and general mul-timodal understanding (BLINK [38], MUIR [95], MM-Star [21], MMMU [109]). The four general benchmarks are selected because they not only measure broad multi-modal comprehension, but also include subsets—such as MMStar and BLINK—that explicitly test spatial–temporal understanding in real-world scenarios. Results are shown in Table 4. ReMoT-4B-CoT achieves state-of-the-art per-formance among all models on spatial-temporal bench-marks, outperforming the 7.5× larger Qwen3-VL-30B-CoT by +1.8%, +2.7%, and +2.3% on VLM2, VSI, and MMSI ReMoT : 1. Img1 and Img3 show 
+
+the lamp in the same position with 
+
+similar desk and TV placement. Th us ,
+
+no rotation. 2: In Img2 the desk is 
+
+positioned far to the left side of the 
+
+frame. In Img3, the desk has moved 
+
+more toward the center . So the 
+
+horizontal rotation direction is Left. 
+
+Therefore, the answer is BC. 
+
+Qwen3-VL : The model uses the 
+
+south side where the power strip is 
+
+located in Figure 3 as reference, 
+
+observes the red backpack is near 
+
+the whiteboard on the right in 
+
+Figure 2, determines the 
+
+whiteboard is on the east wall 
+
+and the backpack is on the east 
+
+side . With the power strip south 
+
+and backpack east, it concludes the 
+
+backpack is southeast. 
+
+Therefore, the answer is C. 
+
+ReMoT : The model uses the 
+
+south side of the power strip in 
+
+Figure 3 as directional 
+
+reference. Observing Figure 2, 
+
+it finds the backpack near the 
+
+whiteboard in the center-right 
+
+area , infers the whiteboard is 
+
+on the north wall (common 
+
+meeting room layout), thus the 
+
+backpack is positioned 
+
+northeast in the room. 
+
+Therefore, the answer is D. 
+
+ReMoT : Segmentation masks 
+
+show white silhouettes on black 
+
+background representing 
+
+characters. Image 1 has one rider 
+
+on horse in foreground and 
+
+another figure behind (two 
+
+characters total), while Image 2 
+
+only has one rider . Image 3 
+
+mask has two white silhouettes, 
+
+matching Image 1 with two 
+
+characters. 
+
+Therefore, the answer is A. 
+
+What is the state change of the left gripper's state ?
+
+Q1: from Img1 to Img2 ; Q2: from Img2 to Img3 
+
+A. Down B. No movement C. Up 
+
+Qwen3-VL : 1. T he right arm 
+
+transitions from holding the bag to 
+
+being invisible , therefore the right 
+
+arm moves downward. 2. The right 
+
+arm moves from the invisible state 
+
+in Img 2 to reappearing in Img 3, 
+
+therefore the right arm moves 
+
+upward. 
+
+Therefore, the answer is AC. 
+
+ReMoT : 1. T he right arm moves 
+
+from holding the bag to a higher 
+
+position to grasp the box, therefore 
+
+the right arm moves upward . 2. T he 
+
+right arm moves from the box-
+
+grasping position in Img 2 down to 
+
+the table position in Img 3, so the 
+
+right arm moves downward .
+
+Therefore, the answer is CA. 
+
+Which image does Image 3 mask for ?
+
+What is the rotation direction of the camera ?
+
+Q1: from Img1 to Img2 ; Q2: from Img2 to Img3 
+
+If Fig 3 power strip is on the south, where is Fig 2 backpack ?
+
+A. Right B. No rotation C. Left 
+
+Qwen3-VL : 1. T he lamp is 
+
+more towards the left in Image 
+
+3. So the camera rotated left. 
+
+The horizontal rotation direction 
+
+is Left. 2. Image 2 has the desk 
+
+on the left, Image 3 also left. 
+
+But maybe the camera rotated 
+
+right. So Right. 
+
+Therefore, the answer is CA. 
+
+A. Image1 B. Image2 C. Neither 
+
+Qwen3-VL : Image 3 show s white 
+
+foreground objects on black 
+
+background, and has two white 
+
+silhouettes to match. The model 
+
+judged that both Image 1 and Image 
+
+2 have a rider and a walking 
+
+character , making it hard to 
+
+distinguish. Considering Image 2's 
+
+characters are closer and more 
+
+visible, it concluded the mask 
+
+belongs to Image 2 .
+
+Therefore, the answer should be B. 
+
+A. Southwest B. Northwest C. Southeast D. Northeast Figure 4. Visual Comparisons. We compare Qwen3-VL and ReMoT across four challenging scenarios spanning gripper state transi-tions, camera movement analysis, object segmentation, and directional spatial reasoning. These tasks require distinguishing subtle motion attributes where visual appearances are highly similar but semantic meanings differ significantly. Qwen3-VL frequently misinterprets am-biguous cases and produces contradictory conclusions (underlined in red), while ReMoT leverages structured reasoning chains (highlighted in green) to accurately resolve fine-grained distinctions by integrating temporal dynamics and spatial relationships. 
+
+respectively. On the four general benchmarks, ReMoT maintains comparable or even better performance, indicat-ing that strengthening spatial–temporal reasoning does not compromise general multimodal capability. Notably, our 4B model matches or exceeds GPT-4o on spatial-temporal tasks despite being orders of magnitude smaller. The con-sistent gains on spatial-temporal benchmarks while pre-serving general capabilities confirm that our expert-driven data construction, decoupled logic rewards, and GRPO optimization successfully enhance core reasoning without catastrophic forgetting. 
+
+## 4.5. Qualitative Analysis. 
+
+We sample representative examples from our benchmark and visualize side-by-side the baseline’s error-prone reason-ing and ReMoT’s precise reasoning traces, along with their textual responses. 
+
+Additional analyses, including hyperparameter sensitiv-ity, computational cost, data construction details, visual-izations, and limitations, are provided in the Appendix. 5. Conclusion 
+
+We present ReMoT, a comprehensive framework for fine-grained spatial-temporal reasoning in vision-language mod-els. Through multi-expert collaboration, we construct ReMoT-16K, a large-scale dataset explicitly modeling sub-tle inter-frame motion attributes. Combined with decoupled logic rewards and GRPO optimization, ReMoT-4B-CoT achieves state-of-the-art performance on spatial-temporal benchmarks while maintaining competitive results on gen-eral multimodal tasks. ReMoT: Reinforcement Learning with Motion Contrast Triplets 
+
+# Supplementary Material 6. Motion Contrast Construction Details 
+
+This appendix provides comprehensive implementation details for constructing motion contrast triplets across the three pri-mary domains defined in Table 1 of the main paper: Camera Navigation , Robot Manipulation , and Object-Centric Motion 
+
+(covering Tracking, Grounding, and Counting). We detail the instantiation of (M, g, ϕ, N ) for each domain. 
+
+## 6.1. Camera Navigation: ScanNet and Nuscenes 
+
+Dataset Overview. ScanNet and NuScenes provide video sequences with camera pose annotations. Each frame It is associated with a global pose Tt ∈ SE (3) .
+
+Temporal Strided Sampling. Unlike standard video training which often uses adjacent frames, camera motion between It
+
+and It+1 is often negligible. To ensure perceptually significant motion, we employ strided sampling . Given an anchor frame 
+
+Ii, we search for a positive frame Ij within a temporal window j ∈ [i + δmin , i + δmax ] (typically 0.5s to 2.0s) that satisfies the motion magnitude thresholds defined below. 
+
+Property Space M and Ground Truth g. We focus on six discrete camera movements 
+
+M = {left , right , up , down , forward , backward } (6 discrete camera movements ) (8) We compute relative transformation ∆T = T −1 
+
+> i
+
+Tj . For rotations, we convert the rotation matrix to axis-angle (v, θ ).
+
+grot (∆ R) = 
+
+
+
+left if vy > 0.7 and θ > θ thresh 
+
+right if vy < −0.7 and θ > θ thresh 
+
+. . . (similar for up/down) (9) 
+
+Visual Saliency Filter ϕ. To filter out ambiguous pairs, we enforce: 
+
+ϕ(m) = 
+
+
+
+1 if 10 ◦ ≤ θ ≤ 50 ◦ (ensures visibility but prevents total scene change) 
+
+1 if 0.5m ≤ ∥ ∆t∥ ≤ 2.0m (for translation) 
+
+0 otherwise (10) 
+
+Negative Constructor N (Spatial Illusion). As detailed in the main text, we synthesize negatives via Diagonal Cropping .For a “Camera Rotate Left” property, the Anchor Ii is a bottom-right crop, and the Negative I− 
+
+> k
+
+is a top-left crop from the 
+
+same original frame. This creates a visual illusion of opposite rotation parallax while maintaining identical semantic content, forcing the model to rely on the actual view change in the Positive Ij .
+
+## 6.2. Robot Manipulation: AgiBot 
+
+Dataset Overview. AgiBot contains teleoperated demonstrations. Annotations include end-effector position pt ∈ R3 and gripper state st ∈ { 0, 1}.
+
+Property Space M. We define composite properties: M = Mgripper × M motion .• Mgripper = {opening , closing , maintaining }
+
+• Mmotion = {moving left , moving right , . . . , moving lower-right } (8 directions) 
+
+Ground Truth g and Filter ϕ. Motion is categorized by the dominant axis of displacement ∆p = pj − pi. We apply a saliency filter to ensure motion is visible: 
+
+ϕ(m) = 1 ⇐⇒ (∥∆p∥ ≥ 0.05 m) ∨ (si̸ = sj and gripper visible ) (11) The 5cm threshold is critical for distinguishing intentional movement from control jitter. Negative Constructor N (Action Reversal). We use Semantic Inversion . If the property is “Closing Gripper”, we re-trieve a negative frame I− 
+
+> k
+
+from a different timestamp in the same episode where the gripper is “Opening”, while minimizing the spatial distance of the end-effector to the anchor position. This ensures the negative looks spatially similar (same back-ground/object) but performs the opposite action. 
+
+## 6.3. Object-Centric Motion: Tracking, Grounding, and Counting 
+
+As categorized in Table 1 of the main paper, this domain encompasses tasks that require fine-grained understanding of specific object instances rather than global scene motion. We unify Object Tracking , Spatial Grounding , and Motion Counting under a common construction pipeline using datasets like M4-Instruct and OmniWorld which provide 2D per-frame segmentation masks. 
+
+Unified Data Representation. For a video sequence, we utilize frame-level annotations At = {(M (k) 
+
+> t
+
+, c (k) 
+
+> t
+
+, id (k))}Kk=1 ,where M is the segmentation mask, c is the category label, and id is the instance track ID. 
+
+Task 1: Object Tracking and Identification. 
+
+• Property: Mtrack = {Same Instance , Different Instance }.• Construction: Given Anchor Ii with object Oa, the Positive Ij shows the same instance Oa (verified by Track ID) at a later time. • Hard Negative: The Negative I− 
+
+> k
+
+is selected to contain a distractor object Ob such that: 
+
+c(Ob) = c(Oa) AND sim CLIP (Ob, O a) > τ AND id (Ob)̸ = id (Oa) (12) This forces the model to track specific instances rather than general categories (e.g., distinguishing between two similar red cars). 
+
+Task 2: Spatial Grounding (Motion Direction). 
+
+• Property: Mground = {Object moving left/right/up/down }.• Construction: We compute the centroid shift of the mask ∆c = center (Mj ) − center (Mi). A valid pair requires ∥∆c∥ >
+
+0.1 × min( H, W ) to ensure significant screen movement. • Hard Negative: We select a frame where the same object moves in the opposite direction or remains static, penalizing models that hallucinate motion based on static object appearance. 
+
+Task 3: Motion Counting. 
+
+• Property: Mcount = {N objects moving [direction] }.• Construction: We aggregate individual object motions. For a query “How many people are walking left ?”, we count instances satisfying the Grounding criteria. • Hard Negative: We retrieve frames with N −1 or N +1 moving objects, or frames where N objects are present but moving in the wrong direction. This ensures the model performs dense temporal reasoning rather than single-frame detection. 
+
+# 7. Dataset Statistics and Analysis 
+
+Following the construction pipeline detailed in Section 6, we generated a total of N=16.5k motion contrast instruction tuning samples. This section provides a detailed analysis of the dataset distribution, diversity, and quality control. 
+
+## 7.1. Distribution across Domains 
+
+To ensure a comprehensive evaluation of motion understanding, we maintain a balanced distribution across the three primary domains defined in Table 1. The breakdown is as follows: 
+
+## 7.2. Answer Balance and Bias Mitigation 
+
+A critical issue in Multiple Choice Question (MCQ) benchmarks is the potential for positional bias (e.g., the correct answer is frequently option ’A’). • Randomized Options: During the generation of the JSON files, the positions of the Positive sample (Correct Answer), Hard Negative (Distractor), and Random Negative are shuffled for every triplet. Domain Source Data Proportion Key Motion Types          
+
+> Camera Navigation ScanNet, NuScenes ∼35% Ego-motion, Viewpoint Change, Parallax Robot Manipulation AgiBot ∼30% End-effector control, Gripper state, Interaction Object-Centric M4-Instruct, OmniWorld ∼35% Tracking, Grounding, Counting, Attribute Change Table 5. Distribution of motion contrast samples across different domains. The balanced ratio prevents the model from overfitting to a specific visual style (e.g., only synthetic indoor scenes).
+
+## 7.3. Motion Magnitude Distribution 
+
+To verify that our filtering mechanisms (e.g., ϕ in Sec 6.1) effectively remove static or trivial samples, we analyze the motion magnitude: • Camera Domain: The average rotation between anchor and positive frames is 28 ◦, and average translation is 0.2m. • Object Domain: The average Intersection over Union (IoU) between the object bounding boxes in Ii and Ij is less than 0.5, indicating significant object displacement. 
+
+# 8. More Experimental Results 
+
+## 8.1. Ablation Study 
+
+8.1.1. Triplet vs. Binary Contrast 
+
+To validate the necessity of triplet-based motion contrast, we conduct an ablation study comparing our triplet formulation against a binary (pairwise) alternative. This ablation directly examines whether our (Ianchor , I pos , I neg ) triplet formulation is superior to constructing separate binary pairs (Ianchor , I pos ) and (Ianchor , I neg ) for learning fine-grained spatio-temporal discrimination. 
+
+Experimental Setup. In the binary variant, we decompose each triplet into two separate binary pairs: a positive pair 
+
+(Ianchor , I pos ) retaining motion property m, and a negative pair (Ianchor , I neg ) with conflicting property ¯m. The VQA formula-tion is simplified to independent binary verification questions for each pair (e.g., “Does the camera rotate left between these frames?”), treating positive and negative examples as isolated training instances rather than contrastive options within the same question. Both variants use identical training data scale, the same GRPO training procedure, and equivalent computa-tional budgets. 
+
+Results. Table 6 presents the performance comparison on our ReMoT-16k-Test benchmark. The triplet-based approach substantially outperforms the binary baseline, achieving 38.0% Overall accuracy compared to 19.4% for binary pairs—a remarkable +18.6% absolute improvement. On the Partial accuracy metric, triplet learning yields 64.0% versus 39.4%, representing a +24.6% gain.            
+
+> Table 6. Ablation study comparing triplet-based and binary-based contrast learning on ReMoT-16k-Test benchmark. The triplet formulation with joint contrastive supervision demonstrates substantial advantages across both evaluation metrics.
+> Contrast Formulation Overall (%) Partial (%)
+> Binary Pairs (Ianchor , I pos ),(Ianchor , I neg )19.4 39.4 Triplets (Ianchor , I pos , I neg )38.0 64.0
+> Absolute Gain +18.6 +24.6
+
+Analysis. The dramatic performance gap underscores the critical importance of joint contrastive supervision in learning fine-grained motion discrimination. While the binary baseline exposes the model to both positive and negative examples through separate (Ianchor , I pos ) and (Ianchor , I neg ) pairs, treating them as isolated instances fails to establish explicit contrastive relationships, making it difficult for the model to learn the relative motion relationships within the scene. In contrast, our triplet formulation jointly presents both transitions—one exhibiting motion property m (Ipos ) and another exhibiting the reversed or conflicting property ¯m (Ineg )—for the same anchor frame. Critically, both Ipos and Ineg depict physically plausible transitions; the distinction lies in their opposing motion directions or attributes relative to the anchor (e.g., leftward vs. rightward camera rotation, approach vs. retract robot trajectories). This design enables the model to directly learn contrastive boundaries through comparative reasoning—simultaneously evaluating opposing motion patterns—forcing explicit discrimination of fine-grained directional differences even when both alternatives are visually similar due to identical scene content. 
+
+8.1.2. GRPO Rollout Configuration 
+
+Group Relative Policy Optimization (GRPO) typically employs a rollout size of 8 for generating multiple response candidates per query. However, to improve training efficiency and reduce memory consumption, we train our model with a rollout size of 4. To validate this design choice, we conduct an ablation study comparing rollout sizes of 4 and 8 under identical training conditions. 
+
+Experimental Setup. For rapid validation, we train both variants on 1/10 of the full training dataset using the same hyperparameters, learning rate, and training steps. The only difference is the number of response candidates sampled per query during GRPO training: 4 for our configuration vs. 8 for the standard setting. Both models are evaluated on the ReMoT-16k-Test benchmark. This reduced-scale experiment allows us to efficiently compare rollout configurations without the computational cost of full-scale training. 
+
+Results. Table 7 presents the performance comparison. The performance difference is negligible (0.62% on Overall, +0.65% on Partial for rollout 4), demonstrating that reducing rollout size does not significantly impact model quality in our setting.         
+
+> Table 7. Ablation study on GRPO rollout size trained on 1/10 of the full training data. Training with rollout size 4 achieves comparable performance to rollout size 8 while substantially reducing training time and memory consumption.
+> Rollout Size Overall (%) Partial (%)
+> 8 (Standard) 20.48 40.28 4 (Ours) 19.86 40.93 Performance Gap -0.62 +0.65
+
+8.1.3. Optimization Strategy: GRPO vs. DPO and DAPO Experimental Setup. We compare three representative optimization strategies—DPO, DAPO, and GRPO—using Qwen3-VL-4B as the base model under identical training data and computational budgets. We additionally compare two reward formulations within GRPO: learned rewards (LR) and rule-based rewards (RR). 
+
+Results. Table 8 summarizes the results. DPO achieves only 23.8% overall accuracy, while DAPO reaches 51.6% and our GRPO (RR) achieves 61.1% .
+
+Analysis. DPO optimizes over static preference pairs, which is ineffective for tasks requiring long and precise chains of reasoning and lacks the fine-grained supervision needed to identify specific errors. In contrast, GRPO samples multiple trajectories and computes group-relative advantages, enabling the model to explore varied spatial interpretations and learn from relative quality among its own outputs rather than manually curated negatives. This flexibility is critical for spatial reasoning, where errors manifest diversely (e.g., depth inconsistencies, left-right confusion). Regarding reward formulation, we use rule-based rewards (RR) because spatial facts—such as 3D coordinates and motion directions—are deterministic and geometrically verifiable, yielding noise-free oracle supervision. GRPO-LR achieves only 32.3% overall accuracy, substantially below GRPO-RR (61.1%) across all task categories. Furthermore, per-step reward inference introduces significant overhead: 26h/epoch for LR vs. 3.5h for RR (7.4 × slower) . This confirms that determin-istic geometric verification provides more effective and efficient supervision signals than preference-based learned reward modeling.                                                    
+
+> Table 8. Optimization strategy comparison (Qwen3-VL-4B). Ov.: Overall Acc. (%); Par.: Partial Acc. (%).
+> Method Gripper-Move Gripper-State Composite Overall Ov. Par. Ov. Par. Ov. Par. Ov. Par.
+> Baseline 15.3 46.2 3.2 35.5 4.8 22.0 7.8 34.6 DPO 30.6 59.1 14.5 41.9 19.4 52.2 23.8 53.1 DAPO 58.1 78.0 35.5 60.8 54.8 75.3 51.6 73.0 GRPO (LR) 33.9 62.1 22.6 50.5 38.7 66.7 32.3 60.4
+> GRPO (RR) 68.6 82.0 45.2 65.1 69.4 86.6 61.1 78.0
+
+8.1.4. Scalability Across Model Sizes Experimental Setup. We validate our method across three model scales: Qwen3-VL-2B, 4B, and 8B, keeping training data, hyperparameters, and evaluation protocol identical across all variants. 
+
+Results. Table 9 presents the results. Baselines exhibit uniformly low overall accuracy (4.4–9.7%), indicating that all model sizes struggle with joint spatial consistency. Our method yields consistent gains: +4.9 pts (2B), +53.3 pts (4B), and +68.5 pts (8B). 
+
+Analysis. The 8× improvement on the 8B model demonstrates that spatial inconsistency stems primarily from training objective misalignment rather than model capacity limitations. The 4B model offers the best performance-efficiency trade-off, achieving 61.1% accuracy with approximately 12 hours of training on 8 ×A100, whereas the 8B model reaches 78.2% (+17.1 pts) at roughly 3× the training cost.                       
+
+> Table 9. Scalability analysis across model sizes.
+> Base Model Overall Acc. (%) Partial Acc. (%) ∆Overall
+> Baseline Ours Baseline Ours Qwen3-VL-2B 4.4 9.3 34.8 41.8 +4.9 Qwen3-VL-4B 7.8 61.1 34.6 78.0 +53.3 Qwen3-VL-8B 9.7 78.2 41.5 86.6 +68.5
+
+## 8.2. Analysis of Reasoning Chain Faithfulness 
+
+To assess the quality of generated reasoning chains, we randomly sample 25 test outputs and manually annotate whether the reasoning chain is logically consistent with the final answer. The base model Qwen3-VL-4B-CoT exhibits reasoning errors in approximately 60% of cases, whereas ReMoT reduces this to 12% .A representative failure case illustrates the issue: the CoT states “ ...left arm moving up and right → A... ” (incorrect direction) while producing <answer>B</answer> (correct answer), where the reasoning chain directly contradicts the final prediction. This reflects a known decoupling problem: reasoning traces can serve as post-hoc rationalizations rather than genuinely guiding predictions when models are trained with final-answer supervision alone. ReMoT mitigates this decoupling (60% → 12% ) via composite rewards under GRPO that jointly optimize reasoning coherence and answer correctness across the entire response, rather than supervising only the final token. 
+
+## 8.3. More Quantitative Results 
+
+In this section, we present a comprehensive collection of quantitative results to complement the evaluations in the main text. First, Table 10 supplements Table 1 of the main text with additional experimental configurations on our ReMoT-16k-Test benchmark, including models trained with SFT only, models trained with interleaved SFT and GRPO, and evaluations of state-of-the-art closed-source VLMs. Subsequently, we also provide fine-grained, per-metric breakdowns for the six benchmarks summarized in Table 4 of the main text: VLM2-Bench (Table 11), VSI-Bench (Table 12), BLINK (Table 14), MMStar (Table 13), MUIRBENCH (Table 15), and MMMU (Table 16). An important observation from Table 10 is the poor performance of SFT-only model, which is attributed to training collapse. The model essentially losts its chain-of-thought reasoning capabilities during training, defaulting to generating minimal responses consisting of only a single word or option letter. This failure mode highlights the critical role of our interleaved SFT and GRPO training approach in maintaining model stability and preserving reasoning quality throughout the training process. Table 10. Supplementary evaluation results on ReMoT-16k-Test. We supplement the experimental results from Table 1 in the main text with the following additional evaluations: (1) models trained using SFT only, (2) models trained with 2 epochs of interleaved SFT and GRPO training, and (3) two closed-source VLMs. All models are evaluated across three fine-grained motion reasoning capabilities: 
+
+Navigation , Perceptual Grounding , and Manipulation . The rightmost columns show macro-averaged performance across all tasks. Note that the closed-source models are evaluated on a mini-benchmark consisting of approximately 40 samples due to API cost constraints. 
+
+Model Navigation Perception Manipulation Avg. 
+
+Camera Rel-Pos Grounding Counting Gripper-Move Gripper-State Composite Ov. Par. Ov. Ov. Ov. Ov. Par. Ov. Par. Ov. Par. Ov. Par. GPT-5-Chat 0.0 31.3 0.0 0.0 75.0 0.0 37.5 25.0 41.7 0.0 33.4 10.4 33.3 Gemini-2.5-Pro 25.0 62.5 25.0 25.0 75.0 12.5 41.7 0.0 16.7 25.0 50.0 26.4 49.1 Qwen2.5-VL-7B [96] 4.8 34.7 0.0 23.9 0.0 4.0 36.6 8.1 31.7 0.0 16.7 5.1 25.4 Qwen3-VL-CoT-4B [74] 2.4 25.9 22.5 35.8 79.0 15.3 46.2 3.2 35.5 4.8 22.0 20.7 38.9 InternVL3-2B [26] 1.6 21.5 20.0 31.3 60.5 0.8 29.8 6.5 35.0 0.0 17.7 14.9 29.3 InternVL3-8B [26] 2.8 23.8 15.0 30.6 51.7 1.6 28.5 8.1 38.7 0.0 18.3 12.2 28.9 LLaVA-One-Vision [54] 2.0 30.4 17.5 32.9 0.0 10.5 37.6 21.0 47.3 0.0 14.8 9.7 27.9 SFT 0.0 2.4 23.3 40.0 37.9 0.0 10.5 0.0 9.7 0.0 9.2 10.4 15.4 GRPO 27.0 62.4 24.3 44.3 94.1 54.5 74.3 27.3 44.7 61.3 79.2 33.6 61.6 SFT →GRPO 26.6 62.1 22.5 35.8 82.5 57.3 78.8 32.3 60.2 62.9 82.3 35.0 63.3 SFT ↔GRPO 21.4 61.2 26.7 46.7 82.7 68.6 82.0 45.2 65.1 69.4 86.6 38.0 64.0 SFT ↔GRPO(2 epochs) 31.5 68.8 23.3 40.0 93.3 79.8 89.5 45.2 65.1 64.5 83.3 39.9 67.7 
+
+Table 11. Performance on VLM2-Bench [111], which evaluates the ability to compare and link fine-grained visual cues across multiple images. Without relying on any human- or model-annotated data, ReMoT achieves significant improvements and sets a new state-of-the-art. Reasoning-based models (marked with •) are evaluated using their corresponding prompting strategies. Baselines or Models General Object Person Overall* Mat Trk Cpr Cnt Grp Cpr Cnt Grp VID Avg ∆human 
+
+Chance-Level 25.00 25.00 50.00 34.88 25.00 50.00 34.87 25.00 - 32.73 -61.44 Human-Level 95.06 98.11 96.02 94.23 91.29 97.08 92.87 91.17 100.00 95.16 0.00 
+
+◦ LLaVA-OneVision[54] 16.60 13.70 47.22 56.17 27.50 62.00 46.67 37.00 47.25 39.35 -55.81 
+
+◦ LLaVA-Video-7B [115] 18.53 12.79 54.72 62.47 28.50 62.00 66.91 25.00 59.00 45.65 -49.51 
+
+◦ LongVQA-7B [113] 14.29 12.98 46.53 49.47 29.00 58.00 41.56 25.00 45.00 37.10 -58.06 
+
+◦ mPLUG-Owl2-7B [107] 17.37 18.26 49.17 62.97 31.00 63.00 58.06 29.00 43.00 40.87 -54.31 
+
+◦ Qwen2-VL-7B [9] 18.07 19.18 68.08 61.84 37.50 72.00 67.92 47.00 55.25 49.76 -45.40 
+
+◦ InternVL2.5-8B [26] 41.24 26.53 72.22 67.65 40.00 85.00 66.67 52.25 50.25 55.41 -39.75 
+
+◦ InternVL2.5-26B [26] 30.50 30.59 43.33 51.48 52.50 59.50 59.67 61.25 45.25 45.59 -49.57 
+
+◦ Qwen2.5-VL-7B [9] 35.91 43.38 71.39 41.72 47.50 80.00 59.76 69.00 45.00 54.82 -40.34 
+
+◦ GPT-4o [46] 37.45 39.27 74.17 80.62 57.50 50.00 90.50 47.00 66.75 60.36 -34.80 
+
+• MM-Eureka-7B [68] 55.60 47.03 74.10 52.50 54.00 77.50 60.00 51.00 43.50 57.24 -37.91 
+
+• NoisyRollout-7B [65] 40.93 43.83 63.33 50.83 34.50 70.50 63.33 47.00 36.50 50.08 -45.08 
+
+• ThinkLite-VL-7B [98] 40.45 46.58 75.56 62.50 49.50 77.50 62.50 51.00 36.50 55.79 -39.37 
+
+• VLAA-Thinker-7B [18] 47.49 63.03 72.20 61.40 55.00 71.00 57.50 51.00 47.75 58.49 -36.67 
+
+◦ Qwen2.5-VL-7B-CoT[9] 43.24 42.92 66.39 50.56 36.00 62.50 55.83 39.00 36.75 48.91 -46.24 
+
+• MiCo-7B-CoT[23] 57.14 67.12 81.94 56.67 58.00 65.00 57.50 62.00 44.25 61.06 -34.09 
+
+• Qwen3-VL-4B-CoT[74] 52.88 51.59 86.81 69.64 74.50 90.00 75.00 57.00 40.50 66.43 –28.73 
+
+• ReMoT -4B-CoT 57.23 54.14 87.56 73.06 78.50 92.00 76.67 66.00 46.75 70.21 -24.95 
+
+∆ Improvement +4.35 +2.55 +0.75 +3.42 +4.00 +2.00 +1.67 +9.00 +6.25 +3.78 +3.80 Table 12. Evaluation Results on VSI-Bench [105] . For Spatial-MLLM and Qwen2.5VL-series, we use 16 frames as input. For other open-source methods and GPT-4o [46], we follow the VSI-Bench setting (8–32 frames). Gemini-1.5 Pro [28] samples at 1 FPS. Bold /underline denote best / second-best open-source results, respectively. 
+
+Methods Numerical Question Multiple-Choice Question Avg. Rank 
+
+Obj.,Cnt. Abs.,Dist. Obj.,Size Room,Size Rel.,Dist. Rel.,Dir. Route,Plan Appr.,Order 
+
+Proprietary Models 
+
+GPT-4o [46] 46.2 5.3 43.8 38.2 37.0 41.3 31.5 28.5 34.0 8Gemini-1.5 Pro [28] 56.2 30.9 64.1 43.6 51.3 46.3 36.0 34.6 45.4 4
+
+Open-source Models 
+
+InternVL2-40B [26] 34.9 26.9 46.5 31.8 42.1 32.2 34.0 39.6 36.0 9LLaVA-OneVision-72B [54] 43.5 23.9 57.6 37.5 42.5 39.9 32.5 44.6 40.2 7LLaVA-Video-72B [115] 48.9 22.8 57.4 35.3 42.4 36.7 35.0 48.6 40.9 3Qwen2.5VL-3B [9] 24.3 24.7 31.7 22.6 38.3 41.6 26.3 21.2 30.6 10 Qwen2.5VL-7B [9] 40.9 14.8 43.4 10.7 38.6 38.5 33.0 29.8 33.0 8Qwen2.5VL-72B [9] 25.1 29.3 54.5 38.8 38.2 37.0 34.0 28.9 37.0 6Spatial-MLLM-4B [101] 65.3 34.8 63.1 45.1 41.3 46.2 33.5 46.3 48.4 2
+
+ReMoT -CoT-4B (Ours) 78.2 42.5 76.8 56.3 52.1 57.4 45.6 59.7 58.8 1
+
+Table 13. Evaluation of various LVLMs on MMStar[21]. We report the detailed results of the CP (coarse perception), FP (fine-grained perception), IR(instance reasoning), LR (logical reasoning), ST (science & technology), and MA (mathematics) core capabilities. The best results are highlighted in 
+
+bold. 
+
+Model LLM Param. CP FP IR LR ST MA Avg. 
+
+Baselines 
+
+Random Choice - - 23.7 24.5 25.3 24.3 24.8 25.1 24.6 
+
+Closed-source LVLMs 
+
+GeminiPro-Vision[88] GeminiPro[88] - 51.6 28.8 50.8 46.0 28.4 50.0 42.6 GPT4V (low)[72] GPT4-Turbo[71] - 62.0 32.8 55.2 48.0 33.6 44.8 46.1 GPT4V (high)[72] GPT4-Turbo[71] - 76.6 51.4 66.6 55.8 42.6 49.8 57.1 
+
+Open-source LVLMs 
+
+TinyLLaVA[117] Phi2-2.7B[69] 3B 60.4 31.6 50.8 30.4 18.0 24.8 36.0 Yi-VL[108] Yi-6B[108] 6B 58.0 33.6 46.4 34.8 20.4 34.0 37.9 LLaVA-1.5[61] Vicuna-v1.5-7B[27] 7B 58.8 24.0 38.8 24.0 13.6 22.8 30.3 ShareGPT4V[20] Vicuna-v1.5-7B[27] 7B 58.8 28.0 45.6 24.4 17.2 24.0 33.0 InternLM-XC2[34] InternLM2-7B[91] 7B 70.8 48.8 65.2 56.4 42.0 49.2 55.4 Qwen-VL-Chat[8] Qwen-7B[6] 8B 59.6 32.0 50.8 29.2 22.0 31.6 37.5 Deepseek-VL[67] Deepseek-7B[12] 8B 64.0 30.8 49.2 36.4 21.6 20.4 37.1 Monkey-Chat[57] Qwen-7B[6] 10B 57.6 36.4 51.6 33.2 26.4 24.4 38.3 LLaVA-1.5[61] Vicuna-v1.5-13B[27] 13B 58.8 28.0 41.6 24.4 18.4 25.6 32.8 CogVLM-Chat[97] Vicuna-v1.5-7B[27] 17B 66.8 36.8 49.2 31.2 23.6 11.6 36.5 Yi-VL[108] Yi-34B[108] 34B 53.2 31.2 52.0 32.4 12.4 35.2 36.1 LLaVA-Next[63] NH2-Yi-34B[70] 34B 66.4 52.0 62.4 46.0 32.4 53.6 52.1 InternVL-Chat-V1.2[25] NH2-Yi-34B[70] 40B 67.6 43.2 61.2 47.2 24.0 19.2 43.7 Sphinx-X-MOE[39] Mixtral-8x7B[48] 57B 58.4 40.8 47.6 35.2 19.2 32.0 38.9 Qwen3VL-4B-Thinking[74] Qwen3-4B[104] 4B 73.6 58.8 74.8 73.6 50.8 86.8 68.4 
+
+ReMoT -CoT-4B (Ours) Qwen3-4B[104] 4B 3.2 60.8 2.8 78.4 55.2 2.0 70.4 Table 14. Results of different models on the BLINK[38] validation set . The first row shows task names and number of instances. 
+
+Validation  
+
+> (1 ,901)
+
+IQ 
+
+> (150)
+
+Similarity 
+
+> (135)
+
+Counting 
+
+> (120)
+
+Depth 
+
+> (124)
+
+Jigsaw 
+
+> (150)
+
+Art 
+
+> (117)
+
+Fun.Corr. 
+
+> (130)
+
+Random Choice 38.09 25 50 25 50 50 50 25 Human 95.67 80.00 96.70 93.75 99.19 99.00 95.30 80.77 
+
+Open-source multimodal LLMs 
+
+MiniGPT-4-v2 [19] 34.23 20.67 44.44 13.33 50.81 34.67 43.59 20.77 OpenFlamingo-v2 [4] 39.18 18.67 62.22 30.00 54.03 47.33 52.99 24.62 InstructBLIP-7B [32] 39.72 20.00 47.41 32.50 51.61 52.67 47.01 23.85 InstructBLIP-13B [32] 42.24 24.67 49.63 30.83 51.61 52.67 51.28 29.23 LLaVA-internLM2-7B [90] 37.71 22.00 48.89 55.00 57.26 28.67 29.06 23.85 LLaVA-v1.5-7B-xtuner [30] 39.36 18.67 47.41 45.83 51.61 52.67 47.01 20.00 LLaVA-v1.5-13B-xtuner [30] 42.00 24.67 47.41 48.33 54.03 52.00 47.01 30.00 CogVLM [97] 41.54 26.67 47.41 38.33 52.42 52.67 47.86 23.08 LLaVA-v1.5-7B [61] 37.13 20.00 47.41 40.00 52.42 11.33 47.01 20.00 LLaVA-v1.5-13B [61] 42.66 26.00 47.41 45.00 53.23 58.00 47.01 26.15 LLaVA-v1.6-34B [63] 46.80 26.00 48.89 66.67 67.74 54.67 43.59 20.77 Qwen3VL-4B-Thinking [74] 59.50 10.00 61.54 71.67 80.65 58.67 77.42 39.23 
+
+ReMoT -CoT-4B (Ours) 62.15 23.20 84.44 73.33 80.65 59.33 75.21 46.92 API-based models 
+
+Qwen-VL-Max [7] 40.28 21.33 51.11 56.67 58.06 4.67 38.46 28.46 Gemini Pro [88] 45.16 23.33 52.59 52.50 40.32 57.33 50.43 24.62 Claude 3 OPUS [1] 44.05 24.67 72.59 50.83 47.58 32.67 65.81 21.54 GPT-4V(ision) [2] 51.14 22.67 78.52 60.83 59.68 70.00 79.49 26.15 GPT-4 Turbo [2] 54.61 32.67 80.74 57.50 66.13 69.33 79.49 24.62 GPT-4o [2] 60.04 31.33 72.59 49.17 74.19 55.33 82.91 40.77 Sem.Corr. 
+
+> (139)
+
+Spatial 
+
+> (143)
+
+Local 
+
+> (122)
+
+Vis.Corr. 
+
+> (172)
+
+Multi-view 
+
+> (133)
+
+Reflect. 
+
+> (134)
+
+Forensic 
+
+> (132)
+
+Random Choice 25 50 50 25 50 33.33 25 Human 96.07 98.25 98.00 99.42 92.48 95.14 100.00 
+
+Open-source multimodal LLMs 
+
+MiniGPT-4-v2 [19] 28.78 44.76 47.54 26.16 48.87 30.60 24.24 OpenFlamingo-v2 [4] 30.22 43.36 56.56 25.58 44.36 36.57 21.97 InstructBLIP-7B [32] 30.94 56.64 48.36 30.81 55.64 33.58 25.00 InstructBLIP-13B [32] 32.37 65.73 55.74 29.65 57.14 38.81 21.97 LLaVA-internLM2-7B [90] 27.34 76.22 50.00 27.91 44.36 32.09 5.30 LLaVA-v1.5-7B-xtuner [30] 28.78 68.53 36.89 29.07 38.35 29.85 36.36 LLaVA-v1.5-13B-xtuner [30] 30.94 69.93 45.08 29.65 44.36 38.81 25.76 CogVLM [97] 33.09 63.64 52.46 29.65 54.14 29.85 30.30 LLaVA-v1.5-7B [61] 23.02 61.54 56.56 25.58 51.88 39.55 23.48 LLaVA-v1.5-13B [61] 32.37 67.83 52.46 29.07 44.36 36.57 31.82 LLaVA-v1.6-34B [63] 23.74 74.83 59.02 30.81 62.41 31.34 44.70 Qwen3VL-4B-Thinking [74] 56.12 88.11 52.46 86.63 49.62 33.58 60.61 
+
+ReMoT -CoT-4B (Ours) 64.03 86.71 53.28 87.21 42.86 28.36 56.06 
+
+API-based models 
+
+Qwen-VL-Max [7] 23.02 69.93 48.36 31.40 51.88 36.57 43.94 Gemini Pro [88] 26.62 74.83 53.28 42.44 44.36 38.81 50.76 Claude 3 OPUS [1] 25.18 58.04 51.64 36.63 56.39 26.87 46.21 GPT-4V(ision) [2] 28.78 72.73 54.92 33.72 55.64 38.81 34.09 GPT-4 Turbo [2] 30.94 69.23 52.46 52.33 52.63 32.84 63.64 GPT-4o [2] 53.96 69.23 59.84 75.00 59.40 37.31 79.55 Table 15. Experiment results on MUIRBENCH[95] . The first row shows task names and number of test data. Overall 
+
+(2 , 600) 
+
+Counting 
+
+(234) 
+
+Action 
+
+(164) 
+
+Grounding 
+
+(84) 
+
+Matching 
+
+(464) 
+
+Ordering 
+
+(64) 
+
+Scene 
+
+(186) 
+
+Random Choice 23.99 20.98 23.41 25.00 24.12 22.81 25.00 Human 93.15 94.87 97.56 85.71 94.83 87.50 94.62 GPT-4o [2] 68.00 49.15 44.51 36.90 86.85 23.44 71.51 Gemini Pro [88] 49.35 28.63 35.98 28.57 66.59 12.50 59.14 Mantis-8B-Idefics2 [49] 44.50 38.46 33.54 26.19 53.88 18.75 56.99 Idefics-9B-Instruct [52] 35.43 29.91 28.05 13.10 35.99 12.50 27.41 Emu2-Chat (37B) [85] 33.62 31.20 27.44 26.19 37.28 15.63 48.39 VILA1.5-13B [59] 33.12 19.66 28.66 25.00 40.95 10.94 56.45 Idefics2-8B [53] 26.08 21.79 26.22 26.19 24.78 15.62 56.45 OpenFlamingo-v2-9B [4] 23.73 21.79 26.83 30.95 24.14 21.88 22.58 LLaVA-NeXT-34B [63] 33.31 36.32 26.22 33.33 37.93 21.88 54.30 LLaVA-v1.5-7B-xtuner [30] 33.23 26.92 25.61 23.81 22.84 4.69 39.78 LLaVA-internLM2-7B [90] 28.15 34.19 26.22 32.14 25.65 7.81 42.47 LLaVA-v1.5-13B [61] 24.38 25.21 29.27 14.29 20.26 20.31 36.56 CogVLM [97] 20.85 14.10 26.22 16.67 21.34 12.50 41.40 MiniGPT-4-v2 [19] 17.35 11.97 14.02 25.00 17.03 18.75 14.52 Qwen3VL-4B-Thinking [74] 73.81 81.62 57.32 53.57 85.78 34.38 86.02 
+
+ReMoT -CoT-4B (Ours) 72.81 82.48 55.49 50.00 84.70 40.62 84.95 Difference 
+
+(340) 
+
+Cartoon 
+
+(78) 
+
+Diagram 
+
+(398) 
+
+Geographic 
+
+(100) 
+
+Attribute 
+
+(196) 
+
+Retrieval 
+
+(292) 
+
+Random Choice 23.18 25.00 29.56 25.00 20.00 21.30 Human 92.94 82.05 98.99 98.00 87.76 86.30 GPT-4o [2] 60.29 51.28 88.69 56.00 56.12 80.14 
+
+GPT-4-Turbo [2] 60.59 52.56 79.15 57.00 50.51 64.04 Gemini Pro [88] 45.29 47.44 64.82 48.00 41.33 43.84 Mantis-8B-Idefics2 [49] 28.82 38.46 67.59 26.00 48.47 35.62 Idefics-9B-Instruct [52] 34.41 48.72 46.98 35.00 32.65 43.49 Emu2-Chat (37B) [85] 32.65 43.59 37.69 34.00 31.63 23.97 VILA1.5-13B [59] 24.71 30.77 42.71 31.00 24.49 30.14 Idefics2-8B [53] 27.65 39.74 25.38 21.00 17.86 17.12 OpenFlamingo-v2-9B [4] 21.76 25.64 31.91 25.00 18.88 15.41 LLaVA-NeXT-34B [63] 22.06 41.03 38.19 12.00 38.27 25.00 LLaVA-v1.5-7B-xtuner [30] 33.53 29.49 44.72 26.00 38.78 47.60 LLaVA-internLM2-7B [90] 19.12 39.74 35.43 12.00 23.98 28.42 LLaVA-v1.5-13B [61] 20.00 25.64 31.66 20.00 22.96 20.89 CogVLM [97] 19.71 41.03 19.60 13.00 16.33 15.75 MiniGPT-4-v2 [19] 20.00 21.79 21.61 13.00 17.35 14.73 Qwen3VL-4B-Thinking [74] 68.24 51.28 92.96 45.00 62.76 68.15 
+
+ReMoT -CoT-4B (Ours) 62.65 52.56 92.46 48.00 64.80 67.47 Table 16. Experiment results on the MMMU[109] validation and test set .                                                                                                                                                                                  
+
+> Validation Overall Test Overall Art & Design Business Science Health & Medicine Human. & Social Sci. Tech & Eng.
+> (900) (10,500) (1,163) (1,428) (2,426) (1,752) (947) (2,784) Random Choice 22.1 23.9 24.1 24.9 21.6 25.3 22.8 24.8 Frequent Choice 26.8 25.8 26.7 28.4 24.0 24.4 25.2 26.5 Expert (Worst) 76.2 -------Expert (Medium) 82.6 -------Expert (Best) 88.6 -------
+> Large Multimodal Models (LMMs): Text + Image as Input
+> OpenFlamingo2-9B [4] 28.7 26.3 31.7 23.5 26.3 26.3 27.9 25.1 CogVLM [97] 32.1 30.1 38.0 25.6 25.1 31.2 41.5 28.9 Qwen-VL-7B-Chat [8] 35.9 32.9 47.7 29.8 25.6 33.6 45.3 30.2 InstructBLIP-T5-XXL [32] 35.7 33.8 48.5 30.6 27.6 33.6 49.8 29.4 InternLM-XComposer2-VL* [34] 43.0 38.2 56.8 32.8 30.1 39.8 60.7 31.8 Yi-VL-34B* [108] 45.9 41.6 56.1 33.3 32.9 45.9 66.5 36.0 LLaVA-1.6-34B* [63] 51.1 44.7 58.6 9.9 36.0 1.2 0.2 36.3 InternVL-Chat-V1.2* [25] 1.6 6.2 62.5 37.6 37.9 49.7 70.1 40.8 VILA1.5* [59] 51.9 46.9 2.1 40.6 7.7 51.7 74.0 9.5 Qwen3VL-4B-Thinking [74] 70.8 -71.9 80.9 68.1 65.3 73.5 65.3
+> ReMoT -CoT-4B (Ours) 71.4 -70.3 82.1 67.4 66.3 77.0 66.9
+> Qwen-VL-MAX* [7] 51.4 46.8 4.2 39.8 36.3 52.5 70.4 40.7 GPT-4V(ision) (Playground) [72] 56.8 55.7 65.3 64.3 48.4 63.5 76.3 1.7 Claude 3 Opus* [1] 59.4 -------Gemini 1.5 Pro* [89] 2.2 -------GPT-4o* [46] 69.1 -------
+
+# 9. Limitations and Future Work 
+
+While ReMoT demonstrates significant improvements in spatio-temporal reasoning, we acknowledge two primary limitations that outline directions for future research. 
+
+Base Model Selection and Generalizability. Our experiments primarily utilize the Qwen3-VL-4B-Thinking architecture. This selection was deliberate rather than arbitrary; Qwen3-VL is currently recognized as possessing state-of-the-art spatial understanding capabilities among open-source models. Since our proposed GRPO-based optimization operates by refining the model’s internal reasoning chains (Chain-of-Thought) rather than injecting new knowledge from scratch, a strong intrinsic spatial prior is a prerequisite for stable RL convergence and effective self-correction. Consequently, we prioritized validating the ReMoT paradigm on the most capable available base model to establish a high-performance ceiling. 
+
+Scalability to In-the-Wild Videos. The construction of ReMoT-16K currently relies on datasets with basic meta-annotations (e.g., SE(3) camera poses in ScanNet, robot telemetry in AgiBot). While this ensures the logical rigorousness of our hard negative samples, it constrains the immediate scalability of our pipeline to massive, unannotated in-the-wild videos. We envision future work to bridge this gap by integrating off-the-shelf Structure-from-Motion (SfM) or SLAM systems (e.g., DROID-SLAM) into our pipeline. By generating pseudo-ground-truth motion metadata for web videos, we can scale the motion-contrast triplet paradigm to millions of samples, potentially unlocking broader generalization capabilities. 
+
+# 10. Visualization of Chain-of-Thought Compactness 
+
+## 10.1. Our Model’s Chain-of-Thought 
+
+In this section, we provide qualitative examples showcasing how our model generates concise and structured Chain-of-Thought (CoT) reasoning to arrive at correct answers. （2）（1） （3）
+
+# ReMoT-CoT-4B:(288 words) 
+
+So, let's analyze the images step by step. 
+
+First, we need to look at the left robotic arm (the one on the left side of the images) and track its 
+
+vertical movement from Image 1 to Image 2, then Image 1 to Image 3, and Image 2 to Image 3. 
+
+Starting with Image 1 to Image 2: 
+
+In Image 1, the left robotic arm is positioned with its gripper near the top left. In Image 2, the left 
+
+robotic arm has moved down. Let's check the position. Image 1 shows the left arm higher up, 
+
+Image 2 shows it lower. So vertical movement is Down. So option B. 
+
+Next, Image 1 to Image 3: 
+
+Image 1: left arm is in a certain position. Image 3: the left arm has moved up. Let's see. In Image 3, 
+
+the left arm is higher than in Image 1. So vertical movement is Up. Option A. 
+
+Then, Image 2 to Image 3: 
+
+Image 2: left arm is lower. Image 3: left arm is higher. So movement from Image 2 to Image 3 is 
+
+Up.Option C. 
+
+Wait, let's confirm each:Image 1 to 2: Left arm moves down (B). Image 1 to 3: Left arm moves up 
+
+(A). Image 2 to 3: Left arm moves up (C). 
+
+So the answers are B, A, C. 
+
+</think> 
+
+<answer> BAC</answer> Figure 5. Example 1. Prompt: The image showed to you is what the robot seen by its eyes. In the image, the robotic arm on the left is the robot’s left arm, and the robotic arm on the right is the robot’s right arm. Focus only on robot arm/gripper motion across the three images. Please select from the following options the vertical movement direction of the left robotic arm from Image 1 to Image 2? A: Up, B: Down, C: No movement. Please select from the following options the vertical movement direction of the left robotic arm from Image 1 to Image 3? A: Up, B: No movement, C: Down. Please select from the following options the vertical movement direction of the left robotic arm from Image 2 to Image 3? A: Down, B: No movement, C: Up. Answer all three questions above in order. Only return the correct option A, B,or C for each of the three questions in order inside <answer >< /answer >, e.g., <answer >CAB </answer >. Answer: BAC （2）（1） （3）
+
+# ReMoT-CoT-4B:(251 words) 
+
+So, let's analyze each part step by step. 
+
+First, we need to look at the movement of the left robotic arm from Image 1 to Image 2. Let's 
+
+compare the positions. 
+
+In Image 1: The left arm is on the left side, closer to the left edge of the frame. In Image 2: The left 
+
+arm has moved to the right compared to Image 1. So the horizontal movement direction is Right. 
+
+So the first answer is A. 
+
+Next, left robotic arm from Image 1 to Image 3. Image 1: left arm is on the left. Image 3: left arm is 
+
+further left than Image 1. So movement is Left. Second answer is B. 
+
+Then, left robotic arm from Image 2 to Image 3. Image 2: left arm is at a certain position. Image 3: 
+
+left arm is more to the left than Image 2. So movement is Left. Third answer is B. 
+
+Wait, let me double-check. 
+
+Image 1 left arm: let's see the position. The left arm in Image 1 is on the left side of the image, with 
+
+the gripper near the center. Image 2: left arm is moved to the right, so from 1 to 2, left arm moves 
+
+right (A). Image 1 to 3: left arm in Image 3 is further left than Image 1 (so left movement, B). Image 
+
+2 to 3: left arm in Image 3 is further left than Image 2 (so left movement, B). 
+
+So the answers are A, B, B. 
+
+</think> 
+
+<answer> ABB </answer> Figure 6. Example 2. Prompt: The image showed to you is what the robot seen by its eyes. In the image, the robotic arm on the left is the robot’s left arm, and the robotic arm on the right is the robot’s right arm. Focus only on robot arm/gripper motion across the three images. Please select from the following options the horizontal movement direction of the left robotic arm from Image 1 to Image 2? A: Right, B: No movement, C: Left. Please select from the following options the horizontal movement direction of the left robotic arm from Image 1 to Image 3? A: Right, B: Left, C: No movement. Please select from the following options the horizontal movement direction of the left robotic arm from Image 2 to Image 3? A: Right, B: Left, C: No movement. Answer all three questions above in order. Only return the correct option A, B, or C for each of the three questions in order inside <answer >< /answer >, e.g., <answer >CAB </answer >. Answer: 
+
+ABB （2）（1） （3）
+
+> ReMoT-CoT-4B:(75 words)
+> Got it, let's check if the bags in all three images are the same. First, look at the first
+> image: the bag is a backpack with white, black, and brown sections. The second
+> image shows a similar backpack—same color scheme and design. The third image
+> also has a backpack with the same white, black, brown colors and structure. All
+> three bags look identical in design, colors, and features. So the statement is true.
+> </think>
+> T
+
+Figure 7. Example 3. Prompt: Judge the following statement based on the input images: ‘The bags in these images are the same bag.’. Provide only one correct answer: ‘T’(True) or ‘F’(False). Respond with either ‘T’ or ‘F’. Answer: T
+
+## 10.2. Comparison with base model 
+
+In this section, we provide a qualitative visualization showing how our model produces a more concise and structured Chain-of-Thought (CoT) compared to the untrained base model, showcasing how our model uses more refined thought chains to arrive at more correct answers. 
+
+Example Overview. The following example illustrates one reasoning instance from the evaluation set. Both models were given the same problem prompt, and their respective CoT traces are shown below. Figure 8 illustrates the input of the model in this example. （2）（1） （3）
+
+Figure 8. An example used to compare CoT lengths. Prompt: The image showed to you is what the robot seen by its eyes. In the image, the robotic arm on the left is the robot’s left arm, and the robotic arm on the right is the robot’s right arm. Focus only on robot arm/gripper motion across the three images. Please select from the following options whether the left gripper is opened or closed from Image 1 to Image 2? A: Closed, B: Opened, C: No movement. Please select from the following options whether the left gripper is opened or closed from Image 1 to Image 3? A: Opened, B: No movement, C: Closed. Please select from the following options whether the left gripper is opened or closed from Image 2 to Image 3? A: Closed, B: Opened, C: No movement. Answer all three questions above in order. Only return the correct option A, B, or C for each of the three questions in order inside <answer >< /answer >, e.g., <answer >CAB </answer >.
+
+Answer: AAB ReMoT -CoT-4B (Ours)(310 words): 
+
+So, let’s analyze each question step by step. First, we need to look at the left gripper (robot’s left arm) from Image 1 to Image 2. In Image 1: The left gripper is holding a sandwich (or bread), so it’s closed. In Image 2: The left gripper is still holding the sandwich, so it’s closed. Wait, but let’s check again. Image 2 shows the left arm with the sandwich, so the gripper is closed. So from 1 to 2, left gripper is closed. So the answer is A: Closed. Next, left gripper from Image 1 to Image 3. Image 1: Left gripper is closed (holding the sandwich). Image 3: Left gripper is open (the sandwich is no longer being held, the arm is open). So from 1 to 3, it went from closed to open. So the answer is A: Opened. Third, left gripper from Image 2 to Image 3. Image 2: Left gripper is closed (holding the sandwich). Image 3: Left gripper is open (sandwich is not held). So from 2 to 3, it’s opened. So answer is B: Opened. Wait, let’s confirm each step. Image 1 left gripper: closed (holding bread). Image 2 left gripper: closed (still holding bread). So 1 →2: closed →
+
+closed, so A (Closed). Image 1 →3: closed → open, so A (Opened). Image 2 →3: closed → open, so B (Opened). So the three answers are A, A, B → “AAB”? Wait, no. Wait the first question is 1 →2: A (Closed). Second is 1 →3: A (Opened). Third is 2 →3: B (Opened). Wait the options for each question: First question: A: Closed (1 →2). Yes, because both images show left gripper closed. Second question: A: Opened (1 →3). Because 1 is closed, 3 is open. Third question: B: Opened (2 →3). Because 2 is closed, 3 is open. Yes. So the answers are A, A, B → “AAB”. 
+
+</think ><answer >AAB </answer >
+
+Qwen3VL-4B-Thinking (Untrained)(6241 words): 
+
+Got it, let’s analyze the images step by step. First, I need to look at the left gripper (robot’s left arm) in each image. Image 1: The left gripper is holding a sandwich (or bread). The gripper is closed because it’s holding the object. So the state is closed. Image 2: The left gripper is now holding the sandwich in a different position, but is it closed? Wait, in Image 2, the left gripper seems to be holding the bread, but maybe the grip is still closed? Wait no, wait the action. Wait, from Image 1 to Image 2, the left gripper was holding the bread (closed) and then in Image 2, the gripper is still holding it, but maybe the position changed. Wait, no, let’s check the gripper’s state. A closed gripper is when the fingers are together, holding the object. Opened is when they’re apart. Image 1: Left gripper is closed (holding the bread). Image 2: Left gripper is still holding the bread, so closed? Wait, no, in Image 2, the left gripper is the one that moved. Wait, in Image 1, the left gripper is holding the bread (so closed). In Image 2, the left gripper is still holding the bread (so closed). Wait, but wait, maybe I need to check if the gripper opened. Wait, no, let’s see: Wait, in Image 1, the left gripper is holding the bread (closed). In Image 2, the left gripper is holding the bread as well (closed). Wait, but maybe the position changed, but the gripper state is still closed. Wait, no, wait the first question is Image 1 to Image 2: left gripper opened or closed. Wait, let’s look again: Image 1: Left gripper (on left) is holding the bread (closed). Image 2: Left gripper is still holding the bread (closed). Wait, but maybe the gripper opened? Wait, no. Wait, in Image 2, the left gripper is the one that moved. Let’s check the positions. Wait, Image 1: Left gripper has a sandwich (or bread) held in its jaws (closed). Image 2: Left gripper is now holding the sandwich (jaws closed). Wait, maybe the gripper didn’t open. Wait, no, maybe it’s closed. Wait, but maybe I need to check if the gripper’s state changed. Wait, the first question: Image 1 to Image 2. Left gripper is opened or closed. In Image 1: Left gripper is closed (holding the bread). In Image 2: Left gripper is still holding the bread (so closed). Wait, but maybe the gripper opened? Wait, no. Wait, perhaps the gripper closed? Wait, no. Wait, let’s see the actual images: Wait, in Image 1, the left gripper (robot left arm) is grasping a slice of bread (so fingers closed). In Image 2, the left gripper is still grasping the bread (fingers closed). So from 1 to 2, the left gripper is closed. Wait, but the options are A: Closed, B: Opened, C: No movement. Wait, but maybe the gripper opened. Wait, let’s check the second image: the left gripper is now holding the bread in a different position. Wait, maybe the gripper is still closed. So from 1 to 2, left gripper is closed? But wait, maybe it opened. Wait, no. Wait, let’s think again. Wait, perhaps in Image 1, the left gripper is holding the bread (closed), and in Image 2, the left gripper is still holding it, but maybe the grip is still closed. So the state is closed. So the answer for first question is A: Closed. Wait, no, wait. Let’s look at the third image. Image 3: Left gripper is holding the bread? Wait, in Image 3, the left gripper is holding the bread, but wait, Image 3 shows the left gripper is holding the bread (same as Image 1 and 2?), no. Wait, let’s see: Image 1: Left gripper (left arm) is holding the bread (closed). Image 2: Left gripper is holding the bread (closed). Image 3: Left gripper is holding the bread (closed). Wait, no, that can’t be. Wait, let’s check the images again. Wait, the problem says: the robot’s left arm is on the left, right arm on the right. In Image 1: Left arm (gripper) is holding a sandwich (closed). Right arm is open. Image 2: Left arm is moving towards the toaster, holding the sandwich (closed). Right arm is open. Image 3: Left arm is holding the sandwich (closed). Wait, maybe in Image 3, the left arm has the sandwich, but the gripper is closed. Wait, no. Wait, maybe in Image 1, the left gripper is closed (holding bread), Image 2: left gripper is still closed (holding bread), so from 1 to 2, no movement (closed). But the first question is whether the left gripper is opened or closed from 1 to 2. Wait, the gripper state didn’t change, so it’s closed. So A. Wait, but maybe the gripper opened. Let’s check: Wait, in Image 1, the left gripper has the bread (closed). In Image 2, the left gripper is moving towards the toaster, and the bread is still in the gripper. So the gripper is closed. So from 1 to 2, the state is closed. So the answer for first question is A: Closed. Second question: Image 1 to Image 3. Left gripper from Image 1 to Image 3. Image 1: closed. Image 3: closed. So same state. So answer is B: No movement. Third question: Image 2 to Image 3. Image 2: left gripper is holding the bread (closed). Image 3: left gripper is holding the bread (closed). So same state. So answer is C: No movement. Wait, but wait, maybe I made a mistake. Let’s look again. Wait, Image 1: Left gripper is holding the bread (closed). Image 2: Left gripper is holding the bread (closed). So no movement. Image 3: Left gripper is holding the bread (closed). So from 1 to 3, no movement. From 2 to 3, no movement. Wait, but the problem says: First question: Image 1 to Image 2: left gripper opened or closed. If in Image 1 it’s closed, Image 2 it’s closed, then the state didn’t change. So the gripper is closed. So answer is A. Second question: Image 1 to Image 3: left gripper is closed (since both 1 and 3 are closed), so no movement. Answer is B. Third question: Image 2 to Image 3: both closed, so no movement. Answer is C. But wait, maybe I misread. Let’s check again. Wait, Image 1: Left gripper (left arm) is holding a sandwich (closed). Image 2: Left gripper is moving towards the toaster, but the sandwich is still in the gripper. So the gripper is closed. So from 1 to 2, the gripper is still closed. So the answer is A: Closed. Image 3: Left gripper is holding the sandwich (closed). So from 1 to 3, same state. So no movement. B. From 2 to 3, same state. So no movement. C. But let’s confirm with the images: Image 1: Left arm (gripper) has the sandwich, closed. Image 2: Left arm is still holding the sandwich (closed). Image 3: Left arm is holding the sandwich (closed). Yes, so all states are closed. First question: 1 →2, closed. A. Second: 1 →3, closed. But the question is whether opened or closed. Wait, the options are: A: Closed, B: Opened, C: No movement. Wait, if the gripper is closed in both Image 1 and 2, then it’s not opened. So the state is closed. So the answer is A. Wait, but “closed” means the gripper is closed. So from 1 to 2, the gripper is closed (no change). So the answer is A: Closed. Because the question is “whether the left gripper is opened or closed from Image 1 to Image 2”. So if it’s closed in both, then it’s closed. Wait, but the options are: For first question: A: Closed, B: Opened, C: No movement. Wait, if the gripper is closed from 1 to 2, then the answer is A. If it’s opened, then B. If no movement, then C. But if it’s closed in both, then the state is closed. So the answer is A. Wait, but “no movement” would mean the gripper is in the same state. But the question is not about movement but the state. Wait, no. The question is: whether the left gripper is opened or closed (the state) from 1 to 2. So the state at 1 is closed, state at 2 is closed. So the gripper is closed. So A. Second question: Image 1 to 3: state is closed, so A? Wait, no. Wait, the options for second question: A: Closed, B: Opened, C: No movement. Wait, no. Wait, the question is: select whether the left gripper is opened or closed from Image 1 to Image 3. Wait, the state of the gripper in Image 1 is closed. In Image 3, it’s closed. So the gripper is closed. So the answer would be A: Closed. But wait, the question is “whether the left gripper is opened or closed from Image 1 to Image 3”. So if it’s closed both times, then the answer is A. But wait, maybe I’m misunderstanding. Let’s think of it as: did the gripper open or close during the transition. If it remained closed, then it’s closed. So first question: Image 1 to 2: gripper closed (since both are closed), so A. Wait, but maybe in Image 2, the gripper opened. Let’s check the images again. Looking at the images: Image 1: Left gripper is holding a slice of bread (closed). Image 2: Left gripper is still holding the bread (closed). So no, it’s closed. Image 3: Left gripper is holding the bread (closed). Yes, so all are closed. First question: 1 →2: closed → A. Second question: 1 →3: closed → A. Wait, but the options for second question: A: Closed, B: Opened, C: No movement. Wait, but “no movement” would be if the gripper didn’t change. But the question is whether it’s opened or closed. So if it’s closed, then A. But maybe the question is whether it changed. Wait, no. The question is: “whether the left gripper is opened or closed from Image 1 to Image 2”. So from Image 1 to Image 2, the left gripper’s state is closed (in Image 1 it was closed, in Image 2 it’s closed). So the answer is A: Closed. But wait, let’s think again. Maybe in Image 2, the left gripper is open. Wait, looking at the second image: the left arm is moving towards the toaster, and the sandwich is in the gripper. The gripper is closed. Yes. So left gripper is closed in all images. Therefore: First question: Image 1 to 2: closed → A. Second question: Image 1 to 3: closed → A? But no, wait. Wait, the problem says “select from the following options whether the left gripper is opened or closed from Image 1 to Image 3”. Wait, no. Wait, the options for each question are: For first question: A: Closed, B: Opened, C: No movement. Wait, the options are not about whether it’s opened or closed, but whether the movement is opened or closed. Wait, no, the question is: “whether the left gripper is opened or closed from Image 1 to Image 2”. Wait, maybe the question is asking if the gripper opened (went from closed to open) or closed (went from open to closed) or no movement (stayed the same). Ah, that’s the key. The question is not about the state, but the change. Wait, let’s re-read the question: “Please select from the following options whether the left gripper is opened or closed from Image 1 to Image 2?” Ah, no. Wait, the question is: “whether the left gripper is opened or closed from Image 1 to Image 2”. So it’s whether the gripper’s action (opening or closing) happened during the transition from 1 to 2. Wait, no, maybe it’s asking if the gripper is in open or closed state after the transition. Wait, the wording is “whether the left gripper is opened or closed from Image 1 to Image 2”. So perhaps the state at 2. But let’s think: the options are A: Closed (meaning the gripper is closed), B: Opened (gripper is open), C: No movement (gripper didn’t change state). Wait, but the question is about the transition. Wait, no, the problem says: “whether the left gripper is opened or closed from Image 1 to Image 2”. So for each question, it’s whether during the transition from 1 to 2, the left gripper is in open, closed, or no movement. But maybe it’s simpler: the question is asking what is the state of the left gripper in Image 2, compared to Image 1. But the options are A: Closed (meaning the gripper is closed in the transition), B: Opened (gripper is open), C: No movement. Wait, no. Let’s look at the problem statement again: “Please select from the following options whether the left gripper is opened or closed from Image 1 to Image 2? A: Closed, B: Opened, C: No movement.” Ah, so the options are: A: Closed → meaning the left gripper is closed (so from 1 to 2, it remains closed). B: Opened → the left gripper is opened. C: No movement → the gripper didn’t change (so state same as before). Wait, but how to determine. Let’s check each image’s left gripper. Image 1: Left gripper (left arm) is holding the bread (so closed). Image 2: Left gripper is holding the bread (closed). So from 1 to 2, the gripper is closed (same as before). So the answer for first question is A: Closed. Image 3: Left gripper is holding the bread (closed). Second question: Image 1 to 3. The gripper is closed in both, so answer A: Closed. Third question: Image 2 to 3. The gripper is closed in both, so answer A: Closed. But wait, the options for third question is C: No movement. Wait, no. Let’s think again. Wait, no. The key is: the question is about the state of the left gripper during the transition. But the options are whether it’s closed, opened, or no movement. Wait, let’s check the images more carefully. Image 1: Left gripper is closed (holding bread). Image 2: Left gripper is still closed (holding bread). Image 3: Left gripper is closed (holding bread). So for each transition: 1→2: both closed → A: Closed. 1→3: both closed → A: Closed. 2→3: both closed → A: Closed. But wait, the options for each question are A: Closed, B: Opened, C: No movement. Wait, but maybe “no movement” means the gripper didn’t move (but state changed). Wait, no. Let’s think of the question as: when moving from image 1 to image 2, what is the state of the left gripper? Wait, but the problem says: “Focus only on robot arm/gripper motion across the three images. Please select from the following options whether the left gripper is opened or closed from Image 1 to Image 2?” So maybe the question is: when going from 1 to 2, the left gripper is open or closed. Wait, in Image 1: left gripper is closed. In Image 2: left gripper is closed. So from 1 to 2, the gripper is closed. So answer A. Image 1 to 3: both closed → A. Image 2 to 3: both closed → A. But that seems unlikely. Wait, maybe I’m wrong. Let’s look at the images again. Wait, Image 1: Left gripper (left arm) is holding a sandwich (closed). Image 2: Left gripper is holding the sandwich (closed). So no movement. Wait, but the question is about the state. Wait, the first question: “whether the left gripper is opened or closed from Image 1 to Image 2”. So if in Image 2, the left gripper is closed, then answer A. Yes. Second question: Image 1 to 3: closed → A. Third question: Image 2 to 3: closed → A. But that can’t be. Because the problem must have different answers. Wait, maybe I misinterpret the images. Wait, looking at the images: Image 1: Left gripper is holding a slice of bread (closed). Image 2: Left gripper is moving towards the toaster, but the bread is still in the gripper (closed). Image 3: Left gripper is holding the bread (closed). Yes, all are closed. But wait, maybe in Image 2, the left gripper is open. Let me check again. Wait, the second image: the left arm is the one that moved. In Image 2, the left arm is now holding the bread, but the gripper’s position might be different. Wait, in Image 2, the left gripper is still closed. Because it’s holding the bread. Yes, so all left grippers are closed. Wait, but the options for the third question: Wait, let’s think of the first question. If in Image 1, the left gripper is closed. In Image 2, is it closed? Yes. So the answer for first question is A: Closed. Second question: Image 1 to 3, left gripper closed → A. But the problem says “select from the following options whether the left gripper is opened or closed from Image 1 to Image 2? A: Closed, B: Opened, C: No movement.” Wait, maybe the question is about the movement: if the gripper opened (from closed to open), closed (open to closed), or no movement. But the options are A: Closed, which would mean the gripper is closed (so no movement), B: Opened (gripped opened), C: No movement. Wait, the problem says: “whether the left gripper is opened or closed from Image 1 to Image 2”. So it’s the state of the gripper at Image 2. If at Image 2, the gripper is closed, then answer is A. If it’s opened, B. If no change (closed to closed), then it’s closed. But the options include “No movement” as C. Wait, maybe “No movement” means the gripper didn’t change (so same state), so if the state is closed, it’s “closed”, and “no movement” is a different option. Wait, the problem statement for each question is: 1. Whether the left gripper is opened or closed from Image 1 to Image 2. So the possible answers are: A: Closed (so in Image 2, it’s closed), B: Opened (in Image 2, it’s opened), C: No movement (the gripper didn’t change, but perhaps the state is still closed). But this is confusing. Let’s think of “No movement” as the gripper didn’t move (so state same as Image 1). But the problem says “from Image 1 to Image 2”, so the state in Image 2. If Image 2’s left gripper is closed, then A. If opened, B. If no movement (same as Image 1), then maybe C. Wait, but the problem says the options are: A: Closed, B: Opened, C: No movement. So if the gripper is closed in Image 2, then A. If it’s opened, B. If it’s the same state (closed), then it’s A. Wait, no, because “no movement” is a separate option. Wait, maybe the question is: Is the left gripper opened (meaning the transition involved opening), closed (transition involved closing), or no movement (transition involved no change in state). But I think the intended question is: in the transition from Image 1 to Image 2, what is the state of the left gripper (closed or opened). Wait, looking at the example: Image 1: Left gripper closed. Image 2: Left gripper closed. So answer A: Closed. Image 1 to 3: both closed → A. Image 2 to 3: both closed → A. But the problem’s answer options must be different. Maybe I made a mistake. Wait, let’s check the images again carefully. Image 1: Left arm (gripper) is holding a slice of bread (closed). Image 2: Left arm (gripper) is holding the bread (closed). Image 3: Left arm (gripper) is holding the bread (closed). Yes. But wait, what about the first image: Image 1: The left gripper (left arm) is holding a sandwich (closed). Image 2: The left gripper is holding the sandwich (closed). Image 3: The left gripper is holding the sandwich (closed). So all are closed. But maybe in Image 3, the gripper is open. Wait, no, the third image shows the left gripper holding the bread. Wait, maybe I’m looking at the wrong parts. Let me describe each image: Image 1: The countertop has a toaster, an apple, a sandwich (held by left gripper), and the right gripper is open. Image 2: The left gripper is holding the sandwich (closed), moving towards the toaster. The right gripper is open. Image 3: The left gripper is holding the sandwich (closed), and the right gripper is open. So all left grippers are closed. Thus: 1. From 1 to 2: left gripper closed → A. 2. From 1 to 3: left gripper closed → A. 3. From 2 to 3: left gripper closed → A. But this can’t be, because the options for each question are A, B, C. Wait, no, maybe the problem is that in Image 2, the left gripper is open. Wait, looking at Image 2: the left gripper is moving, but is it holding the sandwich? Yes. So the gripper is closed. Yes. Wait, perhaps the third question has a different answer. Let’s think: First question: 1 →2: closed → A. Second question: 1 →3: closed → A. Third question: 2 →3: closed → A. But the problem says “the robot seen by its eyes”, so maybe I’m wrong. Alternatively, maybe in Image 2, the left gripper is open. Wait, no, it’s holding the sandwich. Wait, perhaps the first question: Image 1 to 2, left gripper is closed (since it’s holding), so A. Image 1 to 3: closed → A. Image 2 to 3: closed → A. But this would be AAA, but the answer must be different. Wait, maybe I made a mistake in Image 2. Looking at the second image: The left gripper is the one on the left. In Image 2, the left gripper is now holding the sandwich, but the gripper is open? Wait, no. If it’s holding, it’s closed. Wait, maybe the problem is that in Image 2, the left gripper is open. Wait, let’s see: Image 1: Left gripper (left arm) is closed (holding bread). Image 2: Left gripper is now open (the bread is no longer held), but wait, no. The bread is still being held. Wait, I think I need to check the images again. Wait, the user provided the three images: First image: left gripper holding a sandwich (closed), right gripper open. Second image: left gripper moving towards the toaster, holding the sandwich (closed), right gripper open. Third image: left gripper holding the sandwich (closed), right gripper open. Yes. So the state of left gripper in all images is closed. Thus: 1. 1 →2: closed → A. 2. 1 →3: closed → A. 3. 2 →3: closed → A. But this can’t be right, because the problem is designed to have different answers. Wait, perhaps the first question is asking about the movement: did the gripper open, close, or move. Wait, no. Let’s think differently. Maybe the left gripper in Image 1 is closed, in Image 2 it is open. Wait, maybe I misread the images. Let’s imagine: Image 1: Left gripper is closed (holding bread). Image 2: Left gripper is open (no longer holding bread). Image 3: Left gripper is closed (holding bread). If that’s the case, then: 1. 1 →2: opened (A: Closed is wrong, B: Opened), so B. 2. 1 →3: closed (A: Closed), but since it’s closed, A. 3. 2 →3: closed (A: Closed). But why would the gripper open in Image 2? Let’s check the images again: Image 1: Left gripper is holding the bread (closed). Image 2: Left gripper is moving towards the toaster, but the bread is still in the gripper. So it’s closed. Image 3: Left gripper is holding the bread (closed). Yes. Wait, maybe the problem is in the orientation. The left gripper in Image 2 is open. Wait, no. Another possibility: the left gripper in Image 1 is closed, in Image 2 it is open. Let’s look at the gripper’s position. In Image 1: Left gripper’s fingers are together (closed), holding the bread. In Image 2: Left gripper’s fingers are open. Wait, if the bread is no longer in the gripper. Wait, in Image 2, the left gripper is moving towards the toaster, and the bread is still in the gripper? Or not? Wait, the problem says: “the robot arm/gripper motion across the three images”. Perhaps in Image 2, the left gripper has released the bread. But the problem states: “In the image, the robotic arm on the left is the robot’s left arm, and the robotic arm on the right is the robot’s right arm.” Let me describe the images again: Image 1: Left arm (gripper) is holding a slice of bread (so closed), right arm is open. Image 2: Left arm (gripper) is holding a slice of bread (closed), right arm is open. Image 3: Left arm (gripper) is holding a slice of bread (closed), right arm is open. Yes. So all left grippers are closed. Wait, but the answer for the third question is probably C: No movement. Wait, maybe the question is whether the gripper opened (B) or closed (A) or no movement (C). Wait, for the first question, Image 1 to 2: If the left gripper is closed in both images, then the state is closed. But the question is “whether the left gripper is opened or closed from Image 1 to Image 2”. So if it’s closed, answer A. Second question: Image 1 to 3: closed, answer A. Third question: Image 2 to 3: closed, answer A. But this seems unlikely. Maybe I need to look at the problem’s example. The problem says: “Please select from the following options whether the left gripper is opened or closed from Image 1 to Image 2? A: Closed, B: Opened, C: No movement.” Wait, maybe “Closed” here means the gripper is closed (so it didn’t open), “Opened” means it opened, and “No movement” means it didn’t move (but state is same). Wait, but if the gripper is closed in Image 1 and Image 2, then it’s closed (A), because it didn’t open. Yes. Let’s take a step back. In Image 1, left gripper state: closed. In Image 2, left gripper state: closed. So from 1 to 2: the gripper is closed (A). In Image 1 to 3: left gripper state is closed (A). In Image 2 to 3: left gripper state is closed (A). But this is AAA. But the problem must have different answers. So perhaps I’m misidentifying the state. Wait, let’s look at Image 2 again. Is the left gripper open? Image 2: The left gripper has the sandwich, but the fingers are spread out. Wait, no. If it’s holding the sandwich, the fingers are closed. Yes. Another possibility: the first question is whether the left gripper opened or closed from 1 to 2. If in Image 1 it’s closed, and Image 2 it’s closed, then no change, so it’s closed. So A. Image 1 to 3: same, A. Image 2 to 3: same, A. But perhaps the correct answer is ABB or something else. Wait, maybe the left gripper in Image 3 is open. Wait, in Image 3, the left gripper is holding the sandwich, so closed. Yes. I think I have to accept that all left grippers are closed, so the answers are A, A, A. But the problem says “select from the following options”, and the answer format is three letters. But maybe I made a mistake. Wait, let’s think of the first question: Image 1: left gripper is closed. Image 2: left gripper is closed. So the answer is A: Closed. Second question: Image 1 to 3: both closed → A. Third question: Image 2 to 3: both closed → A. So AAA. But the problem might have a different answer. Wait, maybe the left gripper in Image 2 is open. Let’s imagine: Image 1: left gripper closed (holding bread). Image 2: left gripper open (no bread). Image 3: left gripper closed (holding bread). If that’s the case: 1. 1 →2: opened (B). 2. 1 →3: closed (A), since it went from closed to open to closed. 3. 2 →3: closed (A). So BAC. But why would the bread be released in Image 2. The problem states: the robot seen by its eyes. Let’s see the description: The first image: left arm holding bread (closed). Second image: left arm moving towards toaster, but bread is still in the gripper. Third image: left arm holding bread (closed). Yes, so no. Another angle: the question is about the gripper’s action, not the state. “Whether the left gripper is opened or closed from Image 1 to Image 2” means: did the left gripper open (from closed to open) or close (from open to closed) during the transition. But in Image 1, it’s closed. In Image 2, it’s closed. So it didn’t open or close. So “No movement”, which is option C. Ah! That’s the key. The question is not about the state in Image 2, but about the change from Image 1 to Image 2. If the gripper stayed closed, then there was no movement (in terms of opening or closing), so C: No movement. Yes. That makes more sense. So: For each question, we’re to determine if the left gripper opened, closed, or no movement (did not open or close). First question: Image 1 to Image 2. In Image 1: closed. In Image 2: closed. So no change. Therefore, answer C: No movement. Wait, but the options are A: Closed, B: Opened, C: No movement. If the gripper is closed in both, but no movement (same state), then answer C. Yes. Second question: Image 1 to Image 3. Both closed → no movement → C. Third question: Image 2 to Image 3. Both closed → no movement → C. But that would be CCC. But no. Let’s think: If the question is “whether the left gripper is opened or closed from Image 1 to Image 2”, it means: did the left gripper open (B), close (A), or no movement (C). Wait, no. The problem says “whether the left gripper is opened or closed from Image 1 to Image 2”. So it’s whether the gripper’s action during the transition was opening or closing, or no movement. If the gripper stayed closed, then it didn’t open or close → C: No movement. Yes. Now let’s check: Image 1: left gripper closed. Image 2: left gripper closed. So from 1 to 2: no change → C. Image 1 to 3: both closed → C. Image 2 to 3: both closed → C. But that’s CCC. But let’s look at the images again. Wait, no. Wait, maybe the left gripper in Image 2 is open. Let me imagine: Image 1: left gripper closed (holding bread). Image 2: left gripper open (bread is on the counter). Image 3: left gripper closed (holding bread again). If that’s the case: 1. 1 →2: opened (B). 2. 1 →3: closed (A). 3. 2 →3: closed (A). But how do I know? Let’s look at the problem’s images: The first image: left arm holding bread (closed). The second image: left arm moving towards the toaster. The bread is now on the counter. Ah! Maybe in Image 2, the left gripper has released the bread. Let’s see: Image 1: left gripper holding bread (closed). Image 2: left gripper is now open, and the bread is on the counter. Wait, in the description: “the robotic arm on the left is the robot’s left arm, and the robotic arm on the right is the robot’s right arm.” In Image 2, the left arm is moving towards the toaster. If the bread is on the counter, then the gripper opened. Ah! That’s probably it. Let’s read the images again: Image 1: Left arm (gripper) is holding the bread (closed). Image 2: Left arm (gripper) is moving towards the toaster, and the bread is on the counter. So the gripper opened (releasing the bread). Image 3: Left arm (gripper) is holding the bread (closed). So: First question: Image 1 to 2: left gripper opened (B). Second question: Image 1 to 3: left gripper went from closed (1) → opened (2) → closed (3). So overall, it closed again. So from 1 to 3, it closed (A). Third question: Image 2 to 3: left gripper opened (2) → closed (3). So closed (A). Yes, this makes sense. So: 1. Image 1 to 2: left gripper opened (B). 2. Image 1 to 3: left gripper closed (A), because it went from closed to open to closed. But the question is from 1 to 3: the state in 3 is closed. So is it closed? Wait, the question is “whether the left gripper is opened or closed from Image 1 to Image 3”. Wait, no. The question is about the change. The options are: A: Closed (the gripper is closed), B: Opened (gripper is open), C: No movement. Wait, no. The problem says: “Please select from the following options whether the left gripper is opened or closed from Image 1 to Image 2? A: Closed, B: Opened, C: No movement.” Ah! So the answer is the state of the gripper after the transition (Image 2), or the state that changed. Wait, the key is: when moving from Image 1 to Image 2, what is the state of the left gripper (closed, opened, or no movement). If it’s closed → A. If opened → B. If no movement (stayed closed) → C. Wait, but “no movement” probably means the gripper didn’t change (closed to closed), so same state. But the problem states: “Focus only on robot arm/gripper motion across the three images. Please select from the following options whether the left gripper is opened or closed from Image 1 to Image 2?” So it’s about the motion: did the gripper open, close, or no movement. If the gripper stayed closed, then no movement. If it opened, then opened. If it closed (from open to closed), then closed. Now, let’s analyze the correct state based on images: Image 1: Left gripper closed (holding bread). Image 2: Left gripper is open (bread is on the counter). Image 3: Left gripper closed (holding bread). Yes. This makes sense because the robot is moving the bread to the toaster. So: Image 1: left gripper holds bread (closed). Image 2: left gripper releases the bread (opens), so it’s open. Image 3: left gripper is holding the bread again (closed). Yes, this must be it. So: First question: Image 1 to Image 2. Left gripper went from closed to open → so it opened. So answer B: Opened. Second question: Image 1 to Image 3. Left gripper was closed (1) → opened (2) → closed (3). So the state in Image 3 is closed. But the question is whether it opened or closed during the transition. The transition from 1 to 3 includes a change (open then closed), but the question is about the state in Image 3. Wait, no. The question is: from Image 1 to Image 3, what is the state of the left gripper. The options are A: Closed, B: Opened, C: No movement. If the left gripper is closed in Image 3, then A: Closed. Third question: Image 2 to Image 3. Left gripper was open (2) → closed (3). So it closed. So answer A: Closed. Wait, but the question is “whether the left gripper is opened or closed from Image 2 to Image 3”. The options are A: Closed (if it’s closed), B: Opened, C: No movement. If it went from open to closed, then it closed → A. Let’s verify: Image 1: Left gripper closed (B: bread held). Image 2: Left gripper open (B: bread on counter). Image 3: Left gripper closed (B: bread held). Yes. So: 1. 1 →2: opened (B). 2. 1 →3: closed (A), because it’s closed in 3. 3. 2 →3: closed (A), because it’s closed in 3. But wait, the question is about the change. Wait, for the first question: From 1 to 2, the gripper opened. So answer B. Second question: From 1 to 3, the gripper closed (from 1 to 3: it started closed, opened, then closed). So the final state is closed. So answer A. Third question: From 2 to 3, the gripper closed (from open to closed). So answer A. Thus, the answers are B, A, A → BAA. But let’s check. First question: Image 1: closed. Image 2: open. So from 1 to 2, the gripper opened. So answer B: Opened. Second question: Image 1: closed. Image 3: closed. So from 1 to 3, the gripper is closed (final state). So answer A: Closed. Third question: Image 2: open. Image 3: closed. So from 2 to 3, the gripper closed. So answer A: Closed. Yes, that makes sense. So the correct answers are B, A, A → BAA. Now, why is Image 2’s left gripper open? Because in Image 2, the left arm is moving towards the toaster, and the bread is on the counter. So the gripper opened. Yes, this must be the case. So: 1. Image 1 to 2: left gripper opened (B). 2. Image 1 to 3: left gripper closed (A). 3. Image 2 to 3: left gripper closed (A). Thus, the answer is BAA. 
+
+</think ><answer >BAA </answer >Discussion. As shown, our model’s reasoning trace is notably shorter but still logically complete. This indicates that our method encourages compression of reasoning without loss of correctness , aligning with the intuition that efficient reason-ing is both concise and targeted. References 
+
+[1] Introducing the next generation of claude. https://www.anthropic.com/news/claude-3-family , 2024. 9, 11 [2] Josh Achiam, Steven Adler, Sandhini Agarwal, Lama Ahmad, Ilge Akkaya, Florencia Leoni Aleman, Diogo Almeida, Janko Al-tenschmidt, Sam Altman, Shyamal Anadkat, et al. Gpt-4 technical report. arXiv:2303.08774 , 2023. 1, 9, 10 [3] Mahmoud Assran, Adrien Bardes, David Fan, Quentin Garrido, Russell Howes, Mojtaba Komeili, Matthew Muckley, Ammar Rizvi, Claire Roberts, Koustuv Sinha, Artem Zholus, Sergio Arnaud, Abha Gejji, Ada Martin, Francois Robert Hogan, Daniel Dugas, Piotr Bojanowski, Vasil Khalidov, Patrick Labatut, Francisco Massa, Marc Szafraniec, Kapil Krishnakumar, Yong Li, Xiaodong Ma, Sarath Chandar, Franziska Meier, Yann LeCun, Michael Rabbat, and Nicolas Ballas. V-jepa 2: Self-supervised video models enable understanding, prediction and planning. arXiv preprint arXiv:2506.09985 , 2025. 3 [4] Anas Awadalla, Irena Gao, Josh Gardner, Jack Hessel, Yusuf Hanafy, Wanrong Zhu, Kalyani Marathe, Yonatan Bitton, Samir Gadre, Shiori Sagawa, Jenia Jitsev, Simon Kornblith, Pang Wei Koh, Gabriel Ilharco, Mitchell Wortsman, and Ludwig Schmidt. Open-flamingo: An open-source framework for training large autoregressive vision-language models. arXiv preprint arXiv:2308.01390 ,2023. 9, 10, 11 [5] Kyungho Bae, Jinhyung Kim, Sihaeng Lee, Soonyoung Lee, Gunhee Lee, and Jinwoo Choi. Mash-vlm: Mitigating action-scene hallucination in video-llms through disentangled spatial-temporal representations. In Proceedings of the Computer Vision and Pattern Recognition Conference , pages 13744–13753, 2025. 2 [6] Jinze Bai, Shuai Bai, Yunfei Chu, Zeyu Cui, Kai Dang, Xiaodong Deng, Yang Fan, Wenbin Ge, Yu Han, Fei Huang, et al. Qwen technical report. arXiv preprint arXiv:2309.16609 , 2023. 8 [7] Jinze Bai, Shuai Bai, Shusheng Yang, Shijie Wang, Sinan Tan, Peng Wang, Junyang Lin, Chang Zhou, and Jingren Zhou. Qwen-vl: A versatile vision-language model for understanding, localization, text reading, and beyond. arXiv preprint arXiv:2308.12966 ,2023. 9, 11 [8] Jinze Bai, Shuai Bai, Shusheng Yang, Shijie Wang, Sinan Tan, Peng Wang, Junyang Lin, Chang Zhou, and Jingren Zhou. Qwen-vl: A frontier large vision-language model with versatile abilities. arXiv preprint arXiv:2308.12966 , 2023. 8, 11 [9] Shuai Bai, Keqin Chen, Xuejing Liu, Jialin Wang, Wenbin Ge, Sibo Song, Kai Dang, Peng Wang, Shijie Wang, Jun Tang, et al. Qwen2. 5-vl technical report. arXiv:2502.13923 , 2025. 1, 2, 7, 8 [10] Yifan Bai, Dongming Wu, Yingfei Liu, Fan Jia, Weixin Mao, Ziheng Zhang, Yucheng Zhao, Jianbing Shen, Xing Wei, Tiancai Wang, et al. Is a 3d-tokenized llm the key to reliable autonomous driving? arXiv preprint arXiv:2405.18361 , 2024. 1 [11] Max Bain, Arsha Nagrani, G¨ ul Varol, and Andrew Zisserman. Frozen in time: A joint video and image encoder for end-to-end retrieval. In IEEE International Conference on Computer Vision , 2021. 3 [12] Xiao Bi, Deli Chen, Guanting Chen, Shanhuang Chen, Damai Dai, Chengqi Deng, Honghui Ding, Kai Dong, Qiushi Du, Zhe Fu, et al. Deepseek llm: Scaling open-source language models with longtermism. arXiv preprint arXiv:2401.02954 , 2024. 8 [13] Kevin Black, Noah Brown, Danny Driess, Adnan Esmail, Michael Equi, Chelsea Finn, Niccolo Fusai, Lachy Groom, Karol Haus-man, Brian Ichter, et al. pi0: A vision-language-action flow model for general robot control. arXiv preprint arXiv:2410.24164 ,2024. 1 [14] Ellis Brown, Arijit Ray, Ranjay Krishna, Ross Girshick, Rob Fergus, and Saining Xie. SIMS-V: Simulated instruction-tuning for spatial video understanding. arXiv preprint arXiv:2511.04668 , 2025. 1 [15] Jun Cen, Chaohui Yu, Hangjie Yuan, Yuming Jiang, Siteng Huang, Jiayan Guo, Xin Li, Yibing Song, Hao Luo, Fan Wang, et al. Worldvla: Towards autoregressive action world model. arXiv preprint arXiv:2506.21539 , 2025. 1 [16] Chilam Cheang, Sijin Chen, Zhongren Cui, Yingdong Hu, Liqun Huang, Tao Kong, Hang Li, Yifeng Li, Yuxiao Liu, Xiao Ma, et al. Gr-3 technical report. arXiv preprint arXiv:2507.15493 , 2025. 1 [17] Boyuan Chen, Zhuo Xu, Sean Kirmani, Brain Ichter, Dorsa Sadigh, Leonidas Guibas, and Fei Xia. Spatialvlm: Endowing vision-language models with spatial reasoning capabilities. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 14455–14465, 2024. 1, 2 [18] Hardy Chen, Haoqin Tu, Fali Wang, Hui Liu, Xianfeng Tang, Xinya Du, Yuyin Zhou, and Cihang Xie. Sft or rl? an early investiga-tion into training r1-like reasoning large vision-language models. arXiv:2504.11468 , 2025. 7 [19] Jun Chen, Deyao Zhu, Xiaoqian Shen, Xiang Li, Zechun Liu, Pengchuan Zhang, Raghuraman Krishnamoorthi, Vikas Chandra, Yunyang Xiong, and Mohamed Elhoseiny. Minigpt-v2: large language model as a unified interface for vision-language multi-task learning, 2023. 9, 10 [20] Lin Chen, Jisong Li, Xiaoyi Dong, Pan Zhang, Conghui He, Jiaqi Wang, Feng Zhao, and Dahua Lin. Sharegpt4v: Improving large multi-modal models with better captions. arXiv preprint arXiv:2311.12793 , 2023. 8 [21] Lin Chen, Jinsong Li, Xiaoyi Dong, Pan Zhang, Yuhang Zang, Zehui Chen, Haodong Duan, Jiaqi Wang, Yu Qiao, Dahua Lin, et al. Are we on the right way for evaluating large vision-language models? NeurIPS , 2024. 7, 8 [22] Xi Chen, Zhifei Zhang, He Zhang, Yuqian Zhou, Soo Ye Kim, Qing Liu, Yijun Li, Jianming Zhang, Nanxuan Zhao, Yilin Wang, Hui Ding, Zhe Lin, and Hengshuang. Unireal: Universal image generation and editing via learning real-world dynamics. arXiv preprint arXiv:2412.07774 , 2024. 1 [23] Xi Chen, Mingkang Zhu, Shaoteng Liu, Xiaoyang Wu, Xiaogang Xu, Yu Liu, Xiang Bai, and Hengshuang Zhao. Mico: Multi-image contrast for reinforcement visual reasoning. arXiv preprint arXiv:2506.22434 , 2025. 1, 2, 3, 7 [24] Yangyi Chen, Karan Sikka, Michael Cogswell, Heng Ji, and Ajay Divakaran. Measuring and improving chain-of-thought reasoning in vision-language models. Proceedings of the 2024 Conference of the North American Chapter of the Association for Computational Linguistics , pages 192–210, 2024. 3 [25] Zhe Chen, Jiannan Wu, Wenhai Wang, Weijie Su, Guo Chen, Sen Xing, Zhong Muyan, Qinglong Zhang, Xizhou Zhu, Lewei Lu, et al. Internvl: Scaling up vision foundation models and aligning for generic visual-linguistic tasks. arXiv preprint arXiv:2312.14238 , 2023. 8, 11 [26] Zhe Chen, Jiannan Wu, Wenhai Wang, Weijie Su, Guo Chen, Sen Xing, Muyan Zhong, Qinglong Zhang, Xizhou Zhu, Lewei Lu, et al. Internvl: Scaling up vision foundation models and aligning for generic visual-linguistic tasks. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 24185–24198, 2024. 1, 6, 7, 8 [27] Wei-Lin Chiang, Zhuohan Li, Zi Lin, Ying Sheng, Zhanghao Wu, Hao Zhang, Lianmin Zheng, Siyuan Zhuang, Yonghao Zhuang, Joseph E Gonzalez, et al. Vicuna: An open-source chatbot impressing gpt-4 with 90%* chatgpt quality. See https://vicuna. lmsys. org (accessed 14 April 2023) , 2023. 8 [28] Gheorghe Comanici, Eric Bieber, Mike Schaekermann, Ice Pasupat, Noveen Sachdeva, Inderjit Dhillon, Marcel Blistein, Ori Ram, Dan Zhang, Evan Rosen, et al. Gemini 2.5: Pushing the frontier with advanced reasoning, multimodality, long context, and next generation agentic capabilities. arXiv preprint arXiv:2507.06261 , 2025. 2, 8 [29] Gheorghe Comanici, Eric Bieber, Mike Schaekermann, Ice Pasupat, Noveen Sachdeva, Inderjit Dhillon, Marcel Blistein, Ori Ram, Dan Zhang, Evan Rosen, et al. Gemini 2.5: Pushing the frontier with advanced reasoning, multimodality, long context, and next generation agentic capabilities. arXiv preprint arXiv:2507.06261 , 2025. 7 [30] XTuner Contributors. Xtuner: A toolkit for efficiently fine-tuning llm. https://github.com/InternLM/xtuner , 2023. 9, 10 [31] Angela Dai, Angel X. Chang, Manolis Savva, Maciej Halber, Thomas Funkhouser, and Matthias Nießner. Scannet: Richly-annotated 3d reconstructions of indoor scenes. In Proc. Computer Vision and Pattern Recognition (CVPR), IEEE , 2017. 3 [32] Wenliang Dai, Junnan Li, Dongxu Li, Anthony Meng Huat Tiong, Junqi Zhao, Weisheng Wang, Boyang Li, Pascale Fung, and Steven Hoi. Instructblip: Towards general-purpose vision-language models with instruction tuning, 2023. 9, 11 [33] Ishan Dave, Rohit Gupta, Mamshad Nayeem Rizve, and Mubarak Shah. Tclr: Temporal contrastive learning for video representation. 
+
+Computer Vision and Image Understanding , page 103406, 2022. 3 [34] Xiaoyi Dong, Pan Zhang, Yuhang Zang, Yuhang Cao, Bin Wang, Linke Ouyang, Xilin Wei, Songyang Zhang, Haodong Duan, Maosong Cao, et al. Internlm-xcomposer2: Mastering free-form text-image composition and comprehension in vision-language large model. arXiv preprint arXiv:2401.16420 , 2024. 8, 11 [35] Haodong Duan, Junming Yang, Yuxuan Qiao, Xinyu Fang, Lin Chen, Yuan Liu, Xiaoyi Dong, Yuhang Zang, Pan Zhang, Jiaqi Wang, et al. Vlmevalkit: An open-source toolkit for evaluating large multi-modality models. In ACMMM , 2024. 6 [36] Zhiwen Fan, Jian Zhang, Renjie Li, Junge Zhang, Runjin Chen, Hezhen Hu, Kevin Wang, Huaizhi Qu, Dilin Wang, Zhicheng Yan, Hongyu Xu, Justin Theiss, Tianlong Chen, Jiachen Li, Zhengzhong Tu, Zhangyang Wang, and Rakesh Ranjan. Vlm-3r: Vision-language models augmented with instruction-aligned 3d reconstruction, 2025. 1, 3 [37] Huang Fang, Mengxi Zhang, Heng Dong, Wei Li, Zixuan Wang, Qifeng Zhang, Xueyun Tian, Yucheng Hu, and Hang Li. Robix: A unified model for robot interaction, reasoning and planning. arXiv preprint arXiv:2509.01106 , 2025. 1 [38] Xingyu Fu, Yushi Hu, Bangzheng Li, Yu Feng, Haoyu Wang, Xudong Lin, Dan Roth, Noah A Smith, Wei-Chiu Ma, and Ranjay Krishna. Blink: Multimodal large language models can see but not perceive. In ECCV , 2024. 7, 9 [39] Peng Gao, Renrui Zhang, Chris Liu, Longtian Qiu, Siyuan Huang, Weifeng Lin, Shitian Zhao, Shijie Geng, Ziyi Lin, Peng Jin, et al. Sphinx-x: Scaling data and parameters for a family of multi-modal large language models. arXiv preprint arXiv:2402.05935 , 2024. 8[40] Kristen Grauman, Andrew Westbury, Eugene Byrnes, Zachary Chavis, Antonino Furnari, Rohit Girdhar, Jackson Hamburger, Hao Jiang, Miao Liu, Xingyu Liu, Miguel Martin, Tushar Nagarajan, Ilija Radosavovic, Santhosh Kumar Ramakrishnan, Fiona Ryan, Jayant Sharma, Michael Wray, Mengmeng Xu, Eric Zhongcong Xu, Chen Zhao, Siddhant Bansal, Dhruv Batra, Vincent Cartillier, Sean Crane, Tien Do, Morrie Doulaty, Akshay Erapalli, Christoph Feichtenhofer, Adriano Fragomeni, Qichen Fu, Abrham Ge-breselasie, Cristina Gonzalez, James Hillis, Xuhua Huang, Yifei Huang, Wenqi Jia, Weslie Khoo, J´ achym Kol´ ar, Satwik Kottur, Anurag Kumar, Federico Landini, Chao Li, Yanghao Li, Zhenqiang Li, Karttikeya Mangalam, Raghava Modhugu, Jonathan Munro, Tullie Murrell, Takumi Nishiyasu, Will Price, Paola Ruiz Puentes, Merey Ramazanova, Leda Sari, Kiran Somasundaram, Audrey Southerland, Yusuke Sugano, Ruijie Tao, Minh Vo, Yuchen Wang, Xindi Wu, Takuma Yagi, Ziwei Zhao, Yunyi Zhu, Pablo Arbelaez, David Crandall, Dima Damen, Giovanni Maria Farinella, Christian Fuegen, Bernard Ghanem, Vamsi Krishna Ithapu, C. V. Jawahar, Hanbyul Joo, Kris Kitani, Haizhou Li, Richard Newcombe, Aude Oliva, Hyun Soo Park, James M. Rehg, Yoichi Sato, Jianbo Shi, Mike Zheng Shou, Antonio Torralba, Lorenzo Torresani, Mingfei Yan, and Jitendra Malik. Ego4d: Around the world in 3,000 hours of egocentric video. In IEEE Conference on Computer Vision and Pattern Recognition (CVPR) , 2022. 3 [41] Daya Guo, Qihao Zhu, Dejian Yang, Zhenda Xie, Kai Dong, Wentao Zhang, Guanting Chen, Xiao Bi, Yu Wu, YK Li, et al. DeepSeek-Math: Pushing the limits of mathematical reasoning in open language models. arXiv preprint arXiv:2402.03300 , 2024. 3[42] Daya Guo, Dejian Yang, Haowei Zhang, Junxiao Song, Ruoyu Zhang, Runxin Xu, Qihao Zhu, Shirong Ma, Peiyi Wang, Xiao Bi, et al. Deepseek-r1: Incentivizing reasoning capability in llms via reinforcement learning. arXiv:2501.12948 , 2025. 1 [43] Daya Guo, Dejian Yang, Haowei Zhang, Junxiao Song, Ruoyu Zhang, Runxin Xu, Qihao Zhu, Shirong Ma, Peiyi Wang, Xiao Bi, et al. DeepSeek-R1: Incentivizing reasoning capability in LLMs via reinforcement learning. arXiv preprint arXiv:2501.12948 ,2025. 3 [44] Edward J Hu, Yelong Shen, Phillip Wallis, Zeyuan Chen, Yunsheng Bao, Shengming Wang, Lianyang Li, Bryan Hooi, Jiayi Zhao, Bing Jiang, et al. LoRA: Low-rank adaptation of large language models. arXiv preprint arXiv:2106.09685 , 2021. 3 [45] Chenguang Huang, Oier Mees, Andy Zeng, and Wolfram Burgard. Visual language maps for robot navigation. In Proceedings of the IEEE International Conference on Robotics and Automation (ICRA) , London, UK, 2023. 1 [46] Aaron Hurst, Adam Lerer, Adam P Goucher, Adam Perelman, Aditya Ramesh, Aidan Clark, AJ Ostrow, Akila Welihinda, Alan Hayes, Alec Radford, et al. Gpt-4o system card. arXiv:2410.21276 , 2024. 1, 2, 7, 8, 11 [47] Aaron Jaech, Adam Kalai, Adam Lerer, Adam Richardson, Ahmed El-Kishky, Aiden Low, Alec Helyar, Aleksander Madry, Alex Beutel, Alex Carney, et al. Openai o1 system card. arXiv:2412.16720 , 2024. 1 [48] Albert Q Jiang, Alexandre Sablayrolles, Antoine Roux, Arthur Mensch, Blanche Savary, Chris Bamford, Devendra Singh Chaplot, Diego de las Casas, Emma Bou Hanna, Florian Bressand, et al. Mixtral of experts. arXiv preprint arXiv:2401.04088 , 2024. 8 [49] Dongfu Jiang, Xuan He, Huaye Zeng, Cong Wei, Max Ku, Qian Liu, and Wenhu Chen. Mantis: Interleaved multi-image instruction tuning. arXiv preprint arXiv:2405.01483 , 2024. 10 [50] Moo Jin Kim, Karl Pertsch, Siddharth Karamcheti, Ted Xiao, Ashwin Balakrishna, Suraj Nair, Rafael Rafailov, Ethan Foster, Grace Lam, Pannag Sanketi, Quan Vuong, Thomas Kollar, Benjamin Burchfiel, Russ Tedrake, Dorsa Sadigh, Sergey Levine, Percy Liang, and Chelsea Finn. Openvla: An open-source vision-language-action model. arXiv preprint arXiv:2406.09246 , 2024. 1 [51] Taegyeong Kim, Soyeong Park, Joon Shin, and Kyoung Mu Lee. Video llms for temporal reasoning in long videos. arXiv preprint arXiv:2412.02930 , 2024. 2 [52] Hugo Laurenc ¸on, Lucile Saulnier, L´ eo Tronchon, Stas Bekman, Amanpreet Singh, Anton Lozhkov, Thomas Wang, Siddharth Karamcheti, Alexander Rush, Douwe Kiela, et al. Obelics: An open web-scale filtered dataset of interleaved image-text documents. 
+
+Advances in Neural Information Processing Systems , 36, 2024. 10 [53] Hugo Laurenc ¸on, L´ eo Tronchon, Matthieu Cord, and Victor Sanh. What matters when building vision-language models?, 2024. 10 [54] Bo Li, Yuanhan Zhang, Dong Guo, Renrui Zhang, Feng Li, Hao Zhang, Kaichen Zhang, Peiyuan Zhang, Yanwei Li, Ziwei Liu, et al. Llava-onevision: Easy visual task transfer. TMLR , 2025. 6, 7, 8 [55] Jiawei Li, Yang Zhang, Ming Chen, and Hao Wang. Viewspatial-bench: Evaluating multi-perspective spatial localization in vision-language models. arXiv preprint arXiv:2505.21500 , 2025. 2 [56] Lei Li, Yuanxin Liu, Linli Yao, Peiyuan Zhang, Chenxin An, Lean Wang, Xu Sun, Lingpeng Kong, and Qi Liu. Temporal reasoning transfer from text to video. arXiv preprint arXiv:2410.06166 , 2024. 3 [57] Zhang Li, Biao Yang, Qiang Liu, Zhiyin Ma, Shuo Zhang, Jingxu Yang, Yabo Sun, Yuliang Liu, and Xiang Bai. Monkey: Image resolution and text label are important things for large multi-modal models. arXiv preprint arXiv:2311.06607 , 2023. 8 [58] Zhiyuan Li, Dongnan Liu, Chaoyi Zhang, Heng Wang, Tengfei Xue, and Weidong Cai. Enhancing advanced visual reasoning ability of large language models. Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing ,pages 1915–1929, 2024. 3 [59] Ji Lin, Hongxu Yin, Wei Ping, Yao Lu, Pavlo Molchanov, Andrew Tao, Huizi Mao, Jan Kautz, Mohammad Shoeybi, and Song Han. Vila: On pre-training for visual language models, 2023. 10, 11 [60] Disheng Liu, Jingyu Wang, Zihan Chen, and Yuhao Zhang. Thinking in space: How multimodal large language models see, remember and recall spaces. In Conference on Computer Vision and Pattern Recognition (CVPR) , 2024. 2 [61] Haotian Liu, Chunyuan Li, Yuheng Li, and Yong Jae Lee. Improved baselines with visual instruction tuning, 2023. 8, 9, 10 [62] Haotian Liu, Chunyuan Li, Qingyang Wu, and Yong Jae Lee. Visual instruction tuning. In NeurIPS , 2023. 1 [63] Haotian Liu, Chunyuan Li, Yuheng Li, Bo Li, Yuanhan Zhang, Sheng Shen, and Yong Jae Lee. Llava-next: Improved reasoning, ocr, and world knowledge, 2024. 8, 9, 10, 11 [64] Shiyu Liu, Yucheng Han, Peng Xing, Fukun Yin, Rui Wang, Wei Cheng, Jiaqi Liao, Yingming Wang, Honghao Fu, Chunrui Han, Guopeng Li, Yuang Peng, Quan Sun, Jingwei Wu, Yan Cai, Zheng Ge, Ranchen Ming, Lei Xia, Xianfang Zeng, Yibo Zhu, Binxing Jiao, Xiangyu Zhang, Gang Yu, and Daxin Jiang. Step1x-edit: A practical framework for general image editing. arXiv preprint arXiv:2504.17761 , 2025. 1 [65] Xiangyan Liu, Jinjie Ni, Zijian Wu, Chao Du, Longxu Dou, Haonan Wang, Tianyu Pang, and Michael Qizhe Shieh. Noisyrollout: Reinforcing visual reasoning with data augmentation. arXiv:2504.13055 , 2025. 1, 7 [66] Yuhong Liu, Beichen Zhang, Yuhang Zang, Yuhang Cao, Long Xing, Xiaoyi Dong, Haodong Duan, Dahua Lin, and Jiaqi Wang. Spatial-ssrl: Enhancing spatial understanding via self-supervised reinforcement learning. arXiv preprint arXiv:2510.27606 , 2025. 1, 3 [67] Haoyu Lu, Wen Liu, Bo Zhang, Bingxuan Wang, Kai Dong, Bo Liu, Jingxiang Sun, Tongzheng Ren, Zhuoshu Li, Yaofeng Sun, et al. Deepseek-vl: Towards real-world vision-language understanding. arXiv preprint arXiv:2403.05525 , 2024. 8 [68] Fanqing Meng, Lingxiao Du, Zongkai Liu, Zhixiang Zhou, Quanfeng Lu, Daocheng Fu, Tiancheng Han, Botian Shi, Wenhai Wang, Junjun He, et al. Mm-eureka: Exploring the frontiers of multimodal reasoning with rule-based reinforcement learning. 
+
+arXiv:2503.07365 , 2025. 7 [69] Microsoft. Phi2: The surprising power of small language models. https://www.microsoft.com/en-us/research/ blog/phi-2-the-surprising-power-of-small-language-models/ , 2023. 8 [70] NousResearch. Nous-hermes-2-yi-34b. https://huggingface.co/NousResearch/Nous-Hermes-2-Yi-34B , 2023. 8[71] OpenAI. Chatgpt. https://chat.openai.com/ , 2023. 8 [72] OpenAI. Gpt-4v(ision) system card. https://cdn.openai.com/papers/GPTV_System_Card.pdf , 2023. 8, 11 [73] Shengju Qian, Hao Shao, Han Xiao, Guanglu Song, Zhuofan Zong, Letian Wang, Yu Liu, and Hongsheng Li. Visual CoT: Advancing multi-modal language models with a comprehensive dataset and benchmark for chain-of-thought reasoning. Advances in Neural Information Processing Systems , 37, 2024. 3 [74] QwenTeam. Qwen3-vl: Sharper vision, deeper thought, broader action. https : / / qwen . ai / blog ? id = 99f0335c4ad9ff6153e517418d48535ab6d8afef&from=research.latest- advancements- list , 2025. 5, 6, 7, 8, 9, 10, 11 [75] Rafael Rafailov, Archit Sharma, Eric Mitchell, Stefano Ermon, Christopher D Manning, and Chelsea Finn. Direct preference optimization: Your language model is secretly a reward model. Advances in Neural Information Processing Systems , 36:53728– 53741, 2024. 3 [76] Manolis Savva, Abhishek Kadian, Oleksandr Maksymets, Yili Zhao, Erik Wijmans, Bhavana Jain, Julian Straub, Jia Liu, Vladlen Koltun, Jitendra Malik, et al. Habitat: A platform for embodied ai research. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pages 9339–9347, 2019. 3 [77] ByteDance Seed, Yufeng Yuan, Yu Yue, Mingxuan Wang, Xiaochen Zuo, Jiaze Chen, Lin Yan, Wenyuan Xu, Chi Zhang, Xin Liu, et al. Seed-thinking-v1. 5: Advancing superb reasoning models with reinforcement learning. arXiv:2504.13914 , 2025. 1 [78] Laura Sevilla-Lara, Shengxin Zha, Zhicheng Yan, Vedanuj Goswami, Matt Feiszli, and Lorenzo Torresani. Only time can tell: Discovering temporal data for temporal modeling. In Proceedings of the IEEE/CVF winter conference on applications of computer vision , pages 535–544, 2021. 3 [79] Zhihong Shao, Peiyi Wang, Qihao Zhu, Runxin Xu, Junxiao Song, Xiao Bi, Haowei Zhang, Mingchuan Zhang, YK Li, Y Wu, et al. Deepseekmath: Pushing the limits of mathematical reasoning in open language models. arXiv:2402.03300 , 2024. 4, 5 [80] Chan Hee Song, Valts Blukis, Jonathan Tremblay, Stephen Tyree, Yu Su, and Stan Birchfield. RoboSpatial: Teaching spatial understanding to 2D and 3D vision-language models for robotics. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2025. Oral Presentation. 2 [81] Yiren Song, Shijie Huang, Chen Yao, Xiaojun Ye, Hai Ci, Jiaming Liu, Yuxuan Zhang, and Mike Zheng Shou. Processpainter: Learn painting process from sequence data. arXiv preprint arXiv:2406.06062 , 2024. 1 [82] Yiren Song, Xiaokang Liu, and Mike Zheng Shou. Diffsim: Taming diffusion models for evaluating visual similarity. arXiv preprint arXiv:2412.14580 , 2024. [83] Yiren Song, Danze Chen, and Mike Zheng Shou. Layertracer: Cognitive-aligned layered svg synthesis via diffusion transformer. 
+
+arXiv preprint arXiv:2502.01105 , 2025. [84] Yiren Song, Cheng Liu, and Mike Zheng Shou. Omniconsistency: Learning style-agnostic consistency from paired stylization data. 
+
+arXiv preprint arXiv:2505.18445 , 2025. 1 [85] Quan Sun, Yufeng Cui, Xiaosong Zhang, Fan Zhang, Qiying Yu, Zhengxiong Luo, Yueze Wang, Yongming Rao, Jingjing Liu, Tiejun Huang, et al. Generative multimodal models are in-context learners. arXiv preprint arXiv:2312.13286 , 2023. 10 [86] Zeyu Sun, Zhiyuan Liu, Hao Wang, and Wei Chen. Uni4d-llm: A unified spatio-temporal-aware vlm for 4d understanding and generation. arXiv preprint arXiv:2509.23828 , 2024. 3 [87] Zhiqing Sun, Sheng Shen, Shengcao Cao, Haotian Liu, Chunyuan Li, Yujia Shen, Chuang Gan, Liang-Yan Gui, Yu-Xiong Wang, Yiming Yang, et al. LLaVA-RLHF: Aligning large multimodal models with factually augmented RLHF. https://llava-rlhf.github.io/ , 2024. Accessed: 2024-10-30. 3 [88] Gemini Team, Rohan Anil, Sebastian Borgeaud, Yonghui Wu, Jean-Baptiste Alayrac, Jiahui Yu, Radu Soricut, Johan Schalkwyk, Andrew M Dai, Anja Hauth, et al. Gemini: a family of highly capable multimodal models. arXiv preprint arXiv:2312.11805 , 2023. 8, 9, 10 [89] Google Gemini Team. Gemini 1.5: Unlocking multimodal understanding across millions of tokens of context, 2024. 11 [90] InternLM Team. Internlm: A multilingual language model with progressively enhanced capabilities. https://github.com/ InternLM/InternLM , 2023. 9, 10 [91] InternLM Team. Internlm: A multilingual language model with progressively enhanced capabilities, 2023. 8 [92] Kimi Team, Angang Du, Bofei Gao, Bowei Xing, Changjiu Jiang, Cheng Chen, Cheng Li, Chenjun Xiao, Chenzhuang Du, Chonghua Liao, et al. Kimi k1. 5: Scaling reinforcement learning with llms. arXiv:2501.12599 , 2025. 1 [93] OpenAI Team. Gpt 5. https://openai.com/zh-Hans-CN/index/introducing-gpt-5/, 2025. 7 [94] Cong Wan, Xiangyang Luo, Zijian Cai, Yiren Song, Yunlong Zhao, Yifan Bai, Yuhang He, and Yihong Gong. Grid: Visual layout generation. arXiv preprint arXiv:2412.10718 , 2024. 1 [95] Fei Wang, Xingyu Fu, James Y Huang, Zekun Li, Qin Liu, Xiaogeng Liu, Mingyu Derek Ma, Nan Xu, Wenxuan Zhou, Kai Zhang, et al. Muirbench: A comprehensive benchmark for robust multi-image understanding. In ICLR , 2025. 7, 10 [96] Peng Wang, Shuai Bai, Sinan Tan, Shijie Wang, Zhihao Fan, Jinze Bai, Keqin Chen, Xuejing Liu, Jialin Wang, Wenbin Ge, et al. Qwen2-vl: Enhancing vision-language model’s perception of the world at any resolution. arXiv:2409.12191 , 2024. 6, 7 [97] Weihan Wang, Qingsong Lv, Wenmeng Yu, Wenyi Hong, Ji Qi, Yan Wang, Junhui Ji, Zhuoyi Yang, Lei Zhao, Xixuan Song, Jiazheng Xu, Bin Xu, Juanzi Li, Yuxiao Dong, Ming Ding, and Jie Tang. Cogvlm: Visual expert for pretrained language models, 2023. 8, 9, 10, 11 [98] Xiyao Wang, Zhengyuan Yang, Chao Feng, Hongjin Lu, Linjie Li, Chung-Ching Lin, Kevin Lin, Furong Huang, and Lijuan Wang. Sota with less: Mcts-guided sample selection for data-efficient visual reasoning self-improvement. arXiv:2504.07934 , 2025. 7 [99] Yiwei Wang, Kai-Wei Chang, and Ming-Hsuan Yang. Towards comprehensive reasoning in vision-language models. Proceedings of the IEEE/CVF International Conference on Computer Vision , 2024. 3 [100] Chenfei Wu, Jiahao Li, Jingren Zhou, Junyang Lin, Kaiyuan Gao, Kun Yan, Sheng ming Yin, Shuai Bai, Xiao Xu, Yilei Chen, Yuxiang Chen, Zecheng Tang, Zekai Zhang, Zhengyi Wang, An Yang, Bowen Yu, Chen Cheng, Dayiheng Liu, Deqing Li, Hang Zhang, Hao Meng, Hu Wei, Jingyuan Ni, Kai Chen, Kuan Cao, Liang Peng, Lin Qu, Minggang Wu, Peng Wang, Shuting Yu, Tingkun Wen, Wensen Feng, Xiaoxiao Xu, Yi Wang, Yichang Zhang, Yongqiang Zhu, Yujia Wu, Yuxuan Cai, and Zenan Liu. Qwen-image technical report, 2025. 1 [101] Diankun Wu, Fangfu Liu, Yi-Hsin Hung, and Yueqi Duan. Spatial-mllm: Boosting mllm capabilities in visual-based spatial intelli-gence. arXiv preprint arXiv:2505.23747 , 2025. 1, 8 [102] Yi Xu, Yuxin Hu, Zaiwei Zhang, Gregory P Meyer, Siva Karthik Mustikovela, Siddhartha Srinivasa, Eric M Wolff, and Xin Huang. Vlm-ad: End-to-end autonomous driving through vision-language model supervision. arXiv preprint arXiv:2412.14446 , 2024. 1 [103] Yuhao Xu, Li Zhang, Hao Wang, and Wei Chen. Can world models benefit vlms for world dynamics? arXiv preprint arXiv:2510.00855 , 2024. 3 [104] An Yang, Anfeng Li, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo Zheng, Bowen Yu, Chang Gao, Chengen Huang, Chenxu Lv, et al. Qwen3 technical report. arXiv preprint arXiv:2505.09388 , 2025. 8 [105] Jihan Yang, Shusheng Yang, Anjali Gupta, Rilyn Han, Li Fei-Fei, and Saining Xie. Thinking in Space: How Multimodal Large Language Models See, Remember and Recall Spaces. arXiv preprint arXiv:2412.14171 , 2024. 2, 7, 8 [106] Sihan Yang, Runsen Xu, Yiman Xie, Sizhe Yang, Mo Li, Jingli Lin, Chenming Zhu, Xiaochen Chen, Haodong Duan, Xiangyu Yue, Dahua Lin, Tai Wang, and Jiangmiao Pang. Mmsi-bench: A benchmark for multi-image spatial intelligence. arXiv preprint arXiv:2505.23764 , 2025. 2, 7 [107] Qinghao Ye, Haiyang Xu, Jiabo Ye, Ming Yan, Anwen Hu, Haowei Liu, Qi Qian, Ji Zhang, and Fei Huang. mplug-owl2: Revolu-tionizing multi-modal large language model with modality collaboration. In CVPR , 2024. 7 [108] Alex Young, Bei Chen, Chao Li, Chengen Huang, Ge Zhang, Guanwei Zhang, Heng Li, Jiangcheng Zhu, Jianqun Chen, Jing Chang, et al. Yi: Open foundation models by 01. ai. arXiv preprint arXiv:2403.04652 , 2024. 8, 11 [109] Xiang Yue, Yuansheng Ni, Kai Zhang, Tianyu Zheng, Ruoqi Liu, Ge Zhang, Samuel Stevens, Dongfu Jiang, Weiming Ren, Yuxuan Sun, et al. Mmmu: A massive multi-discipline multimodal understanding and reasoning benchmark for expert agi. In CVPR , 2024. 7, 11 [110] Jiazhao Zhang, Kunyu Wang, Rongtao Xu, Gengze Zhou, Yicong Hong, Xiaomeng Fang, Qi Wu, Zhizheng Zhang, and He Wang. Navid: Video-based vlm plans the next step for vision-and-language navigation. Robotics: Science and Systems , 2024. 1 [111] Jianshu Zhang, Dongyu Yao, Renjie Pi, Paul Pu Liang, and Yi R Fung. Vlm2-bench: A closer look at how well vlms implicitly link explicit matching visual cues. arXiv:2502.12084 , 2025. 2, 7 [112] Kevin Zhang, Kuangzhi Ge, Xiaowei Chi, Renrui Zhang, Shaojun Shi, Zhen Dong, Sirui Han, and Shanghang Zhang. Can world models benefit vlms for world dynamics?, 2025. 3 [113] Peiyuan Zhang, Kaichen Zhang, Bo Li, Guangtao Zeng, Jingkang Yang, Yuanhan Zhang, Ziyue Wang, Haoran Tan, Chunyuan Li, and Ziwei Liu. Long context transfer from language to vision. arXiv:2406.16852 , 2024. 7 [114] Yuanhan Zhang, Bo Li, haotian Liu, Yong jae Lee, Liangke Gui, Di Fu, Jiashi Feng, Ziwei Liu, and Chunyuan Li. Llava-next: A strong zero-shot video understanding model, 2024. 7 [115] Yuanhan Zhang, Jinming Wu, Wei Li, Bo Li, Zejun Ma, Ziwei Liu, and Chunyuan Li. Video instruction tuning with synthetic data. 
+
+arXiv:2410.02713 , 2024. 7, 8 [116] Zhuosheng Zhang, Aston Zhang, Mu Li, Hai Zhao, George Karypis, and Alex Smola. Multimodal chain-of-thought reasoning in language models. arXiv preprint arXiv:2302.00923 , 2023. 3 [117] Baichuan Zhou, Ying Hu, Xi Weng, Junlong Jia, Jie Luo, Xien Liu, Ji Wu, and Lei Huang. Tinyllava: A framework of small-scale large multimodal models. arXiv preprint arXiv:2402.14289 , 2024. 8 [118] Shijie Zhou, Alexander Vilesov, Xuehai He, Ziyu Wan, Shuwang Zhang, Aditya Nagachandra, Di Chang, Dongdong Chen, Eric Xin Wang, and Achuta Kadambi. Vlm4d: Towards spatiotemporal awareness in vision language models. In Proceedings of the IEEE/CVF international conference on computer vision , 2025. 1

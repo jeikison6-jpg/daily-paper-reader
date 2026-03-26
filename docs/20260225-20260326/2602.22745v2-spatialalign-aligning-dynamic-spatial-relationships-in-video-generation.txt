@@ -1,0 +1,1509 @@
+Title: SPATIALALIGN: Aligning Dynamic Spatial Relationships in Video Generation
+
+URL Source: https://arxiv.org/pdf/2602.22745v2
+
+Published Time: Mon, 02 Mar 2026 01:27:22 GMT
+
+Number of Pages: 21
+
+Markdown Content:
+# SPATIAL ALIGN : Aligning Dynamic Spatial Relationships in Video Generation 
+
+Fengming Liu 1 Tat-Jen Cham 1 Chuanxia Zheng 1SPATIAL ALIGN : Enhance Dynamic Spatial Relationship in Video Generation 
+
+Firstname1 Lastname1 * 1 Firstname2 Lastname2 * 1 2 Firstname3 Lastname3 2 Firstname4 Lastname4 3
+
+Firstname5 Lastname5 1 Firstname6 Lastname6 3 1 2 Firstname7 Lastname7 2 Firstname8 Lastname8 3
+
+Firstname8 Lastname8 1 2 
+
+a fox is on the →
+
+right of a stump, then the fox walks to the ←left of the stump. 
+
+Wan2.1-1.3B Ours 
+
+The fox stops in the middle ✗
+
+The fox moves to the left ✓
+
+a squirrel is on the →
+
+right of a rock, then the squirrel scampers to the top ↑ of the rock. 
+
+Wan2.1-1.3B Ours 
+
+The squirrel is initially on the top ✗
+
+The squirrel moves to the top ✓
+
+a dog is on the ↑
+
+top of a basket, then the dog jumps to the ←left of the basket. 
+
+Wan2.1-1.3B Ours 
+
+The dog first moves to the right ✗
+
+The dog moves to the left ✓
+
+> 1
+
+Department of XXX, University of YYY, Location, Coun-try 2Company Name, Location, Country 3School of ZZZ, Insti-tute of WWW, Location, Country. Correspondence to: First-name1 Lastname1 <first1.last1@xxx.edu >, Firstname2 Last-name2 <first2.last2@www.uk >.
+
+Preprint. February 24, 2026. 
+
+1
+
+Figure 1. Examples of spatial relationship reasoning. Given a prompt specifying the spatial relationships (top), our fine-tuned model (right) generates videos that correctly reflect the desired change in spatial relationships, while the baseline model (left) fails to do so. 
+
+Abstract 
+
+Most text-to-video (T2V) generators prioritize aesthetic quality, but often ignoring the spatial constraints in the generated videos. In this work, we present S PATIAL ALIGN , a self-improvement framework that enhances T2V models’ capabil-ities to depict Dynamic Spatial Relationships 
+
+(DSR) specified in text prompts. We present a zeroth-order regularized Direct Preference Op-timization (DPO) to fine-tune T2V models to-wards better alignment with DSR. Specifically, we design DSR-S CORE , a geometry-based met-ric that quantitatively measures the alignment be-tween generated videos and the specified DSRs in prompts, which is a step forward from prior works that rely on VLM for evaluation. We also conduct a dataset of text-video pairs with diverse DSRs to facilitate the study. Extensive experiments demon-strate that our fine-tuned model significantly out-performs the baseline in spatial relationships. The code will be released in Link .
+
+> 1
+
+College of Computing and Data Science, Nanyang Technolog-ical University, 50 Nanyang Avenue, Singapore 639798. Corre-spondence to: Tat-Jen Cham <astjcham@ntu.edu.sg >.
+
+Preprint. March 2, 2026. 
+
+1. Introduction 
+
+We live in a spatially and temporally structured world. When things move around and interact with the environment, we as humans often interpret these actions within the context of shared spatial relationships that change over time. A cat, for example, may first be sitting on the top of a table, and later moves to the right of it. Humans have a remarkable ability to understand, reason about, and even plan such spatial relationships. Likewise, developing similar capabilities in AI systems is crucial for a wide range of applications, like robotics, and physical world modeling (Chen et al., 2024). We consider the task of generating plausible videos that ac-curately reflect Dynamic Spatial Relationship (DSR) instruc-tions specified in text prompts. In particular, we introduce a simple yet representative task, where an animal moves with respect to a static object , leading to a change in the relative spatial relationship described in a prompt. For ex-ample, given the leftmost example in Figure 1, our goal is to generate a video where a fox first appears on the right side of the stump, and then moves to the left side. Surprisingly, we find that state-of-the-art T2V models (Wan et al., 2025; Yang et al., 2025b) often fail to capture such simple DSR instructions reliably. Many recent contributions like GLIGEN (Li et al., 2023) and InstanceDiffusion (Wang et al., 2024) have shown promis-1 
+
+> arXiv:2602.22745v2 [cs.CV] 27 Feb 2026 SPATIAL ALIGN : Aligning Dynamic Spatial Relationships in Video Generation
+
+ing results in modeling spatial control in generators, but these methods only work for static images and rely on extra inputs such as bounding boxes (bboxes). Instead, we ask 
+
+whether DSRs can be accurately scripted into generated videos from text prompts alone . In this paper, we take an initial step towards realizing this goal, going beyond static spatial relationships in images. Our first contribution is to develop DSR-S CORE , a met-ric to access the correctness of DSR in generated videos. The latest works like VBench-2.0 (Zheng et al., 2025), 3DSRBench (Ma et al., 2025a) and SpatialBench (Cai et al., 2025a) have proposed to use vision-language models (VLM) (Hurst et al., 2024; Bai et al., 2025) to evaluate such object-object spatial and temporal relationships over time. However, we find that VLM-based evaluation is not reliable in this task (as shown in Figure 4). This is partly due to the current VLMs’ limited spatial reasoning capabilities (Ma et al., 2025b;a; Batra et al., 2025), especially in dynamic settings. We thus propose to leverage geometric principles to design a more reliable and fine-grained evaluation metric for DSR. Spatial relationships (SR), for example “ on the left of ” or “ above ”, have clear geometric interpretations, which can be precisely defined and measured using bbox coordi-nates of the objects. In particular, by extracting the bbox using an off-the-shelf object detector and tracker (Ren et al., 2024), we compute the relative positions of the objects over time, and derive a DSR-S CORE that quantifies the degree of compliance with the DSR instructions. Our second contribution is to introduce a novel training strategy, SPATIAL ALIGN , to enhance the DSR capability of pre-trained T2V models. A na ¨ıve approach would be to perform supervised fine-tuning (SFT) on real videos con-taining DSR scenarios. However, even if we collected such datasets, the SFT approach does not explicitly encourage the model to improve DSR alignment. The model may simply memorize training videos, without truly understanding the underlying SR. Instead, inspired by recent success in rein-forcement learning from human feedback (RLHF) (Ouyang et al., 2022; Shao et al., 2024; Rafailov et al., 2023), we propose to leverage DSR-S CORE to provide feedback sig-nals for self-improvement of the T2V model. In particular, we adopt Direct Preference Optimization (DPO) (Rafailov et al., 2023) to fine-tune the model on the generated videos labeled and paired with the DSR-S CORE . Our motiva-tion for using DPO is two-fold: (1) DSR-S CORE is a non-differentiable numeric signal, which is not suitable for pro-viding the direct gradient for SFT; (2) online RL methods such as PPO (Schulman et al., 2017) or GRPO (Shao et al., 2024) are computationally expensive, due to the need for doing multi-step diffusion inference online. By combining DSR-S CORE with DPO, we effectively provide a scalable and efficient way to enhance the DSR capability of T2V models, even without relying on real videos. Finally, to evaluate our method, we built a new challenging benchmark DSR-D ATASET of controlled DSR scenarios with diverse SR and motion patterns. We also conducted extensive experiments on multiple state-of-the-art T2V models, including CogVideoX (Yang et al., 2025b), LTX-Video (HaCohen et al., 2024), OpenSora (Peng et al., 2025), Wan2.1 (Wan et al., 2025) and HunyuanVideo 1.5 (Team, 2025b). Our results demonstrate that our proposed DSR-SCORE is more reliable than VLM-based metrics in evaluat-ing DSR correctness, and our DPO-based training strategy effectively improves the DSR capability of T2V models, surpassing baseline methods by a large margin. Although our study focuses on DSR, the problem formula-tion and solution are not limited to this specific task alone. In fact, our training strategy and evaluation metric offer greater value for physically-grounded video generation. The geometry-based formulation underlying the DSR-S CORE 
+
+provides a general recipe for converting complex relational requirements into continuous, automatically computable signals, useful for a wide range of applications. In summary, our key contributions are: (1) DSR-S CORE , a geometry-based metric for reliable evaluation of DSR in gen-erated videos, which is more accurate and fine-grained than prior VLM-based approaches; (2) SPATIAL ALIGN , a DPO-based training strategy leveraging DSR-S CORE for aligning T2V models with DSR instructions, which outperforms SFT and other baselines significantly; and (3) DSR-D ATASET ,a new benchmark dataset for controlled evaluation of DSR in T2V models, along with extensive experiments demon-strating the effectiveness of our approach. 
+
+2. Related Work 
+
+Spatial Reasoning in Vision. Early works, like IQA (Gor-don et al., 2018) and VQA (Wu et al., 2017), have explored spatial relationships in the context of visual question an-swering (VQA) tasks. More recently, SpatialVLM (Chen et al., 2024) and SpatialReasoner (Ma et al., 2025b) have fo-cused on enhancing spatial reasoning capabilities in VLMs by incorporating 3D spatial annotations and explicit 3D representations, respectively. To evaluate the spatial rea-soning abilities of VLMs, SpatialBench (Xu et al., 2025) has proposed a hierarchy of ability-oriented metrics. In the realm of T2V generation, the VBench series (Huang et al., 2024; Zheng et al., 2025) has introduced benchmarks for assessing DSR in generated videos. However, these evalua-tions primarily rely on vanilla VLMs, which are not reliable enough (Xu et al., 2025). Instead, we build a geometric-based evaluator by explicitly modeling spatial relationships. 
+
+Spatial Alignment in T2I and T2V Generation. Like our approach, spatially controlled generators aim to improve the spatial alignment between generated content and input prompts. GLIGEN (Li et al., 2023) pioneered this direction 2SPATIAL ALIGN : Aligning Dynamic Spatial Relationships in Video Generation Loss   
+
+> Text-to-Video
+> LoRA
+> Step 1: SSR Score in each frame Step 3: DSR Score in a Video Step 2: SSR Score Sequence
+> Winner Loser
+> Apply Threshold Weighted Sum
+
+(B) Geometric-Grounded DSR Score 
+
+> GroundedSAM Videos with Bounding Boxes
+> ...
+> Text-to-Video
+> Prompt
+
+(A) Spatial Video Data Curation (C) DPO with Zeroth-Order Regularization        
+
+> DPO Training Data
+> ...
+> "a fox is on the left of arock ,
+> then the fox walks to the right of the rock."
+
+Figure 2. Overview of S PATIAL ALIGN . (A) Given a text prompt, the pre-trained T2V model generates several video samples. For each sample, we first use GroundedSAM to obtain the bboxes of the animal and the object in each frame. (B) Then, for each frame, we compute the Static Spatial Relationship (SSR) Score based on the bboxes. From the SSR Score Sequence (all frames), we derive four metric components that are aggregated into the DSR-S CORE , which quantifies how well the video aligns with the dynamic spatial relationship (DSR). (C) During DPO training, we identify winner/loser pairs based on the DSR-S CORE using a threshold. We then train a LoRA to enhance the model’s ability to accurately represent DSR in generated videos, using our proposed zero-order regularized DPO. 
+
+by introducing a gated self-attention layer to ground entities within specified bboxes. LayoutGPT (Feng et al., 2023) employs a training-free method that translates prompts into webpage code-like formats to dictate object layouts. BoxDiff (Xie et al., 2023) leverages text-to-latent cross-attention to enforce layout constraints during the denoising process. VideoTetris (Tian et al., 2024) decomposes prompts into frame-wise sub-prompts and region masks to enhance spatio-temporal consistency. DyST-XL (He et al., 2025) utilizes LLMs to interpret prompts and plan bboxes layouts, but its techniques are limited to specific architectures like MMDiT (Esser et al., 2024). Other works (Qi et al., 2024; Wu et al., 2024; Yang et al., 2024; Wang et al., 2025; Lian et al., 2023) directly modify latent representations to achieve desired layouts. However, they often depends on auxiliary controls, such as bboxes, masks, or layouts, to guide the SR. More importantly, most of these focus on “static” T2I generation, instead of “dynamic” T2V generation. 
+
+Preference Alignment in Generative models. Our method draws inspiration from DPO (Rafailov et al., 2023) and its diffusion adaptation Diffusion-DPO (Wallace et al., 2024), which optimize generators using paired preference data. These approaches bypass the need for online sampling, such as in PPO (Schulman et al., 2017) and GRPO (Shao et al., 2024). making them computationally efficient. More recently, this line of work has been extended to various diffusion-based generative models, including image gener-ation (Na et al., 2025; Croitoru et al., 2025; Karthik et al., 2025), video generation (Liu et al., 2025; Yang et al., 2025a; Cai et al., 2025b), and 3D asset generation (Li et al., 2025). Our work is the first to apply DPO-based preference align-ment to improve DSR reasoning in T2V generation. 
+
+3. Method 
+
+Given a pre-trained T2V generator pref that takes a text prompt p as input and generates a video X0 ∼ pref (X0|p),our goal is to learn a new T2V model pθ that can generate videos with subjects moving in a manner that is more con-sistent with the dynamic spatial relationships described in the prompt p, than the reference model pref .As illustrated in Figure 2, our work consists of three key components: (1) we first collect a curated set of DSR prompts and generate videos using the reference T2V model 
+
+pref ; (2) we then define and calculate DSR-S CORE , a novel metric to determine whether a video X0 is aligned with the DSR described in the prompt p; (3) finally, we fine-tune the T2V model pθ using DPO (Rafailov et al., 2023), based on the preferences induced by DSR-S CORE .
+
+3.1. Problem Definition and Preliminaries Problem Definition and Notations. To simplify the prob-lem, we focus on the DSR between an animal and a static object . For example, the sentence structure of a DSR prompt consists of a ⟨scene ⟩, an ⟨animal ⟩, a ⟨static object ⟩,the ⟨initial static spatial relationship (SSR) ⟩ and also the 
+
+⟨final SSR ⟩, as shown in Figure 2. We present Table 1 to give a comprehensive overview of the initial/final SSRs and the corresponding DSR type . We further introduce a set of abstract notations – {LEFT , RIGHT , TOP } – as simpli-fied representations for the “on the xxx of” DSR keyword phrases used in the following of the paper for brevity. In this paper, we explore DSRs formed by three types of SSRs: LEFT, RIGHT, and TOP, but our method is not specific to these and can be generalized to other types of DSRs. 3SPATIAL ALIGN : Aligning Dynamic Spatial Relationships in Video Generation 
+
+DSR Type Initial SSR p init Final SSR p f
+
+A left-to-top on the left of to the top of 
+
+B top-to-left on the top of to the left of 
+
+C right-to-top on the right of to the top of 
+
+D left-to-right on the left of to the right of 
+
+E top-to-right on the top of to the right of 
+
+F right-to-left on the right of to the left of   
+
+> Table 1. Overview of DSR types and the corresponding keywords.
+
+In each video X0 = {xi}Ni=1 , where N is the number of video frames, we define the DSR as a transition from an initial static spatial relationship (SSR) to a final SSR, as summarized in Table 1. Specifically, for each frame xi,a corresponding SSR is defined as the spatial relationship between the ⟨animal ⟩ and the ⟨static object ⟩, which is com-mon in static spatial T2I generators (Li et al., 2023; Feng et al., 2023). Due to the movement of the animal, the SSR will change over time. Although such a change is described in the prompt, the specific trajectory of the animal is not 
+
+strictly defined, allowing for substantial variability. Therefore, a key challenge in achieving DSR-aligned video generation is that it is difficult to define a precise optimiza-tion objective. In contrast, it is easy to determine whether a video X0 is aligned with the DSR described in the prompt 
+
+p by observing the change in SSR over time. Hence, we reformulate the problem as a preference optimization task ,where the preference is induced by the alignment level with the DSR, which is quantified by our proposed DSR-S CORE .
+
+Diffusion-DPO. As mentioned above, our goal is to opti-mize the T2V model pθ based on the preferences induced by the reward score. The key idea is analogous to the T2I gen-erator alignment in Diffusion-DPO (Wallace et al., 2024). It optimizes the diffusion model using the preference data, which is achieved by minimizing the following objective: 
+
+LDPO = − E(xw     
+
+> 0,xl
+> 0)∼D,t ∼U (0 ,T ),xwt∼q(xwt|xw
+> 0),xlt∼q(xlt|xl
+> 0)
+
+log sigmoid 
+
+
+
+− βT w (λt)) 
+
+
+
+∥ϵw − ϵθ (xwt , t )∥22 − ∥ ϵw − ϵref (xwt , t )∥22
+
+−  ∥ϵl − ϵθ (xlt, t )∥22 − ∥ ϵl − ϵref (xlt, t )∥22
+
+ 
+
+,
+
+(1) where x∗ 
+
+> t
+
+= αtx∗ 
+
+> 0
+
++ σtϵ∗, with ϵ∗ ∼ N (0 , I), and 
+
+∗ ∈ { w, l } denotes the “winner” and “loser” samples, re-spectively. Here, ϵθ and ϵref are the noise prediction net-works of the fine-tuned and reference diffusion models, re-spectively. T is the total number of diffusion steps, and β is a hyperparameter that controls the strength of the preference optimization. w(λt) is an important weight function. Please refer to (Wallace et al., 2024) for more details. 
+
+3.2. Geometric-Grounded DSR-S CORE 
+
+The key to the success of DPO training is to define a reliable reward metric that can plausibly reflect the level of align-ment with the DSR described in the prompt. Existing spatial reasoning works (Ma et al., 2025b;a; Cai et al., 2025a) often rely on VLMs (Hurst et al., 2024; Bai et al., 2025) to evalu-ate the correctness of spatial relationships. However, as we will discuss in Section 3.5, such a VLM-based evaluation can be unreliable and inaccurate. To address this issue, we propose a novel geometrically based metric, termed DSR-SCORE , to quantify the alignment level with the DSR. 
+
+Static Spatial Relationship (SSR) Score in each frame. 
+
+Given a video X0 = {xi}Ni=1 , we first define the SSR-Score 
+
+r(xi, p*) ∈ [−1, 1] to quantify the alignment level of each frame xi with a specific SSR p* expressed by the prompt p,where p* ∈ { LEFT , RIGHT , TOP }.As illustrated in Figure 2 (b) on the left, the SSR-Score is computed based on the spatial relationship between the bboxes ba and bo of the animal and the static object, which are obtained using GroundedSAM (Ren et al., 2024). Then, the SSR-Score is defined as the product of two quantities: 
+
+r(xi, p*) = dc(ba, b o) dcos (ba, b o), (2) where dc(ba, b o) = clip( | bc∗    
+
+> a−bc∗
+> o
+> (b∗
+> a+b∗
+> o)/2
+
+|, 0, 1) is the normal-ized distance between the centers of the two bboxes along the relevant axis ( ∗ is the placeholder that takes “ x” for LEFT/RIGHT and “ y” for TOP, bc∗ 
+
+> *
+
+denotes the center coordinate along the relevant axis, and b∗ 
+
+> *
+
+denotes the width/height of the bbox along that axis); and dcos (ba, b o)
+
+is the cosine distance between the object-to-animal center-based vector v(ba, b o) and the axis. The second term is necessary to ensure that the two entities are indeed posi-tioned in the specified spatial relationship. For example, for the LEFT SSR, the object-to-animal vector should pre-dominantly be aligned in the horizontal direction, with a relatively small vertical component. In a video generated with a prompt defining an initial SSR 
+
+pinit and a final SSR pf, the actual SSR for each successive frame should change. To better understand this transition, we can use the SSR-Score to separately assess the alignment of each frame to both the initial and final prompted SSRs. For example, suppose pinit =LEFT and pf=TOP, then if our SSR-Score reports r(xi, LEFT ) = 0 .7, it means that xi
+
+satisfies LEFT at the level of 0.7, while if r(xi, TOP ) = 0 .2,it means that xi satisfies TOP at the level of 0.2. This approach helps to generalize the understanding of SSR to the whole video. Specifically, the alignment to SSR p*
+
+of video X0 can be described by the SSR-Score sequence 
+
+{r(xi, p*)}Ni=1 , which is a list of per-frame SSR-Scores. 4SPATIAL ALIGN : Aligning Dynamic Spatial Relationships in Video Generation 
+
+Dynamic Spatial Relationship (DSR) Score in one video. 
+
+The DSR-S CORE r(X0, p) is then defined based on the SSR-Scores sequence over all frames in X0. As illustrated in Figure 2 (b) right, an ideal video sample should exhibit a “crossing” pattern between the SSR-Score curves of the initial and final SSRs over time. This is because, as the ani-mal moves according to the DSR, the alignment level with the initial SSR pinit should decrease, while the alignment level with the final SSR pf should increase. To capture this intuition, the DSR-S CORE is defined as follows: 
+
+r(X0, p) = 0 .125( rinit + rf + ginit + gf) + 0 .5, (3) where 0.125 and 0.5 are used for normalization to ensure that the DSR-S CORE lies in [0 , 1] , where a higher score indicates better alignment with the DSR. Here, rinit =
+
+> 1
+> m
+
+Pmk=1 r(xk, pinit ) and rf = 1
+
+> m
+
+PNk=N −m+1 r(xk, pf)
+
+are the average SSR-Scores of the first and last m frames, respectively, which reflect the alignment quality with the initial and final SSRs at the two ends of the video. Ad-ditionally, ginit = r(x1, pinit ) − r(xN , pinit ) and gf =
+
+r(xN , pf) − r(x1, pf) are the absolute differences between the SSR-Scores of the start and end frames, which reflects the extent of transition. 
+
+3.3. Spatial-Aligned Video Data Curation 
+
+As shown in Figure 2 (a), we first generate samples using the reference T2V model pref . Before we reward these videos using our DSR-S CORE , we first curate these samples to ensure that they are VALID . Specifically, we use a grounded object tracking model (Ren et al., 2024) to track the bboxes of the animal and the static object in each generated video. We then filter out the video samples that do not satisfy the following criteria: (1) There is only One animal and One 
+
+describing static object as designated in the prompt; and (2) The two entities are successfully detected in at least 20 frames. Then, we compute the DSR-S CORE r(X0, p) for each valid video X0. We use a threshold τtrain to divide the video samples under each prompt p, where the samples with r(X0, p) ≥ τtrain are labeled as winners, otherwise losers. Note that, the existence of invalid samples is also an important reason why online RL methods such as PPO and GRPO are not applicable, since their reward on an invalid sample can not provide meaningful signal for optimization. 
+
+3.4. DPO with Zeroth-Order Regularization 
+
+We can now fine-tune the T2V model pθ with the curated data using the DPO loss defined in Equation (1). In particu-lar, we treat the positive samples as the “winner” samples 
+
+X w 
+
+> 0
+
+and the negative samples as the “loser” samples X l 
+
+> 0
+
+for each prompt p. We follow the LoRA technique to efficiently fine-tune the T2V model. However, directly applying DPO training to our situation leads to degraded results, which is termed likelihood displacement (Pal et al., 2024; Pang LDPO LDPO + LZO (Ours) LDPO + LSFT 
+
+> step 0400 step 0800
+
+2    
+
+> Figure 3. Ablation on loss . With only the DPO loss LDPO , the model degrades after 800 steps. With SFT loss LSFT , the color saturation is strong. With our zeroth-order regularization LZO , the training is stable.
+
+et al., 2024; Razin et al., 2025). As shown in Figure A7 in Appendix A2, the DPO loss satisfies the margin by degrad-ing the performance on both the winner and the loser, by forcing a much poorer performance on the losing side. We attribute this issue to the nature of the DSR problem. Essentially, DSR are high-level concepts, which are not directly reflected in the pixel values (in comparison, other properties such as aesthetics may be more closely linked to pixel values). Purely using DPO loss may lead the model to learn shortcuts to satisfy the margin in an unintended way. To address this issue, we introduce an additional loss term to further regularize the fine-tuned model. First, we na ¨ıvely combine the supervised fine-tuning (SFT) loss with the DPO loss: 
+
+L = LDPO + λSFT LSFT , (4) where LSFT = ∥ϵw − ϵθ (X wt , t )∥22 + ∥ϵl − ϵθ (X lt , t )∥22, and 
+
+λSFT is a hyperparameter. This simple combination helps to stabilize the training process and improve the DSR align-ment, but leads to sub-optimal results with over-saturation issues (as shown in Figure 3). To further mitigate this issue, we introduce a Zeroth-Order regularization term in addition to the First-Order DPO loss, 
+
+L = LDPO + λZO LZO , (5) where LZO = ∥ϵref (X wt , t ) − ϵθ (X wt , t )∥22 + ∥ϵref (X lt , t ) −
+
+ϵθ (X lt , t )∥22, and λZO is a hyperparameter. This regular-ization considers the reference model as an anchor point, which avoids the “reward hacking” issue where shortcuts 
+
+are learned to reduce preference loss, but actually leads to the generation quality deviating excessively from those produced by the reference model. 
+
+3.5. Reliability of VLM for Assessing DSRs 
+
+To better understand the advantages of our proposed DSR-SCORE , we tested with Qwen3-VL-8B-Instruct (Team, 2025a) as the VLM-based metric (Ma et al., 2025a) for DSR evaluation, in accordance with popular practice. Fol-5SPATIAL ALIGN : Aligning Dynamic Spatial Relationships in Video Generation 
+
+Figure 4. VLM vs DSR-S CORE . Each plot contains bins at each SSR Score value. Each bin shows the portion where the VLM gives the YES answer or NO answer at the particular SSR Score location. The VLM gives a significant portion of YES on the low SSR Score interval, especially for the evaluation on the final SSR. 
+
+lowing VBench-2.0 (Zheng et al., 2025), we designed two questions for the initial SSR and the final SSR, respectively: (1) Is the ⟨animal ⟩ initially ⟨initial SSR ⟩ the ⟨object ⟩? An-swer yes or no. 
+
+(2) Is the ⟨animal ⟩ finally ⟨final SSR ⟩ the ⟨object ⟩? Answer yes or no. 
+
+We collected the YES/NO answers given by the VLM and correlate them with the SSR-Scores of the initial SSR and the final SSR on a large set of videos. Figure 4 shows the correlation plots of VLM answers vs 
+
+DSR-S CORE s. As formulated in Section 3.2, rinit / rf
+
+reflects the level of alignment to the initial/final SSR of the video. However, the plots show that the VLM gives a non-negligible portion of YES answers on videos with low scores. This surprisingly shows that the VLM tends to provide positive responses regardless of the actual spatial relationship in the video. Nonetheless, we comparatively evaluated the use of VLM answers as the reward for training, and the details are discussed in Section 4.3. 
+
+4. Experiments 
+
+4.1. Settings Dataset. We conducted experiments on our curated dataset named DSR-D ATASET , designed for training and evaluating T2V models on DSR prompts. For trianing, we collected 500 DSR prompts using GPT-4o, each accompa-nied by 10 video samples generated with random seeds. For testing, we curated 120 DSR prompts, each evaluated with 5 fixed seeds to ensure reproducibility. Note that, (1) only 
+
+VALID samples are involved in the training; and (2) the exact DSR-S CORE value is not involved for DPO train-ing. More details about the dataset are provided in Ap-pendix A1.2. 
+
+Metrics. For quantitative results, we report the Correct-ness@0.7 metric, ID Consistency, CLIP-IQA (Wang et al., 2023), and Imaging Quality. Correctness@0.7 indicates the percentage of generated videos achieving an DSR-S CORE                                 
+
+> Method Correct@0.7 ↑ID ↑CLIP-IQA ↑IQ ↑
+> CogVideoX1.5-5B 0.053 0.6404 0.8874 0.5894 OpenSora v1.2 0.018 0.7151 0.8712 0.6616 LTX-Video-2B 0.058 0.8028 0.9061 0.6786 HunyuanVideo v1.5-8B 0.490 0.7565 0.9299 0.6662 Wan2.1-1.3B 0.125 0.7046 0.8481 0.7000
+> Wan2.1-1.3B + LoRA (Ours) 0.585 0.6934 0.8243 0.6909
+
+Table 2. Quantitative Results on DSR-D ATASET . “Correct@0.7” denotes Correctness at threshold 0.7. “ID” denotes ID Consistency. “CLIP-IQA” denotes CLIP-based Image Quality Assessment. “IQ” denotes Imaging Quality. The best and second-best results are 
+
+bolded and underlined , respectively. Our method achieves the best correctness while maintaining decent image quality. 
+
+value greater than or equal to 0.7, reflecting the model’s ability to align with DSR prompts. ID Consistency mea-sures the consistency of the animal appearance along the video frames, by extracting DINOv2 features (Oquab et al., 2023) on the bbox area containing the animal. CLIP-IQA and Imaging Quality collectively assess the visual quality of the generated samples. Limited by space, more details about the metrics are provided in Section A1. 
+
+Implementation Details. SPATIAL ALIGN is mainly trained with the Wan2.1-1.3B (Wan et al., 2025) T2V model. However, our method is architecture-agnostic and can be applied to a wide range of I2V models. We fine-tune two prompt-related components using LoRA (Hu et al., 2022): (1) the projection module mapping text embeddings into the model’s latent space, and (2) the key and value pro-jection matrices in every cross-attention layer. The video consists of 81 frames at 480 ×832 resolution. We use AdamW (Loshchilov & Hutter, 2017) to fine-tune the model with LoRA at rank 16. The learing rate is 1e-4. The batch size is 48 and the training is conducted for 2400 steps on 4 RTX4090’s. We set β = 1 in the DPO loss and λZO = 0 .25 .More details are provided in Section A1. 
+
+4.2. Main Results Quantitative Results. We compare S PATIAL ALIGN to the state-of-the-art T2V models in Table 2, including Open-Sora 2.0 (Peng et al., 2025), CogVideoX1.5-5B (Yang et al., 2025b), Wan2.1-1.3B (Wan et al., 2025), LTX-Video-2B (HaCohen et al., 2024), and HunyuanVideo1.5-8B (Team, 2025b). S PATIAL ALIGN significantly outper-forms these baselines in Correctness@0.7, demonstrating its effectiveness in generating videos that are better aligned with DSR prompts. The detailed correctness curve is shown in Figure A6a, showing how S PATIAL ALIGN consistently improves correctness across various thresholds. For the other metrics, S PATIAL ALIGN maintains comparable ID Consistency, visual quality and Image Quality to the base-line Wan2.1-1.3B, demonstrating that the fine-tuning does not compromise these aspects. Note that, HunyuanVideo1.5-6SPATIAL ALIGN : Aligning Dynamic Spatial Relationships in Video Generation In a quiet storage room with a patterned rug and a potted plant by the wall,             
+
+> a cat is on the top of a chair, then the cat sneaks to the left of the chair. In a maple grove with red leaves,
+> a dog is on the right of a bucket,
+> then the dog bounds to the left of the bucket. Near a hedgerow showing sparrows,
+> a dog is on the top of a bench, then the dog trots to the right of the bench.
+
+Figure 5. Qualitative comparisons with the state-of-the-art T2V models on DSR-D ATASET . Our fine-tuned model (right columns) generates videos that correctly reflect the desired change in spatial relationships, while the baseline models (left columns) fail to do so. 
+
+8B achieves the second best ID Consistency and the best CLIP-IQA score, likely attributed to its larger model size. 
+
+Qualitative Results. SPATIAL ALIGN outputs are visually compared with the latest T2V models in Figure 5. SPA -
+
+> TIAL
+
+ALIGN generates videos that accurately reflect the spa-tial dynamics described in the DSR prompts, while main-taining high visual fidelity. In contrast, the baseline and other SOTA models often fail to capture the correct spatial relationships, resulting in less coherent videos. 
+
+4.3. Ablations 
+
+We conducted thorough ablations on various components of our method, as summarized in Table 4. Due to resource constraints, all ablations were performed with 800 training steps and on a subset of 500 training prompts and 30 testing prompts, unless specified otherwise. 
+
+Training loss. The DPO training serves as a cornerstone to the success of S PATIAL ALIGN , as it is hard to directly supervise spatial relationship alignment. To validate this, we compare our default DPO training with two alternatives in Table 3a: (1) supervised fine-tuning (SFT) using the top-2-DSR-S CORE samples, and (2) DPO without a global threshold τtrain , where the winner/loser pairs are randomly sampled based on their relative DSR-S CORE values. The results show that our DPO with a global threshold outper-forms both alternatives, highlighting the effectiveness of our training strategy. Note that SFT-based methods lead to significant degradation in visual quality, as indicated by the low CLIP-IQA “natural” score, even if supervised by high-DSR-S CORE samples. We also compared the alternative SFT regularization loss to our zeroth-order regularization loss LZO . Note that with more training steps (2,400 steps), our DPO with LZO outperforms the SFT-based method in all metrics (Figure A8b). More importantly, the SFT-based supervision or regularization suffers from color saturation issues, resulting in unrealistic video appearances (Figure 3). 
+
+Reward System. Our geometry-based DSR-S CORE is significant in providing a reliable reward system for DSR alignment. We investigated by comparing with two VLM-based reward systems in Table 3b: (1) Qwen3-VL-8B-Instruct (Team, 2025a), and (2) VBench-2.0 (Zheng et al., 2025). When trained with these VLM-based rewards, the spatial correctness is not only significantly lower than us-ing our DSR-S CORE , but is even worse than the baseline without fine-tuning (Table 3c), indicating that VLM-based spatial judgment is unreliable for use as a reward signal. 
+
+DSR-S CORE Component. We further ablate the compo-nents of DSR-S CORE in Table 3b. Specifically, we remove the gap values ginit , g f from DSR-S CORE and only use the endpoint values rinit , r f as reward scores. The results show that removing the gap values leads to degraded performance, indicating that including information on the transition pro-cess is important for overall performance enhancement. 7SPATIAL ALIGN : Aligning Dynamic Spatial Relationships in Video Generation 
+
+(a) Training loss. SFT with top-2 samples brings limited improve-ment. Removing τ degrades the performance significantly.                                 
+
+> Method Correct@0.7 ↑ID ↑CLIP-IQA ↑IQ ↑
+> SFT, top-2 0.187 0.7549 0.6330 0.7113 DPO, no τtrain 0.113 0.7102 0.8667 0.7298
+> LDPO +LSFT ,τtrain = 0 .70.333 0.7317 0.6549 0.7107
+> LDPO +LZO (Ours) 0.307 0.6754 0.8594 0.7141
+
+(b) Reward system. Our DSR-S CORE outperforms Qwen3-VL-8B and VBench-2.0 significantly on spatial correctness.                          
+
+> Method Correct@0.7 ↑ID ↑CLIP-IQA ↑IQ ↑
+> Qwen3-VL-8B-Instruct 0.147 0.7269 0.8746 0.7268 VBench-2.0 0.147 0.7435 0.8738 0.7301
+> Endpoint SSR 0.180 0.7243 0.8750 0.7240 DSR-S CORE (Ours) 0.307 0.6754 0.8594 0.7141
+
+(c) Threshold τtrain for splitting winner/loser data. Large τtrain 
+
+leads to better spatial correctness, but worse video quality.                         
+
+> Method Correct@0.7 ↑ID ↑CLIP-IQA ↑IQ ↑
+> Wan2.1-1.3B (Baseline) 0.180 0.6935 0.8723 0.7293 0.6 0.200 0.7152 0.8635 0.7335
+> 0.7 (Ours) 0.307 0.6754 0.8594 0.7141 0.8 0.367 0.6466 0.8401 0.7153
+
+(d) Different form of prompt. Our method consistently outper-forms the baseline under different prompt forms.                                     
+
+> Augmentation Method Correct@0.7 ↑ID ↑CLIP-IQA ↑IQ ↑
+> ChatGPT baseline 0.107 0.6621 0.8626 0.7176 Ours 0.407 0.6816 0.8461 0.7039 Qwen2.5 baseline 0.180 0.6994 0.8511 0.7033 Ours 0.433 0.7231 0.8402 0.6884
+> from ... to ... baseline 0.107 0.5967 0.8602 0.7125 Ours 0.367 0.6345 0.8423 0.6954
+
+Table 4. SPATIAL ALIGN Ablations. All models are fine-tuned for 800 steps unless specified otherwise. Results are evaluated on a subset of 30 test prompts. The best results are bolded .
+
+Ablations on threshold τtrain . The default threshold of 
+
+τtrain = 0 .7 is used for splitting winner/loser training sam-ples. We ablate the choice of τtrain in Table 3c and Fig-ure A8d. With τtrain = 0 .6, the model is unable to sig-nificantly improve spatial correctness. Conversely, with 
+
+τtrain = 0 .8, the model gives a higher performance on spa-tial correctness, showing that a higher τtrain enhances the signal-to-noise ratio for winner/loser pairs. Evidently our DSR-S CORE is effective in assessing spatial alignment and can serve as a reliable reward signal. However, a higher 
+
+τtrain leads to a lower CLIP-IQA “natural” score, indicating degraded naturalness in visual appearance. This can be ex-plained by the decreasing percentage of available training data, since a higher τtrain filters out more winner training samples. Thus, there is a trade-off in selecting τtrain .
+
+Ablations on different prompt structure. Another im-portant question is whether the effectiveness of our method is sensitive to the prompt structure. To test the prompt gen-eralizability of our method, we test our fine-tuned model on alternative structures of DSR prompts (Table 3d). We tested three ablations: (1) augmenting the prompt with Chat-GPT (Hurst et al., 2024), (2) likewise with Qwen2.5-7B-Instruct (Bai et al., 2025), and (3) modifying the prompt into a “from ... to ...” structure, such as “a fox is on the left of a chair, then the fox sprints to the right of the chair” being rephrased as “a fox sprints from the left of a chair to the right of the chair” . For fair comparison, we used the same model fine-tuned on our structured prompt for testing on all three alternative prompt structures. Across all these alternative prompts, the fine-tuned model performs better than the baseline, suggesting that the fine-tuned model has learned deeper semantic knowledge about spatial relation-ships, beyond simply overfitting to prompt structure. 
+
+5. Conclusion 
+
+We present S PATIAL ALIGN , a self-improvement framework for enhancing T2V generators in modeling dynamic spa-tial relationships (DSR). The key to our success is that we construct a zero-order DPO reward function to fine-tune the T2V models towards better alignment with DSR. Un-like prior works that rely on VLMs for evaluating spatial relationships, we propose a geometry-based DSR-S CORE 
+
+metric to provide more reliable and interpretable measure-ment of DSR alignment. The resulting model demonstrates a significant improvement in generating videos that accu-rately reflect the dynamic spatial relationships specified in the text prompts, where preserve the identity and image quality. The simplicity and efficiency of our approach also make it a potentially promising solution for enhancing T2V models in other high-level physical attributes beyond DSR. 
+
+Limitations and Discussions. Despite the promising re-sults, S PATIAL ALIGN has some limitations. First, the calcu-lation of the geometry-based DSR-S CORE is highly depen-dent on the robustness of GroundedSAM (Ren et al., 2024). However, it does not always perform perfectly, especially for generated videos with complex scenes and motion blur. These defects can lead to incorrect DSR-S CORE values or even invalid samples. A more robust detection and tracking tool should be adopted for a more reliable DSR-S CORE 
+
+system. Second, our work only explores the setting of one animal and one object with DSRs on LEFT, RIGHT, and TOP. More complicated settings, such as a scene graph, should be explored to prove the generalizability of our de-sign of the reward on dynamic spatial relationships. 8SPATIAL ALIGN : Aligning Dynamic Spatial Relationships in Video Generation 
+
+Acknowledgments. This research is supported by the Ministry of Education, Singapore, under its Academic Re-search Fund Tier 1 RG107/24. Chuanxia Zheng is supported by NTU SUG-NAP and the National Research Foundation, Singapore, under its NRF Fellowship Award NRF-NRFF17-2025-0009. 
+
+References 
+
+Bai, S., Chen, K., Liu, X., Wang, J., Ge, W., Song, S., Dang, K., Wang, P., Wang, S., Tang, J., Zhong, H., Zhu, Y., Yang, M., Li, Z., Wan, J., Wang, P., Ding, W., Fu, Z., Xu, Y., Ye, J., Zhang, X., Xie, T., Cheng, Z., Zhang, H., Yang, Z., Xu, H., and Lin, J. Qwen2.5-vl technical report. arXiv preprint arXiv:2502.13923 , 2025. Batra, H., Tu, H., Chen, H., Lin, Y., Xie, C., and Clark, R. Spatialthinker: Reinforcing 3d reasoning in multimodal llms via spatial rewards. arXiv preprint arXiv:2511.07403 , 2025. Cai, W., Ponomarenko, I., Yuan, J., Li, X., Yang, W., Dong, H., and Zhao, B. Spatialbot: Precise spatial understand-ing with vision language models. In 2025 IEEE Interna-tional Conference on Robotics and Automation (ICRA) ,pp. 9490–9498. IEEE, 2025a. Cai, Y., Li, K., Jia, M., Wang, J., Sun, J., Liang, F., Chen, W., Juefei-Xu, F., Wang, C., Thabet, A., et al. Phygdpo: Physics-aware groupwise direct preference optimization for physically consistent text-to-video generation. arXiv preprint arXiv:2512.24551 , 2025b. Chen, B., Xu, Z., Kirmani, S., Ichter, B., Sadigh, D., Guibas, L., and Xia, F. Spatialvlm: Endowing vision-language models with spatial reasoning capabilities. In Pro-ceedings of the IEEE/CVF Conference on Computer Vi-sion and Pattern Recognition (CVPR) , pp. 14455–14465, 2024. Croitoru, F.-A., Hondru, V., Ionescu, R. T., Sebe, N., and Shah, M. Curriculum direct preference optimization for diffusion and consistency models. In Proceedings of the Computer Vision and Pattern Recognition Conference (CVPR) , pp. 2824–2834, 2025. Esser, P., Kulal, S., Blattmann, A., Entezari, R., M ¨uller, J., Saini, H., Levi, Y., Lorenz, D., Sauer, A., Boesel, F., et al. Scaling rectified flow transformers for high-resolution image synthesis. In Forty-first international conference on machine learning (ICML) , 2024. Feng, W., Zhu, W., Fu, T.-j., Jampani, V., Akula, A., He, X., Basu, S., Wang, X. E., and Wang, W. Y. Layout-gpt: Compositional visual planning and generation with large language models. Advances in Neural Information Processing Systems (NeurIPS) , 36:18225–18250, 2023. Gordon, D., Kembhavi, A., Rastegari, M., Redmon, J., Fox, D., and Farhadi, A. Iqa: Visual question answering in interactive environments. In Proceedings of the IEEE conference on computer vision and pattern recognition (CVPR) , pp. 4089–4098, 2018. HaCohen, Y., Chiprut, N., Brazowski, B., Shalem, D., Moshe, D., Richardson, E., Levin, E., Shiran, G., Zabari, N., Gordon, O., et al. Ltx-video: Realtime video latent diffusion. arXiv preprint arXiv:2501.00103 , 2024. He, W., Liu, M., Yu, Y., Wang, Z., and Wu, C. Dyst-xl: Dynamic layout planning and content control for compositional text-to-video generation. arXiv preprint arXiv:2504.15032 , 2025. Hu, E. J., Shen, Y., Wallis, P., Allen-Zhu, Z., Li, Y., Wang, S., Wang, L., Chen, W., et al. Lora: Low-rank adaptation of large language models. ICLR , 1(2):3, 2022. Huang, Z., He, Y., Yu, J., Zhang, F., Si, C., Jiang, Y., Zhang, Y., Wu, T., Jin, Q., Chanpaisit, N., et al. Vbench: Compre-hensive benchmark suite for video generative models. In 
+
+Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pp. 21807–21818, 2024. Hurst, A., Lerer, A., Goucher, A. P., Perelman, A., Ramesh, A., Clark, A., Ostrow, A., Welihinda, A., Hayes, A., Radford, A., et al. Gpt-4o system card. arXiv preprint arXiv:2410.21276 , 2024. Karthik, S., Coskun, H., Akata, Z., Tulyakov, S., Ren, J., and Kag, A. Scalable ranked preference optimization for text-to-image generation. In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) , pp. 18399–18410, 2025. Li, R., Zheng, C., Rupprecht, C., and Vedaldi, A. Dso: Aligning 3d generators with simulation feedback for phys-ical soundness. In Proceedings of the IEEE/CVF Interna-tional Conference on Computer Vision (ICCV) , 2025. Li, Y., Liu, H., Wu, Q., Mu, F., Yang, J., Gao, J., Li, C., and Lee, Y. J. Gligen: Open-set grounded text-to-image generation. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition (CVPR) , pp. 22511–22521, 2023. Lian, L., Shi, B., Yala, A., Darrell, T., and Li, B. Llm-grounded video diffusion models. arXiv preprint arXiv:2309.17444 , 2023. Liu, R., Wu, H., Zheng, Z., Wei, C., He, Y., Pi, R., and Chen, Q. Videodpo: Omni-preference alignment for video dif-fusion generation. In Proceedings of the Computer Vision and Pattern Recognition Conference (CVPR) , pp. 8009– 8019, 2025. 9SPATIAL ALIGN : Aligning Dynamic Spatial Relationships in Video Generation 
+
+Loshchilov, I. and Hutter, F. Decoupled weight decay regu-larization. arXiv preprint arXiv:1711.05101 , 2017. Ma, W., Chen, H., Zhang, G., Chou, Y.-C., Chen, J., de Melo, C., and Yuille, A. 3dsrbench: A comprehensive 3d spatial reasoning benchmark. In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) , pp. 6924–6934, 2025a. Ma, W., Chou, Y.-C., Liu, Q., Wang, X., de Melo, C., Xie, J., and Yuille, A. Spatialreasoner: Towards explicit and generalizable 3d spatial reasoning. arXiv preprint arXiv:2504.20024 , 2025b. Na, S., Kim, Y., and Lee, H. Boost your human image generation model via direct preference optimization. In 
+
+Proceedings of the Computer Vision and Pattern Recog-nition Conference (CVPR) , pp. 23551–23562, 2025. Oquab, M., Darcet, T., Moutakanni, T., Vo, H., Szafraniec, M., Khalidov, V., Fernandez, P., Haziza, D., Massa, F., El-Nouby, A., et al. Dinov2: Learning robust visual features without supervision. arXiv preprint arXiv:2304.07193 ,2023. Ouyang, L., Wu, J., Jiang, X., Almeida, D., Wainwright, C., Mishkin, P., Zhang, C., Agarwal, S., Slama, K., Ray, A., et al. Training language models to follow instructions with human feedback. Advances in neural information processing systems , 35:27730–27744, 2022. Pal, A., Karkhanis, D., Dooley, S., Roberts, M., Naidu, S., and White, C. Smaug: Fixing failure modes of preference optimisation with dpo-positive. CoRR ,abs/2402.13228, 2024. URL https://doi.org/10. 48550/arXiv.2402.13228 .Pang, R. Y., Yuan, W., He, H., Cho, K., Sukhbaatar, S., and Weston, J. Iterative reasoning preference optimiza-tion. Advances in Neural Information Processing Systems (NeurIPS) , 37:116617–116637, 2024. Peng, X., Zheng, Z., Shen, C., Young, T., Guo, X., Wang, B., Xu, H., Liu, H., Jiang, M., Li, W., Wang, Y., Ye, A., Ren, G., Ma, Q., Liang, W., Lian, X., Wu, X., Zhong, Y., Li, Z., Gong, C., Lei, G., Cheng, L., Zhang, L., Li, M., Zhang, R., Hu, S., Huang, S., Wang, X., Zhao, Y., Wang, Y., Wei, Z., and You, Y. Open-sora 2.0: Training a commercial-level video generation model in 200k. arXiv preprint arXiv:2503.09642 , 2025. Qi, Z., Huang, G., Liu, C., and Ye, F. Layered rendering diffusion model for controllable zero-shot image synthe-sis. In European Conference on Computer Vision , pp. 426–443. Springer, 2024. Rafailov, R., Sharma, A., Mitchell, E., Manning, C. D., Ermon, S., and Finn, C. Direct preference optimiza-tion: Your language model is secretly a reward model. 
+
+Advances in Neural Information Processing Systems (NeurIPS) , 36:53728–53741, 2023. Razin, N., Malladi, S., Bhaskar, A., Chen, D., Arora, S., and Hanin, B. Unintentional unalignment: Likelihood displacement in direct preference optimization. In Inter-national Conference on Learning Representations (ICLR) ,2025. Ren, T., Liu, S., Zeng, A., Lin, J., Li, K., Cao, H., Chen, J., Huang, X., Chen, Y., Yan, F., Zeng, Z., Zhang, H., Li, F., Yang, J., Li, H., Jiang, Q., and Zhang, L. Grounded sam: Assembling open-world models for diverse visual tasks, 2024. Schulman, J., Wolski, F., Dhariwal, P., Radford, A., and Klimov, O. Proximal policy optimization algorithms. 
+
+arXiv preprint arXiv:1707.06347 , 2017. Shao, Z., Wang, P., Zhu, Q., Xu, R., Song, J., Bi, X., Zhang, H., Zhang, M., Li, Y., Wu, Y., et al. Deepseekmath: Push-ing the limits of mathematical reasoning in open language models. arXiv preprint arXiv:2402.03300 , 2024. Team, Q. Qwen3 technical report, 2025a. URL https: //arxiv.org/abs/2505.09388 .Team, T. H. F. M. Hunyuanvideo 1.5 technical report, 2025b. URL https://arxiv.org/abs/2511.18870 .Tian, Y., Yang, L., Yang, H., Gao, Y., Deng, Y., Chen, J., Wang, X., Yu, Z., Tao, X., Wan, P., et al. Videotetris: To-wards compositional text-to-video generation. Advances in Neural Information Processing Systems , 37:29489– 29513, 2024. Wallace, B., Dang, M., Rafailov, R., Zhou, L., Lou, A., Purushwalkam, S., Ermon, S., Xiong, C., Joty, S., and Naik, N. Diffusion model alignment using direct pref-erence optimization. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,pp. 8228–8238, 2024. Wan, T., Wang, A., Ai, B., Wen, B., Mao, C., Xie, C.-W., Chen, D., Yu, F., Zhao, H., Yang, J., Zeng, J., Wang, J., Zhang, J., Zhou, J., Wang, J., Chen, J., Zhu, K., Zhao, K., Yan, K., Huang, L., Feng, M., Zhang, N., Li, P., Wu, P., Chu, R., Feng, R., Zhang, S., Sun, S., Fang, T., Wang, T., Gui, T., Weng, T., Shen, T., Lin, W., Wang, W., Wang, W., Zhou, W., Wang, W., Shen, W., Yu, W., Shi, X., Huang, X., Xu, X., Kou, Y., Lv, Y., Li, Y., Liu, Y., Wang, Y., Zhang, Y., Huang, Y., Li, Y., Wu, Y., Liu, Y., Pan, Y., Zheng, Y., Hong, Y., Shi, Y., Feng, Y., Jiang, Z., Han, Z., Wu, Z.-F., and Liu, Z. Wan: Open and 10 SPATIAL ALIGN : Aligning Dynamic Spatial Relationships in Video Generation 
+
+advanced large-scale video generative models. arXiv preprint arXiv:2503.20314 , 2025. Wang, J., Chan, K. C., and Loy, C. C. Exploring clip for assessing the look and feel of images. In Proceedings of the AAAI conference on artificial intelligence , volume 37, pp. 2555–2563, 2023. Wang, S., Lin, W., Huang, H., Wang, H., Cai, S., Han, W., Jin, T., Chen, J., Sun, J., Zhu, J., et al. Towards transformer-based aligned generation with self-coherence guidance. In Proceedings of the Computer Vision and Pattern Recognition Conference , pp. 18455–18464, 2025. Wang, X., Darrell, T., Rambhatla, S. S., Girdhar, R., and Misra, I. Instancediffusion: Instance-level control for image generation. In Proceedings of the IEEE/CVF Con-ference on Computer Vision and Pattern Recognition (CVPR) , pp. 6232–6242, 2024. Wu, Q., Teney, D., Wang, P., Shen, C., Dick, A., and Van Den Hengel, A. Visual question answering: A survey of methods and datasets. Computer Vision and Image Understanding (CVIU) , 163:21–40, 2017. Wu, T.-H., Lian, L., Gonzalez, J. E., Li, B., and Darrell, T. Self-correcting llm-controlled diffusion models. In 
+
+Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pp. 6327–6336, 2024. Xie, J., Li, Y., Huang, Y., Liu, H., Zhang, W., Zheng, Y., and Shou, M. Z. Boxdiff: Text-to-image synthesis with training-free box-constrained diffusion. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pp. 7452–7461, 2023. Xu, P., Wang, S., Zhu, Y., Li, J., and Zhang, Y. Spatialbench: Benchmarking multimodal large language models for spatial cognition. arXiv preprint arXiv:2511.21471 , 2025. Yang, L., Yu, Z., Meng, C., Xu, M., Ermon, S., and Cui, B. Mastering text-to-image diffusion: Recaptioning, plan-ning, and generating with multimodal llms. In Forty-first International Conference on Machine Learning , 2024. Yang, X., Tan, Z., and Li, H. Ipo: Iterative preference optimization for text-to-video generation. arXiv preprint arXiv:2502.02088 , 2025a. Yang, Z., Teng, J., Zheng, W., Ding, M., Huang, S., Xu, J., Yang, Y., Hong, W., Zhang, X., Feng, G., et al. Cogvideox: Text-to-video diffusion models with an ex-pert transformer. In International Conference on Learn-ing Representations (ICLR) , 2025b. Zheng, D., Huang, Z., Liu, H., Zou, K., He, Y., Zhang, F., Zhang, Y., He, J., Zheng, W.-S., Qiao, Y., et al. Vbench-2.0: Advancing video generation benchmark suite for intrinsic faithfulness. arXiv preprint arXiv:2503.21755 ,2025. 11 SPATIAL ALIGN : Aligning Dynamic Spatial Relationships in Video Generation 
+
+# Supplemental Material 
+
+A1. Additional Experimental Settings 
+
+A1.1. Metrics Correctness We use the DSR-S CORE defined in Section 3.2 to measure how well the generated video aligns with the dynamic spatial relationship (DSR) described in the prompt. In particular, we count the percentage of samples in the test set having DSR-S CORE >= τtest as the correctness (de-noted as Correctness@ τtest ) of DSR. Intuitively, it indicates the rate where the T2V model can produce DSR samples up to a certain level of quality, reflecting the model’s general ability to align with DSR prompts. At τtest = 0 , correct-ness is validness, reflecting the percentage of valid samples among the total number of test samples. We particularly focus on Correctness@0.7, effectively having τtest = τtrain .In addition to the single Correctness@0.7 value, we also check the correctness curve , which is the correctness at varied τtest ∈ [0 , 1] .
+
+ID Consistency We aim to measure the consistency of the animal appearance along the video frames. VBench (Huang et al., 2024) measures subject consistency by checking the DINOv2 (Oquab et al., 2023) feature similarity of the frames with respect to the first frame and the previous frame. How-ever, the calculation is based on the whole frame, where the background is involved. In order to have a more precise assessment of the consistency of the animal , we only extract DINOv2 features within the bounding box containing the animal for the similarity measurement. 
+
+CLIP-IQA and Imaging Quality We use CLIP-IQA (Wang et al., 2023) and Imaging Quality (from VBench (Huang et al., 2024)) to collectively assess the visual quality of the generated samples. For CLIP-IQA, we compute at the “nat-ural” mode on the video frames and take average. A higher CLIP-IQA “natural” score means that the video frame is more likely classified as “Natural photo” than “Synthetic photo” . For Imaging Quality, we follow VBench (Huang et al., 2024) to extract the DINOv2 (Oquab et al., 2023) feature for the whole frame, and compute the sharpness and colorfulness. A higher Imaging Quality score means that the video frame is sharper and more colorful. For both CLIP-IQA and Imaging Quality, we take the average score on all frames as the final score for the video. 
+
+A1.2. Examples of our curated DSR-D ATASET 
+
+• On a grassy field with wildflowers, a rabbit is on the ←
+
+left of a stone, then the rabbit jumps to the right → of the stone. • In a quiet forest clearing, a squirrel is on the ←
+
+left of a lamp, then the squirrel scampers to the right → of the lamp. • By a calm riverbank with reeds, a cat is on the ←
+
+left of a hydrant, then the cat paces to the right → of the hydrant. • At the edge of a sunny meadow, a dog is on the ←
+
+left of a bucket, then the dog runs to the right → of the bucket. • On a rocky hillside with moss, a fox is on the ←
+
+left of a chair, then the fox sprints to the right → of the chair. • At a seaside dock with gulls, a turtle is on the ←
+
+left of a bench, then the turtle ambles to the top ↑ of the bench. • Near a market square with stalls, a rabbit is on the ←
+
+left of a crate, then the rabbit hops to the top ↑ of the crate. • On a plaza with stone benches, a squirrel is on the ←
+
+left of a stone, then the squirrel darts to the top ↑ of the stone. • Inside a hallway with framed photos, a cat is on the ←
+
+left of a lamp, then the cat sneaks to the top ↑ of the lamp. • By a village well with buckets, a dog is on the ←
+
+left of a chair, then the dog trots to the top ↑ of the chair. • On a breezy hilltop at dusk, a cat is on the →
+
+right of a hydrant, then the cat prowls to the ←left of the hydrant. • In a maple grove with red leaves, a dog is on the →
+
+right of a bucket, then the dog bounds to the ←left of the bucket. • By a pebble beach with driftwood, a fox is on the →
+
+right of a chair, then the fox dashes to the ←left of the chair. • At a fountain plaza with tiles, a bird is on the →
+
+right of a bench, then the bird flutters to the ←left of the bench. • Inside a sunroom with potted plants, a duck is on the →
+
+right of a crate, then the duck shuffles to the ←left of the crate. • At a gazebo with benches, a squirrel is on the →
+
+right of a stone, then the squirrel scampers to the top ↑ of the stone. • On a slope with stepping stones, a cat is on the →
+
+right of a lamp, then the cat paces to the top ↑ of the lamp. • By a trailhead signpost, a dog is on the →
+
+right of a chair, then the dog runs to the top ↑ of the chair. • In a colonnade with pillars, a fox is on the →
+
+right of a bench, then the fox sprints to the top ↑ of the bench. • At a riverside promenade with lamps, a bird is on the →
+
+right of a crate, then the bird pecks to the top ↑ of the crate. • At a pergola featuring climbing vines, a monkey is on the ↑
+
+top of a log, then the monkey leaps to the ←left of the log. • At a pergola showing climbing vines, a turtle is on the ↑
+
+top of a bench, then the turtle shuffles to the ←left of the bench. • Inside a gallery featuring white walls, a rabbit is on the ↑
+
+top of a stone, then the rabbit jumps to the ←left of the stone. • Inside a gallery showing white walls, a squirrel is on the ↑
+
+top of a desk, then the squirrel scampers to the ←left of the desk. • On a courtyard deck featuring lanterns, a cat is on the ↑
+
+top of a table, then the cat paces to the ←left of the table. 
+
+12 SPATIAL ALIGN : Aligning Dynamic Spatial Relationships in Video Generation 0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 
+
+> Threshold (TH)
+> 0.0
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+> 0.5
+> 0.6
+> 0.7
+> 0.8
+> 0.9
+> 1.0
+> Correctness
+> Correctness Curve
+> baseline
+> baseline (120 prompts)
+> +LoRA
+> +LoRA (120 prompts)
+
+(a) Main result on Wan2.1–1.3B 0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0  
+
+> Threshold (TH)
+> 0.0
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+> 0.5
+> 0.6
+> 0.7
+> 0.8
+> 0.9
+> 1.0
+> Correctness  baseline (test)
+> baseline (train)
+> +LoRA (test)
+> +LoRA (train)
+> Correctness Curve
+> baseline (test)
+> baseline (train)
+> +LoRA (test)
+> +LoRA (train)
+
+(b) Test set vs. Train set (subset) 
+
+Figure A6. Correctness curve . The percentage of samples having DSR-S CORE >= τtest under different τtest . The emphasized focus (grey area) is on τtest = 0 .7. (a) The training significantly enhances the model’s ability in aligning with DSR prompts. (b) We compare the result on the test set to a subset of training set (also 30 prompts), and indicate that the fine-tuned model is not overfit to the training set. • On a courtyard deck showing lanterns, a squirrel is on the ↑
+
+top of a stone, then the squirrel darts to the right → of the stone. • Near a hedgerow featuring sparrows, a cat is on the ↑
+
+top of a desk, then the cat sneaks to the right → of the desk. • Near a hedgerow showing sparrows, a dog is on the ↑
+
+top of a bench, then the dog trots to the right → of the bench. • By a canal featuring brick edges, a fox is on the ↑
+
+top of a chair, then the fox trots to the right → of the chair. • By a canal showing brick edges, a bird is on the ↑
+
+top of a crate, then the bird hops to the right → of the crate. 
+
+A2. Additional Analysis 
+
+Ablations on the training set. DPO is prone to overfitting due its offline nature of training on collected data, compared to PPO/GRPO which are trained on online data. To investi-gate whether our fine-tuned model has overfit to the training set, we selected a subset of 30 prompts from the training set for testing. As shown in Figure A6b, the fine-tuned model demonstrates a similar performance enhancement on this training subset as that on the test set. This indicates that the overfitting is not significantly observed and our method appears to have acquired semantic-level understanding of spatial relationships. 
+
+Analysis of Internal Changes in Text-to-Latent Attention. 
+
+Apart from monitoring the performance enhancement, it is also essential to analyze the internal changes caused by the fine-tuning. Here we investigate the angle of text-to-latent 
+
+correlation. Since the model has a classical cross-attention 
+
+design whereby the text tokens (tokenized from the prompt) attend to the video latents, we consider the patterns in the 
+
+cross-attention activation map (CAMAP) to be reflective of the text-to-latent correlation. Animal Object Initial SSR Final SSR Others Baseline Initial SSR 0.395 0.280 1.000 0.837 0.878 Final SSR 0.435 0.278 0.837 1.000 0.892 + LoRA Initial SSR 0.456 0.277 1.000 0.866 0.894 Final SSR 0.489 0.274 0.866 1.000 0.903 
+
+Table A5. CAMAP Analysis . We compute the average CAMAP correlation between different types of tokens: Animal-related to-kens, Object-related tokens, Initial SSR-related tokens, Final SSR-related tokens, and Other tokens. The fine-tuned model shows a stronger correlation between the ⟨initial SSR ⟩-to-⟨animal ⟩ and 
+
+⟨final SSR ⟩-to-⟨animal ⟩ pairs, indicating better capturing of the spatial relationships specified in the DSR prompts. 
+
+In particular, we focus on the similarity between the CAMAP values (flattened as a vector) of the tokens for initial/final SSR with respect to the ⟨animal ⟩ and the 
+
+⟨static object ⟩ tokens. This approach is taken because SSR is not a tangible concept like ⟨animal ⟩ or ⟨static object ⟩
+
+that is directly reflected in the geometrical patterns within CAMAP, but rather has a modifier effect. The similarity in CAMAP reflects the strength of binding between the SSR tokens and ⟨animal ⟩/⟨static object ⟩.As shown in Table A5, we split the prompt into 5 groups and inspect the similarity of CAMAP values between the initial/final SSR group and the 5 groups. Comparing the baseline and the fine-tuned model, significantly in-creased correlation occurs for ⟨initial SSR ⟩-to-⟨animal ⟩ and 
+
+⟨final SSR ⟩-to-⟨animal ⟩. This provides some evidence that our method takes effect by making the tokens of initial/final SSR more tightly bound to the tokens of ⟨animal ⟩.
+
+Ablations on the loss setting with training curves. This is an extension of Figure 3 and Section 4.3 in the main paper. We show the training curves of DPO loss LDPO and with the regularization losses LZO in Figure A7. It can be observed that with only DPO loss, the training is unstable and the loss fluctuates heavily. With our zeroth-order regularization, the DPO process exhibits more stable training. 
+
+A3. Correctness Curves of Ablation Studies 
+
+We show the correctness curves of the ablation studies dis-cussed in Section 4.3 to convey additional information be-yond the singular values provided in the main paper. Figures A8a and A8b show the ablation under different training losses. Our setting of doing DPO with τtrain shows a clear advantage over SFT/DPO w/o τtrain . As for the choice of regularization loss, our LZO performs better than LSFT as the training progresses to 2400 steps. Figure A8d shows the ablation on different τtrain for splitting the winner/loser training samples. As τtrain goes from 0.6 to 0.8, an overall shift is witnessed across all τtest . This shows that our DSR-S CORE can serve as a stable and progressive 13 SPATIAL ALIGN : Aligning Dynamic Spatial Relationships in Video Generation 
+
+Figure A7. Training curves of LDPO + λZO LZO (black) and LDPO 
+
+(blue). With only LDPO , the training exhibits likelihood displace-ment : the winner-side implicit reward score pos drops catastrophi-cally and the loser-side reward score neg drops even further, raising up the score margin in an incorrect way. In contrast, the existence of LZO keeps score pos at slight growth and score neg at slight drop, giving a healthier growing of score margin .
+
+optimization signal. Figures A8c and A8e show the ablation using different reward systems. With only endpoint values, fine-tuning is unable to reach the same level of performance as using the full DSR-S CORE . Compared to VLM-based evaluation, our DSR-S CORE gives a much better performance, suggesting that our metric is more reliable in terms of providing an optimization signal for fine-tuning. Figure A8f shows the result of testing on different prompt structures, despite only fine-tuning our model with a specific prompt structure. For all three types of alternative prompts, the fine-tuned model performs better than the baseline. This suggests that the fine-tuned model has acquired some se-mantic knowledge about spatial relationships, rather than simply overfitting to the training prompts. 0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 
+
+> Threshold (TH)
+> 0.0
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+> 0.5
+> 0.6
+> 0.7
+> 0.8
+> 0.9
+> 1.0
+> Correctness
+> Correctness Curve
+> baseline
+> DPO, TH=0.7 (ours)
+> SFT top-2
+> DPO, no TH
+
+(a) Training loss. 0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0  
+
+> Threshold (TH)
+> 0.0
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+> 0.5
+> 0.6
+> 0.7
+> 0.8
+> 0.9
+> 1.0
+> Correctness
+> Correctness Curve
+> baseline
+> DPO+ZO (ours)
+> DPO+SFT
+
+(b) Training loss. (2400 steps) 0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 
+
+> Threshold (TH)
+> 0.0
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+> 0.5
+> 0.6
+> 0.7
+> 0.8
+> 0.9
+> 1.0
+> Correctness
+> Correctness Curve
+> baseline
+> DSR Score (ours)
+> Qwen3-VL-8B-Instruct
+> VBench-2.0
+
+(c) Reward System. 0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0  
+
+> Threshold (TH)
+> 0.0
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+> 0.5
+> 0.6
+> 0.7
+> 0.8
+> 0.9
+> 1.0
+> Correctness
+> Correctness Curve
+> baseline
+> TH=0.7 (ours)
+> TH=0.6
+> TH=0.8
+
+(d) Threshold τtrain .0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 
+
+> Threshold (TH)
+> 0.0
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+> 0.5
+> 0.6
+> 0.7
+> 0.8
+> 0.9
+> 1.0
+> Correctness
+> Correctness Curve
+> baseline
+> Full (ours)
+> only end SSR score
+
+(e) Score component. 0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0  
+
+> Threshold (TH)
+> 0.0
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+> 0.5
+> 0.6
+> 0.7
+> 0.8
+> 0.9
+> 1.0
+> Correctness
+> Correctness Curve
+> from...to (baseline)
+> from...to (+LoRA)
+> chatgpt (baseline)
+> chatgpt (+LoRA)
+> qwen25 (baseline)
+> qwen25 (+LoRA)
+
+(f) Alternative prompt. 
+
+Figure A8. Ablation Studies . This is an extended version of Ta-ble 4 in the main paper, showing the correctness curves of various ablations. 
+
+A4. Theoretical Analysis of the Regularization Term LZO 
+
+The original DPO loss is 
+
+LDPO (θ) = −E(p,x w ,x l,t )
+
+h
+
+log σ
+
+
+
+β 
+
+(∥ϵw − ϵθ (xwt , t )∥22 − ∥ ϵw − ϵref (xwt , t )∥22)
+
+− (∥ϵl − ϵθ (xlt, t )∥22 − ∥ ϵl − ϵref (xlt, t )∥22)i 
+
+(1) 14 SPATIAL ALIGN : Aligning Dynamic Spatial Relationships in Video Generation 
+
+Denote 
+
+Awθ = ∥ϵw − ϵθ (xwt , t )∥22 − ∥ ϵw − ϵref (xwt , t )∥22
+
+(2) 
+
+Alθ = ∥ϵl − ϵθ (xlt, t )∥22 − ∥ ϵl − ϵref (xlt, t )∥22 (3) 
+
+z = β Awθ − Alθ
+
+ (4) 
+
+LDPO (θ) = −E
+
+h
+
+log σ(z)
+
+i
+
+(5) then the gradient of the DPO loss is 
+
+∇θ LDPO (θ) = −E
+
+h
+
+(1 − σ(z)) ∇θ z
+
+i
+
+(6) where the gradient ∇θ z is 
+
+∇θ z = β ∇θ Awθ − ∇ θ Alθ
+
+ (7) 
+
+∇θ Awθ = 2 ( ∇θ ϵθ (xwt , t )) ⊤ ϵθ (xwt , t ) − ϵw (8) 
+
+∇θ Alθ = 2 ( ∇θ ϵθ (xlt, t )) ⊤ ϵθ (xlt, t ) − ϵl (9) Denote 
+
+Jw = ∇θ ϵθ (xwt , t ), Jl = ∇θ ϵθ (xlt, t ) (10) 
+
+δw = δθ (xwt , t ) = ϵθ (xwt , t ) − ϵref (xwt , t ) (11) 
+
+δl = δθ (xlt, t ) = ϵθ (xlt, t ) − ϵref (xlt, t ) (12) At the neighborhood of ϵref 
+
+E[ϵ − ϵref (xt, t ) ] = 0 (13) then 
+
+δw ≈ ϵθ (xwt , t ) − ϵw, δl ≈ ϵθ (xlt, t ) − ϵl (14) and the gradient can be written as 
+
+∇θ z = β ∇θ Awθ − ∇ θ Alθ
+
+ ≈ 2β
+
+
+
+(Jw)⊤δw − (Jl)⊤δl
+
+(15) The regularization loss is 
+
+LZO (θ) = E(p,x w ,x l,t )
+
+h
+
+∥ϵθ (xwt , t ) − ϵref (xwt , t )∥22
+
++ ∥ϵθ (xlt, t ) − ϵref (xlt, t )∥22
+
+i
+
+(16) its gradient is 
+
+∇θ LZO = 2 E
+
+h
+
+(∇θ ϵθ (xwt , t )) ⊤ ϵθ (xwt , t ) − ϵref (xwt , t )+(∇θ ϵθ (xlt, t )) ⊤ ϵθ (xlt, t ) − ϵref (xlt, t )i
+
+(17) With Jw, J l, δ w, δ l, we have 
+
+∇θ LZO = 2 E
+
+h
+
+(Jw)⊤δw + ( Jl)⊤δli
+
+(18) Denote 
+
+δS = 12
+
+ δw + δl, δD = 12
+
+ δw − δl,JS = 12
+
+ Jw + Jl, JD = 12
+
+ Jw − Jl (19) Then the two gradient can be written as 
+
+∇θ z ≈ 2β
+
+
+
+(Jw)⊤δw − (Jl)⊤δl
+
+= 4 β
+
+
+
+(JS )⊤δD + ( JD )⊤δS 
+
+(20) 
+
+∇θ LZO = 2 E
+
+h
+
+(Jw)⊤δw + ( Jl)⊤δli
+
+= 4 E
+
+h
+
+(JS )⊤δS + ( JD )⊤δD i
+
+(21) Given the same prompt and the same denoising timestep 
+
+t, the two samples xw and xl are located within a neighborhood, making Jw close to Jl in terms of norm. This is even consolidated under the low-rank adaption (LoRA) setting of optimization. Therefore, the common component JS = 12
+
+ Jw + Jl should be dominant over 
+
+JD = 12
+
+ Jw − Jl in terms of norm. In the gradient of DPO ∇θ z, Js amplifies the difference part δD , leading to a shift towards xw. However, the common part δS is not amplified at the same level, since 
+
+JD is rather small. This undermines the foundation level of alignment to the prompt. In fact, when we want to shift the model distribution towards the preferred samples, an implicit assumption is that the basic level of alignment to both preferred and unwanted samples should be maintained. In the gradient of LZO , the common part δS is reserved by the dominant component JS , counteracting the risk of “losing the common ground” induced in ∇θ z, which helps to maintain the stability at a coefficient λZO .If LZO only constrains the win part ϵwθ , then the gradient will be 
+
+(JS )⊤δS + ( JS )⊤δD + ( JD )⊤δS + ( JD )⊤δD (22) which contains some part of ∇θ z and the alleviation is not as effective. 
+
+A5. More Qualitative Results 
+
+(see next page) 15 SPATIAL ALIGN : Aligning Dynamic Spatial Relationships in Video Generation On a grassy field with wildflowers, a rabbit is on the left of a stone, then the rabbit jumps to the right of the stone. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.438
+> on the left of
+> to the right of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.995
+> on the left of
+> to the right of
+
+In a sunlit loft space with pillows on the floor and a coat rack by the door, a hamster is on the left of a basket, then the hamster scurries to the right of the basket. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.495
+> on the left of
+> to the right of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.911
+> on the left of
+> to the right of
+
+In a spacious living room with a low table and sunlight spilling across the floor, a rabbit is on the left of a crate, then the rabbit jumps to the right of the crate. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.520
+> on the left of
+> to the right of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.968
+> on the left of
+> to the right of
+
+In a open shady grove with distant trees in the background and hazy light filtering through the trees, a dog is on the left of a stone, then the dog trots to the right of the stone. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.242
+> on the left of
+> to the right of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.862
+> on the left of
+> to the right of
+
+In a sunlit dusty path with soft soil underfoot and the sound of water somewhere nearby, a cat is on the left of a stump, then the cat walks to the right of the stump. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.517
+> on the left of
+> to the right of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.795
+> on the left of
+> to the right of
+
+At the edge of a sunny meadow, a dog is on the left of a bucket, then the dog runs to the right of the bucket. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.496
+> on the left of
+> to the right of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.995
+> on the left of
+> to the right of
+
+Figure 1. Qualitative results set1. 
+
+2
+
+Figure A9. Qualitative results set1. 
+
+16 SPATIAL ALIGN : Aligning Dynamic Spatial Relationships in Video Generation Inside a sunroom with potted plants, a duck is on the right of a crate, then the duck shuffles to the left of the crate. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.297
+> on the right of
+> to the left of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.902
+> on the right of
+> to the left of
+
+In a spacious library corner with a large window and sunlight spilling across the floor, a cat is on the right of a chair, then the cat walks to the left of the chair. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.553
+> on the right of
+> to the left of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.983
+> on the right of
+> to the left of
+
+In a softly lit loft space with a large window and sunlight spilling across the floor, a bird is on the right of a pot, then the bird hops to the left of the pot. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.408
+> on the right of
+> to the left of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.875
+> on the right of
+> to the left of
+
+In a softly lit living room with wooden floors and warm light from a nearby lamp, a dog is on the right of a basket, then the dog runs to the left of the basket. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.559
+> on the right of
+> to the left of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.982
+> on the right of
+> to the left of
+
+In a quiet campsite with shadows from nearby trees and quiet air with almost no wind, a duck is on the right of a bench, then the duck waddles to the left of the bench. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.671
+> on the right of
+> to the left of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.991
+> on the right of
+> to the left of
+
+In a open campsite with tall grass swaying gently and quiet air with almost no wind, a fox is on the right of a bench, then the fox walks to the left of the bench. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.625
+> on the right of
+> to the left of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.842
+> on the right of
+> to the left of
+
+Figure 2. Qualitative results set2. 
+
+3
+
+Figure A10. Qualitative results set2. 
+
+17 SPATIAL ALIGN : Aligning Dynamic Spatial Relationships in Video Generation In a spacious loft space with framed pictures and heavy curtains drawn halfway, a hamster is on the left of a basket, then the hamster climbs to the top of the basket. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.624
+> on the left of
+> to the top of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.781
+> on the left of
+> to the top of
+
+In a narrow attic with a floor lamp and shadows from the window blinds, a hamster is on the left of a box, then the hamster climbs to the top of the box. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.545
+> on the left of
+> to the top of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.798
+> on the left of
+> to the top of
+
+In a sunlit office with a large window and a mug left on a side table, a squirrel is on the left of a cushion, then the squirrel darts to the top of the cushion. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.592
+> on the left of
+> to the top of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.807
+> on the left of
+> to the top of
+
+In a warm office with soft cushions and a stack of magazines on a table, a cat is on the left of a chair, then the cat jumps to the top of the chair. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.654
+> on the left of
+> to the top of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.773
+> on the left of
+> to the top of
+
+In a wood-paneled storage room with scattered books and heavy curtains drawn halfway, a hamster is on the left of a crate, then the hamster climbs to the top of the crate. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.698
+> on the left of
+> to the top of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.846
+> on the left of
+> to the top of
+
+In a quiet shady grove with distant trees in the background and long shadows as the sun sits low, a dog is on the left of a stump, then the dog jumps to the top of the stump. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.622
+> on the left of
+> to the top of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.795
+> on the left of
+> to the top of
+
+Figure 3. Qualitative results set3. 
+
+4
+
+Figure A11. Qualitative results set3. 
+
+18 SPATIAL ALIGN : Aligning Dynamic Spatial Relationships in Video Generation At a pergola showing climbing vines, a turtle is on the top of a bench, then the turtle shuffles to the left of the bench. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.632
+> on the top of
+> to the left of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.796
+> on the top of
+> to the left of
+
+In a quiet reading nook with a floor lamp and a stack of magazines on a table, a cat is on the top of a chair, then the cat jumps to the left of the chair. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.585
+> on the top of
+> to the left of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.837
+> on the top of
+> to the left of
+
+In a misty forest clearing with distant trees in the background and quiet air with almost no wind, a fox is on the top of a stump, then the fox jumps to the left of the stump. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.654
+> on the top of
+> to the left of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.802
+> on the top of
+> to the left of
+
+In a sloping shady grove with tall grass swaying gently and birds faintly calling in the distance, a hamster is on the top of a bench, then the hamster scurries to the left of the bench. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.592
+> on the top of
+> to the left of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.792
+> on the top of
+> to the left of
+
+In a sloping park lawn with distant trees in the background and distant hills on the horizon, a fox is on the top of a stump, then the fox jumps to the left of the stump. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.510
+> on the top of
+> to the left of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.834
+> on the top of
+> to the left of
+
+In a sunlit rocky shore with fallen leaves on the ground and the sound of water somewhere nearby, a squirrel is on the top of a stump, then the squirrel darts to the left of the stump. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.613
+> on the top of
+> to the left of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.840
+> on the top of
+> to the left of
+
+Figure 4. Qualitative results set4. 
+
+5
+
+Figure A12. Qualitative results set4. 
+
+19 SPATIAL ALIGN : Aligning Dynamic Spatial Relationships in Video Generation In a wood-paneled studio with a floor lamp and heavy curtains drawn halfway, a dog is on the right of a crate, then the dog jumps to the top of the crate. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.653
+> on the right of
+> to the top of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.869
+> on the right of
+> to the top of
+
+In a softly lit storage room with a large window and a single lamp in the corner, a fox is on the right of a sofa, then the fox trots to the top of the sofa. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.641
+> on the right of
+> to the top of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.815
+> on the right of
+> to the top of
+
+In a sloping garden path with a few bushes near the edge and long shadows as the sun sits low, a rabbit is on the right of a bench, then the rabbit jumps to the top of the bench. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.619
+> on the right of
+> to the top of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.818
+> on the right of
+> to the top of
+
+In a sunlit hillside slope with patches of bare earth and long shadows as the sun sits low, a rabbit is on the right of a stump, then the rabbit jumps to the top of the stump. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.608
+> on the right of
+> to the top of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.853
+> on the right of
+> to the top of
+
+In a misty woodland trail with a few bushes near the edge and long shadows as the sun sits low, a hamster is on the right of a stump, then the hamster hurries to the top of the stump. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.407
+> on the right of
+> to the top of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.809
+> on the right of
+> to the top of
+
+In a peaceful woodland trail with small rocks underfoot and a cool breeze moving the grass, a cat is on the right of a stone, then the cat prowls to the top of the stone. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.608
+> on the right of
+> to the top of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.834
+> on the right of
+> to the top of
+
+Figure 5. Qualitative results set5. 
+
+6
+
+Figure A13. Qualitative results set5. 
+
+20 SPATIAL ALIGN : Aligning Dynamic Spatial Relationships in Video Generation In a softly lit storage room with a floor lamp and warm light from a nearby lamp, a hamster is on the top of a chair, then the hamster crawls to the right of the chair. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.609
+> on the top of
+> to the right of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.840
+> on the top of
+> to the right of
+
+In a warm living room with a patterned rug and warm light from a nearby lamp, a cat is on the top of a crate, then the cat jumps to the right of the crate. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.575
+> on the top of
+> to the right of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.859
+> on the top of
+> to the right of
+
+In a sunlit attic with soft cushions and warm light from a nearby lamp, a squirrel is on the top of a basket, then the squirrel jumps to the right of the basket. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.419
+> on the top of
+> to the right of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.799
+> on the top of
+> to the right of
+
+In a open campsite with tall grass swaying gently and clouds drifting slowly by, a hamster is on the top of a rock, then the hamster crawls to the right of the rock. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.592
+> on the top of
+> to the right of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.848
+> on the top of
+> to the right of
+
+In a quiet meadow with distant trees in the background and hazy light filtering through the trees, a squirrel is on the top of a rock, then the squirrel leaps to the right of the rock. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.647
+> on the top of
+> to the right of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.821
+> on the top of
+> to the right of
+
+In a windy grassy field with distant trees in the background and quiet air with almost no wind, a fox is on the top of a rock, then the fox dashes to the right of the rock. 0 40 80   
+
+> 1
+> 0
+> 1
+> Wan2.1-1.3B
+> DSR Score: 0.617
+> on the top of
+> to the right of 040 80
+> 1
+> 0
+> 1
+> Ours
+> DSR Score: 0.792
+> on the top of
+> to the right of
+
+Figure 6. Qualitative results set6. 
+
+7
+
+Figure A14. Qualitative results set6. 
+
+21
