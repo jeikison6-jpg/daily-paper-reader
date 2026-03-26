@@ -1,0 +1,725 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-03-26T19:44:07.983978+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 18,
+    "deep_cap": 6,
+    "deep_selected": 6,
+    "quick_candidates": 58,
+    "quick_skim_target": 11,
+    "quick_selected": 11
+  },
+  "deep_dive": [
+    {
+      "id": "2603.17398v1",
+      "title": "Motion-Adaptive Temporal Attention for Lightweight Video Generation with Stable Diffusion",
+      "abstract": "We present a motion-adaptive temporal attention mechanism for parameter-efficient video generation built upon frozen Stable Diffusion models. Rather than treating all video content uniformly, our method dynamically adjusts temporal attention receptive fields based on estimated motion content: high-motion sequences attend locally across frames to preserve rapidly changing details, while low-motion sequences attend globally to enforce scene consistency. We inject lightweight temporal attention modules into all UNet transformer blocks via a cascaded strategy -- global attention in down-sampling and middle blocks for semantic stabilization, motion-adaptive attention in up-sampling blocks for fine-grained refinement. Combined with temporally correlated noise initialization and motion-aware gating, the system adds only 25.8M trainable parameters (2.9\\% of the base UNet) while achieving competitive results on WebVid validation when trained on 100K videos. We demonstrate that the standard denoising objective alone provides sufficient implicit temporal regularization, outperforming approaches that add explicit temporal consistency losses. Our ablation studies reveal a clear trade-off between noise correlation and motion amplitude, providing a practical inference-time control for diverse generation behaviors.",
+      "authors": [
+        "Rui Hong",
+        "Shuxue Quan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-18T06:20:57+00:00",
+      "link": "https://arxiv.org/pdf/2603.17398v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Motion-adaptive attention for temporal coherence",
+      "llm_evidence_cn": "用于时间相干性的运动自适应注意力",
+      "llm_evidence": "用于时间相干性的运动自适应注意力",
+      "canonical_evidence": "用于时间相干性的运动自适应注意力",
+      "llm_tldr_en": "Uses motion-adaptive temporal attention to improve consistency in video generation with Stable Diffusion.",
+      "llm_tldr_cn": "利用运动自适应时间注意力提升Stable Diffusion视频生成的场景一致性。",
+      "llm_tldr": "利用运动自适应时间注意力提升Stable Diffusion视频生成的场景一致性。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Improving video temporal coherence with reinforcement learning policies",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.18811v1",
+      "title": "V-Dreamer: Automating Robotic Simulation and Trajectory Synthesis via Video Generation Priors",
+      "abstract": "Training generalist robots demands large-scale, diverse manipulation data, yet real-world collection is prohibitively expensive, and existing simulators are often constrained by fixed asset libraries and manual heuristics. To bridge this gap, we present V-Dreamer, a fully automated framework that generates open-vocabulary, simulation-ready manipulation environments and executable expert trajectories directly from natural language instructions. V-Dreamer employs a novel generative pipeline that constructs physically grounded 3D scenes using large language models and 3D generative models, validated by geometric constraints to ensure stable, collision-free layouts. Crucially, for behavior synthesis, we leverage video generation models as rich motion priors. These visual predictions are then mapped into executable robot trajectories via a robust Sim-to-Gen visual-kinematic alignment module utilizing CoTracker3 and VGGT. This pipeline supports high visual diversity and physical fidelity without manual intervention. To evaluate the generated data, we train imitation learning policies on synthesized trajectories encompassing diverse object and environment variations. Extensive evaluations on tabletop manipulation tasks using the Piper robotic arm demonstrate that our policies robustly generalize to unseen objects in simulation and achieve effective sim-to-real transfer, successfully manipulating novel real-world objects.",
+      "authors": [
+        "Songjia He",
+        "Zixuan Chen",
+        "Hongyu Ding",
+        "Dian Shao",
+        "Jieqi Shi",
+        "Chenxu Li",
+        "Jing Huo",
+        "Yang Gao"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-03-19T12:00:04+00:00",
+      "link": "https://arxiv.org/pdf/2603.18811v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Trajectory synthesis via video generation priors",
+      "llm_evidence_cn": "通过视频生成先验进行轨迹合成",
+      "llm_evidence": "通过视频生成先验进行轨迹合成",
+      "canonical_evidence": "通过视频生成先验进行轨迹合成",
+      "llm_tldr_en": "Uses video generation priors to automate robotic simulation and expert trajectory synthesis from language.",
+      "llm_tldr_cn": "利用视频生成先验，根据自然语言指令自动生成机器人仿真环境和专家轨迹。",
+      "llm_tldr": "利用视频生成先验，根据自然语言指令自动生成机器人仿真环境和专家轨迹。",
+      "llm_tags": [
+        "query:rl-dm:composite"
+      ],
+      "matched_query_tag": "query:rl-dm:composite",
+      "matched_query_text": "Papers central to 强化学习与扩散模型相关的学术论文检索, especially work that connects or combines: reinforcement learning algorithms and frameworks; generative diffusion models and denoising processes; classifier-guided and classifier-free diffusion for RL; generative models for decision making and planning; trajectory generation using diffusion models; advancements in reinforcement learning using diffusion models; diffusion models for offline reinforcement learning and policy optimization; integrating generative diffusion processes into decision making agents.",
+      "matched_requirement_id": "req-composite-rl-dm",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.19709v2",
+      "title": "Morphology-Consistent Humanoid Interaction through Robot-Centric Video Synthesis",
+      "abstract": "Equipping humanoid robots with versatile interaction skills typically requires either extensive policy training or explicit human-to-robot motion retargeting. However, learning-based policies face prohibitive data collection costs. Meanwhile, retargeting relies on human-centric pose estimation (e.g., SMPL), introducing a morphology gap. Skeletal scale mismatches result in severe spatial misalignments when mapped to robots, compromising interaction success. In this work, we propose Dream2Act, a robot-centric framework enabling zero-shot interaction through generative video synthesis. Given a third-person image of the robot and target object, our framework leverages video generation models to envision the robot completing the task with morphology-consistent motion. We employ a high-fidelity pose extraction system to recover physically feasible, robot-native joint trajectories from these synthesized dreams, subsequently executed via a general-purpose whole-body controller. Operating strictly within the robot-native coordinate space, Dream2Act avoids retargeting errors and eliminates task-specific policy training. We evaluate Dream2Act on the Unitree G1 across four whole-body mobile interaction tasks: ball kicking, sofa sitting, bag punching, and box hugging. Dream2Act achieves a 37.5% overall success rate, compared to 0% for conventional retargeting. While retargeting fails to establish correct physical contacts due to the morphology gap (with errors compounded during locomotion), Dream2Act maintains robot-consistent spatial alignment, enabling reliable contact formation and substantially higher task completion.",
+      "authors": [
+        "Weisheng Xu",
+        "Jian Li",
+        "Yi Gu",
+        "Bin Yang",
+        "Haodong Chen",
+        "Shuyi Lin",
+        "Mingqian Zhou",
+        "Jing Tan",
+        "Qiwei Wu",
+        "Xiangrui Jiang",
+        "Taowen Wang",
+        "Jiawen Wen",
+        "Qiwei Liang",
+        "Jiaxi Zhang",
+        "Renjing Xu"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-03-20T07:27:09+00:00",
+      "link": "https://arxiv.org/pdf/2603.19709v2",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "robot-centric video synthesis for zero-shot interaction",
+      "llm_evidence_cn": "用于零样本交互的机器人中心视频合成",
+      "llm_evidence": "用于零样本交互的机器人中心视频合成",
+      "canonical_evidence": "用于零样本交互的机器人中心视频合成",
+      "llm_tldr_en": "Leverages video generation models to envision robot tasks, bridging the morphology gap in humanoid control.",
+      "llm_tldr_cn": "利用视频生成模型构思机器人任务，弥补类人机器人控制中的形态差异。",
+      "llm_tldr": "利用视频生成模型构思机器人任务，弥补类人机器人控制中的形态差异。",
+      "llm_tags": [
+        "query:rl-vg:composite"
+      ],
+      "matched_query_tag": "query:rl-vg:composite",
+      "matched_query_text": "Papers central to 查找强化学习与视频生成相关的学术论文, especially work that connects or combines: Reinforcement learning techniques for video generation; Deep learning models for video generation and synthesis; Reward model design for video quality and consistency; Policy gradient methods applied to video synthesis; Text-to-video generation using reinforcement learning; Generative models for high-fidelity video synthesis; State of the art reinforcement learning methods for video generation; Optimizing video diffusion models using reward based learning; Improving video temporal coherence with reinforcement learning policies; Applications of RLHF in text to video synthesis models.",
+      "matched_requirement_id": "req-composite-rl-vg",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.20607v1",
+      "title": "Towards Practical World Model-based Reinforcement Learning for Vision-Language-Action Models",
+      "abstract": "Vision-Language-Action (VLA) models show strong generalization for robotic control, but finetuning them with reinforcement learning (RL) is constrained by the high cost and safety risks of real-world interaction. Training VLA models in interactive world models avoids these issues but introduces several challenges, including pixel-level world modeling, multi-view consistency, and compounding errors under sparse rewards. Building on recent advances across large multimodal models and model-based RL, we propose VLA-MBPO, a practical framework to tackle these problems in VLA finetuning. Our approach has three key design choices: (i) adapting unified multimodal models (UMMs) for data-efficient world modeling; (ii) an interleaved view decoding mechanism to enforce multi-view consistency; and (iii) chunk-level branched rollout to mitigate error compounding. Theoretical analysis and experiments across simulation and real-world tasks demonstrate that VLA-MBPO significantly improves policy performance and sample efficiency, underscoring its robustness and scalability for real-world robotic deployment.",
+      "authors": [
+        "Zhilong Zhang",
+        "Haoxiang Ren",
+        "Yihao Sun",
+        "Yifei Sheng",
+        "Haonan Wang",
+        "Haoxin Lin",
+        "Zhichao Wu",
+        "Pierre-Luc Bacon",
+        "Yang Yu"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.LG"
+      ],
+      "published": "2026-03-21T02:44:39+00:00",
+      "link": "https://arxiv.org/pdf/2603.20607v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "world model-based reinforcement learning for vision-language-action models",
+      "llm_evidence_cn": "基于世界模型的视觉-语言-动作模型强化学习",
+      "llm_evidence": "基于世界模型的视觉-语言-动作模型强化学习",
+      "canonical_evidence": "基于世界模型的视觉-语言-动作模型强化学习",
+      "llm_tldr_en": "Presents VLA-MBPO for practical world model-based reinforcement learning in vision-language-action models.",
+      "llm_tldr_cn": "提出VLA-MBPO，用于视觉-语言-动作模型中基于世界模型的强化学习。",
+      "llm_tldr": "提出VLA-MBPO，用于视觉-语言-动作模型中基于世界模型的强化学习。",
+      "llm_tags": [
+        "query:rl-dm:composite"
+      ],
+      "matched_query_tag": "query:rl-dm:composite",
+      "matched_query_text": "Papers central to 强化学习与扩散模型相关的学术论文检索, especially work that connects or combines: reinforcement learning algorithms and frameworks; generative diffusion models and denoising processes; classifier-guided and classifier-free diffusion for RL; generative models for decision making and planning; trajectory generation using diffusion models; advancements in reinforcement learning using diffusion models; diffusion models for offline reinforcement learning and policy optimization; integrating generative diffusion processes into decision making agents.",
+      "matched_requirement_id": "req-composite-rl-dm",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.24458v1",
+      "title": "OmniWeaving: Towards Unified Video Generation with Free-form Composition and Reasoning",
+      "abstract": "While proprietary systems such as Seedance-2.0 have achieved remarkable success in omni-capable video generation, open-source alternatives significantly lag behind. Most academic models remain heavily fragmented, and the few existing efforts toward unified video generation still struggle to seamlessly integrate diverse tasks within a single framework. To bridge this gap, we propose OmniWeaving, an omni-level video generation model featuring powerful multimodal composition and reasoning-informed capabilities. By leveraging a massive-scale pretraining dataset that encompasses diverse compositional and reasoning-augmented scenarios, OmniWeaving learns to temporally bind interleaved text, multi-image, and video inputs while acting as an intelligent agent to infer complex user intentions for sophisticated video creation. Furthermore, we introduce IntelligentVBench, the first comprehensive benchmark designed to rigorously assess next-level intelligent unified video generation. Extensive experiments demonstrate that OmniWeaving achieves SoTA performance among open-source unified models. The codes and model will be made publicly available soon. Project Page: https://omniweaving.github.io.",
+      "authors": [
+        "Kaihang Pan",
+        "Qi Tian",
+        "Jianwei Zhang",
+        "Weijie Kong",
+        "Jiangfeng Xiong",
+        "Yanxin Long",
+        "Shixue Zhang",
+        "Haiyi Qiu",
+        "Tan Wang",
+        "Zheqi Lv",
+        "Yue Wu",
+        "Liefeng Bo",
+        "Siliang Tang",
+        "Zhao Zhong"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-25T16:08:18+00:00",
+      "link": "https://arxiv.org/pdf/2603.24458v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Unified video generation with multimodal composition",
+      "llm_evidence_cn": "多模态组合的统一视频生成",
+      "llm_evidence": "多模态组合的统一视频生成",
+      "canonical_evidence": "多模态组合的统一视频生成",
+      "llm_tldr_en": "Proposes OmniWeaving for unified video generation with multimodal composition and reasoning.",
+      "llm_tldr_cn": "提出OmniWeaving模型，通过多模态组合和推理实现统一视频生成。",
+      "llm_tldr": "提出OmniWeaving模型，通过多模态组合和推理实现统一视频生成。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Generative models for high-fidelity video synthesis",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.24587v1",
+      "title": "DreamerAD: Efficient Reinforcement Learning via Latent World Model for Autonomous Driving",
+      "abstract": "We introduce DreamerAD, the first latent world model framework that enables efficient reinforcement learning for autonomous driving by compressing diffusion sampling from 100 steps to 1 - achieving 80x speedup while maintaining visual interpretability. Training RL policies on real-world driving data incurs prohibitive costs and safety risks. While existing pixel-level diffusion world models enable safe imagination-based training, they suffer from multi-step diffusion inference latency (2s/frame) that prevents high-frequency RL interaction. Our approach leverages denoised latent features from video generation models through three key mechanisms: (1) shortcut forcing that reduces sampling complexity via recursive multi-resolution step compression, (2) an autoregressive dense reward model operating directly on latent representations for fine-grained credit assignment, and (3) Gaussian vocabulary sampling for GRPO that constrains exploration to physically plausible trajectories. DreamerAD achieves 87.7 EPDMS on NavSim v2, establishing state-of-the-art performance and demonstrating that latent-space RL is effective for autonomous driving.",
+      "authors": [
+        "Pengxuan Yang",
+        "Yupeng Zheng",
+        "Deheng Qian",
+        "Zebin Xing",
+        "Qichao Zhang",
+        "Linbo Wang",
+        "Yichen Zhang",
+        "Shaoyu Guo",
+        "Zhongpu Xia",
+        "Qiang Chen",
+        "Junyu Han",
+        "Lingyun Xu",
+        "Yifeng Pan",
+        "Dongbin Zhao"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.RO"
+      ],
+      "published": "2026-03-25T17:57:09+00:00",
+      "link": "https://arxiv.org/pdf/2603.24587v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "RL via latent world model and diffusion sampling for video generation",
+      "llm_evidence_cn": "通过潜空间世界模型和扩散采样进行强化学习视频生成",
+      "llm_evidence": "通过潜空间世界模型和扩散采样进行强化学习视频生成",
+      "canonical_evidence": "通过潜空间世界模型和扩散采样进行强化学习视频生成",
+      "llm_tldr_en": "DreamerAD accelerates diffusion-based world models for efficient RL training in autonomous driving.",
+      "llm_tldr_cn": "DreamerAD 加速了基于扩散的世界模型，用于自动驾驶中高效的强化学习训练。",
+      "llm_tldr": "DreamerAD 加速了基于扩散的世界模型，用于自动驾驶中高效的强化学习训练。",
+      "llm_tags": [
+        "query:rl-dm:composite"
+      ],
+      "matched_query_tag": "query:rl-dm:composite",
+      "matched_query_text": "Papers central to 强化学习与扩散模型相关的学术论文检索, especially work that connects or combines: reinforcement learning algorithms and frameworks; generative diffusion models and denoising processes; classifier-guided and classifier-free diffusion for RL; generative models for decision making and planning; trajectory generation using diffusion models; advancements in reinforcement learning using diffusion models; diffusion models for offline reinforcement learning and policy optimization; integrating generative diffusion processes into decision making agents.",
+      "matched_requirement_id": "req-composite-rl-dm",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2603.17375v1",
+      "title": "Stereo World Model: Camera-Guided Stereo Video Generation",
+      "abstract": "We present StereoWorld, a camera-conditioned stereo world model that jointly learns appearance and binocular geometry for end-to-end stereo video generation.Unlike monocular RGB or RGBD approaches, StereoWorld operates exclusively within the RGB modality, while simultaneously grounding geometry directly from disparity. To efficiently achieve consistent stereo generation, our approach introduces two key designs: (1) a unified camera-frame RoPE that augments latent tokens with camera-aware rotary positional encoding, enabling relative, view- and time-consistent conditioning while preserving pretrained video priors via a stable attention initialization; and (2) a stereo-aware attention decomposition that factors full 4D attention into 3D intra-view attention plus horizontal row attention, leveraging the epipolar prior to capture disparity-aligned correspondences with substantially lower compute. Across benchmarks, StereoWorld improves stereo consistency, disparity accuracy, and camera-motion fidelity over strong monocular-then-convert pipelines, achieving more than 3x faster generation with an additional 5% gain in viewpoint consistency. Beyond benchmarks, StereoWorld enables end-to-end binocular VR rendering without depth estimation or inpainting, enhances embodied policy learning through metric-scale depth grounding, and is compatible with long-video distillation for extended interactive stereo synthesis.",
+      "authors": [
+        "Yang-Tian Sun",
+        "Zehuan Huang",
+        "Yifan Niu",
+        "Lin Ma",
+        "Yan-Pei Cao",
+        "Yuewen Ma",
+        "Xiaojuan Qi"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-18T05:42:22+00:00",
+      "link": "https://arxiv.org/pdf/2603.17375v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "camera-conditioned stereo video generation",
+      "llm_evidence_cn": "相机调节的立体视频生成",
+      "llm_evidence": "相机调节的立体视频生成",
+      "canonical_evidence": "相机调节的立体视频生成",
+      "llm_tldr_en": "Introduces StereoWorld, a model for consistent stereo video generation using camera-aware rotary positional encoding.",
+      "llm_tldr_cn": "提出StereoWorld，通过相机感知旋转位置编码实现一致的立体视频生成。",
+      "llm_tldr": "提出StereoWorld，通过相机感知旋转位置编码实现一致的立体视频生成。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Generative models for high-fidelity video synthesis",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.17227v1",
+      "title": "Adaptive Anchor Policies for Efficient 4D Gaussian Streaming",
+      "abstract": "Dynamic scene reconstruction with Gaussian Splatting has enabled efficient streaming for real-time rendering and free-viewpoint video. However, most pipelines rely on fixed anchor selection such as Farthest Point Sampling (FPS), typically using 8,192 anchors regardless of scene complexity, which over-allocates computation under strict budgets. We propose Efficient Gaussian Streaming (EGS), a plug-in, budget-aware anchor sampler that replaces FPS with a reinforcement-learned policy while keeping the Gaussian streaming reconstruction backbone unchanged. The policy jointly selects an anchor budget and a subset of informative anchors under discrete constraints, balancing reconstruction quality and runtime using spatial features of the Gaussian representation. We evaluate EGS in two settings: fast rendering, which prioritizes runtime efficiency, and high-quality refinement, which enables additional optimization. Experiments on dynamic multi-view datasets show consistent improvements in the quality--efficiency trade-off over FPS sampling. On unseen data, in fast rendering at 256 anchors ($32\\times$ fewer than 8,192), EGS improves PSNR by $+0.52$--$0.61$\\,dB while running $1.29$--$1.35\\times$ faster than IGS@8192 (N3DV and MeetingRoom). In high-quality refinement, EGS remains competitive with the full-anchor baseline at substantially lower anchor budgets. \\emph{Code and pretrained checkpoints will be released upon acceptance.} \\keywords{4D Gaussian Splatting \\and 4D Gaussian Streaming \\and Reinforcement Learning}",
+      "authors": [
+        "Ashim Dahal",
+        "Rabab Abdelfattah",
+        "Nick Rahimi"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-18T00:18:11+00:00",
+      "link": "https://arxiv.org/pdf/2603.17227v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "reinforcement-learned policy for efficient 4D Gaussian video streaming",
+      "llm_evidence_cn": "用于高效4D高斯视频流的强化学习策略",
+      "llm_evidence": "用于高效4D高斯视频流的强化学习策略",
+      "canonical_evidence": "用于高效4D高斯视频流的强化学习策略",
+      "llm_tldr_en": "Uses a reinforcement-learned policy to optimize anchor selection for efficient 4D Gaussian scene streaming.",
+      "llm_tldr_cn": "利用强化学习策略优化锚点选择，实现高效的4D高斯场景流传输。",
+      "llm_tldr": "利用强化学习策略优化锚点选择，实现高效的4D高斯场景流传输。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Reinforcement learning techniques for video generation",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.17541v1",
+      "title": "Temporal Gains, Spatial Costs: Revisiting Video Fine-Tuning in Multimodal Large Language Models",
+      "abstract": "Multimodal large language models (MLLMs) are typically trained in multiple stages, with video-based supervised fine-tuning (Video-SFT) serving as a key step for improving visual understanding. Yet its effect on the fine-grained evolution of visual capabilities, particularly the balance between spatial and temporal understanding, remains poorly understood. In this paper, we systematically study how Video-SFT reshapes visual capabilities in MLLMs. Across architectures, parameter scales, and frame sampling settings, we observe a consistent pattern: Video-SFT reliably improves video performance, but often yields limited gains or even degradation on static image benchmarks. We further show that this trade-off is closely tied to temporal budget: increasing the number of sampled frames generally improves video performance, but does not reliably improve static image performance. Motivated by this finding, we study an instruction-aware Hybrid-Frame strategy that adaptively allocates frame counts and partially mitigates the image-video trade-off. Our results indicate that Video-SFT is not a free lunch for MLLMs, and preserving spatial understanding remains a central challenge in joint image-video training.",
+      "authors": [
+        "Linghao Zhang",
+        "Jungang Li",
+        "Yonghua Hei",
+        "Sicheng Tao",
+        "Song Dai",
+        "Yibo Yan",
+        "Zihao Dongfang",
+        "Weiting Liu",
+        "Chenxi Qin",
+        "Hanqian Li",
+        "Xin Zou",
+        "Jiahao Zhang",
+        "Shuhang Xun",
+        "Haiyun Jiang",
+        "Xuming Hu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-18T09:46:44+00:00",
+      "link": "https://arxiv.org/pdf/2603.17541v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Video fine-tuning in multimodal models",
+      "llm_evidence_cn": "多模态模型中的视频微调",
+      "llm_evidence": "多模态模型中的视频微调",
+      "canonical_evidence": "多模态模型中的视频微调",
+      "llm_tldr_en": "Studies the impact of video supervised fine-tuning on spatial and temporal understanding in MLLMs.",
+      "llm_tldr_cn": "研究视频监督微调对多模态大模型空间和时间理解能力的影响。",
+      "llm_tldr": "研究视频监督微调对多模态大模型空间和时间理解能力的影响。",
+      "llm_tags": [
+        "query:rl-vg:composite"
+      ],
+      "matched_query_tag": "query:rl-vg:composite",
+      "matched_query_text": "Papers central to 查找强化学习与视频生成相关的学术论文, especially work that connects or combines: Reinforcement learning techniques for video generation; Deep learning models for video generation and synthesis; Reward model design for video quality and consistency; Policy gradient methods applied to video synthesis; Text-to-video generation using reinforcement learning; Generative models for high-fidelity video synthesis; State of the art reinforcement learning methods for video generation; Optimizing video diffusion models using reward based learning; Improving video temporal coherence with reinforcement learning policies; Applications of RLHF in text to video synthesis models.",
+      "matched_requirement_id": "req-composite-rl-vg",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.17555v1",
+      "title": "FrescoDiffusion: 4K Image-to-Video with Prior-Regularized Tiled Diffusion",
+      "abstract": "Diffusion-based image-to-video (I2V) models are increasingly effective, yet they struggle to scale to ultra-high-resolution inputs (e.g., 4K). Generating videos at the model's native resolution often loses fine-grained structure, whereas high-resolution tiled denoising preserves local detail but breaks global layout consistency. This failure mode is particularly severe in the fresco animation setting: monumental artworks containing many distinct characters, objects, and semantically different sub-scenes that must remain spatially coherent over time. We introduce FrescoDiffusion, a training-free method for coherent large-format I2V generation from a single complex image. The key idea is to augment tiled denoising with a precomputed latent prior: we first generate a low-resolution video at the underlying model resolution and upsample its latent trajectory to obtain a global reference that captures long-range temporal and spatial structure. For 4K generation, we compute per-tile noise predictions and fuse them with this reference at every diffusion timestep by minimizing a single weighted least-squares objective in model-output space. The objective combines a standard tile-merging criterion with our regularization term, yielding a closed-form fusion update that strengthens global coherence while retaining fine detail. We additionally provide a spatial regularization variable that enables region-level control over where motion is allowed. Experiments on the VBench-I2V dataset and our proposed fresco I2V dataset show improved global consistency and fidelity over tiled baselines, while being computationally efficient. Our regularization enables explicit controllability of the trade-off between creativity and consistency.",
+      "authors": [
+        "Hugo Caselles-Dupré",
+        "Mathis Koroglu",
+        "Guillaume Jeanneret",
+        "Arnaud Dapogny",
+        "Matthieu Cord"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-18T10:02:37+00:00",
+      "link": "https://arxiv.org/pdf/2603.17555v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "high-fidelity 4K image-to-video generation using tiled diffusion",
+      "llm_evidence_cn": "使用分块扩散生成高保真4K图生视频",
+      "llm_evidence": "使用分块扩散生成高保真4K图生视频",
+      "canonical_evidence": "使用分块扩散生成高保真4K图生视频",
+      "llm_tldr_en": "FrescoDiffusion enables coherent 4K image-to-video generation using a precomputed latent prior.",
+      "llm_tldr_cn": "FrescoDiffusion通过预计算潜验先验实现了连贯的4K图像到视频生成。",
+      "llm_tldr": "FrescoDiffusion通过预计算潜验先验实现了连贯的4K图像到视频生成。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Generative models for high-fidelity video synthesis",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.17693v1",
+      "title": "Learning Transferable Temporal Primitives for Video Reasoning via Synthetic Videos",
+      "abstract": "The transition from image to video understanding requires vision-language models (VLMs) to shift from recognizing static patterns to reasoning over temporal dynamics such as motion trajectories, speed changes, and state transitions. Yet current post-training methods fall short due to two critical limitations: (1) existing datasets often lack temporal-centricity, where answers can be inferred from isolated keyframes rather than requiring holistic temporal integration; and (2) training data generated by proprietary models contains systematic errors in fundamental temporal perception, such as confusing motion directions or misjudging speeds. We introduce SynRL, a post-training framework that teaches models temporal primitives, the fundamental building blocks of temporal understanding including direction, speed, and state tracking. Our key insight is that these abstract primitives, learned from programmatically generated synthetic videos, transfer effectively to real-world scenarios. We decompose temporal understanding into short-term perceptual primitives (speed, direction) and long-term cognitive primitives, constructing 7.7K CoT and 7K RL samples with ground-truth frame-level annotations through code-based video generation. Despite training on simple geometric shapes, SynRL achieves substantial improvements across 15 benchmarks spanning temporal grounding, complex reasoning, and general video understanding. Remarkably, our 7.7K synthetic CoT samples outperform Video-R1 with 165K real-world samples. We attribute this to fundamental temporal skills, such as tracking frame by frame changes and comparing velocity, that transfer effectively from abstract synthetic patterns to complex real-world scenarios. This establishes a new paradigm for video post-training: video temporal learning through carefully designed synthetic data provides a more cost efficient scaling path.",
+      "authors": [
+        "Songtao Jiang",
+        "Sibo Song",
+        "Chenyi Zhou",
+        "Yuan Wang",
+        "Ruizhe Chen",
+        "Tongkun Guan",
+        "Ruilin Luo",
+        "Yan Zhang",
+        "Zhihang Tang",
+        "Yuchong Sun",
+        "Hang Zhang",
+        "Zhibo Yang",
+        "Shuai Bai",
+        "Junyang Lin",
+        "Zuozhu Liu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-18T13:10:47+00:00",
+      "link": "https://arxiv.org/pdf/2603.17693v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "SynRL post-training framework for video reasoning using synthetic videos",
+      "llm_evidence_cn": "使用合成视频进行视频推理的SynRL训练后框架",
+      "llm_evidence": "使用合成视频进行视频推理的SynRL训练后框架",
+      "canonical_evidence": "使用合成视频进行视频推理的SynRL训练后框架",
+      "llm_tldr_en": "Uses reinforcement learning and synthetic data to improve temporal reasoning in video-language models.",
+      "llm_tldr_cn": "利用强化学习和合成数据来提高视频语言模型的时间推理能力。",
+      "llm_tldr": "利用强化学习和合成数据来提高视频语言模型的时间推理能力。",
+      "llm_tags": [
+        "query:rl-vg:composite"
+      ],
+      "matched_query_tag": "query:rl-vg:composite",
+      "matched_query_text": "Papers central to 查找强化学习与视频生成相关的学术论文, especially work that connects or combines: Reinforcement learning techniques for video generation; Deep learning models for video generation and synthesis; Reward model design for video quality and consistency; Policy gradient methods applied to video synthesis; Text-to-video generation using reinforcement learning; Generative models for high-fidelity video synthesis; State of the art reinforcement learning methods for video generation; Optimizing video diffusion models using reward based learning; Improving video temporal coherence with reinforcement learning policies; Applications of RLHF in text to video synthesis models.",
+      "matched_requirement_id": "req-composite-rl-vg",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.17875v2",
+      "title": "Operator-Theoretic Foundations and Policy Gradient Methods for General MDPs with Unbounded Costs",
+      "abstract": "Markov decision processes (MDPs) is viewed as an optimization of an objective function over certain linear operators over general function spaces. A new existence result is established for the existence of optimal policies in general MDPs, which differs from the existence result derived previously in the literature. Using the well-established perturbation theory of linear operators, policy difference lemma is established for general MDPs and the Gauteaux derivative of the objective function as a function of the policy operator is derived. By upper bounding the policy difference via the theory of integral probability metric, a new majorization-minimization type policy gradient algorithm for general MDPs is derived. This leads to generalization of many well-known algorithms in reinforcement learning to cases with general state and action spaces. Further, by taking the integral probability metric as maximum mean discrepancy, a low-complexity policy gradient algorithm is derived for finite MDPs. The new algorithm, called MM-RKHS, appears to be superior to PPO algorithm due to low computational complexity, low sample complexity, and faster convergence.",
+      "authors": [
+        "Abhishek Gupta",
+        "Aditya Mahajan"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "math.OC"
+      ],
+      "published": "2026-03-18T16:01:49+00:00",
+      "link": "https://arxiv.org/pdf/2603.17875v2",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Policy gradient methods for general Markov Decision Processes",
+      "llm_evidence_cn": "通用马尔可夫决策过程的策略梯度方法",
+      "llm_evidence": "通用马尔可夫决策过程的策略梯度方法",
+      "canonical_evidence": "通用马尔可夫决策过程的策略梯度方法",
+      "llm_tldr_en": "Establishes theoretical foundations and new algorithms for policy gradient methods in general MDPs.",
+      "llm_tldr_cn": "为通用MDP中的策略梯度方法建立了算子理论基础并推导出新算法。",
+      "llm_tldr": "为通用MDP中的策略梯度方法建立了算子理论基础并推导出新算法。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Policy gradient methods applied to video synthesis",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.17651v1",
+      "title": "Anchoring and Rescaling Attention for Semantically Coherent Inbetweening",
+      "abstract": "Generative inbetweening (GI) seeks to synthesize realistic intermediate frames between the first and last keyframes beyond mere interpolation. As sequences become sparser and motions larger, previous GI models struggle with inconsistent frames with unstable pacing and semantic misalignment. Since GI involves fixed endpoints and numerous plausible paths, this task requires additional guidance gained from the keyframes and text to specify the intended path. Thus, we give semantic and temporal guidance from the keyframes and text onto each intermediate frame through Keyframe-anchored Attention Bias. We also better enforce frame consistency with Rescaled Temporal RoPE, which allows self-attention to attend to keyframes more faithfully. TGI-Bench, the first benchmark specifically designed for text-conditioned GI evaluation, enables challenge-targeted evaluation to analyze GI models. Without additional training, our method achieves state-of-the-art frame consistency, semantic fidelity, and pace stability for both short and long sequences across diverse challenges.",
+      "authors": [
+        "Tae Eun Choi",
+        "Sumin Shim",
+        "Junhyeok Kim",
+        "Seong Jae Hwang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-18T12:11:02+00:00",
+      "link": "https://arxiv.org/pdf/2603.17651v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "improving frame consistency and temporal guidance in video inbetweening",
+      "llm_evidence_cn": "提高视频插帧中的帧一致性和时间引导",
+      "llm_evidence": "提高视频插帧中的帧一致性和时间引导",
+      "canonical_evidence": "提高视频插帧中的帧一致性和时间引导",
+      "llm_tldr_en": "Uses keyframe-anchored attention and rescaled RoPE to improve semantic coherence in video inbetweening.",
+      "llm_tldr_cn": "利用关键帧锚定注意力和缩放RoPE提高视频插帧的语义连贯性。",
+      "llm_tldr": "利用关键帧锚定注意力和缩放RoPE提高视频插帧的语义连贯性。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Improving video temporal coherence with reinforcement learning policies",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.17735v1",
+      "title": "TAPESTRY: From Geometry to Appearance via Consistent Turntable Videos",
+      "abstract": "Automatically generating photorealistic and self-consistent appearances for untextured 3D models is a critical challenge in digital content creation. The advancement of large-scale video generation models offers a natural approach: directly synthesizing 360-degree turntable videos (TTVs), which can serve not only as high-quality dynamic previews but also as an intermediate representation to drive texture synthesis and neural rendering. However, existing general-purpose video diffusion models struggle to maintain strict geometric consistency and appearance stability across the full range of views, making their outputs ill-suited for high-quality 3D reconstruction. To this end, we introduce TAPESTRY, a framework for generating high-fidelity TTVs conditioned on explicit 3D geometry. We reframe the 3D appearance generation task as a geometry-conditioned video diffusion problem: given a 3D mesh, we first render and encode multi-modal geometric features to constrain the video generation process with pixel-level precision, thereby enabling the creation of high-quality and consistent TTVs. Building upon this, we also design a method for downstream reconstruction tasks from the TTV input, featuring a multi-stage pipeline with 3D-Aware Inpainting. By rotating the model and performing a context-aware secondary generation, this pipeline effectively completes self-occluded regions to achieve full surface coverage. The videos generated by TAPESTRY are not only high-quality dynamic previews but also serve as a reliable, 3D-aware intermediate representation that can be seamlessly back-projected into UV textures or used to supervise neural rendering methods like 3DGS. This enables the automated creation of production-ready, complete 3D assets from untextured meshes. Experimental results demonstrate that our method outperforms existing approaches in both video consistency and final reconstruction quality.",
+      "authors": [
+        "Yan Zeng",
+        "Haoran Jiang",
+        "Kaixin Yao",
+        "Qixuan Zhang",
+        "Longwen Zhang",
+        "Lan Xu",
+        "Jingyi Yu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-18T14:02:09+00:00",
+      "link": "https://arxiv.org/pdf/2603.17735v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "high-fidelity turntable video generation using diffusion",
+      "llm_evidence_cn": "使用扩散模型生成高保真转盘视频",
+      "llm_evidence": "使用扩散模型生成高保真转盘视频",
+      "canonical_evidence": "使用扩散模型生成高保真转盘视频",
+      "llm_tldr_en": "TAPESTRY generates consistent 360-degree turntable videos to drive 3D texture synthesis.",
+      "llm_tldr_cn": "TAPESTRY生成连贯的360度转盘视频，用于驱动3D纹理合成。",
+      "llm_tldr": "TAPESTRY生成连贯的360度转盘视频，用于驱动3D纹理合成。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Generative models for high-fidelity video synthesis",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.17944v1",
+      "title": "TransText: Transparency Aware Image-to-Video Typography Animation",
+      "abstract": "We introduce the first method, to the best of our knowledge, for adapting image-to-video models to layer-aware text (glyph) animation, a capability critical for practical dynamic visual design. Existing approaches predominantly handle the transparency-encoding (alpha channel) as an extra latent dimension appended to the RGB space, necessitating the reconstruction of the underlying RGB-centric variational autoencoder (VAE). However, given the scarcity of high-quality transparent glyph data, retraining the VAE is computationally expensive and may erode the robust semantic priors learned from massive RGB corpora, potentially leading to latent pattern mixing. To mitigate these limitations, we propose TransText, a framework based on a novel Alpha-as-RGB paradigm to jointly model appearance and transparency without modifying the pre-trained generative manifold. TransText embeds the alpha channel as an RGB-compatible visual signal through latent spatial concatenation, explicitly ensuring strict cross-modal (RGB-and-Alpha) consistency while preventing feature entanglement. Our experiments demonstrate that TransText significantly outperforms baselines, generating coherent, high-fidelity transparent animations with diverse, fine-grained effects.",
+      "authors": [
+        "Fei Zhang",
+        "Zijian Zhou",
+        "Bohao Tang",
+        "Sen He",
+        "Hang Li",
+        "Zhe Wang",
+        "Soubhik Sanyal",
+        "Pengfei Liu",
+        "Viktar Atliha",
+        "Tao Xiang",
+        "Frost Xu",
+        "Semih Gunel"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-18T17:16:40+00:00",
+      "link": "https://arxiv.org/pdf/2603.17944v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "adapting image-to-video models for typography animation",
+      "llm_evidence_cn": "将图生视频模型应用于排版动画生成",
+      "llm_evidence": "将图生视频模型应用于排版动画生成",
+      "canonical_evidence": "将图生视频模型应用于排版动画生成",
+      "llm_tldr_en": "Introduces TransText for transparency-aware image-to-video typography animation using an Alpha-as-RGB paradigm.",
+      "llm_tldr_cn": "引入TransText，通过Alpha-as-RGB范式实现透明度感知的图生视频排版动画。",
+      "llm_tldr": "引入TransText，通过Alpha-as-RGB范式实现透明度感知的图生视频排版动画。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Deep learning models for video generation and synthesis",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.19613v1",
+      "title": "OrbitNVS: Harnessing Video Diffusion Priors for Novel View Synthesis",
+      "abstract": "Novel View Synthesis (NVS) aims to generate unseen views of a 3D object given a limited number of known views. Existing methods often struggle to synthesize plausible views for unobserved regions, particularly under single-view input, and still face challenges in maintaining geometry- and appearance-consistency. To address these issues, we propose OrbitNVS, which reformulates NVS as an orbit video generation task. Through tailored model design and training strategies, we adapt a pre-trained video generation model to the NVS task, leveraging its rich visual priors to achieve high-quality view synthesis. Specifically, we incorporate camera adapters into the video model to enable accurate camera control. To enhance two key properties of 3D objects, geometry and appearance, we design a normal map generation branch and use normal map features to guide the synthesis of the target views via attention mechanism, thereby improving geometric consistency. Moreover, we apply a pixel-space supervision to alleviate blurry appearance caused by spatial compression in the latent space. Extensive experiments show that OrbitNVS significantly outperforms previous methods on the GSO and OmniObject3D benchmarks, especially in the challenging single-view setting (\\eg, +2.9 dB and +2.4 dB PSNR).",
+      "authors": [
+        "Jinglin Liang",
+        "Zijian Zhou",
+        "Rui Huang",
+        "Shuangping Huang",
+        "Yichen Gong"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-20T03:40:36+00:00",
+      "link": "https://arxiv.org/pdf/2603.19613v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Adapting video generation models for novel view synthesis",
+      "llm_evidence_cn": "将视频生成模型应用于新视角合成",
+      "llm_evidence": "将视频生成模型应用于新视角合成",
+      "canonical_evidence": "将视频生成模型应用于新视角合成",
+      "llm_tldr_en": "Reformulates novel view synthesis as an orbit video generation task using pre-trained video diffusion priors.",
+      "llm_tldr_cn": "利用预训练视频扩散先验，将新视角合成任务重新表述为轨道视频生成任务。",
+      "llm_tldr": "利用预训练视频扩散先验，将新视角合成任务重新表述为轨道视频生成任务。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Generative models for high-fidelity video synthesis",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.17812v1",
+      "title": "ChopGrad: Pixel-Wise Losses for Latent Video Diffusion via Truncated Backpropagation",
+      "abstract": "Recent video diffusion models achieve high-quality generation through recurrent frame processing where each frame generation depends on previous frames. However, this recurrent mechanism means that training such models in the pixel domain incurs prohibitive memory costs, as activations accumulate across the entire video sequence. This fundamental limitation also makes fine-tuning these models with pixel-wise losses computationally intractable for long or high-resolution videos. This paper introduces ChopGrad, a truncated backpropagation scheme for video decoding, limiting gradient computation to local frame windows while maintaining global consistency. We provide a theoretical analysis of this approximation and show that it enables efficient fine-tuning with frame-wise losses. ChopGrad reduces training memory from scaling linearly with the number of video frames (full backpropagation) to constant memory, and compares favorably to existing state-of-the-art video diffusion models across a suite of conditional video generation tasks with pixel-wise losses, including video super-resolution, video inpainting, video enhancement of neural-rendered scenes, and controlled driving video generation.",
+      "authors": [
+        "Dmitriy Rivkin",
+        "Parker Ewen",
+        "Lili Gao",
+        "Julian Ost",
+        "Stefanie Walz",
+        "Rasika Kangutkar",
+        "Mario Bijelic",
+        "Felix Heide"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-03-18T15:04:57+00:00",
+      "link": "https://arxiv.org/pdf/2603.17812v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "pixel-wise losses for latent video diffusion and high-quality generation",
+      "llm_evidence_cn": "潜空间视频扩散的像素级损失与高质量生成",
+      "llm_evidence": "潜空间视频扩散的像素级损失与高质量生成",
+      "canonical_evidence": "潜空间视频扩散的像素级损失与高质量生成",
+      "llm_tldr_en": "Introduces a truncated backpropagation scheme to enable efficient fine-tuning of video diffusion models.",
+      "llm_tldr_cn": "引入了一种截断反向传播方案，以实现视频扩散模型的高效微调。",
+      "llm_tldr": "引入了一种截断反向传播方案，以实现视频扩散模型的高效微调。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Generative models for high-fidelity video synthesis",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

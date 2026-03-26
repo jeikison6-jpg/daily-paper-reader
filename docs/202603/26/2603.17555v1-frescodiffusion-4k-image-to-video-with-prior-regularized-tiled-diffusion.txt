@@ -1,0 +1,809 @@
+Title: FrescoDiffusion: 4K Image-to-Video with Prior-Regularized Tiled Diffusion
+
+URL Source: https://arxiv.org/pdf/2603.17555v1
+
+Published Time: Thu, 19 Mar 2026 01:08:44 GMT
+
+Number of Pages: 30
+
+Markdown Content:
+# FrescoDiffusion: 4K Image-to-Video with Prior-Regularized Tiled Diffusion 
+
+Hugo Caselles-Dupré 1 ∗, Mathis Koroglu 1,2 ∗, Guillaume Jeanneret 2 ∗,Arnaud Dapogny 2, and Matthieu Cord 2 
+
+> 1
+
+Obvious Research, Paris, France  
+
+> 2
+
+Institute of Intelligent Systems and Robotics - Sorbonne University, Paris, France Project website: https://f2v.pages.dev/ 
+
+Abstract. Diffusion-based image-to-video (I2V) models are increasingly effective, yet they struggle to scale to ultra-high-resolution inputs (e.g., 4K). Generating videos at the model’s native resolution often loses fine-grained structure, whereas high-resolution tiled denoising preserves local detail but breaks global layout consistency. This failure mode is par-ticularly severe in the fresco animation setting: monumental artworks containing many distinct characters, objects, and semantically different sub-scenes that must remain spatially coherent over time. We introduce FrescoDiffusion, a training-free method for coherent large-format I2V generation from a single complex image. The key idea is to augment tiled denoising with a precomputed latent prior: we first generate a low-resolution video at the underlying model resolution and upsample its la-tent trajectory to obtain a global reference that captures long-range tem-poral and spatial structure. For 4K generation, we compute per-tile noise predictions and fuse them with this reference at every diffusion timestep by minimizing a single weighted least-squares objective in model-output space. The objective combines a standard tile-merging criterion with our regularization term, yielding a closed-form fusion update that strength-ens global coherence while retaining fine detail. We additionally provide a spatial regularization variable that enables region-level control over where motion is allowed. Experiments on the VBench-I2V dataset and our proposed fresco I2V dataset show improved global consistency and fidelity over tiled baselines, while being computationally efficient. Our regularization enables explicit controllability of the trade-off between creativity and consistency. 
+
+Keywords: 4K Image-to-Video · Prior-Regularized Training-Free Gen-eration · Scheduled-Gated Regularization 
+
+## 1 Introduction 
+
+Recently, media has shifted from images to videos, and now to ultra high-definition videos, which means resolutions around 4K ( 3840 × 2160 ). In many  
+
+> *
+
+These authors contributed equally.     
+
+> arXiv:2603.17555v1 [cs.CV] 18 Mar 2026 2H. Caselles-Dupré et al.
+> Fig. 1: From a single ultra-high-definition image ( 3500 ×3500 ), FrescoDiffusion ani-mates it at the same resolution. We show three frames from the generated video. The red box marks a fixed spatial region tracked across time, illustrating motion temporal consistency and fine-detail preservation.
+
+applications, especially in the creative industries, such as cinema, animation, projections and art, there is a need for tools that can process and generate 4K content with sufficient detail. One example of this is fresco animation, which is the focus of this work. In contrast to standard images, we define a fresco as a large-scale image containing multiple scenes ( i.e ., up to hundreds) that blend seamlessly into a coherent visual. To achieve animation of any picture, diffusion models [2, 4, 17, 28, 31] have become the dominant approach for video synthesis, producing strong results in both text-to-video (T2V) and image-to-video (I2V) applications. While T2V models generate videos that faithfully follow an in-put prompt, I2V models follow the same paradigm but start with a first frame provided by the user. Despite the progress in I2V, the most advanced models [14, 32, 33] operate under constraints that do not gracefully allow large-scale I2V. On the one hand, using regular video diffusion models on high-resolution images resized to their native spatial regime yields insufficient detail, as the input is too large and complex to be represented by the standard resolution of video diffusion models. On the other hand, memory and compute grow steeply with spatial and temporal dimensions, preventing the use of those models on 4K images. Scaling image-to-video to very large videos containing many distinct regions remains largely unexplored in the literature. Existing work tries to address both issues, but the fresco setting makes it especially hard: simple tiling [3, 24] intro-duces cross-tile drift and visible seams, and post-hoc video super-resolution [15, 23] cannot create scene-level content that never existed at the model’s native scale. A key difficulty specific to fresco animation is that different regions of the image play fundamentally different roles over time. Frescoes typically con-tain numerous loosely coupled scenes and characters: some regions are visually FrescoDiffusion 3
+
+static and primarily define architectural or pictorial context, while others are semantically active and expected to exhibit motion. This observation motivates a region-aware treatment of global coherence. In this paper, we introduce FrescoDiffusion to achieve 4K-I2V up to the fresco setting, as illustrated in Fig. 1. Although animating the full-resolution fresco is not feasible directly, video models can animate a resized thumbnail of the same image at the model’s native scale. So, our core idea is to take advantage of this feature and use the resized thumbnail as a prior to guide the high-resolution denoising of the initial fresco with a novel loss. Our loss admits a closed-form solution that allows control of the balance between creativity (tiled denoising) and prior alignment. Moreover, we introduce a tool that adapts the generation process in active zones and the background differently with a mask to deal with frescoes specifically. It allows the generative model enough flexibility to animate the active zones while keeping the background close to the prior. In our experi-ments, we show the superiority, both in terms of quality and computation time, of FrescoDiffusion compared to other tiled-denoising methods through extensive qualitative and quantitative evaluation, and a user preference study, on our novel dataset FrescoArchive, and standard VBench 4K dataset [19]. Videos generated with FrescoDiffusion are provided in the supplementary, with an interactive web-page for visualizing them conveniently. To summarize, our contributions are as follows: 1. We introduce FrescoDiffusion, a novel training-free approach for 4K I2V generation that outperforms existing baselines in performance and efficiency. 2. To demonstrate its application in an artistic domain, we propose a dynamic prior-strength schedule together with a spatial gating mechanism that en-ables controlled trade-offs between creativity and prior similarity, especially useful in the fresco-to-video task. 3. We propose FrescoArchive, a new I2V dataset composed of complex multi-scene images for fresco-to-video evaluation. To contribute further to 4K-I2V, we will make our algorithm open-source and release our dataset upon acceptance to promote further research. 
+
+## 2 Related Work 
+
+Diffusion-based video generation. Early text-to-video systems such as Make-A-Video [31] and Imagen Video [17] generate short clips by cascading a base video diffusion model with spatial and temporal super-resolution modules. Subsequent work extends latent diffusion models [28] to videos, e.g. Video Latent Diffusion Models (Video LDM) [5], which map videos to a compressed latent space for efficient high-resolution text-to-video generation, and Lumiere [2], whose space– time U-Net jointly denoises all frames. Recent foundation-scale models such as Wan [33], Mochi [32] and LTX-Video [14] push video latent diffusion to higher quality and longer durations. Image-to-video methods (I2V) are usually sup-ported by all these recent models. All these methods, including commercial sys-tems (such as Kling, Sora2, Gen4.5 or Veo3), operate uniquely on their native 4 H. Caselles-Dupré et al. 
+
+spatial resolutions (typically 480 –1080 p) and video lengths of a few seconds. In contrast, we formulate a training-free approach that takes an existing image-to-video diffusion model and extends it beyond its native resolution, bringing additional creative control. 
+
+Video super-resolution. Video super-resolution (VSR) seeks to reconstruct high-resolution videos from low-resolution inputs, typically with strong temporal co-herence. While these methods [8–10, 15, 22, 35, 39] excel at producing globally coherent, temporally consistent videos, they are fundamentally constrained to staying close to the information present in the low-resolution input. Their ob-jectives encourage fidelity to the input video under distortion and perceptual metrics, and any hallucinated detail is limited to local texture refinement. Start-ing from a 480p or 720p animation of a fresco, VSR can only upscale and slightly enrich this coarse representation; it cannot create hundreds of semantically dis-tinct, fully resolved scenes that were never visible in the low-resolution video. In contrast, FrescoDiffusion performs tiled denoising directly on a large latent canvas and uses a thumbnail animation purely as a prior in latent space, allowing each tile to carry as much semantic content as a native-resolution video while maintaining global coherence. 
+
+Training-free high-resolution tiled denoising. A line of work studies generating large images and videos from pre-trained diffusion models without additional training. MultiDiffusion [3] fuses overlapping diffusion trajectories via a weighted least-squares objective, enabling large-scale image generation with many scenes, but without explicit global coherence. Several approaches build upon this idea to improve spatial consistency. Mixture of Diffusers [21] runs multiple regional diffusions on a shared canvas to control high-resolution composition, while Diff-Collage [37] formulates generation as a factor graph over patches and overlaps. SpotDiffusion [13] further reduces memory by denoising disjoint windows over time, trading overlap for efficiency. Recent tuning-free methods instead modify the sampling procedure of a single diffusion model to scale resolution. Scale-Crafter [16] and DemoFusion [12] progressively enlarge the effective receptive field through re-dilation, dispersed convolutions, or staged upscaling, treating the full canvas as a single sample rather than independent tiles. Closer to our work, DynamicScaler [24] proposes an offset-shifting denois-ing strategy for panoramic and 360 ◦ video generation, where spatial windows are shifted across denoising steps to synchronize content and motion across large fields of view. It employs a global motion guidance stage based on a low-resolution video to stabilize large-scale motion patterns. This method is closer to our work because it uses training-free tiling and staged sampling with global guidance from low-resolution videos to scale diffu-sion models to large spatial videos. However, DynamicScaler was created specif-ically for the generation of 360 ◦ videos, and does not natively allow to navigate the trade-off between creativity and prior similarity. In contrast, FrescoDiffusion is designed to generate a multi-scene high-resolution video by carefully and con-trollably allowing new details and movement to appear. FrescoDiffusion 5
+
+Fig. 2: Overview of FrescoDiffusion. Starting from a 4K fresco image, we first build a global latent prior, by resizing the image to the native input size of the image-to-video backbone. Next, we upsample the prior latents  xprior  to fit the 4K image size. We then apply tiled denoising to the large latent canvas,  x4K  
+
+> t
+
+, obtaining per-tile flow predictions, 
+
+{yi}. We then use  {yi} and  xprior  to compute the optimal output velocity field (Eq. (6)) according to our loss ℓFD (Eq. (5)). This updated field is then used to update the large latent canvas,  x4K  
+
+> t
+
+, with the flow-matching scheduler. 
+
+## 3 FrescoDiffusion Method 
+
+In this section, we introduce FrescoDiffusion, a method tailored for multi-scene 4K-I2V. Our proposed approach consists of two steps, as shown in Fig. 2. First, we compute a prior thumbnail to guide the diffusion process. Second, during the denoising process, we analytically minimize the energy loss to produce the optimal fused output (Sec. 3.2). This output then guides the diffusion process. During this step, we optionally employ our novel masking strategy to direct the diffusion toward the prior by explicitly indicating which regions should be modified and which should converge to the prior (Sec. 3.3). 
+
+3.1 Ultra high-definition tiled denoising baseline framework 
+
+We start by introducing our baseline and notation. Let t ∈ [0 , 1] be the timestep, 
+
+c be the conditioning tuple (input image and prompt) for the I2V flow-matching model fθ , and xt ∈ RC×T ×H×W be the latent state. At each t, the model predicts a velocity field 
+
+y (xt) = fθ (xt, t, c ) . (1) Starting from xt=0 ∼ N (0 , I ), a scheduler integrates these velocities up to t = 1 .The resulting latent x1 is then decoded to produce the video. Next, we introduce MultiDiffusion [3] (MD), adapted to I2V as in prior work [24]. MD generates high-resolution latent codes, i.e . x4K  
+
+> 1
+
+∈ RC×T ×H4K ×W 4K 6 H. Caselles-Dupré et al. 
+
+with H4K ≫ H and W 4K ≫ W , by running fθ on overlapping tiles of a large “canvas” x4K  
+
+> t
+
+and merging the tile-wise predictions. More specifically, let x4K  
+
+> 0
+
+be the initial 4K latent canvas. Let Cp crop awindow of shape (C, T, H, W ) at position p, and let Pp zero-pad a tile back to shape (C, T, H 4K , W 4K ) at coordinates p. For each tile i, define the tile prediction 
+
+yi(x4K  
+
+> t
+
+) = Ppi
+
+ y  Cpi
+
+ x4K 
+
+> t
+
+  , (2) where pi is the coordinate of the ith tile. Given x4K  
+
+> t
+
+, and the tiled-velocity 
+
+{yi(x4K  
+
+> t
+
+)}ni=1 predictions, MD solves for a single merged velocity y⋆ that best matches these overlapping tile predictions by minimizing the loss 
+
+ℓMD (y⋆; t) = 
+
+> n
+
+X
+
+> i=1
+
+√wi ⊙  y⋆ − yi
+
+ x4K 
+
+> t
+
+  22, (3) where n is the number of windows, pi are the coordinates and wi are weight maps of window i used to reduce seams between tiles. This loss admits the closed-form solution 
+
+yM D 
+
+ x4K 
+
+> t
+
+ =
+
+> n
+
+X
+
+> i=1
+
+wi ⊙ yi
+
+ x4K 
+
+> t
+
+
+
+> n
+
+X
+
+> i=1
+
+wi
+
+. (4) Finally, yM D is used to update the canvas, x4K  
+
+> t
+
+, using the iterative standard flow-matching sampling process. 
+
+3.2 FrescoDiffusion: Prior-Regularized Tile Fusion 
+
+MD provides a solution for merging overlapping windows using a weighted sum. However, MD lacks the ability to regularize window merging with an existing prior, such as the initial frame, to create a cohesive scene. To this end, we propose to extend ℓMD with a novel regularization term ℓprior . Our new FrescoDiffusion loss is 
+
+ℓFD (y⋆; t) = √λ ⊙   x4K  
+
+> t
+
+− σty⋆ − xprior 
+
+ 22
+
+| {z }
+
+> ℓprior (y⋆;t,x prior )
+
++ ℓMD (y⋆; t) (5) Our loss is composed of two terms. On the one hand, ℓMD reduces the dis-parity between the outputs of the shifting windows. On the other hand, ℓprior 
+
+minimizes the dissimilarity between the current-step prediction of the clean la-tent, i.e . (x4K  
+
+> t
+
+− σty) in the flow matching formulation, and the prior xprior ∈
+
+RC×T ×H4K ×W 4K 
+
+. Here, λ is a regularization variable that can be either a con-stant ( λ ∈ R) or a tensor ( λ ∈ RC×T ×H4K ×W 4K 
+
+), whose design is discussed in the next section. Additionally, σt denotes the scheduler’s discrete noise standard deviation at step t. Note that in other diffusion formulations, we just have to adapt the corresponding one-step prediction, see Sec. E. FrescoDiffusion 7
+
+Equation (5) is separable across canvas coordinates and strictly convex. Thus, the unique minimizer can be found in closed form by setting the derivative to zero. Therefore, the prior-regularized fused velocity is 
+
+yFD (x4K  
+
+> t
+
+) = 
+
+σt · λ ⊙ (x4K  
+
+> t
+
+− xprior ) + 
+
+> n
+
+X
+
+> i=1
+
+wi ⊙ yi(x4K  
+
+> t
+
+)
+
+σ2 
+
+> t
+
+· λ +
+
+> n
+
+X
+
+> i=1
+
+wi
+
+. (6) Here, we notice that when λ = 0 , our closed-form solution in Eq. (6) reduces to the MultiDiffusion fusion in Eq. (4). To create the global prior for x4K  
+
+> t
+
+, we resize the input fresco to the model’s native spatial size, generating a small image-to-video sequence. Then, we per-form a per-frame trilinear upscale in latent space (to the large canvas size). Fig. 2 illustrates FrescoDiffusion’s generation process, on top of an algorithm in Sec. A.2. 
+
+3.3 Spatio-Temporal Prior Strength Scheduling 
+
+We will now discuss the design of the prior strength, λ, in Eq. (5). The param-eter λ addresses two objectives: (i) Remain structurally close to the prior while allowing the creation of new details. (ii) Treat spatial regions differently in the case of frescoes. Background re-gions are supposed to remain structurally stable while other active regions should be animated. To attain objective (i), in the initial stages of diffusion, a high value of λ is desirable because it directs the model to remain close to the prior. Conversely, a low value of λ is desirable in the final stages of diffusion to add details to the final video. We thus propose to model λ as a global gated decreasing schedule of the diffusion step 
+
+λG(t, τ ) = λbase · cos 
+
+
+
+t π
+
+2
+
+
+
+· 1[t ≤ τ ] (7) where τ is the gating and λbase is the strength of the regularization. When 
+
+λ = λG ∈ R, we name our method FrescoDiffusion. To reach objective (ii), we compute a spatial activity map A(p) to differ-entiate active zones from the background. Let  A(p) ∈ { 0, 1} be a binary map, in which  A(p) = 1  denotes active regions on the position p (e.g ., characters or local scenes expected to move) and  A(p) = 0  denotes structurally static regions. Also, let  τact  and  τbg  be two temporal cutoffs, with  τact ≤ τbg , which control the application of the prior to active and background regions, respectively. Hence, our prior strength factor becomes 
+
+λR (t, p ) = 
+
+(
+
+λG (t, τ act ) if A (p) = 1 (pixel p in the foreground) 
+
+λG (t, τ bg ) if A (p) = 0 (pixel p in the background)  (8) 8 H. Caselles-Dupré et al. 0 1                  
+
+> 0.0
+> 0.1 Foreground Background
+> 01Timesteps
+> 0
+> 1Foreground Background
+> MSE
+> Fig. 3: (Top) MSE between the fore-ground /background regions and the prior. (Bottom) Schedule for both re-gions.
+
+Please note that λR is a ten-sor with shape (C × T × H4K ×
+
+W 4K ). We refer to this variant ( λ =
+
+λR) as Regional-FrescoDiffusion (R-FrescoDiffusion). This design choice was motivated by the example in Fig. 3, where we show the Mean Squared Er-ror (MSE) difference between the noised prior at the same timestep, and the cur-rent latents x4K  
+
+> t
+
+. Here, the gated de-sign enforces global coherence early in sampling steps (t ≤ τact ), then pro-gressively relaxes the prior first in ac-tive regions ( τact < t ≤ τbg ), allow-ing motion and novel detail to emerge. Background regions remain constrained longer to preserve large-scale structure. In late steps ( t > τ bg ), the prior is fully disabled everywhere, and sampling fo-cuses purely on fine detail refinement. The end result is that the background MSE is much closer to the prior com-pared to the foreground. In addition, the coefficient  λbase ≥ 0 controls how strongly we adhere to the prior versus letting tiled denoising add new detail: large  λbase  favors faithfulness to  xprior , while small  λbase  allows more creativity. 
+
+## 4 Dataset and Evaluation Protocols 
+
+Dataset We use the Image Suite of VBench [19], as our first 4K-I2V dataset. Such datasets focus on one or a few objects, and we are looking for frescoes, 
+
+i.e . complex images with multiple intricate scenes, to evaluate our method thor-oughly. Therefore, we propose a new dataset named FrescoArchive for I2V tech-niques on a fresco scale. Starting with the LAION-2B Aesthetic Subset [29], we filtered the images based on criteria such as pixel count, aesthetics, watermarks and NSFW scores. Next, we performed text-based filtering, followed by zero-shot classification to detect frescoes. Subsequently, we deduplicated [20] the dataset and generated captions using Qwen3-VL-32B [1] with both the image and the LAION caption. Ultimately, we manually selected 371 pairs to achieve the best possible image-caption match. We provide details on this process in Sec. B, along with statistics. This dataset will be used exclusively for validation. 
+
+Evaluation Metrics We employ a user study at full resolution to quantify the human preference over the baselines. We used Amazon Mechanical Turk to con-duct the study. Participants were carefully filtered to avoid bots and lower quality FrescoDiffusion 9
+
+evaluators: we required a masters status and a task approval rate superior to 85% 
+
+to enroll. They were shown pairs of videos generated with two concurrent meth-ods, from the same input image from the FrescoArchive dataset. Videos were displayed at identical resolution and duration, with randomized ordering and no method identification. We report preference percentages with 95% confidence intervals. For each pair, participants answered two binary-choice questions: 
+
+– Animation Fidelity: Which video most closely resembles a fresco artwork that has been smoothly and naturally animated? 
+
+– Motion plausibility: Which video provides the most convincing animation of the input image, with appropriate and perceptible motion? We also evaluate our method on the VBench protocols [18, 19, 38], following standard studies [24]. These metrics compute the similarity between the input image and each frame, as well as the similarity between consecutive frames. These protocols evaluate several criteria: Subject Consistency, Motion Smooth-ness, Aesthetic Score, and Imaging Quality. We complement it using VBench’s I2V metrics (Video-Image Subject Consistency and Video-Image Background Consistency), to measure the similarity between input image and video. While VBench is the standard for 480p/1080p, it provides incomplete 4K-I2V evaluations because it downsizes videos to fit metric models’ requirement (DI-NOv2 [25] and CLIP [27]). We thus complement our testbed with three metrics that specifically target 4K-I2V. (i) We perform standard sharpness measures at full scale to quantify fine-detail generation using the Tenengrad [26] function. (ii) We use a simple yet efficient Temporal Consistency metric, measuring the mean square error between consecutive downsized frames to quantify differences between frames. (iii) We compute a prior similarity metric using DINOv3 [30], which is not limited to 1080p resolution compared to DINOv2 used in VBench. Each metric is thoroughly explained in Sec. C.1. 
+
+## 5 Experiments 
+
+We provide implementation details, then present qualitative and quantitative experiments, and finally experiments characterizing our model behavior. 
+
+5.1 Implementation Details and Baselines 
+
+Video generation backbone. All experiments are conducted using Wan2.2-I2V [33] 14B-parameter model, a state-of-the-art open video diffusion model which na-tively operates at spatial resolutions of 480 × 832 p and up to 720 × 1280 p. To speed up inference time, we used TurboDiffusion [36]’s LoRA to reduce the num-ber of steps, making large-scale experimentation feasible on standard hardware. FrescoDiffusion’s implementation details are provided in Sec. A.1. 10 H. Caselles-Dupré et al. 
+
+Baselines. We compare our method to three tiled-diffusion methods: MultiDiffu-sion [3], DemoFusion [12] (state-of-the-art tiled image diffusion method adapted to a video setup), and DynamicScaler [24] (state-of-the-art tiled video diffusion method). All implementation details are available in Sec. C.3. For a fair compar-ison, we adapted these baselines to Wan2.2’s backbone to avoid any differences coming from base model performance. Similarly, and unless stated otherwise, all compared methods use identical prompts, sampling steps, guidance scales, ran-dom seeds, sizes and overlap between different tiles when applicable. Parameters that are method-dependent are chosen identical to the author’s code.  
+
+> Fig. 4: Overlay of the spatial activ-ity map onto the input fresco.
+
+Spatial activity maps. R-FrescoDiffusion uses a spatially gated prior schedule to dif-ferentiate active regions from structurally static background. For each input image, we compute the activity map A(p) (see Sec. 3.3) using the Segment Anything Model 3 (SAM3) [7], as illustrated in Fig. 4. We ap-ply SAM3 with a fixed set of prompts pro-ducing a binary activity map in [0 , 1] , which is downsampled to latent resolution and used directly in Eq. (8). See details in Sec. C.4. These activity maps are computed once per input image and remain fixed throughout sampling, without additional learnable parameters. 
+
+5.2 Qualitative Evaluation   
+
+> Fig. 5: A qualitative comparison of fresco-scale inputs. FrescoDiffusion generates co-herent global scenes and animates details at a local level. By contrast, DemoFusion, DynamicScaler and MultiDiffusion only manage to produce either coherent scenes or high-quality details, but not both. FrescoDiffusion 11
+
+We begin with a qualitative study. In Fig. 5, we show the first, 40th, and last frame for each model along central and corner crops to detail the fine-grained structures. DemoFusion preserves the global structure. Yet, some elements are modified, such as the path in the center crop and the hut in the corner crop. Visible wobbling is present when the video is playing. MultiDiffusion and Dy-namicScaler tend to introduce excessive novel content across tiles or sampling stages, which results in accumulation of structural inconsistencies and loss of temporal coherence. In contrast, FrescoDiffusion produces high quality videos while conserving the general layout of the video. Later, in Sec. 5.4, we discuss the differences between FrescoDiffusion and its regional counterpart from a qual-itative perspective. We highly suggest the reader to explore more results in the supplementary (web visualization recommended) and in the appendix. 
+
+5.3 State-of-the-Art quantitative comparison 
+
+In this subsection, we quantitatively compare our method with the state-of-the-art on both user-preference metrics and automatic metrics. 
+
+High-Resolution Evaluation: User Study. We start with a user study to quantitatively measure human preference. Our study totals 1344 ratings over 47 participants. Table 1 shows that both of our methods are strongly preferred over DynamicScaler and MultiDiffusion, with preference rates of 84–93% across both evaluation criteria, confirming that these baselines produce noticeably lower quality animations. Against DemoFusion, R-FrescoDiffusion achieves a statisti-cally significant preference of 69%. FrescoDiffusion reaches a 54% preference rate, which does not fully qualify as an advantage given the confidence intervals. Across all comparisons, results are consistent between the motion and fidelity questions. Finally, R-FrescoDiffusion is preferred over FrescoDiffusion in 58% of comparisons, indicating that the regional regularization provides the intended perceptual improvement over the base method in the case of frescoes.                                      
+
+> Table 1: User study results. Human preference rates (% of annotators preferring our method over each baseline). Green cells indicate statistically significant preference. All reported preference rates are computed with 95% confidence intervals of at most
+> ±6% (binomial proportion test, n= 192 per comparison). FrescoDiffusion R-FrescoDiffusion Motion Fidelity Avg. Motion Fidelity Avg. vs. DemoFusion 56% 52% 54% 68% 70% 69%
+> vs. DynamicScaler 84% 92% 88% 89% 90% 89%
+> vs. MultiDiffusion 91% 93% 92% 88% 92% 90%
+> vs. each other 40% 44% 42% 60% 56% 58% 12 H. Caselles-Dupré et al.
+
+Standard Low-Resolution I2V Metrics Next, as a sanity check, we compare our approach with modern methods (Tab. 2) using standard lower-resolution I2V metrics (VBench and VBench-I2V). These metrics are not designed for 4K videos as the evaluated videos are downscaled aggressively ( ∼ 10 − 20 ×) to fit the back-bones’ resolution. As a result, the reported scores provide only a coarse proxy for performance at the original 4K resolution. We perform this evaluation on the FrescoArchive and 4K Image Suite VBench dataset, using both regional and non-regional configurations. In the FrescoArchive dataset, our method slightly outperforms the baselines on average. On the Image Suite VBench dataset, our approach performs second best on average, slightly outperformed by DemoFu-sion. Full results for each metric are available in Sec. C.2. Note that for Dynam-icScaler, our re-implementation performs better, as the I2V backbone in their original implementation, VideoCrafter [11], is much older and clearly underper-forms Wan2.2. Our conclusion on this benchmark is consistent with what we observed in our user study and qualitatively: we outperform all methods on the fresco-to-video task and are competitive with DemoFusion on the 4K-I2V task.                        
+
+> Table 2: Standard low-resolution I2V metrics. The table shows the average perfor-mance (higher is better) using the VBench evaluation suite on both FrescoArchive and VBench-I2V image sets. We also display the average generation time in minutes. Method FrescoArchive VBench-I2V Time (min) DynamicScaler (original) 0.857 0.862 18.45 DynamicScaler ∗(CVPR’25) 0.871 0.865 10.25 DemoFusion ∗(CVPR’23) 0.903 0.879 13.5 MultiDiffusion ∗(ICML’23) 0.876 0.860 8.15
+> FrescoDiffusion 0.904 0.875 8.58 R-FrescoDiffusion 0.907 0.878 9.08
+
+Computational efficiency. We report the average runtime over all runs on both datasets on a single H100 GPU. FrescoDiffusion and R-FrescoDiffusion out-perform all baselines. MultiDiffusion is excluded as it is the core tiled-denoising method used by all baselines. Our methods are at least 45% faster than DemoFu-sion. Our DynamicScaler implementation is nearly twice as fast as the original, yet remains slower than our methods. 
+
+5.4 Controlling FrescoDiffusion 
+
+We perform an ablation study of FrescoDiffusion’s components to justify their design, and show how they allow creative control in the generation process. FrescoDiffusion 13   
+
+> Table 3: Prior strength schedule ablation study on FrescoArchive. Best in bold . The results suggest that including the schedule, the gating, and the spatial regularization enhances the quantitative performance.
+
+Method λ function SC MS A I ISC IBC Avg MultiDiffusion 0 0.876 0.974 0.686 0.754 0.981 0.989 0.876 FrescoDiffusion λbase 0.942 0.991 0.645 0.598 0.979 0.983 0.856 FrescoDiffusion λbase cos( t π 
+
+> 2
+
+) 0.946 0.991 0.724 0.730 0.987 0.992 0.895 FrescoDiffusion λG (Eq. (7)) 0.958 0.990 0.738 0.753 0.991 0.995 0.904 R-FrescoDiffusion λR (Eq. (8)) 0.977 0.991 0.736 0.753 0.991 0.994 0.907 Last Frames  
+
+> Fig. 6: Regional Constraint. Prior shows an overlay of the activity map. The red/blue boxes represent the background/foreground region. Our regional loss forces the gener-ation towards the prior on the background regions while allows new details to appear in foreground regions.
+
+Ablation of the prior strength schedule. We perform an ablation study of the spatio-temporal prior strength schedule’s design, λ(t, p ). We use VBench met-rics on the FrescoArchive dataset. We start with MultiDiffusion (no λ) and add a constant regularization λ = λbase = 1 .5. This actually worsens performance. Next, we add the cosine schedule λ = λbase cos( t π 
+
+> 2
+
+) ∈ R, and obtain significant gains over MD. Then, we build FrescoDiffusion by setting λ = λG (see Eq. (7)), and we finish with R-FrescoDiffusion by setting λ = λR (see Eq. (8)). This results in the best measured performance. Qualitatively, we show the difference between FrescoDiffusion and R-FrescoDiffusion in Fig. 6. When adding our regional regu-larization, R-FrescoDiffusion is more similar to the prior on background regions, as intended. We provide further visualization of that effect in Sec. D. 
+
+λ-Controlled Pareto Trade-off Between Creativity and Prior Similar-ity Creativity and prior similarity are essentially contrary objectives. One can-not improve one without hurting the other. This inherent tradeoff creates a Pareto frontier composed of the set of optimal compromises between the two objectives. To navigate this frontier using λG(t, τ ) (Eq. (7)), we linearly modify the prior strength ( λbase ∈ [0 , 5] ), and the temporal gating ( τ ∈ [0 , 1] ). To rep-resent the creativity objective we use the sharpness metric as a proxy, and for the prior similarity we use both temporal consistency and our prior similarity metric presented in Sec. 4. The results in Fig. 7 show two expected behaviors. (i) When λbase and the temporal gating, τ , increase, the outputs equal those of the prior. (ii) On the contrary, when those parameters decrease, we reach the 14 H. Caselles-Dupré et al. 
+
+same performance as MultiDiffusion (full creativity, no prior). The curve formed between these two opposites creates the Pareto frontier which allows a trade-off between the two objectives. Thus, FrescoDiffusion allows full control over this crucial trade-off.    
+
+> (a) Temporal consistency versus sharpness. (b) Prior similarity evolution over time.
+
+Fig. 7: Quantitative evaluation of the trade-off between creativity and prior similarity controlled by λ. (a) Temporal consistency versus sharpness, illustrating the Pareto frontier between preserving temporal coherence and maintaining high image sharpness. (b) Evolution of prior similarity over time, showing how increasing prior strength and temporal gating progressively aligns the generated outputs with the prior. 
+
+## 6 Limitations and Conclusion 
+
+Limitations. FrescoDiffusion relies on the availability of a meaningful low-resolution prior. When the input image is extremely large, the prior may fail to capture sufficient global structure, limiting our method. One possible exten-sion would be to construct multiple local priors, at the cost of reduced global coherence. Moreover, as a tiled denoising approach, FrescoDiffusion is inher-ently computationally expensive. We mitigate this overhead through reduced-step sampling (6-step LoRA), low-precision arithmetic (FP8), and compiler-level optimizations ( torch.compile ). Improving efficiency while preserving visual fi-delity remains an important direction for future work. 
+
+Conclusion. FrescoDiffusion is a simple, effective, training-free solution that uses existing video diffusion models to animate 4K, multi-scene images. The method combines tiled denoising with a latent prior derived from a thumbnail animation to preserve global coherence while introducing local detail at large scales. It uses fewer computational resources than the baselines and outperforms them consistently in both quantitative metrics and user preference studies. Our approach allows for easily adjusting the balance between creativity and fidelity, opening the door to creative applications in large-scale image animation. FrescoDiffusion 15 
+
+## 7 Acknowledgments 
+
+This project was provided with computing HPC & AI and storage resources by GENCI at IDRIS thanks to the grant 2025-AD011016538 on the supercomputer Jean Zay’s A100 & H100 partitions. This research was funded by the French National Research Agency (ANR) under the project ANR-23-CE23-0023 as part of the France 2030 initiative. 
+
+## References 
+
+1. Bai, S., Cai, Y., Chen, R., Chen, K., Chen, X., Cheng, Z., Deng, L., Ding, W., Gao, C., Ge, C., et al.: Qwen3-vl technical report. arXiv preprint arXiv:2511.21631 (2025) 8, 20, 26 2. Bar-Tal, O., Chefer, H., Tov, O., Herrmann, C., Paiss, R., Zada, S., Ephrat, A., Hur, J., Liu, G., Raj, A., et al.: Lumiere: A space-time diffusion model for video generation. In: SIGGRAPH Asia 2024 Conference Papers. pp. 1–11 (2024) 2, 3 3. Bar-Tal, O., Yariv, L., Lipman, Y., Dekel, T.: MultiDiffusion: Fusing diffusion paths for controlled image generation. In: ICML. vol. 202, pp. 1737–1752 (2023) 2, 4, 5, 10, 24 4. Batifol, S., Blattmann, A., Boesel, F., Consul, S., Diagne, C., Dockhorn, T., En-glish, J., English, Z., Esser, P., Kulal, S., et al.: Flux. 1 kontext: Flow matching for in-context image generation and editing in latent space. arXiv e-prints pp. arXiv–2506 (2025) 2 5. Blattmann, A., Dockhorn, T., Kulal, S., Mendelevitch, D., Kilian, M., Lorenz, D., Levi, Y., English, Z., Voleti, V., Letts, A., et al.: Stable video diffusion: Scaling latent video diffusion models to large datasets. arXiv preprint arXiv:2311.15127 (2023) 3 6. Bolya, D., Huang, P.Y., Sun, P., Cho, J.H., Madotto, A., Wei, C., Ma, T., Zhi, J., Rajasegaran, J., Rasheed, H.A., et al.: Perception encoder: The best visual embeddings are not at the output of the network. In: NeurIPS (2025) 20 7. Carion, N., Gustafson, L., Hu, Y.T., Debnath, S., Hu, R., Suris, D., Ryali, C., Alwala, K.V., Khedr, H., Huang, A., et al.: Sam 3: Segment anything with concepts. arXiv preprint arXiv:2511.16719 (2025) 10, 25 8. Chan, K.C., Wang, X., Yu, K., Dong, C., Loy, C.C.: Basicvsr: The search for essential components in video super-resolution and beyond. In: CVPR. pp. 4947– 4956 (2021) 4 9. Chan, K.C., Zhou, S., Xu, X., Loy, C.C.: Basicvsr++: Improving video super-resolution with enhanced propagation and alignment. In: CVPR. pp. 5972–5981 (2022) 4 10. Chan, K.C., Zhou, S., Xu, X., Loy, C.C.: Investigating tradeoffs in real-world video super-resolution. In: CVPR. pp. 5962–5971 (2022) 4 11. Chen, H., Xia, M., He, Y., Zhang, Y., Cun, X., Yang, S., Xing, J., Liu, Y., Chen, Q., Wang, X., et al.: Videocrafter1: Open diffusion models for high-quality video generation. arXiv preprint arXiv:2310.19512 (2023) 12 12. Du, R., Chang, D., Hospedales, T., Song, Y.Z., Ma, Z.: Demofusion: Democratising high-resolution image generation with no $$$. In: CVPR. pp. 6159–6168 (2024) 4, 10, 24 16 H. Caselles-Dupré et al. 13. Frolov, S., Moser, B.B., Dengel, A.: Spotdiffusion: A fast approach for seamless panorama generation over time. In: 2025 IEEE/CVF Winter Conference on Appli-cations of Computer Vision (WACV). pp. 2073–2081 (2025) 4 14. HaCohen, Y., Chiprut, N., Brazowski, B., Shalem, D., Moshe, D., Richardson, E., Levin, E., Shiran, G., Zabari, N., Gordon, O., et al.: Ltx-video: Realtime video latent diffusion. arXiv preprint arXiv:2501.00103 (2024) 2, 3 15. He, J., Xue, T., Liu, D., Lin, X., Gao, P., Lin, D., Qiao, Y., Ouyang, W., Liu, Z.: Venhancer: Generative space-time enhancement for video generation. arXiv preprint arXiv:2407.07667 (2024) 2, 4 16. He, Y., Yang, S., Chen, H., Cun, X., Xia, M., Zhang, Y., Wang, X., He, R., Chen, Q., Shan, Y.: Scalecrafter: Tuning-free higher-resolution visual generation with diffusion models. In: ICLR (2023) 4 17. Ho, J., Chan, W., Saharia, C., Whang, J., Gao, R., Gritsenko, A., Kingma, D.P., Poole, B., Norouzi, M., Fleet, D.J., et al.: Imagen video: High definition video generation with diffusion models. arXiv preprint arXiv:2210.02303 (2022) 2, 3 18. Huang, Z., He, Y., Yu, J., Zhang, F., Si, C., Jiang, Y., Zhang, Y., Wu, T., Jin, Q., Chanpaisit, N., Wang, Y., Chen, X., Wang, L., Lin, D., Qiao, Y., Liu, Z.: VBench: Comprehensive benchmark suite for video generative models. In: CVPR (2024) 9 19. Huang, Z., Zhang, F., Xu, X., He, Y., Yu, J., Dong, Z., Ma, Q., Chanpaisit, N., Si, C., Jiang, Y., Wang, Y., Chen, X., Chen, Y.C., Wang, L., Lin, D., Qiao, Y., Liu, Z.: VBench++: Comprehensive and versatile benchmark suite for video generative models. IEEE TPAMI (2025). https://doi.org/10.1109/TPAMI.2025.3633890 
+
+3, 8, 9, 19, 21 20. Jain, T., Lennan, C., John, Z., Tran, D.: Imagededup. https://github.com/ idealo/imagededup (2019) 8, 20 21. Jiménez, Á.B.: Mixture of diffusers for scene composition and high resolution image generation. arXiv preprint arXiv:2302.02412 (2023) 4 22. Liang, J., Cao, J., Fan, Y., Zhang, K., Ranjan, R., Li, Y., Timofte, R., Van Gool, L.: Vrt: A video restoration transformer. IEEE TIP 33 , 2171–2182 (2024) 4 23. Liu, H., Ruan, Z., Zhao, P., Dong, C., Shang, F., Liu, Y., Yang, L., Timofte, R.: Video super-resolution based on deep learning: a comprehensive survey. Artificial Intelligence Review 55 (8), 5981–6035 (2022) 2 24. Liu, J., Lin, S., Li, Y., Yang, M.H.: Dynamicscaler: Seamless and scalable video generation for panoramic scenes. In: CVPR. pp. 6144–6153 (2025) 2, 4, 5, 9, 10, 19, 25 25. Oquab, M., Darcet, T., Moutakanni, T., Vo, H.V., Szafraniec, M., Khalidov, V., Fernandez, P., Haziza, D., Massa, F., El-Nouby, A., Howes, R., Huang, P.Y., Xu, H., Sharma, V., Li, S.W., Galuba, W., Rabbat, M., Assran, M., Ballas, N., Synnaeve, G., Misra, I., Jegou, H., Mairal, J., Labatut, P., Joulin, A., Bojanowski, P.: Dinov2: Learning robust visual features without supervision (2023) 9, 21, 22 26. Pertuz, S., Puig, D., Garcia, M.A.: Analysis of focus measure operators for shape-from-focus. PR 46 (5), 1415–1432 (2013) 9, 21 27. Radford, A., Kim, J.W., Hallacy, C., Ramesh, A., Goh, G., Agarwal, S., Sastry, G., Askell, A., Mishkin, P., Clark, J., et al.: Learning transferable visual models from natural language supervision. In: ICML. pp. 8748–8763 (2021) 9 28. Rombach, R., Blattmann, A., Lorenz, D., Esser, P., Ommer, B.: High-resolution image synthesis with latent diffusion models. In: CVPR. pp. 10684–10695 (2022) 2, 3 29. Schuhmann, C., Beaumont, R., Vencu, R., Gordon, C., Wightman, R., Cherti, M., Coombes, T., Katta, A., Mullis, C., Wortsman, M., et al.: Laion-5b: An open large-FrescoDiffusion 17 scale dataset for training next generation image-text models. Advances in neural information processing systems 35 , 25278–25294 (2022) 8, 19 30. Siméoni, O., Vo, H.V., Seitzer, M., Baldassarre, F., Oquab, M., Jose, C., Khali-dov, V., Szafraniec, M., Yi, S., Ramamonjisoa, M., et al.: Dinov3. arXiv preprint arXiv:2508.10104 (2025) 9, 23 31. Singer, U., Polyak, A., Hayes, T., Yin, X., An, J., Zhang, S., Hu, Q., Yang, H., Ashual, O., Gafni, O., Parikh, D., Gupta, S., Taigman, Y.: Make-a-video: Text-to-video generation without text-video data. In: ICLR (2023) 2, 3 32. Team, G.: Mochi 1. https://github.com/genmoai/models (2024) 2, 3 33. Wan, T., Wang, A., Ai, B., Wen, B., Mao, C., Xie, C.W., Chen, D., Yu, F., Zhao, H., Yang, J., et al.: Wan: Open and advanced large-scale video generative models. arXiv preprint arXiv:2503.20314 (2025) 2, 3, 9 34. Wang, W., Gao, Z., Gu, L., Pu, H., Cui, L., Wei, X., Liu, Z., Jing, L., Ye, S., Shao, J., et al.: Internvl3. 5: Advancing open-source multimodal models in versatility, reasoning, and efficiency. arXiv preprint arXiv:2508.18265 (2025) 20 35. Xie, R., Liu, Y., Zhou, P., Zhao, C., Zhou, J., Zhang, K., Zhang, Z., Yang, J., Yang, Z., Tai, Y.: Star: Spatial-temporal augmentation with text-to-video models for real-world video super-resolution. In: ICCV. pp. 17108–17118 (2025) 4 36. Zhang, J., Zheng, K., Jiang, K., Wang, H., Stoica, I., Gonzalez, J.E., Chen, J., Zhu, J.: Turbodiffusion: Accelerating video diffusion models by 100-200 times (2025) 9 37. Zhang, Q., Song, J., Huang, X., Chen, Y., Liu, M.Y.: Diffcollage: Parallel gener-ation of large content with diffusion models. In: CVPR. pp. 10188–10198 (2023) 438. Zheng, D., Huang, Z., Liu, H., Zou, K., He, Y., Zhang, F., Zhang, Y., He, J., Zheng, W.S., Qiao, Y., Liu, Z.: VBench-2.0: Advancing video generation benchmark suite for intrinsic faithfulness. arXiv preprint arXiv:2503.21755 (2025) 9 39. Zhou, S., Yang, P., Wang, J., Luo, Y., Loy, C.C.: Upscale-a-video: Temporal-consistent diffusion model for real-world video super-resolution. In: CVPR. pp. 2535–2545 (2024) 4 18 H. Caselles-Dupré et al. 
+
+# FrescoDiffusion: 4K Image-to-Video with Prior-Regularized Tiled Diffusion -Supplementary Material 
+
+## A FrescoDiffusion Additional Details 
+
+A.1 Implementation Details 
+
+All experiments use the Wan2.2-I2V 14B backbone with the same accelerated 6-step TurboDiffusion setting as in the main paper. We generate 81 frames at 
+
+16 fps with guidance scale 1.0, i.e., without effective classifier-free guidance. For an input image of size (H, W ), we first generate the low-resolution prior at fixed target area 480 × 832 = 399 ,360 pixels while preserving aspect ratio: 
+
+ˆH = round 
+
+p 399360 H/W 
+
+
+
+, ˆW = round 
+
+p 399360 W/H 
+
+
+
+,
+
+and then snap both dimensions down to the nearest multiple of 16 . The full-resolution pass uses H4K = max(16 , ⌊H/ 16 ⌋ · 16) and W 4K = max(16 , ⌊W/ 16 ⌋ · 
+
+16) , after an optional isotropic downscaling when the input exceeds ultra-HD resolution. This multiple-of-16 constraint comes from the latent video backbone: the Wan VAE reduces spatial resolution by a factor 8, and the downstream latent grid is processed in spatial patches of size 2, yielding an effective validity constraint of 8 × 2 = 16 . With spatial and temporal compression factors 8 and 
+
+4, the latent tensor therefore has shape 16 × 21 × (H4K /8) × (W 4K /8) for the default 81 -frame setting. The low-resolution latent prior is resized to the large latent canvas with endpoint-aligned trilinear interpolation in latent space, VAE tiling is enabled during inference, and the decoded output is resized back to the original image size only if snapping changed the resolution. 
+
+Tiled denoising and regularization. The high-resolution pass uses MultiDiffusion windows of size 480 × 832 pixels with 30% overlap, giving nominal pixel strides 
+
+336 ×582 . After conversion to latent coordinates and rounding to the valid latent grid, this becomes 60 × 104 latent windows with strides 42 × 72 ; extra final windows are added whenever needed so that the right and bottom boundaries are exactly covered. Tile fusion uses linear ramps with minimum border weight 
+
+0.1. Standard MultiDiffusion uses P 
+
+> i
+
+wiyi/ P 
+
+> i
+
+wi, whereas the prior-regularized implementation additionally accumulates P 
+
+> i
+
+wiyi and P 
+
+> i
+
+wi for the one-shot closed-form update in model-output space. In all reported FrescoDiffusion runs we use a cosine prior schedule with λbase = 1 .5 and cutoff τend = 0 .1, where τ =
+
+i/ (N − 1) and N = 6 (number of steps); hence the prior is active only at the first denoising step. In R-FrescoDiffusion, the active regions cutoff is τfg = 0 .1 and the inactive regions cutoff is τbg = 0 .35 . Since the six normalized step positions are {0, 0.2, 0.4, 0.6, 0.8, 1.0}, the foreground prior is active only at i = 0 , while the background prior is active at i = 0 and i = 1 . The active or inactive parts of the video are determined based on masks computed according to Sec. C.4. FrescoDiffusion 19 
+
+A.2 Sampling Procedure 
+
+At each step, we run the transformer on each crop of the canvas latent  x4K  
+
+> 0
+
+to obtain a per-tile prediction  yi. Then, we accumulate two canvas-shaped tensors: P 
+
+> i
+
+wi ⊙yi and  P 
+
+> i
+
+wi. We then add the prior term and divide as in (6) to produce a single fused prediction on the full canvas. Finally, we invoke the scheduler exactly once to obtain  xt+∆t . This preserves the original sampler while adding only light overhead: one extra reduction per pixel, a single pointwise rational fuse, and no additional network passes beyond those already required by tiled denoising. The full step is summarized in Algorithm 1. 
+
+Algorithm 1: FrescoDiffusion: one sampler step at time  t
+
+Input: canvas latent  x4K  
+
+> t
+
+∈ RC×T ×H4K ×W 4K 
+
+; tile positions  {pi}ni=1 ; weight maps  {wi}ni=1 ; upscaled prior  xprior ∈ RC×T ×H4K ×W 4K 
+
+; noise level  σt;prior-strength schedule  λ; flow-matching step size  ∆t ; flow-matching model fθ
+
+Output: updated canvas latent  x4K  
+
+> t+∆t
+> 1
+
+Initialize  num ← 0 ∈ RC×T ×H4K ×W 4K 
+
+, den ← 0 ∈ R1×1×H4K ×W 4K  
+
+> 2
+
+for  i = 1 , . . . , n  do  
+
+> 3
+
+˜xt ← Cpi (x4K  
+
+> t
+
+) // Crop canvas at pi 
+
+> 4
+
+˜yi ← fθ (˜ xt, t, c ) // Estimates crop flow  
+
+> 5
+
+yi ← Ppi (˜ yi) // Zero-pads the output  
+
+> 6
+
+num ← num + wi ⊙ yi // Updates the numerator  
+
+> 7
+
+den ← den + wi // Updates denominator  
+
+> 8
+
+// Add prior regularization 
+
+y ← num + λ σ t (x4K  
+
+> t
+
+− xprior )
+
+den + λ σ 2 
+
+> t
+> 9
+
+x4K  
+
+> t+∆t
+
+← SchedulerStep (x4K  
+
+> t
+
+, y, t ) // Update noisy states 
+
+## B Fresco Evaluation Dataset Construction 
+
+To facilitate the creation of UHD-I2V, we noticed that no dataset fits our require-ments for UHD-I2V. Unlike VBench high-definition [19] set or panoramas [24] that focus on one object or less, we search for images to animate with multiple intricate scenes. Here, we propose a new set to generate and evaluate UHD-I2V techniques at a fresco-like scale. We name our dataset FrescoArchive. We start with the LAION-2B Aesthetic Subset [29]. The first step is then filtering the images based on several criteria: having more than a million pixels, an aesthetic score of at least 5.8, and a watermark and unsafe scores of less than 0.8 and 0.5, respectively. This initial filtering process yielded a total of two million images. Next, we performed a semantic filtering process. To do this, for each image, 20 H. Caselles-Dupré et al. 
+
+we compute the average cosine similarity between the target instance and the prompts 
+
+"A large detailed fresco" "A magnificent fresco with many different scenes" "A narrative composition" "A fresco with lots of details" "A large polyptych and composite image fresco" "A large metapicture with several compositions" "A fresco tableau" "A painting fresco" 
+
+using the PerceptionEncoder [6] G14-448 variant similarity model, and we fin-ish by selecting the top 50,000 images. After, we used Intern-VL-3.5 [34] as a classifier to detect frescoes. To do so, we used the following prompt: 
+
+You are a visual classifier. Decide whether the image is a fresco-like composition. Definition (for this task): A qualifying image resembles a large, detailed, integrated scene (like historical frescoes). Modern photos or digital works count if they share these traits. Answer yes only if all are true: 
+
+– The image shows high apparent resolution / detail density (many fine, precise elements). 
+
+– There are multiple distinct sub-scenes or groups (from a few to dozens+) distributed across the same frame. 
+
+– These elements are blended into one coherent composition (no panel borders or obvious collage seams). Answer no if any of the following: 
+
+– Single subject or minimal detail. 
+
+– The fresco is not the main content of the image (e.g. the photo shows a wall, room, or museum scene where the fresco only appears as a small part, rather than the fresco itself being the full image). 
+
+– Simple graphics, logos, posters, or text-only images. 
+
+– Comics/manga with separate panels, tiled grids, or collages with hard borders. 
+
+– Diagrams, charts, UI/screenshots, or patterns. Unsure: answer no. Output format: Respond with exactly yes or no (lowercase, no punctuation, no extra words). 
+
+This filtering results in a total of 10,000 images. Finally, we deduplicated the dataset using both perceptual hashing and CNN-based deduplication techniques using the ImageDedup library [20]. Then, to generate UHD image captions, we used Qwen3-VL-32B [1] with both the image and LAION caption, resulting in 6,700 UHD image-caption pairs. To prompt Qwen3-VL-32B, we used the following text: FrescoDiffusion 21 
+
+Using the existing caption below as context, write a long, highly detailed, precise, and fluent caption that thoroughly describes the image. Give some precise contextual information, relative positional information, subjects, objects and elements description and identification. Caution: the caption provided can be false or wrong; use the image as the only source of truth. The caption is only here to help you be more precise. Respond with the caption only (no preface, no metadata, no quotes). Existing caption: {caption} 
+
+Finally, we manually selected 371 pairs to get the best qualitative image-captions pairs.                        
+
+> Dataset Samples Words Image Width Image Height FrescoArchive 371 355.79 ±88.0 2265 ±1257 1552 ±864 VBench 361 14.70 ±2.24 4592 ±1305 3748 ±1214
+> Table 4: Dataset statistics. We compare FrescoArchive and VBench datasets’ low-level statistics.
+
+For the statistics, we compute several metrics (text and image-wise) and quantitatively compare with VBench I2V [19] to mark a reference point. First, we compute high-level statistics, seen in Tab. 4. We measure the number of samples, average number of words per prompt, and average width and height. As we can see, our set contains a similar number of images as VBench. Yet, our prompts contain an order of magnitude more than VBench, depicting more precise and detailed prompts. As for the average image shape, our set contains smaller images, but with more complex scenery. In Fig. 8, you can see the number of words and shape distribution of our dataset. Next, we qualitatively study FrescoArchive’s complexity with reference to VBench. To do this, we first encode all images using the DINOv2 [25] model to get a global view of each image. Then, we perform a PCA dimensionality reduction to visualize their distribution. Finally, using the resulting reduction, we further visualize individual crops. As can be seen in Fig. 9, the resulting PCA shows that our dataset covers a wider span of the main axes, unlike VBench. This suggests that our dataset has more diversity in shared components using the global DINO features. 
+
+## C Experiment Details 
+
+C.1 Metrics Sharpness metric. We assess per-frame sharpness using the Tenengrad [26] measure, a classical no-reference focus metric based on directional gradient en-22 H. Caselles-Dupré et al. 200 300 400 500 600          
+
+> #words
+> 0.000
+> 0.001
+> 0.002
+> 0.003
+> 0.004
+> 0.005
+> Frequency
+> Word count 01000 2000 3000 4000 5000 6000 7000 8000 9000
+> Width (px)
+> 0
+> 1000
+> 2000
+> 3000
+> 4000
+> 5000
+> 6000
+> Height (px)
+> Width-Height distribution
+> 3840px
+> 2160px
+> 1080px
+> 1920px
+
+Fig. 8: Analysis of FrescoArchive dataset. Left: distribution of word in caption. Right: Resolution of images distribution. 30 20 10 0 10 20 20 
+
+15 
+
+10 
+
+5
+
+0510 15 FrescoArchive Crops VBench Crops FrescoArchive Images VBench Images 
+
+30 20 10 0 10 20 20 
+
+15 
+
+10 
+
+5
+
+0510 15 
+
+PCA decomposition with crops FrescoArchive Crops VBench Crops FrescoArchive Images VBench Images 
+
+Fig. 9: PCA between FrescoArchive and VBench I2V dataset. We visualize the DINOv2 [25] feature PCA between our proposed dataset and VBench’s images (red and green points, respectively). Also, in light green and red, random crops of the im-ages. This plot shows that our dataset contains images with different statistics than standard ones, found in the VBench I2V set. FrescoDiffusion 23 
+
+ergy. For each frame, the luminance channel is extracted and horizontal and ver-tical gradients are computed using a 3 ×3 Sobel operator. The Tenengrad score is defined as the mean squared gradient magnitude T = 1
+
+> HW
+
+P 
+
+> i,j
+
+(G2
+
+> x
+
+(i, j ) + 
+
+G2 
+
+> y
+
+(i, j )) , where Gx and Gy are the responses of the Sobel filters along each axis. This quantity is sensitive to high-frequency spatial structure and penalizes blurry outputs where gradient energy is suppressed. Per-frame scores are aver-aged over all frames of a video to yield a single video-level score. Higher values indicate sharper, more detail-preserving outputs. 
+
+Temporal consistency metric. Each frame is first converted to grayscale and then downsampled to 128 × 128 pixels using area-averaging interpolation, retaining only coarse spatial structure. The temporal inconsistency score for a video of T frames is defined as the mean squared error between consecutive downscaled frames: C = 1 
+
+> T−1
+
+PT −1 
+
+> t=1
+
+| ˆft − ˆft−1|2 
+
+> F
+
+/  64 2, where ˆft denotes the downscaled grayscale frame at time t. By operating at this coarse resolution, the metric captures global consistency while remaining agnostic to legitimate scene motion. 
+
+Prior alignment metric. We measure how faithfully each generated video preserves the global semantic content of the prior using a frame-level feature alignment score based on DINOv3 [30]. For each frame pair (f prior  
+
+> t
+
+, f gen  
+
+> t
+
+), both frames are independently forwarded through a frozen DINOv3 ViT-S/16 encoder without any resizing ( i.e ., at native resolution), and we extract the CLS token from each: the pooled global representation output by the transformer. Prior alignment is then defined as the mean cosine similarity between corresponding CLS tokens across all T frames of a video: A = 1
+
+> T
+
+PTt=1      
+
+> ⟨zprior
+> t,zgen
+> t⟩∥zprior
+> t∥ ∥ zgen
+> t∥
+
+, which equivalently measures the cosine of the angle between the two CLS token direc-tions in feature space. We report the mean of this score across all videos in the benchmark; higher values indicate that the generated video remains semantically aligned to the prior along its temporal trajectory. A key advantage of DINOv3 over its predecessor DINOv2 is its ability to process high-resolution inputs, in-cluding 4K frames, without interpolating positional embeddings or resizing the input. This property is essential in our setting, where the generated videos are high-resolution and downscaling prior to feature extraction would discard fine-grained content that may be critical for alignment assessment. 
+
+C.2 Standard low-resolution I2V metrics 
+
+On Table 2 in the main paper, we presented the average results on both Fres-coArchive and VBench-I2V datasets. Here, in Table 5, we detail each metric: Subject Consistency, Motion Smoothness, Aesthetic, Imaging, I2V Subject Con-sistency, and I2V Background Consistency. 24 H. Caselles-Dupré et al. 
+
+Table 5: Quantitative evaluation on FrescoArchive and VBench-I2V. Higher is better for all metrics except time. Best in bold and second best underlined. ∗ denotes methods adapted to the video prior setting. SC, MS, A, I, ISC, and IBC stand for Subject Consistency, Motion Smoothness, Aesthetic, Imaging, I2V Subject Consistency, and I2V Background Consistency, respectively. Method Quality Metrics I2V Metrics Avg Time SC MS A I ISC IBC                                                                                          
+
+> FrescoArchive
+> DynamicScaler (original) 0.945 0.975 0.693 0.706 0.893 0.930 0.857 18.45 DynamicScaler ∗(CVPR’25) 0.852 0.971 0.681 0.754 0.980 0.989 0.871 10.25 DemoFusion ∗(CVPR’23) 0.960 0.987 0.734 0.752 0.990 0.994 0.903 13.5 MultiDiffusion ∗(ICML’23) 0.876 0.974 0.686 0.754 0.981 0.989 0.876 8.15
+> FrescoDiffusion 0.958 0.990 0.738 0.753 0.991 0.995 0.904 8.58 R-FrescoDiffusion 0.977 0.991 0.736 0.753 0.991 0.994 0.907 9.08
+> VBench-I2V
+> DynamicScaler (original) 0.949 0.976 0.707 0.713 0.893 0.932 0.862 18.45 DynamicScaler ∗(CVPR’25) 0.904 0.985 0.621 0.701 0.988 0.991 0.865 10.25 DemoFusion ∗(CVPR’23) 0.943 0.989 0.639 0.720 0.990 0.993 0.879 13.5 MultiDiffusion ∗(ICML’23) 0.893 0.984 0.611 0.698 0.987 0.989 0.860 8.15
+> FrescoDiffusion 0.933 0.989 0.632 0.716 0.989 0.992 0.875 8.58 R-FrescoDiffusion 0.956 0.989 0.634 0.712 0.988 0.991 0.878 9.08
+
+C.3 Baseline Implementation Details 
+
+MultiDiffusion. Our implementation follows the original MultiDiffusion [3] pro-cedure without additional heuristics. The only modifications are (i) replacing the base backbone with Wan2.2 I2V in place of the original denoiser, and (ii) applying a linear decay blending mask outside each tile to smoothly attenuate contributions near tile borders and reduce seam artifacts when merging overlap-ping predictions. 
+
+DemoFusion. DemoFusion [12] introduces three techniques for high-resolution image generation. We re-implemented (i) progressive phase upsampling and (ii) skip-residual global guidance, reusing the exact hyper-parameters from the au-thors’ official code to enable a faithful comparison. These parameters control how resolution increases across phases (number of phases, per-phase upsampling factor, and per-scale denoising schedule) and the strength of global-structure guidance during refinement. In contrast, we did not observe reliable gains from DemoFusion-style dilated sampling when transferring it from SDXL’s UNet de-noiser to Wan2.2’s DiT-based denoiser. We hypothesize this is because dilated sampling assumes updates are roughly separable across interleaved sub-lattices an assumption that fits UNets’ local, convolutional structure but breaks for DiT models with global self-attention. Evaluating Wan2.2 on sparse lattices changes the attention context and likely shifts inputs off-distribution, leading to inconsis-FrescoDiffusion 25 
+
+tent offsets that merge into visible artifacts (seams/checkerboards) rather than improved coherence. 
+
+DynamicScaler. We follow the authors’ official implementation of Dynamic-Scaler [24] and reuse their released hyper-parameters for both the offset-shifting denoiser and the global motion-guidance module. We condition motion guid-ance on the same low-resolution video that we use for our FrescoDiffusion reg-ularization prior, so both signals rely on an identical motion reference. For the sliding/rotating denoising window, we set the per-step offset (stride) to half the window size, i.e . a 50% overlap between consecutive windows, which stabilizes stitching across steps and mitigates boundary artifacts. 
+
+C.4 Spatial Activity Map Computation 
+
+Given an input frame, we compute a spatial activity map using SAM3 [7]. The region to animate can also be explicitly specified by the user. For automated processing and ease of use, we employ a segmentation pipeline that identifies plausible dynamic entities and converts them into a spatial activity map. The activity map is computed once per image, stored at latent resolution, clamped to [0 , 1] , resized to the current latent size with standard trilinear in-terpolation, binarized using the test A > 0, and then kept fixed throughout sampling. 
+
+Prompt-based segmentation. Our default pipeline queries SAM3 using a fixed set of prompts corresponding to categories that commonly exhibit motion. Specifi-cally, we provide the following textual prompts to the model: 
+
+– person 
+
+– vegetation 
+
+– vehicles For each prompt, SAM3 predicts candidate spatial masks corresponding to instances of the queried category. The masks are then averaged. Visualizations of such masks are provided in Fig. 10. 
+
+Mask extraction and filtering. SAM3 predictions are filtered using a score thresh-old τs = 0 .45 . We discard masks whose relative area exceeds 0.30 of the image area, as such regions typically correspond to overly coarse detections. We addi-tionally remove masks with excessive boundary contact, defined as cases where more than 80% of the mask pixels lie within a 10 -pixel margin of the image border. 
+
+Spatial support. For each retained mask, we construct a spatial support region by dilating the mask using a Euclidean distance transform with radius r = 75 
+
+pixels. The resulting regions are merged to produce the final spatial activity map. 26 H. Caselles-Dupré et al. 
+
+Exploratory variants. We explored two extensions of this pipeline. First, we ex-perimented with extending the spatial mask across time. Using SAM3 together with the generated prior video, the mask predicted on the input frame was prop-agated to cover the full temporal extent of the video, as seen in Fig. 11. Second, we evaluated a variant in which the prompts provided to SAM3 are generated automatically using a vision-language model. In this setup, Qwen3-VL-32B [1] analyzes both the input image and the generated prior video to produce textual prompts corresponding to entities that could plausibly support animation. These prompts are then used to condition SAM3, while mask extraction, filtering, and spatial support construction remain identical to the default pipeline. In prac-tice, neither the temporal mask propagation nor the VLM-guided prompting produced measurable improvements over the fixed-prompt approach. As both variants introduce additional computational overhead, they were not used for the final results reported in the paper. FrescoDiffusion 27 
+
+Fig. 10: Additional qualitative examples of spatial activity maps obtained with SAM3. Each image shows the overlay used to identify regions likely to contain dynamic content, which are then used to guide the active/inactive prior regularization in R-FrescoDiffusion. 
+
+frame 1 frame 40 frame 80 
+
+Fig. 11: Two qualitative examples showing the temporal masks obtained with SAM3 at frames 1, 40, and 80. The video overlaid is the prior generated with Wan model. 28 H. Caselles-Dupré et al. 
+
+## D FrescoDiffusion Additional Examples 
+
+frame 1 frame 48 frame 80 
+
+Fig. 12: Additional examples obtained on our FrescoArchive dataset. First 2 rows obtained with FrescoDiffusion and last 2 rows obtained with R-FrescoDiffusion; columns show the same frame indices. FrescoDiffusion 29 
+
+frame 1 frame 48 frame 80 
+
+Fig. 13: Additional examples obtained on VBench I2V dataset. First 3 rows obtained with FrescoDiffusion and 2 last rows obtained with R-FrescoDiffusion; columns show the same frame indices. 30 H. Caselles-Dupré et al. 
+
+## E FrescoDiffusion closed-form solution in noise prediction setting 
+
+Our proposed approach can be used with ϵ-prediction diffusion models. We mod-ify the FrescoDiffusion loss in Eq. (5) to include the one-step approximation of the ϵ-diffusion formulation: 
+
+ℓFD (y⋆; t) = √λ ⊙
+
+ 1
+
+√αt
+
+ x4K  
+
+> t
+
+− √1 − αt y⋆ − xprior 
+
+ 22
+
++ ℓMD (y⋆; t), (9) where αt = Qti=1 (1 − βi) and βt are the schedule variances, and the one-step approximation is given by 1√αt
+
+ x4K  
+
+> t
+
+− √1 − αt y⋆. Next, we set the derivative of Eq. (9) to 0 to solve for the optimal noise output. Hence, the optimal ϵ noise is: 
+
+yFD (x4K  
+
+> t
+
+) = 
+
+q 1−αt 
+
+> αt
+
+λ ⊙
+
+ 1√αt x4K  
+
+> t
+
+− xprior 
+
+
+
++
+
+> n
+
+X
+
+> i=1
+
+wi ⊙ yi 
+
+> 1−αt
+> αt
+
+λ +
+
+> n
+
+X
+
+> i=1
+
+wi
+
+. (10) We adopt the same variable definitions, as in the main text, for the current noisy state x4K  
+
+> t
+
+, the prior, xprior , the weighting tensors wi, and the prior regularization strength λ. As in the flow-matching formulation, when λ = 0 , yFD reduces to 
+
+yMD .
