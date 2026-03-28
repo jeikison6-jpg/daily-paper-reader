@@ -1,0 +1,5551 @@
+Title: End-to-End Efficient RL for Linear Bellman Complete MDPs with Deterministic Transitions
+
+URL Source: https://arxiv.org/pdf/2603.23461v1
+
+Published Time: Wed, 25 Mar 2026 01:35:37 GMT
+
+Number of Pages: 52
+
+Markdown Content:
+# End-to-End Efficient RL for Linear Bellman Complete MDPs with Deterministic Transitions 
+
+## Zakaria Mhammedi ∗
+
+## Google Research, NYC Alexander Rakhlin MIT Nneka Okolo MIT March 25, 2026 
+
+Abstract 
+
+We study reinforcement learning (RL) with linear function approximation in Markov Decision Processes (MDPs) satisfying linear Bellman completeness —a fundamental setting where the Bellman backup of any linear value function remains linear. While statistically tractable, prior computationally efficient algorithms are either limited to small action spaces or require strong oracle assumptions over the feature space. We provide a computationally efficient algorithm for linear Bellman complete MDPs with deterministic transitions , stochastic initial states, and stochastic rewards. For finite action spaces, our algorithm is end-to-end efficient; for large or infinite action spaces, we require only a standard argmax oracle over actions. Our algorithm learns an ε-optimal policy with sample and computational complexity polynomial in the horizon, feature dimension, and 1/ε.
+
+# 1 Introduction 
+
+Reinforcement Learning (RL) is a standard framework for sequential decision making (Sutton and Barto, 2018), with applications ranging from game playing (Mnih et al., 2015; Silver et al., 2016) and robotics (Andrychowicz et al., 2020) to training and fine-tuning large language models (Ouyang et al., 2022; Schulman et al., 2017). In many of these applications, the state and action spaces are large or infinite, making function approximation essential to generalize across states and actions (Bertsekas and Tsitsiklis, 1996; Sutton and Barto, 2018). A classical and widely studied approach is linear value function approximation , where one represents value functions as linear functions of pre-specified feature vectors. This approach dates back decades (Bradtke and Barto, 1996; Sutton and Barto, 2018) and continues to underpin many modern empirical methods (Mnih et al., 2015; Schulman et al., 2017). 
+
+Linear Bellman completeness. This paper focuses on linear Bellman complete MDPs, a fundamental setting in RL with function approximation. In this setting, we are given feature maps ϕh ∶ X × A → Rd for each step h in the horizon (where X and A are the state and action spaces, respectively), and we assume that the Bellman backup of any linear function (in these features) remains linear. The Bellman backup at step h
+
+maps a function fh+1 ∶ X × A → R to the function (x, a ) ↦ E[rh + max a′ fh+1(xh+1, a ′) ∣ xh = x, ah = a]; it is the core operator underlying value iteration. Formally, linear Bellman completeness means that for any linear function ⟨ϕh+1(x, a ), θ ⟩, its Bellman backup at step h can be expressed as ⟨ϕh(x, a ), θ ′⟩ for some coefficient vector θ′. This structural assumption is attractive for several reasons: 
+
+• Generality: Linear Bellman completeness strictly generalizes several well-studied RL models, including linear MDPs (Jin et al., 2020; Yang and Wang, 2019), and also captures the Linear Quadratic Regulator (LQR), a cornerstone model in control theory (Bertsekas and Tsitsiklis, 1996; Wu et al., 2024).  
+
+> ∗Correspondence to: mhammedi@google.com
+
+1
+
+> arXiv:2603.23461v1 [cs.LG] 24 Mar 2026
+
+• Necessity for value iteration: It is a necessary condition for the success of least-squares value iteration (LSVI), one of the most classical algorithms in RL (Bradtke and Barto, 1996). Without Bellman completeness, LSVI can diverge arbitrarily (Tsitsiklis and Van Roy, 1996). 
+
+• Statistical tractability: When the learner has access to sufficiently exploratory data, linear Bellman completeness is sufficient for statistically efficient learning (Munos, 2005; Munos and Szepesvári, 2008; Zanette et al., 2020b). 
+
+The computational challenge. Despite its simplicity and statistical tractability, linear Bellman complete-ness appears to exhibit a statistical-computational gap . While we know that polynomial sample complexity is achievable, the proposed algorithms that attain it are computationally intractable (Zanette et al., 2020b; Jin et al., 2021). This gap is particularly notable given the centrality of linear Bellman completeness to the theory of value iteration. The core difficulty is exploration : algorithms must collect data with sufficient coverage to learn a near-optimal policy. Classical approaches that rely on data from a fixed exploratory policy can fail if that policy does not provide adequate coverage of the state-action space, leading to poor sample efficiency or suboptimal policies (Munos, 2005). Overcoming this requires careful exploration, but the two principal exploration paradigms that have proven successful in simpler RL settings both break down for linear Bellman complete MDPs: 
+
+• Optimistic bonuses. In tabular MDPs and linear MDPs, algorithms such as UCBVI (Azar et al., 2017; Jin et al., 2018) and LSVI-UCB (Jin et al., 2020) add exploration bonuses to the reward that scale inversely with the frequency of visits to each state (or feature direction). This “local optimism” approach is computationally efficient but requires that the value function class be complete with respect to these exploration bonuses. Unfortunately, for linear Bellman completeness, standard bonus functions (e.g., quadratic functions of the features) do not preserve linearity under Bellman backups, breaking this approach (Zanette et al., 2020b). 
+
+• Global optimism and version spaces. An alternative approach is to maintain a version space of plausible value functions and construct policies that are optimistic with respect to this set (Jiang et al., 2017; Zanette et al., 2020b; Jin et al., 2021; Du et al., 2021). While statistically efficient, these methods require solving complex nonconvex optimization problems at each step, making them computationally intractable even in the linear case. As a result, the following fundamental question has remained open: 
+
+Is there an algorithm that learns a near-optimal policy in a linear Bellman complete MDP using 
+
+poly (d, H, 1/ε) samples and computation time? 
+
+Even the special case where the action space is a small constant was only recently resolved (Golowich and Moitra, 2024a), but their approach has complexity exponential in ∣A∣. Moreover, their algorithm requires a bounded Q-function parameter assumption. As shown in (Wu et al., 2024, Section 3.1), this assumption significantly limits generality: it excludes linear MDPs as a special case, since Bellman backups can amplify parameter norms arbitrarily (we discuss this limitation in more detail in Section I). Prior to this, Zanette et al. (2020c) gave the first computationally efficient algorithm (FRANCIS), but under a strong reachability assumption requiring that every feature direction be reachable. 
+
+Our setting and contributions. We study the setting where the state transition dynamics are deterministic 
+
+but the initial state and rewards are stochastic (Wen and Van Roy, 2017; Du et al., 2020; Wu et al., 2024). This setting is practically relevant (e.g., in simulators, game environments, or robotic systems with known physics but stochastic rewards), and it remains theoretically challenging: the learner must still explore to estimate value functions from noisy reward feedback and handle stochastic initial states. Importantly, even this restricted setting has remained open for large action spaces. While Wu et al. (2024) studied this setting, their approach is not end-to-end computationally efficient: it relies on a linear optimization oracle over the feature space (one that solves problems of the form sup (x,a )∈X ×A ϕh(x, a )⊺θ for various θ). Such an oracle is not needed in, e.g., the linear MDP setting, and its requirement represents a significant gap. Resolving this discrepancy is an important step toward understanding the general problem. 2Our main contribution is a computationally efficient algorithm for linear Bellman complete MDPs with deterministic transitions, large action spaces, and stochastic rewards and initial states. For finite action spaces, our algorithm is end-to-end computationally efficient and requires no oracle access. For infinite action spaces, we require only an argmax oracle over actions (i.e., argmax a∈A ϕh(x, a )⊺θ for a given x and θ), which is the standard oracle assumption used even in computationally efficient linear MDP algorithms (Jin et al., 2020). At a high level, the algorithm proceeds layer-by-layer, constructing a small set of policies that induce feature vectors spanning the relevant subspaces at each layer. The key insight is that deterministic dynamics enable efficient discovery of all relevant feature directions without requiring the linear optimization oracle that prior work relies upon. While the paradigm of first learning a policy cover and then planning is well-established (Du et al., 2019; Mhammedi et al., 2023a,b), adapting it to linear Bellman completeness requires new ideas. The novelty in our approach lies in: (i) exploiting deterministic dynamics to efficiently construct the cover without solving complex optimization problems, and (ii) reducing stochastic-reward planning to deterministic-reward planning by first estimating the instantaneous reward parameters—this reduction allows us to bypass the bounded 
+
+Q-function parameter assumption required by prior work. 
+
+Organization. Section 2 formalizes the setting and introduces notation. Section 3 presents a warm-up algorithm for finite action spaces, and Section 4 extends to large action spaces. The appendix contains related work (Section I), proofs of the main theorems, and supporting technical lemmas. 
+
+# 2 Preliminaries 
+
+We model the environment as a Markov Decision Process (MDP), formally given by a tuple M = (X , A, H, P, r ⋆).Here X and A denote the state and action spaces, both of which may be large or infinite; when A is finite, we write A ∶= ∣A∣. The horizon is H ∈ N. The reward function is specified by r⋆ = {r⋆
+
+> h
+
+}Hh=1 where each 
+
+r⋆ 
+
+> h
+
+∶ X × A → [0, 1]. The transitions are governed by P = {Ph}Hh=0 where Ph ∶ X × A → ∆(X ) for h ≥ 1, and 
+
+P0(⋅ ∣ ∅) specifies the initial state distribution. A deterministic policy is a sequence π = {πh ∶ X → A}Hh=1. We denote by Π the set of all deterministic policies and focus on such policies throughout. Under policy π ∈ Π, a trajectory (x1, a1, r1), . . . , (xH , aH , rH ) is generated via ah = πh(xh), rh ∼ r⋆
+
+> h
+
+(xh, ah), xh+1 ∼ Ph(⋅ ∣ xh, ah), starting from x1 ∼ P0(⋅ ∣ ∅). We use Pπ [⋅]
+
+and Eπ [⋅] to denote probability and expectation with respect to this sampling process. The state-action value function ( Q-function) and state value function are defined as Qπh (⋅, ⋅) ∶= Eπ [∑Hτ =h rτ ∣
+
+xh = ⋅, ah = ⋅] and V πh (⋅) ∶= Qπh (⋅, π h(⋅)) , respectively. We write V ⋆ 
+
+> h
+
+(⋅) ∶= sup π V πh (⋅) for the optimal value. More generally, for an arbitrary collection of reward functions r1∶H (where each rh ∶ X × A → R), we define the value functions under r1∶H as 
+
+Qπh (x, a ; r1∶H ) ∶= Eπ [
+
+> H
+
+∑ 
+
+> τ=h
+
+rτ (xτ , aτ ) ∣ xh = x, ah = a] , V πh (x; r1∶H ) ∶= Qπh (x, π h(x); r1∶H ).
+
+When r1∶H = r⋆ 
+
+> 1∶H
+
+(the MDP’s reward functions), this recovers the standard notation: V πh (⋅) = V πh (⋅; r⋆ 
+
+> 1∶H
+
+).
+
+Definition 2.1 (Linear Bellman completeness). For each layer h ∈ [H], let ϕh ∶ X × A → Rd be a feature map and define Bh ∶= {θ ∈ Rd ∶ ∣⟨ ϕh(x, a ), θ ⟩∣ ≤ 1 ∀(x, a ) ∈ X × A} .
+
+The MDP M is defined to be linear Bellman complete with respect to the feature mappings (ϕh)h∈[H] if, for each h ∈ [H], there is a mapping Th ∶ Bh+1 → Bh so that, 
+
+∀θ ∈ Bh+1, ∀(x, a ) ∈ X × A, ⟨ϕh(x, a ), Thθ⟩ = E [max  
+
+> a′∈A
+
+⟨ϕh+1(xh+1, a ′), θ ⟩ ∣ xh = x, ah = a] .
+
+Assumption 2.1 (Deterministic transitions and Linear Bellman completeness). We assume: 
+
+31. Deterministic transitions: For each h ∈ [H], the transition Ph(⋅ ∣ x, a ) is supported on a single state for all 
+
+(x, a ) ∈ X × A. (The initial state x1 and rewards rh remain random.) 2. Linear Bellman completeness: The MDP M satisfies Definition 2.1 with respect to ϕ1∶H .
+
+Assumption 2.2 (Boundedness and linearity). We assume the feature maps ϕ1∶H are known and that: 1. Boundedness: For all h ∈ [H] and (x, a ) ∈ X × A, ∥ϕh(x, a )∥ 2 ≤ 1.2. Reward linearity: For all h ∈ [H], E[rh ∣ xh = x, ah = a] = ⟨w⋆
+
+> h
+
+, ϕ h(x, a )⟩ for some unknown w⋆ 
+
+> h
+
+∈ Rd with 
+
+∥w⋆
+
+> h
+
+∥ ≤ √d.
+
+Boundedness assumptions. Several related definitions of linear Bellman completeness have been consid-ered in the literature, some of which impose additional ℓ2-norm constraints that can be overly restrictive. We briefly discuss two such assumptions and explain why they are problematic: 1. Bounded Q-function parameters. Some works (Golowich and Moitra, 2024a; Zanette et al., 2020b,c) assume that the parameter vector θ of any Q-function satisfies ∥θ∥2 ≤ R for some polynomial R in d. This additional assumption weakens the generality of linear Bellman completeness: as shown in (Wu et al., 2024, Section 3.1), it excludes linear MDPs as a special case. 2. Non-expansiveness of Bellman backup. Song et al. (2022) assume that Bellman backups do not increase the 
+
+ℓ2-norm of parameters. This is even more restrictive and fails in simple tabular MDPs (Wu et al., 2024). In contrast, Item 2 of Assumption 2.2 only assumes bounded parameters ∥w⋆
+
+> h
+
+∥ ≤ √d for the instantaneous reward functions. This is a standard assumption in the linear MDP literature (Jin et al., 2020) and does not constrain the Q-function parameters. 1
+
+Action argmax oracle. Throughout, we assume that ties in argmax a∈A operations are broken in an arbitrary but fixed manner. For large or infinite action spaces, we assume access to an oracle that returns this argmax, i.e., computes argmax a∈A ϕh(x, a )⊺θ for any given state x and vector θ.
+
+Goal. Our goal is to derive an algorithm that returns a policy ̂ π with E[V ⋆ 
+
+> 1
+
+(x1) − V̂ π 
+
+> 1
+
+(x1)] ≤ ε with probability 1 − δ. For finite action spaces, we aim for an end-to-end computationally efficient algorithm with sample complexity polynomial in (d, H, 1/ε, log (1/δ)) . For large or infinite action spaces, we aim for the same complexity, with an additional polynomial number of calls to the action argmax oracle. 
+
+Additional notation. Since transitions and policies are deterministic, the trajectory from any x1 = x
+
+under π is unique. We write ϕπh (x) for the feature ϕh(xh, ah) along this trajectory. 
+
+# 3 Warm Up: An Efficient Algorithm Under Finite Actions 
+
+In this section, we present a simpler algorithm and analysis for finding a near-optimal policy in linear Bellman complete MDPs (under Assumptions 2.1 and 2.2) that runs in polynomial time, albeit with polynomial dependence on the number of actions A. Our approach combines existing algorithmic building blocks: the 
+
+Optimistic Constraint Propagation (OCP ) algorithm of Wen and Van Roy (2017) and the robust barycentric spanner construction from Mhammedi et al. (2023a). 
+
+Prior work and context. Wu et al. (2024) observed that OCP (Wen and Van Roy, 2017) extends to linear Bellman completeness when rewards and transitions are both deterministic, but noted it may not apply when rewards are stochastic. Here we show that OCP , combined with additional machinery, can tackle stochastic rewards—with complexity polynomial in A. In Section 4, we present our main algorithm which removes dependence on A.  
+
+> 1Importantly, even with bounded reward parameters and Bellman completeness, the Q-function parameters can still grow unboundedly—but this does not pose a problem for our approach, which circumvents the need to bound Q-function parameters (see Sections 3 and 4).
+
+4High-level approach. Our approach adopts the two-phase exploration-exploitation principle used in prior work (Du et al., 2019; Misra et al., 2020; Mhammedi et al., 2023b), with Mhammedi et al. (2023a) being closest to ours: 
+
+• Phase I (Exploration): Build a policy cover layer-by-layer. A policy cover is a collection of spanning policies 
+
+Γ1∶H such that for each layer h, the expected feature vectors {Eπ [ϕh(xh, ah)] ∶ π ∈ Γh} approximately span the space of all reachable expected features. This is achieved via barycentric spanner computation. 
+
+• Phase II (Exploitation): Estimate reward parameters via regression on rollouts from the policy cover, then use policy optimization. By estimating rewards first , we bypass the bounded Q-function parameter assumption (Section 2). Phase I uses only deterministic intrinsic rewards (linear in features by construction), for which OCP succeeds. Phase II estimates stochastic reward parameters first, reducing to a deterministic setting where OCP applies. 
+
+Barycentric spanner. Our exploration phase relies on barycentric spanners (Awerbuch and Kleinberg, 2008): a C-barycentric spanner for W ⊆ Rd is a subset {w1, . . . , w d} ⊆ W such that every w ∈ W can be written as w = ∑di=1 βiwi with ∣βi∣ ≤ C. In our setting, W = {Eπ [ϕh(xh, ah)] ∶ π ∈ Π}. We use the relaxed 
+
+(C, ε )-approximate spanner (Mhammedi et al., 2023a), allowing additive error: ∥w − ∑di=1 βiwi∥ ≤ ε with 
+
+∣βi∣ ≤ C. Such a spanner provides a basis for exploration: rollouts from spanning policies yield features approximately covering all “reachable” directions. To compute a spanner, we use RobustSpanner from (Mhammedi et al., 2023a), which tolerates approximate oracles (unlike (Awerbuch and Kleinberg, 2008)) at the cost of additive error ε. The algorithm requires two oracles: 1. Approximate linear optimization (LinOpt ): Given θ ∈ Rd, return ̂ π approximately maximizing the functional π ↦ θ⊺Eπ [ϕh(xh, ah)] over π ∈ Π.2. Vector estimation (Vec ): Given π, estimate Eπ [ϕh(xh, ah)] = E[ϕπh (x1)] .Tolerance to approximation errors is critical since errors arise from estimation. We implement LinOpt via 
+
+OCP and Vec via Monte Carlo (Algorithm 9); see Section N. 
+
+Optimistic Constraint Propagation ( OCP ). The OCP algorithm was introduced by Wen and Van Roy (2017) for efficient reinforcement learning in deterministic systems with general function approximation. Given a hypothesis class Q of candidate Q-functions, OCP acts optimistically by maximizing over Q, and refines 
+
+Q via Bellman consistency constraints after each transition. The main assumptions are “ Q⋆-realizability” (optimal Q-function in Q) and deterministic rewards and transitions; the regret bound scales with the eluder dimension of Q. The former assumption holds under linear Bellman completeness with linear Q. Our presentation (Algorithm 1) takes reward functions r1∶H as input, allowing OCP to be invoked with rewards different from the true MDP rewards. For finite actions, OCP is efficient: the optimization in Algorithm 1 (supremum over Q-functions then actions) can be solved by enumerating actions and solving a linear program for each. This becomes intractable for large/infinite action spaces or with only an action argmax oracle. The original guarantee of Wen and Van Roy (2017) is a regret bound. To adapt to our PAC setting (stochastic initial states, single near-optimal policy), we add evaluation (Lines 13–17) that returns the best-performing policy among the first T episodes. The PAC guarantee follows via standard online-to-batch conversion. 5Algorithm 1 OCP : Optimistic Constraint Propagation; adapted from (Wen and Van Roy, 2017) 
+
+Require: r1∶H , Q, T 
+
+> 1:
+
+Initialize Q1 ← Q. 
+
+> 2:
+
+for episode j = 1, . . . , T do  
+
+> 3:
+
+Sample initial state xj 
+
+> 1
+
+∼ P0(⋅ ∣ ∅). 
+
+> 4:
+
+for h = 1, . . . , H do  
+
+> 5:
+
+Define ̂ πj
+
+> h
+
+(⋅) ∶= argmax a∈A sup Q∈Qj Qh(⋅, a ) and set aj 
+
+> h
+
+←̂ πj
+
+> h
+
+(xj
+
+> h
+
+). 
+
+> 6:
+
+if h < H then  
+
+> 7:
+
+U j 
+
+> h
+
+← sup Q∈Qj (rh(xj
+
+> h
+
+, aj
+
+> h
+
+) + sup a∈A Qh+1(xj
+
+> h+1
+
+, a )) . 
+
+> 8:
+
+Lj 
+
+> h
+
+← inf Q∈Qj (rh(xj
+
+> h
+
+, aj
+
+> h
+
+) + sup a∈A Qh+1(xj
+
+> h+1
+
+, a )) . 
+
+> 9:
+
+else  
+
+> 10:
+
+U j 
+
+> h
+
+← rh(xj
+
+> h
+
+, aj
+
+> h
+
+), Lj 
+
+> h
+
+← rh(xj
+
+> h
+
+, aj
+
+> h
+
+). 
+
+> 11:
+
+Qj ← Qj ∩ {Q ∈ Q ∶ Lj 
+
+> h
+
+≤ Qh(xj
+
+> h
+
+, aj
+
+> h
+
+) ≤ U j
+
+> h
+
+}. 
+
+> 12:
+
+Qj+1 ← Qj . 
+
+> /* Policy evaluation: added for PAC guarantee */
+> 13:
+
+J ← −∞ . 
+
+> 14:
+
+for i = 1, . . . , T do  
+
+> 15:
+
+Sample T trajectories: (xj
+
+> 1
+
+, aj
+
+> 1
+
+, . . . , xj 
+
+> H
+
+, aj 
+
+> H
+
+) ∼ P̂
+
+> πi
+
+, for j ∈ [T ]. 
+
+> 16:
+
+Set Ji ← 1 
+
+> T
+
+∑Tj=1 ∑Hh=1 rh(xj
+
+> h
+
+, aj
+
+> h
+
+). // empirical value of ̂ πi 
+
+> 17:
+
+if J < Ji then set J ← Ji and ̂ π ←̂ πi. // best policy so far  
+
+> 18:
+
+Return: ̂ π.
+
+Lemma 3.1 (Guarantee of OCP ). Fix ε, δ ∈ (0, 1) and R > 0. Consider a call to OCP (Algorithm 1) with reward functions r1∶H , function class Q = {Q1∶H ∶ Qh(x, a ) = θ⊺ϕh(x, a ), θ ∈ Rd, ∣Qh(x, a )∣ ≤ HR }, and number of episodes T = poly (∣ A∣, d, H, R, 1 
+
+> ε
+
+, log ( 1 
+
+> δ
+
+)) sufficiently large. Suppose that Assumptions 2.1 and 2.2 hold and that the rewards r1∶H are such that for all h ∈ [H], ∥rh∥∞ ≤ R and there exists a vector wh ∈ Rd such that rh(⋅, ⋅) = w⊺
+
+> h
+
+ϕh(⋅, ⋅). Then, with probability at least 1 − δ, the output policy ̂ π of OCP satisfies 
+
+E[V ⋆ 
+
+> 1
+
+(x1; r1∶H ) − V̂ π 
+
+> 1
+
+(x1; r1∶H )] ≤ ε. (1) 
+
+Moreover, the computational cost of OCP is poly (∣ A∣, d, H, R, T ).
+
+Building a policy cover layer-by-layer. Using OCP as the approximate linear optimization oracle 
+
+LinOpt within RobustSpanner , we can compute a policy cover layer-by-layer as done in Algorithm 2. For each layer h ∈ [H], the algorithm constructs normalized intrinsic rewards rh(x, a ; θ) = ϕh(x, a )⊺θ/∥ θ∥
+
+(with zero rewards at all other layers) and uses OCP to approximately solve the linear optimization problem 
+
+max π θ⊺Eπ [ϕh(xh, ah)] for any given direction θ. The vector estimation oracle Vec is implemented via Monte Carlo sampling (Algorithm 9). The resulting collection Γ1∶H forms an approximate barycentric spanner at each layer. 
+
+Algorithm 2 ComputeSpanner ocp (ε, δ ): Phase I (Exploration) 
+
+Require: ε, δ . 
+
+> 1:
+
+Set Niter ← d + ⌈ d 
+
+> 2
+
+log 2 400 dε2 ⌉ and δ′ ← δ 
+
+> 16 HN iter
+
+. // Per-oracle-call confidence.  
+
+> 2:
+
+Set nveceval ← c1d2ε−2 log (1/δ′) for a sufficiently large constant c1. 
+
+> 3:
+
+Set T = poly (∣ A∣, d, H, 1 
+
+> ε
+
+, log ( 1 
+
+> δ
+
+)) sufficiently large.  
+
+> 4:
+
+Define Q = {Q1∶H ∶ Qh(x, a ) = θ⊺ϕh(x, a ), θ ∈ Rd, ∣Qh(x, a )∣ ≤ H}. 
+
+> 5:
+
+for h = 1, . . . , H do  
+
+> 6:
+
+For θ ∈ Rd ∖ {0}, h ∈ [H], define rh(⋅, ⋅; θ) = ϕh(⋅, ⋅)⊺θ/∥ θ∥ and r1∶h−1 ≡ rh+1∶H ≡ 0. 
+
+> 7:
+
+For θ ∈ Rd ∖ {0}, let LinOpt (θ) = OCP (r1∶H (⋅, ⋅; θ), Q, T ). // Algorithm 1.  
+
+> 8:
+
+For π ∈ Π, define Vec (π) = EstVec (h, ϕ h, π, n veceval ). // Algorithm 9.  
+
+> 9:
+
+Set Γh = {π1, . . . , π d} = RobustSpanner (LinOpt (⋅), Vec (⋅), 2, ε /2). // Algorithm 11.  
+
+> 10:
+
+Return: Γ1∶H .6Next, we give the guarantee of Algorithm 2, completing Phase I (the proof is in Section A). 
+
+Lemma 3.2 (Guarantee of ComputeSpanner ocp ). Consider a call to Algorithm 2 with inputs ε, δ .Suppose Assumptions 2.1 and 2.2 hold. Then, with probability at least 1 − δ, the outputs Γ1∶H satisfy ∣Γh∣ = d
+
+for all h ∈ [H], and the policy set Γh = {π1, . . . , π d} is such that: for any π ∈ Π, there exist coefficients 
+
+β1, . . . , β d ∈ [−2, 2] such that. 
+
+XXXXXXXXXXX
+
+Eπ [ϕh(xh, ah)] −
+
+> d
+
+∑
+
+> j=1
+
+βj ⋅ Eπj [ϕh(xh, ah)] XXXXXXXXXXX
+
+≤ 9dε. (2) 
+
+Phase II: Policy optimization with stochastic rewards. Having obtained a policy cover Γ1∶H from Phase I, we now turn to Phase II: using this cover to optimize the (stochastic) reward functions. A natural approach would be to follow the Phase II procedure of Mhammedi et al. (2023a), which uses Policy Search by Dynamic Programming (PSDP) (Bagnell et al., 2003). PSDP proceeds via a backward loop over layers 
+
+ℓ = H, . . . , 1: at each layer, one rolls in with policies from the cover to reach layer ℓ, then rolls out with the partially constructed policy ̂ πℓ+1∶H , regressing onto the sum of future rewards to learn a Q-function for layer ℓ.The policy ̂ πℓ is then constructed as the argmax of this Q-function, and the procedure continues to layer ℓ − 1.
+
+The challenge: unbounded Q-function parameters. For PSDP to succeed, we need the Q-functions of learned policies to remain linear; Golowich and Moitra (2022) showed this holds for argmax policies (with a specific tie-breaking rule). However, obtaining tractable guarantees for the regression problems requires bounded Q-function parameters—a substantial limitation (Section 2). 
+
+Our solution. We reduce to the deterministic setting where OCP applies (Algorithm 3): 1. Reward estimation: Since Assumption 2.2 bounds reward parameters w⋆ 
+
+> h
+
+(by √d), we estimate them efficiently via ridge regression on rollouts from the cover Γ1∶H . The spanner property (Lemma 3.2) ensures accurate estimates ̂ wh in all relevant directions. 2. Planning with deterministic rewards: Construct proxy rewards ̂ rh(x, a ) = ϕh(x, a )⊺̂ wh and invoke OCP to find a near-optimal policy. 
+
+Guarantee of Phase II. Since the proxy rewards are deterministic and linear, OCP optimizes them efficiently. For any policy cover Γ1∶H satisfying the spanner property (Lemma 3.2), Algorithm 3 outputs a near-optimal policy—the proof combines accurate reward estimation with OCP ’s guarantee (see Section B). 
+
+Algorithm 3 PolicyOpt ocp (Γ1∶H , n, λ ): Phase II (Policy optimization) 
+
+Require: Γ1∶H , n, λ > 0. 
+
+> 1:
+
+Set T = poly (∣ A∣, d, H, 1 
+
+> ε
+
+, log ( 1 
+
+> δ
+
+)) sufficiently large.  
+
+> /* Estimating the parameters of the reward functions at every layer */
+> 2:
+
+for ℓ = 1, . . . , H do  
+
+> 3:
+
+Set Dℓ ← ∅. 
+
+> 4:
+
+for π ∈ Γℓ do  
+
+> 5:
+
+for n times do  
+
+> 6:
+
+Sample (x1, a1, r1, . . . , xℓ, aℓ, rℓ) ∼ Pπ . // Sample from policy π at layer ℓ 
+
+> 7:
+
+Update Dℓ ← Dℓ ∪ {( xℓ, aℓ, rℓ)} . 
+
+> 8:
+
+Set Σℓ ← ∑(x,a,r )∈Dℓ ϕℓ(x, a )ϕℓ(x, a )⊺. 
+
+> 9:
+
+Set ̂ wℓ ← (λI + Σℓ)−1 ⋅ ∑(x,a,r )∈Dℓ ϕℓ(x, a ) ⋅ r. 
+
+> 10:
+
+Define deterministic proxy reward: ̂ rℓ(⋅, ⋅) ∶= ϕℓ(⋅, ⋅)⊺̂ wℓ. 
+
+> /* Planning with deterministic OCP */
+> 11:
+
+Set ̂ C ← max ℓ∈[H] ∥̂ wℓ∥ and Q ← {Q1∶H ∶ Qh(x, a ) = θ⊺ϕh(x, a ), ∣Qh(x, a )∣ ≤ Ĥ C}. 
+
+> 12:
+
+Call OCP with proxy rewards: ̂ π ← OCP (̂ r1∶H , Q, T ). // Algorithm 1  
+
+> 13:
+
+Return: ̂ π.7Combining these two phases, we obtain the following guarantee (the proof is in Section C). 
+
+Theorem 3.1 (End-to-end guarantee for OCP-based approach). Fix ε, δ ∈ (0, 1) and horizon H ∈ N.Suppose Assumptions 2.1 and 2.2 hold. Define L ∶= d + log (dH /( δε )) . Consider the following procedure: 1. Run ComputeSpanner ocp (Algorithm 2) with inputs (ε′, δ /2) where ε′ ∶= ε/( c0dHL ) for a sufficiently large universal constant c0, obtaining outputs Γ1∶H .2. Run PolicyOpt ocp (Γ1∶H , n, λ ) (Algorithm 3) with λ = 1 and sample size n ∶= c1 ⋅ d2H2L2/ε2, where c1 is a sufficiently large universal constant, obtaining output policy ̂ π.Then, with probability at least 1 − δ, we have E [V ⋆ 
+
+> 1
+
+(x1) − V̂ π 
+
+> 1
+
+(x1)] ≤ ε. 
+
+# 4 An Efficient Algorithm for Large Action Spaces 
+
+In this section, we address the significantly more challenging setting where the action space A is large or infinite, making OCP computationally intractable. We assume access only to an argmax oracle over actions as described in Section 2. 
+
+Why not use PSDP or OCP? Since OCP’s computational cost scales polynomially with ∣A∣ (see Section 3), we must consider alternative approaches. A natural idea is to use policy optimization algorithms such as PSDP to build the policy cover layer-by-layer. However, PSDP requires bounded Q-function parameters to obtain tractable guarantees—an assumption that may exclude even linear MDPs as remarked in Section 2. Furthermore, algorithms like PSDP require roll-in policies with good state coverage. One could imagine using the approach of Algorithm 2: building approximate spanners layer-by-layer and feeding the spanner from previous layers to the PSDP routine. This is, for example, the approach taken by Mhammedi et al. (2023a) in the low-rank MDP setting. However, in the linear Bellman complete setting, coverage errors compound across layers: if the spanner at layer h fails to span some relevant feature directions, these gaps propagate and amplify at subsequent layers. Since RobustSpanner can only compute approximate spanners, this compounding is unavoidable. Thus, we need a fundamentally different approach. 
+
+Our approach: FQI with exact linear optimization. Instead of using OCP or PSDP, we use Fitted Q-Iteration ( FQI ) (Munos and Szepesvári, 2008) and perform linear optimization exactly within each layer. To enable this exact linear optimization, we build an additional set of policies Ψh at each layer h that satisfy a coverage property : for i.i.d. initial states x1, x1
+
+> 1
+
+, . . . , xncover  
+
+> 1
+
+,
+
+P [Sh ⊆ Span {ϕπh (xm 
+
+> 1
+
+) ∶ m ∈ [ncover ], π ∈ Ψh}] ≥ 1 − δ/H2, (3) where, with high probability over the initial state, Sh is a subspace spanned by ϕπh (x1) for all π ∈ Π. Such a coverage property ensures that sampling enough initial states and rolling in with policies in Ψh covers all relevant feature directions. Thanks to deterministic transitions (Assumption 2.1), the regression problems in 
+
+FQI can be solved exactly via minimum-norm least-squares; coverage then guarantees these solutions are correct for most sampled initial states. Unlike Wu et al. (2024), our least-squares problems are unconstrained ,avoiding the need for a linear optimization oracle over features. At the same time, we also compute an approximate spanner Γh via RobustSpanner . The reason we need both Ψh and Γh is that while the coverage policies Ψh suffice for deterministic regression in FQI , they lack the spanner property needed for stochastic regression. In Phase II, estimating the reward parameters w⋆ 
+
+> h
+
+via ridge regression requires the spanner property of Γh for accurate estimation across relevant feature directions. 
+
+The SubspaceCover subroutine. The subroutine that computes the coverage policies Ψh (along with the subspace Sh) is SubspaceCover (Algorithm 4). Unlike RobustSpanner or the original barycentric spanner algorithm, SubspaceCover does not attempt to maximize the determinant (which would yield a true spanner). Instead, its goal is simply to: (i) identify the subspace Sh where feature maps land with high probability, and (ii) find a set of policies Ψh that satisfy the coverage property (3). The formal guarantee (Lemma E.3, proved in Section E) shows that given coverage policies for layers 1, . . . , h − 1, SubspaceCover 
+
+8Algorithm 4 SubspaceCover (h, Ψ1∶h−1, ε, δ ).
+
+Require: h, Ψ1∶h−1, ε, δ .
+
+1: Initialize S1 
+
+> h
+
+← ∅ and Ψ1 
+
+> h
+
+← ∅.
+
+2: Let ntest , nsamp , mboost , nreject , nspan , nfqi be as in (17). 
+
+3: for t = 1, . . . , d + 1 do 
+
+4: Set Kt ← d − dim (St
+
+> h
+
+).
+
+5: if Kt = 0 return (St
+
+> h
+
+, Ψt
+
+> h
+
+).
+
+6: Let {θt,j }j∈[Kt] be an orthonormal basis of (St
+
+> h
+
+)⊥.
+
+/* Search for reachable directions outside the current subspace St
+
+> h
+
+. */ 
+
+7: for i = 1, . . . , K t do 
+
+8: Set rt,i, ± 
+
+> 1
+
+≡ . . . r t,i, ± 
+
+> h−1
+
+≡ 0 and rt,i, − 
+
+> h
+
+(⋅, ⋅) ≡ −ϕh(⋅, ⋅)⊺θt,i and rt,i, + 
+
+> h
+
+(⋅, ⋅) ≡ ϕh(⋅, ⋅)⊺θt,i .
+
+9: Set ̂ πt,i, − ← FQI (h, r t,i, − 
+
+> 1∶h
+
+, Ψ1∶h−1, n fqi ) and ̂ πt,i, + ← FQI (h, r t,i, + 
+
+> 1∶h
+
+, Ψ1∶h−1, n fqi ).
+
+10: Initialize n± 
+
+> outlier
+
+← 0.
+
+11: for ntest times do 
+
+12: Sample (x− 
+
+> 1
+
+, a− 
+
+> 1
+
+, . . . , x−
+
+> h
+
+, a−
+
+> h
+
+) ∼ P̂
+
+> πt,i, −
+
+and (x+ 
+
+> 1
+
+, a+ 
+
+> 1
+
+, . . . , x+
+
+> h
+
+, a+
+
+> h
+
+) ∼ P̂
+
+> πt,i, +
+
+.
+
+13: if ϕh(x−
+
+> h
+
+, a−
+
+> h
+
+) ∉ St 
+
+> h
+
+then n− 
+
+> outlier
+
+← n− 
+
+> outlier
+
++ 1.
+
+14: if ϕh(x+
+
+> h
+
+, a+
+
+> h
+
+) ∉ St 
+
+> h
+
+then n+ 
+
+> outlier
+
+← n+ 
+
+> outlier
+
++ 1.
+
+15: if n+ 
+
+> outlier
+
+≥ n− 
+
+> outlier
+
+then 
+
+16: Set ̂ πt,i ←̂ πt,i, + and noutlier ← n+
+
+> outlier
+
+.
+
+17: else 
+
+18: Set ̂ πt,i ←̂ πt,i, − and noutlier ← n−
+
+> outlier
+
+.
+
+19: if noutlier > ntest ⋅ ε 
+
+> 4Hd
+
+then // Outlier direction detected 
+
+20: Ψt+1 
+
+> h
+
+← Ψt 
+
+> h
+
+∪ {̂ πt,i }.
+
+21: Let P t,i denote the distribution of ϕ⊥
+
+> h
+
+(xh, ah) = proj (Sth)⊥ ϕh(xh, ah), where 
+
+(xh, ah) ∼ P̂
+
+> πt,i
+
+.
+
+22: Define Qt,i = RejectionSampling (P t,i , Rd ∖ {0}, n reject ). // Algorithm 10 
+
+23: Set vt,i ← ComputeOutlierDirection (Qt,i , n samp , m boost ). // Algorithm 7 
+
+24: St+1 
+
+> h
+
+← Span {St 
+
+> h
+
+∪ {vt,i }} .
+
+25: break 
+
+26: else if i = Kt then 
+
+27: return (St
+
+> h
+
+, Ψt
+
+> h
+
+).
+
+28: Return: (St
+
+> h
+
+, Ψt
+
+> h
+
+).outputs a subspace Sh containing the span of all reachable feature vectors at layer h with high probability, along with policies Ψh that provide coverage for Sh.
+
+SubspaceCover identifies the subspace Sh in a greedy fashion. It runs an iterative process that searches for policies leading to features that fall outside the current subspace St
+
+> h
+
+. Once such a policy is identified (detected by the test in Algorithm 4), it is added to Ψh. Next, this policy is used to identify a single “persistent” outlier direction v via the subroutine ComputeOutlierDirection in Algorithm 4. Once this direction is found, the subspace is updated: St+1 
+
+> h
+
+← Span (St 
+
+> h
+
+∪ {v}) ; see Algorithm 4. Since the ambient dimension is d, this process terminates after at most d updates. 
+
+The ComputeOutlierDirection subroutine. The goal of ComputeOutlierDirection (Algo-rithm 7) is to solve the following abstract problem (formalized in Lemma J.1): given access to samples from a distribution P over Rd, identify a direction v such that v lies in the span of n fresh i.i.d. samples from P with high probability. In our concrete setting, we are trying to identify a direction in the orthogonal complement of St
+
+> h
+
+. The relevant distribution P is that of the projected features ϕ⊥
+
+> h
+
+(xh, ah) = proj (Sth)⊥ ϕh(xh, ah) where 
+
+(xh, ah) ∼ P̂
+
+> πt,i
+
+, conditioned on ϕh(xh, ah) ∉ St 
+
+> h
+
+(i.e., conditioned on the feature falling outside the current subspace). Since we do not have direct sampling access to this conditional distribution, we approximate it using rejection sampling (Algorithm 10) in Algorithm 4 of Algorithm 4. We only call ComputeOutlierDi-rection when the current candidate policy has passed the test in Algorithm 4, which detects that an outlier 9direction is discoverable with sufficient probability. 
+
+Algorithm 5 ComputeSpanner fqi (ε, δ ): Phase I (Exploration). 
+
+Require: ε, δ . 
+
+> 1:
+
+Let nfqi , nveceval , and εrob be as in (17).  
+
+> 2:
+
+Initialize S0 ← ∅ and Ψ0 ← ∅. 
+
+> 3:
+
+for h = 1, . . . , H do  
+
+> 4:
+
+(Sh, Ψh) ← SubspaceCover (h, Ψ1∶h−1, ε, δ 
+
+> 4H
+
+). 
+
+> 5:
+
+For θ ∈ Rd, h ∈ [H], define rh(⋅, ⋅; θ) = ϕh(⋅, ⋅)⊺θ and r1∶h−1 ≡ 0. 
+
+> 6:
+
+For θ ∈ Rd, let LinOpt (θ) = FQI (h, r 1∶h(⋅, ⋅; θ), Ψ1∶h−1, n fqi ). // Algorithm 8.  
+
+> 7:
+
+For π ∈ Π, define Vec (π) = EstVec (h, ϕ h, π, n veceval ). // Algorithm 9.  
+
+> 8:
+
+Set Γh = {π1, . . . , π d} = RobustSpanner (LinOpt (⋅), Vec (⋅), 2, ε rob ). // Algorithm 11.  
+
+> 9:
+
+Return: (S1∶H , Ψ1∶H , Γ1∶H ).The following lemma summarizes the guarantee of Algorithm 5: it outputs coverage policies Ψ1∶H and spanner policies Γ1∶H with the properties needed for Phase II. The proof is in Section F. 
+
+Lemma 4.1 (Guarantee of ComputeSpanner fqi ). Consider a call to Algorithm 5 with inputs ε, δ .Suppose Assumptions 2.1 and 2.2 hold. Then, with probability at least 1 − δ, the outputs (S1∶H , Ψ1∶H , Γ1∶H )
+
+satisfy the following properties: 1. (Coverage) For all h ∈ [H] and i.i.d. x1, x1
+
+> 1
+
+, . . . , xncover  
+
+> 1
+
+initial states: 
+
+P[Sh ⊆ Span {ϕπh (xm 
+
+> 1
+
+) ∶ m ∈ [ncover ], π ∈ Ψh}] ≥ 1 − δ/H2. (4) 
+
+2. (State concentration) For all h ∈ [H], P[x1 ∈ X h] ≥ 1 − (h − 1)ε/H, where 
+
+X h = ⋂
+
+> ℓ∈[h−1]
+
+{x ∈ X ∣ Span {ϕπℓ (x) ∶ π ∈ Π} ⊆ Sℓ} . (5) 
+
+3. (Spanner property) For all h ∈ [H], the policy set Γh = {π1, . . . , π d} satisfies: for any π ∈ Π, there exist coefficients β1, . . . , β d ∈ [−2, 2] such that 
+
+XXXXXXXXXXX
+
+Eπ [ϕh(xh, ah)] −
+
+> d
+
+∑
+
+> j=1
+
+βj ⋅ Eπj [ϕh(xh, ah)] XXXXXXXXXXX
+
+≤ 25 dε. (6) 
+
+Algorithm 6 PolicyOpt fqi (Ψ1∶H , Γ1∶H , n, λ ): Phase II (Policy optimization) 
+
+Require: Ψ1∶H , Γ1∶H , n, λ > 0. 
+
+> /* Estimating the parameters of the reward functions at every layer */
+> 1:
+
+for ℓ = 1, . . . , H do  
+
+> 2:
+
+Set Dℓ ← ∅. 
+
+> 3:
+
+for π ∈ Γℓ do  
+
+> 4:
+
+for n times do  
+
+> 5:
+
+Sample (x1, a1, r1, . . . , xℓ, aℓ, rℓ) ∼ Pπ . // Sample from policy π at layer ℓ 
+
+> 6:
+
+Update Dℓ ← Dℓ ∪ {( xℓ, aℓ, rℓ)} . 
+
+> 7:
+
+Set Σℓ ← ∑(x,a,r )∈Dℓ ϕℓ(x, a )ϕℓ(x, a )⊺. 
+
+> 8:
+
+Set ̂ wℓ ← (λI + Σℓ)−1 ⋅ ∑(x,a,r )∈Dℓ ϕℓ(x, a ) ⋅ r. 
+
+> 9:
+
+Define deterministic proxy reward: ̂ rℓ(⋅, ⋅) ∶= ϕℓ(⋅, ⋅)⊺̂ wℓ. 
+
+> /* Planning with deterministic FQI */
+> 10:
+
+Call deterministic FQI with proxy rewards: ̂ π ← FQI (H, ̂ r1∶H , Ψ1∶H−1, n ). // Algorithm 8  
+
+> 11:
+
+Return: ̂ π.10 Phase II: Policy optimization with stochastic rewards. Phase II for the large action space setting (Algorithm 6) follows the same high-level structure as Phase II for finite actions (Algorithm 3): we first estimate the reward parameters w⋆ 
+
+> h
+
+via ridge regression on rollouts from the spanner policies Γ1∶H , then construct deterministic proxy rewards and optimize them. The key difference is that, instead of using OCP 
+
+for the final planning step, we use FQI with the coverage policies Ψ1∶H . The coverage property of Ψ1∶H
+
+ensures that FQI can solve the value function regression problems exactly (in closed form), while the spanner property of Γ1∶H ensures accurate reward parameter estimation. Together, these properties guarantee that Algorithm 6 outputs a near-optimal policy for the original stochastic reward MDP; see Section G for the formal statement and proof. Combining Phase I (Algorithm 5) and Phase II (Algorithm 6), we obtain the following end-to-end guarantee. The structure parallels Theorem 3.1 for the OCP-based approach, but with the key difference that the complexity is independent of the size of A (the proof is in Section H). 
+
+Theorem 4.1 (End-to-end suboptimality guarantee). Fix ε, δ ∈ (0, 1) and horizon H ∈ N. Suppose Assumptions 2.1 and 2.2 hold. Define L ∶= max {1, log (dH /( δε ))} . Consider the following procedure: 1. Run Algorithm 5 with inputs (ε′, δ /4) where ε′ ∶= ε/( c0d2H2L) for a sufficiently large universal constant 
+
+c0, obtaining outputs (S1∶H , Ψ1∶H , Γ1∶H ).2. Run PolicyOpt fqi (Ψ1∶H , Γ1∶H , n, 1) (Algorithm 6) with 
+
+n ∶= max {ncover , c 2 ⋅ d4H2L2
+
+ε2 } , (7) 
+
+where ncover is defined in (17) instantiated with ε′, and c2 is a sufficiently large universal constant, obtaining output policy ̂ π.Then, with probability at least 1 − δ, we have 
+
+E [V ⋆ 
+
+> 1
+
+(x1) − V̂ π 
+
+> 1
+
+(x1)] ≤ ε. 
+
+# 5 Conclusion 
+
+We have presented computationally efficient algorithms for reinforcement learning in linear Bellman complete MDPs with deterministic transitions. This brings us a step closer to resolving the general case with stochastic transitions, which remains an important open problem. Our techniques may also be applicable to large language model (LLM) fine-tuning via reinforcement learning. In this setting, the “environment” is a sequence of tokens, and the transition dynamics are deterministic: given a prompt and a sequence of generated tokens, the next state (the concatenated sequence) is fully determined. A natural setting to investigate is the linear softmax parameterization, studied recently by Foster et al. (2025); Xiong et al. (2023); Cen et al. (2024). This parameterization arises naturally when fine-tuning only the final layer of a pretrained autoregressive language model such as GPT-2 (Radford et al., 2019), while keeping all earlier layers fixed. Due to the linearity of the policy class and the determinism of the transitions, this setting shares key structural similarities with ours, making it a promising direction for future work. 11 Acknowledgments 
+
+Alexander Rakhlin acknowledges support from ARO through award W911NF-21-1-0328, Simons Foundation, and the NSF through awards DMS-2031883 and PHY-2019786, the DARPA AIQ program, and AFOSR FA9550-25-1-0375. Nneka Okolo acknowledges support from the Institute for Data, Systems, and Society (IDSS) via the Norbert Wiener Fellowship. 
+
+# References 
+
+Alekh Agarwal, Mikael Henaff, Sham Kakade, and Wen Sun. Voila: Optimizing ℓ∞ bounds for experimental design and relativity to linear rl. In Conference on Learning Theory , pages 2345–2376. PMLR, 2022. Rajat Agrawal, Randy Jia, Wouter M Koolen, and Peter L Bartlett. Improved worst-case regret bounds for randomized least-squares value iteration. In Proceedings of the AAAI Conference on Artificial Intelligence ,volume 35, pages 6566–6573, 2021. OpenAI: Marcin Andrychowicz, Bowen Baker, Maciek Chociej, Rafal Jozefowicz, Bob McGrew, Jakub Pachocki, Arthur Petron, Matthias Plappert, Glenn Powell, Alex Ray, et al. Learning dexterous in-hand manipulation. The International Journal of Robotics Research , 39(1):3–20, 2020. Baruch Awerbuch and Robert Kleinberg. Online linear optimization and adaptive routing. Journal of Computer and System Sciences , 74(1):97–114, 2008. Mohammad Gheshlaghi Azar, Ian Osband, and Rémi Munos. Minimax regret bounds for reinforcement learning. In International Conference on Machine Learning , pages 263–272. PMLR, 2017. James Bagnell, Sham M Kakade, Jeff Schneider, and Andrew Ng. Policy search by dynamic programming. 
+
+Advances in neural information processing systems , 16, 2003. Dimitri P Bertsekas and John N Tsitsiklis. Neuro-dynamic programming . Athena Scientific, 1996. Steven J Bradtke and Andrew G Barto. Linear least-squares algorithms for temporal difference learning. 
+
+Machine Learning , 22(1):33–57, 1996. Shicong Cen, Jincheng Mei, Katayoon Goshvadi, Hanjun Dai, Tong Yang, Sherry Yang, Dale Schuurmans, Yuejie Chi, and Bo Dai. Value-incentivized preference optimization: A unified approach to online and offline rlhf. arXiv preprint arXiv:2405.19320 , 2024. Simon Du, Sham Kakade, Jason Lee, Shachar Lovett, Gaurav Mahajan, Wen Sun, and Ruosong Wang. Bilinear classes: A structural framework for provable generalization in rl. In International Conference on Machine Learning , pages 2826–2836. PMLR, 2021. Simon S Du, Sham M Kakade, Ruosong Wang, and Lin F Yang. Provably efficient rl with rich observations via latent state decoding. In International Conference on Machine Learning , pages 1665–1674. PMLR, 2019. Simon S Du, Jason D Lee, Gaurav Mahajan, and Ruosong Wang. Agnostic q-learning with function approximation in deterministic systems: Tight bounds on approximation error and sample complexity. In 
+
+Advances in Neural Information Processing Systems , volume 33, pages 22668–22679, 2020. Dean P Foster, Garvesh Raskutti, Sham M Kakade, and Po-Ling Loh. Statistical and computational trade-offs in estimation of sparse principal components. In Advances in Neural Information Processing Systems ,volume 34, pages 25768–25780, 2021. Dylan J. Foster, Zakaria Mhammedi, and Dhruv Rohatgi. Is a good foundation necessary for efficient reinforcement learning? the computational role of the base model in exploration, 2025. URL https: //arxiv.org/abs/2503.07453 .12 Noah Golowich and Ankur Moitra. Learning in observable pomdps, without computationally intractable oracles. In Conference on Learning Theory , pages 1909–1940. PMLR, 2022. Noah Golowich and Ankur Moitra. Exploring and learning in sparse linear mdps without computationally intractable oracles. In Advances in Neural Information Processing Systems , volume 36, 2023. Noah Golowich and Ankur Moitra. Linear bellman completeness suffices for efficient online reinforcement learning with few actions. In The Thirty Seventh Annual Conference on Learning Theory , pages 1939–1981. PMLR, 2024a. Noah Golowich and Ankur Moitra. The role of coverage in online reinforcement learning. arXiv preprint arXiv:2402.12551 , 2024b. Jiafan He, Dongruo Zhou, and Quanquan Gu. Nearly optimal algorithms for linear contextua bandits with infinite action spaces. In Conference on Learning Theory , pages 3132–3157. PMLR, 2023. Haque Ishfaq, Lingxiao Qiu, Pan Xu, Jian Luo, Zaiwei Zhang, Anima Anandkumar, and Doina Precup. Ran-domized exploration for reinforcement learning with general value function approximation. In International Conference on Machine Learning , pages 4607–4616. PMLR, 2021. Nan Jiang, Akshay Krishnamurthy, Alekh Agarwal, John Langford, and Robert E Schapire. Contextual decision processes with low bellman rank are pac-learnable. In International Conference on Machine Learning , pages 1704–1713. PMLR, 2017. Chi Jin, Zeyuan Allen-Zhu, Sebastien Bubeck, and Michael I Jordan. Is q-learning provably efficient? In 
+
+Advances in neural information processing systems , volume 31, 2018. Chi Jin, Zhuoran Yang, Zhaoran Wang, and Michael I Jordan. Provably efficient reinforcement learning with linear function approximation. In Conference on Learning Theory , pages 2137–2143. PMLR, 2020. Chi Jin, Qinghua Liu, and Sobhan Miryoosefi. Bellman eluder dimension: New rich classes of rl problems, and sample-efficient algorithms. In Advances in neural information processing systems , volume 34, pages 13406–13418, 2021. Zak Mhammedi, Adam Block, Dylan J Foster, and Alexander Rakhlin. Efficient model-free exploration in low-rank mdps. Advances in Neural Information Processing Systems , 36:66782–66817, 2023a. Zakaria Mhammedi, Dylan J Foster, and Alexander Rakhlin. Representation learning with multi-step inverse kinematics: An efficient and optimal approach to rich-observation rl. In Conference on Learning Theory ,pages 2756–2814. PMLR, 2023b. Dipendra Misra, John Langford, and Yoav Artzi. Kinematic state abstraction and provably efficient rich-observation reinforcement learning. In International Conference on Machine Learning , pages 6961–6971. PMLR, 2020. Volodymyr Mnih, Koray Kavukcuoglu, David Silver, Andrei A Rusu, Joel Veness, Marc G Bellemare, Alex Graves, Martin Riedmiller, Andreas K Fidjeland, Georg Ostrovski, et al. Human-level control through deep reinforcement learning. nature , 518(7540):529–533, 2015. Rémi Munos. Error bounds for approximate value iteration. In Proceedings of the National Conference on Artificial Intelligence , volume 20, page 1006. AAAI Press, 2005. Rémi Munos and Csaba Szepesvári. Finite-time bounds for fitted value iteration. Journal of Machine Learning Research , 9(May):815–857, 2008. Ian Osband, Charles Blundell, Alexander Pritzel, and Benjamin Van Roy. Generalization and exploration via randomized value functions. In International Conference on Machine Learning , pages 2377–2386. PMLR, 2016. 13 Long Ouyang, Jeffrey Wu, Xu Jiang, Diogo Almeida, Carroll Wainwright, Pamela Mishkin, Chong Zhang, Sandhini Agarwal, Katarina Slama, Alex Ray, et al. Training language models to follow instructions with human feedback. In Advances in Neural Information Processing Systems , volume 35, pages 27730–27744, 2022. Iosif Pinelis. Optimum bounds for the distributions of martingales in banach spaces. The Annals of Probability ,pages 1679–1706, 1994. Alec Radford, Jeffrey Wu, Rewon Child, David Luan, Dario Amodei, Ilya Sutskever, et al. Language models are unsupervised multitask learners. OpenAI blog , 1(8):9, 2019. John Schulman, Filip Wolski, Prafulla Dhariwal, Alec Radford, and Oleg Klimov. Proximal policy optimization algorithms. arXiv preprint arXiv:1707.06347 , 2017. David Silver, Aja Huang, Chris J Maddison, Arthur Guez, Laurent Sifre, George Van Den Driessche, Julian Schrittwieser, Ioannis Antonoglou, Veda Panneershelvam, Marc Lanctot, et al. Mastering the game of go with deep neural networks and tree search. Nature , 529(7587):484–489, 2016. Yuda Song, Dongruo Zhou, Ayush Sekhari, J Andrew Bagnell, Akshay Krishnamurthy, and Wen Sun. Hybrid rl with linear function approximation. In International Conference on Machine Learning , pages 20537–20557. PMLR, 2022. Wen Sun, Nan Jiang, Akshay Krishnamurthy, Alekh Agarwal, and John Langford. Model-based reinforcement learning in contextual decision processes. In International Conference on Learning Representations , 2019. Richard S Sutton and Andrew G Barto. Reinforcement learning: An introduction . MIT press, 2018. John N Tsitsiklis and Benjamin Van Roy. Feature-based methods for large scale dynamic programming. 
+
+Machine Learning , 22(1):59–94, 1996. Christopher JCH Watkins and Peter Dayan. Q-learning. Machine Learning , 8(3):279–292, 1992. Zheng Wen and Benjamin Van Roy. Efficient reinforcement learning in deterministic systems with value function generalization. In Mathematics of Operations Research , volume 42, pages 762–782. INFORMS, 2017. Runzhe Wu, Ayush Sekhari, Akshay Krishnamurthy, and Wen Sun. Computationally efficient rl under linear bellman completeness for deterministic dynamics. arXiv preprint arXiv:2406.11810 , 2024. Yue Wu, Reza Shariff, Akshay Krishnamurthy, and Alekh Agarwal. Making rlhf computationally tractable: Near-optimal algorithms for preference-based reinforcement learning. In Conference on Learning Theory ,pages 1975–2030. PMLR, 2023. Wei Xiong, Hanze Dong, Chenlu Ye, Ziqi Wang, Han Zhong, Heng Ji, Nan Jiang, and Tong Zhang. Iterative preference learning from human feedback: Bridging theory and practice for rlhf under kl-constraint. arXiv preprint arXiv:2312.11456 , 2023. Lin Yang and Mengdi Wang. Sample-optimal parametric q-learning with linear transition models. In 
+
+International Conference on Machine Learning , pages 6992–7002. PMLR, 2019. Andrea Zanette, Alessandro Lazaric, Mykel Kochenderfer, and Emma Brunskill. Frequentist regret bounds for randomized least-squares value iteration. In International Conference on Artificial Intelligence and Statistics , pages 1954–1964. PMLR, 2020a. Andrea Zanette, Alessandro Lazaric, Mykel Kochenderfer, and Emma Brunskill. Learning with little mixing: Limiting the memory in weight-based exploration. In International Conference on Artificial Intelligence and Statistics , pages 4098–4109. PMLR, 2020b. Andrea Zanette, Alessandro Lazaric, Mykel Kochenderfer, and Emma Brunskill. Provably efficient reward-agnostic exploration with linear function approximation. In Advances in Neural Information Processing Systems , volume 33, pages 21767–21777, 2020c. 14 Zihan Zhang, Yuan Zhou, and Xiangyang Ji. Almost optimal model-free reinforcement learning via reference-advantage decomposition. In Advances in Neural Information Processing Systems , volume 33, pages 15198–15207, 2020. 15 Appendix 
+
+## I Proofs for Finite Action Setting 16 
+
+A Proof of Lemma 3.2 (Guarantee of ComputeSpanner ocp ) 17 B Guarantee of PolicyOpt ocp (Algorithm 3) 18 C Proof of Theorem 3.1 (Guarantee Under Finite Actions) 20 
+
+## II Proofs for Large Action Space Setting 21 
+
+D Choice of Parameters for ComputeSpanner fqi (Algorithm 5) 21 E Guarantee of SubspaceCover 22 F Guarantee of ComputeSpanner fqi (Algorithm 5) 26 G Guarantee of Algorithm 6 ( PolicyOpt fqi ) 30 H Proof of Theorem 4.1 (Guarantee For Large Actions) 33 
+
+## III Auxiliary Results and Additional Related Work 35 
+
+I Related Works 35 J Guarantee of ComputeOutlierDirection 37 K Guarantee of FQI with Deterministic Rewards and Transitions 40 L Guarantee of EstVec 42 M Guarantee of RejectionSampling 42 N Generic Guarantee for RobustSpanner 44 O Helper Lemmas 46 
+
+16 Part I 
+
+# Proofs for Finite Action Setting 
+
+# A Proof of Lemma 3.2 (Guarantee of ComputeSpanner ocp )
+
+This section provides the proof of Lemma 3.2, which establishes that Algorithm 2 computes a valid policy cover with the approximate barycentric spanner property. The proof proceeds in two steps: first, we show that OCP with appropriately chosen intrinsic rewards serves as a valid approximate linear optimization oracle (Lemma A.1); then, we verify that the oracles used by RobustSpanner satisfy the preconditions of Proposition N.1, yielding the spanner guarantee (Lemma A.2). The final result follows by a union bound over all layers. 
+
+Lemma A.1 (Validity of OCP as LinOpt ). Fix ε > 0 and δ ∈ (0, 1). For θ ∈ Rd ∖ {0}, let LinOpt (θ)
+
+correspond to the call OCP (r1∶H (⋅, ⋅; θ), Q, T ) where rh(⋅, ⋅; θ) = θ⊺ϕh(⋅, ⋅)/∥ θ∥ and r1∶h−1 ≡ rh+1∶H ≡ 0, with 
+
+T = poly (∣ A∣, d, H, 1 
+
+> ε
+
+, log ( 1 
+
+> δ
+
+)) sufficiently large. Suppose Assumptions 2.1 and 2.2 hold. For each fixed θ ∈ Rd ∖ {0}, with probability at least 1 − δ over the samples used by OCP , the policy ̂
+
+π = LinOpt (θ) satisfies: 
+
+E[ϕ̂ 
+
+> πh
+
+(x1)⊺θ] ≥ max  
+
+> π∈Π
+
+E[ϕπh (x1)⊺θ] − ∥θ∥ε. (8) 
+
+Proof. For the normalized rewards rh(⋅, ⋅; θ) = θ⊺ϕh(⋅, ⋅)/∥ θ∥ and r1∶h−1 ≡ rh+1∶H ≡ 0, the value function at layer 1 for policy π is 
+
+E[V π 
+
+> 1
+
+(x1; r1∶H )] = Eπ [ θ⊺ϕh(xh, ah)∥θ∥ ] = θ⊺E[ϕπh (x1)] ∥θ∥ ,
+
+where the last equality follows by definition of ϕπh .Since ∣rh(⋅, ⋅; θ)∣ = ∣θ⊺ϕh(⋅, ⋅)∣/∥ θ∥ ≤ 1 (using sup (x,a ) ∥ϕh(x, a )∥ ≤ 1 from Assumption 2.2), Lemma 3.1 applies with R = 1 and Q = {Q1∶H ∶ Qh(x, a ) = θ⊺ϕh(x, a ), ∣Qh(x, a )∣ ≤ H}. With probability at least 1 − δ,̂ π achieves suboptimality at most ε:
+
+θ⊺E[ϕ̂ 
+
+> πh
+
+(x1)] ∥θ∥ ≥ max 
+
+> π
+
+θ⊺E[ϕπh (x1)] ∥θ∥ − ε. 
+
+Multiplying both sides by ∥θ∥ gives the result. 
+
+Lemma A.2 (Guarantee of RobustSpanner for ComputeSpanner ocp ). Let ε > 0 and δ ∈ (0, 1)
+
+be the accuracy and confidence parameters input to Algorithm 2, and consider the call to RobustSpanner 
+
+at Step h. Suppose Assumptions 2.1 and 2.2 hold. With probability at least 1 − δ 
+
+> 4H
+
+over the samples used by RobustSpanner , its output Γh = {π1, . . . , π d} satisfies the following: for any π ∈ Π, there exist 
+
+β1, . . . , β d ∈ [−2, 2] such that 
+
+XXXXXXXXXXX
+
+E[ϕπh (x1)] −
+
+> d
+
+∑
+
+> j=1
+
+βj E[ϕπj 
+
+> h
+
+(x1)] XXXXXXXXXXX
+
+≤ 9dε. (9) 
+
+Proof. Define 
+
+εrob ∶= ε
+
+2 , Niter ∶= d + ⌈ d
+
+2 log 2
+
+100 dε2
+
+> rob
+
+⌉ , δ′ ∶= δ
+
+16 HN iter 
+
+.
+
+We verify that the oracles LinOpt and Vec satisfy the requirements of Assumption N.1 (the preconditions of Proposition N.1, the guarantee of RobustSpanner ). By Proposition N.1, RobustSpanner terminates after at most Niter iterations and makes at most 2Niter 
+
+calls to each of LinOpt and Vec .17 Verifying approximate linear optimization (first condition of Assumption N.1). For each call to LinOpt with input θ ≠ 0, by Lemma A.1, with probability 1 − δ′ over the samples used: 
+
+E[ϕ̂ 
+
+> πh
+
+(x1)⊺θ] ≥ max  
+
+> π∈Π
+
+E[ϕπh (x1)⊺θ] − ∥θ∥εrob .
+
+Thus, LinOpt satisfies the approximate linear optimization condition of Assumption N.1 with error εrob .
+
+Verifying vector estimation (second condition of Assumption N.1). For each call to Vec with input π, by Lemma L.1, with probability 1 − δ′ over the samples used, ∥Vec (π) − E[ϕπh (x1)]∥ ≤ εrob . Thus, Vec satisfies the vector estimation condition of Assumption N.1 with error εest = εrob .
+
+Union bound over oracle calls. Let Eorc denote the event that all 2Niter calls to LinOpt satisfy the first condition of Assumption N.1 with error εrob , and all 2Niter calls to Vec satisfy the second condition with error εrob . Although RobustSpanner chooses queries adaptively based on previous oracle outputs, each oracle call uses fresh independent randomness. Therefore, conditioned on any history of previous calls, each new call succeeds with probability at least 1 − δ′. By a union bound over the 4Niter total oracle calls: 
+
+P[Eorc ] ≥ 1 − 4Niter δ′ = 1 − δ
+
+4H .
+
+Applying Proposition N.1. On the event Eorc , Assumption N.1 holds with error ε′ = εrob . Algorithm 2 invokes 
+
+RobustSpanner with inputs (LinOpt , Vec , C = 2, ε rob ). Applying Proposition N.1 with these parameters and oracle error ε′, the output Γh is a 2-approximate barycentric spanner with error: 
+
+3Cd (εrob + 2ε′) = 6d (εrob + 2εrob ) = 18 dε rob = 9dε. 
+
+This gives the bound in (9). 
+
+Proof of Lemma 3.2. For each h ∈ [H], let Erob  
+
+> h
+
+denote the event that the conclusions of Lemma A.2 hold for the call to RobustSpanner at Step h. By Lemma A.2, for each h ∈ [H]:
+
+P[( Erob  
+
+> h
+
+)c] ≤ δ
+
+4H .
+
+By a union bound over all h ∈ [H]:
+
+P [ H
+
+⋂
+
+> h=1
+
+Erob  
+
+> h
+
+] ≥ 1 − H ⋅ δ
+
+4H = 1 − δ
+
+4 ≥ 1 − δ. 
+
+On the event ⋂Hh=1 Erob  
+
+> h
+
+, the spanner property (2) holds for all h ∈ [H] by Lemma A.2. The cardinality bound ∣Γh∣ = d holds deterministically by construction: RobustSpanner always returns exactly d policies. 
+
+# B Guarantee of PolicyOpt ocp (Algorithm 3) 
+
+This section establishes that Phase II (Algorithm 3) outputs a near-optimal policy when given a policy cover satisfying the approximate spanner property from Phase I. 
+
+Lemma B.1 (Guarantee of PolicyOpt ocp : Phase II). Fix δ ∈ (0, 1) and let εspan > 0 be given. Consider a call to PolicyOpt ocp (Γ1∶H , n, λ ) (Algorithm 3). Suppose: 1. Assumptions 2.1 and 2.2 hold. 2. The collection Γ1∶H satisfies: for all ℓ ∈ [H] and ρ ∈ Π, there exists a map βℓ ∶ Γℓ → [−2, 2] such that 
+
+XXXXXXXXXXX
+
+Eρ[ϕℓ(xℓ, aℓ)] − ∑
+
+> π∈Γℓ
+
+βℓ(π) ⋅ Eπ [ϕℓ(xℓ, aℓ)] XXXXXXXXXXX
+
+≤ εspan . (10) 18 3. The collection Γ1∶H satisfies ∣Γh∣ ≤ d for all h ∈ [H].Then, with probability at least 1 − 3δ, for every π ∈ Π, the output policy ̂ π satisfies: 
+
+E [V π 
+
+> 1
+
+(x1) − V̂ π 
+
+> 1
+
+(x1)] ≤
+
+> H
+
+∑
+
+> ℓ=1
+
+⎛⎝2
+
+√ dn ⋅ ζ(δ) + 2dε stat + (√d + C) ⋅ εspan 
+
+⎞⎠ , (11) 
+
+where ζ(δ) ∶= √λd + √2 log (H/δ) + d log (1 + n/λ), C ∶= √d + λ−1/2ζ(δ), and 
+
+εstat ∶= C ⋅
+
+√ 8 (d log (1 + 2nC ) + log (2Hd /δ)) 
+
+n + 2
+
+n . (12) 
+
+Proof. We write V π 
+
+> 1
+
+(⋅; r⋆ 
+
+> 1∶H
+
+) for the value under the MDP’s rewards and V π 
+
+> 1
+
+(⋅;̂ r1∶H ) for the value under the deterministic proxy rewards ̂ r1∶H computed by Algorithm 3 (see Section 2 for the notation). By linearity of expectation, for any π ∈ Π,
+
+E[V π 
+
+> 1
+
+(x1; r⋆ 
+
+> 1∶H
+
+) − V π 
+
+> 1
+
+(x1;̂ r1∶H )] =
+
+> H
+
+∑
+
+> ℓ=1
+
+Eπ [rℓ −̂ rℓ(xℓ, aℓ)] . (13) 
+
+Reward estimation bound. The algorithm computes ̂ wℓ = (λI + Σℓ)−1 ∑(x,a,r )∈Dℓ ϕℓ(x, a ) ⋅ r, where 
+
+Σℓ = ∑(x,a )∈Dℓ ϕℓ(x, a )ϕℓ(x, a )⊺ and Vℓ = λI + Σℓ. By Assumption 2.2 (reward linearity), for any ℓ ∈ [H] and 
+
+(x, a ) ∈ X × A, there exists wℓ ∈ Rd with ∥wℓ∥ ≤ √d such that E[rℓ ∣ xℓ = x, aℓ = a] = ϕℓ(x, a )⊺wℓ.Applying Lemma O.6 (ridge regression guarantee), let Eridge  
+
+> ℓ
+
+be the event that ∥̂ wℓ − wℓ∥Vℓ ≤ ζ(δ). By Lemma O.6, P[Eridge  
+
+> ℓ
+
+] ≥ 1−δ/H. On this event, by Corollary O.3, ∥̂ wℓ∥ ≤ ∥wℓ∥+λ−1/2ζ(δ) ≤ √d+λ−1/2ζ(δ) = C.
+
+Empirical and concentration bounds along Γℓ. Fix ℓ ∈ [H] and π′ ∈ Γℓ. Let Estat  
+
+> ℓ,π ′
+
+be the event that for every θ with ∥θ∥ ≤ C,
+
+∣Eπ′
+
+[ϕℓ(xℓ, aℓ)⊺θ] − 1
+
+n
+
+> n
+
+∑
+
+> m=1
+
+ϕℓ(xm,π ′ 
+
+> ℓ
+
+, a m,π ′ 
+
+> ℓ
+
+)⊺θ∣ ≤ εstat .
+
+By Lemma O.7, P[Estat  
+
+> ℓ,π ′
+
+] ≥ 1 − δ/( Hd ). Define Estat  
+
+> ℓ
+
+∶= ⋂π′∈Γℓ Estat  
+
+> ℓ,π ′
+
+. Since ∣Γℓ∣ ≤ d, a union bound yields 
+
+P[Estat  
+
+> ℓ
+
+] ≥ 1 − δ/H.
+
+A uniform success event. Define Egood ∶= ⋂Hℓ=1(Eridge  
+
+> ℓ
+
+∩ Estat  
+
+> ℓ
+
+). By a union bound over ℓ ∈ [H], P[Egood ] ≥
+
+1 − 2δ. Condition on Egood for the remainder of the proof. 
+
+Bounding Eρ[ϕ⊺ 
+
+> ℓ
+
+(wℓ −̂ wℓ)] for arbitrary ρ. Following the same argument as in the proof of Lemma G.1, using the spanner property (10), on Egood we have for any ρ ∈ Π:
+
+∣Eρ[ϕℓ(xℓ, aℓ)] ⊺(wℓ −̂ wℓ)∣ ≤ 2
+
+√ dn ⋅ ζ(δ) + 2d ε stat + (√d + C) ⋅ εspan . (14) 
+
+Optimization guarantee. The algorithm computes ̂ C = max ℓ ∥̂ wℓ∥ and calls OCP (̂ r1∶H , Q, T ) with 
+
+Q = {Q1∶H ∶ Qh(x, a ) = θ⊺ϕh(x, a ), ∣Qh(x, a )∣ ≤ Ĥ C}. On Egood , we have ̂ C ≤ C, so the proxy rewards satisfy 
+
+∥̂ wℓ∥ ≤̂ C ≤ C, and the optimal Q-function for the proxy MDP lies in Q. Let Eocp denote the event that the output policy ̂ π of OCP is optimal for the proxy MDP, i.e., E[V̂ π 
+
+> 1
+
+(x1;̂ r1∶H )] ≥ E[V π 
+
+> 1
+
+(x1;̂ r1∶H )] for all 
+
+π ∈ Π. On Egood , applying Lemma 3.1 with R =̂ C ≤ C, we have P[Eocp ∣ Egood ] ≥ 1 − δ. On Eocp , we have 
+
+E[V π 
+
+> 1
+
+(x1;̂ r1∶H ) − V̂ π 
+
+> 1
+
+(x1;̂ r1∶H )] ≤ 0 for all π ∈ Π.19 Conclusion. On the event Egood ∩ Eocp , using (13) for π and ̂ π, together with (14): 
+
+E[V π 
+
+> 1
+
+(x1) − V̂ π 
+
+> 1
+
+(x1)] 
+
+= E[V π 
+
+> 1
+
+(x1; r⋆ 
+
+> 1∶H
+
+) − V π 
+
+> 1
+
+(x1;̂ r1∶H )] + E[V π 
+
+> 1
+
+(x1;̂ r1∶H ) − V̂ π 
+
+> 1
+
+(x1;̂ r1∶H )] + E[V̂ π 
+
+> 1
+
+(x1;̂ r1∶H ) − V̂ π 
+
+> 1
+
+(x1; r⋆ 
+
+> 1∶H
+
+)] 
+
+≤
+
+> H
+
+∑
+
+> ℓ=1
+
+∣Eπ [ϕ⊺ 
+
+> ℓ
+
+(wℓ −̂ wℓ)]∣ + 0 +
+
+> H
+
+∑
+
+> ℓ=1
+
+∣Ê 
+
+> π
+
+[ϕ⊺ 
+
+> ℓ
+
+(wℓ −̂ wℓ)]∣ 
+
+≤ 2
+
+> H
+
+∑
+
+> ℓ=1
+
+⎛⎝2
+
+√ dn ⋅ ζ(δ) + 2d ε stat + (√d + C) ⋅ εspan 
+
+⎞⎠ . (15) Absorbing the factor of 2 into the constants gives the stated bound (11). By the chain rule, P[Egood ∩ Eocp ] =
+
+P[Egood ] ⋅ P[Eocp ∣ Egood ] ≥ (1 − 2δ)( 1 − δ) ≥ 1 − 3δ.
+
+# C Proof of Theorem 3.1 (Guarantee Under Finite Actions) 
+
+Proof. We verify that the outputs of Algorithm 2 satisfy the preconditions of Lemma B.1, and then combine the guarantees. 
+
+Step 1: Applying Lemma 3.2.. Let Espan denote the event that the outputs Γ1∶H of Algorithm 2 satisfy the spanner property: for all h ∈ [H] and π ∈ Π, there exist β1, . . . , β d ∈ [−2, 2] such that 
+
+XXXXXXXXXXX
+
+Eπ [ϕh(xh, ah)] −
+
+> d
+
+∑
+
+> j=1
+
+βj Eπj [ϕh(xh, ah)] XXXXXXXXXXX
+
+≤ 9dε ′.
+
+By Lemma 3.2, P[Espan ] ≥ 1 − δ/2. On this event, ∣Γh∣ = d for all h.
+
+Step 2: Applying Lemma B.1.. On Espan , all preconditions of Lemma B.1 are satisfied with sample size n and 
+
+εspan = 9dε ′ = 9ε/( c0HL ). Define (matching the notation in Lemma B.1 with λ = 1): 
+
+ζ ∶= √d + √2 log (2H/δ) + d log (1 + n), C ∶= √d + ζ, 
+
+and let εstat be as in (12). Let Eopt denote the event that the output policy ̂ π of PolicyOpt ocp satisfies: for all π ∈ Π,
+
+E [V π 
+
+> 1
+
+(x1) − V̂ π 
+
+> 1
+
+(x1)] ≤ H ⎛⎝2
+
+√ dn ⋅ ζ + 2dε stat + (√d + C) ⋅ 9dε ′⎞⎠ . (16) By Lemma B.1 (with δ replaced by δ/6), P[Eopt ∣ Espan ] ≥ 1 − 3 ⋅ (δ/6) = 1 − δ/2.
+
+Step 3: Bounding the suboptimality.. From (2), n = c1d2H2ε−2L2. Since n ≥ c1d2H2ε−2L2, we have log (1+n) =
+
+O(L) (by the same argument as in Theorem 4.1). With λ = 1, ζ = √d+√2 log (2H/δ) + d log (1 + n) = O(√dL )
+
+(since √d ≤ √dL for L ≥ 1). Thus, C = √d + ζ = O(√dL ).We bound each term in (16): 
+
+• Ridge regression term: H ⋅ 2√d/n ⋅ ζ.With n = c1d2H2ε−2L2, we have √d/n = ε/( c1/21 d1/2HL ). Thus, this term is at most 
+
+H ⋅ εc1/21 d1/2HL ⋅ O(√dL ) = O ⎛⎝
+
+εc1/21
+
+√L
+
+⎞⎠ ≤ ε
+
+4
+
+for c1 sufficiently large. 20 • Statistical error term: H ⋅ 2dε stat .Following the same analysis as in Theorem 4.1, εstat = O(C ⋅ √dL /n) = O(√dL ⋅ ε/( c1/21 dHL )) =
+
+O(ε/( c1/21
+
+√dH √L)) . Thus, this term is at most 
+
+H ⋅ 2d ⋅ O ⎛⎝
+
+εc1/21
+
+√dH √L
+
+⎞⎠ = O ⎛⎝
+
+ε√dc1/21
+
+√L
+
+⎞⎠ ≤ ε
+
+4
+
+for c1 a sufficiently large universal constant (using √d/L ≤ 1 since L ≥ d). 
+
+• Span error term: H ⋅ (√d + C) ⋅ 9dε ′.With ε′ = ε/( c0dHL ) and √d + C = O(√dL ), this is 
+
+O (H ⋅ √dL ⋅ d ⋅ εc0dHL ) = O ( ε√dL c0L ) = O ⎛⎝
+
+εc0
+
+√ dL
+
+⎞⎠ ≤ ε
+
+4
+
+for c0 a sufficiently large universal constant (using √d/L ≤ 1 since L ≥ d). Summing all three contributions yields E[V π 
+
+> 1
+
+(x1) − V̂ π 
+
+> 1
+
+(x1)] ≤ 3ε/4 < ε for all π ∈ Π.
+
+Step 4: Combining the events.. By the chain rule for conditional probabilities, 
+
+P[Espan ∩ Eopt ] = P[Espan ] ⋅ P[Eopt ∣ Espan ] ≥ (1 − δ/2)( 1 − δ/2) ≥ 1 − δ. 
+
+On the event Espan ∩ Eopt , the bound (16) holds, and the analysis in Step 3 gives the stated suboptimality guarantee. 
+
+# Part II 
+
+# Proofs for Large Action Space Setting 
+
+# D Choice of Parameters for ComputeSpanner fqi (Algorithm 5) 
+
+For a sufficiently large universal constant c1 > 0, we set 
+
+εrob ∶= ε
+
+192 dH 2 ,Niter ∶= d + ⌈ d
+
+2 log 2
+
+100 dε2
+
+> rob
+
+⌉ ,δ′ ∶= δ
+
+8Hd 2Niter 
+
+,nveceval ∶= c1H4d2ε−2 log (1/δ′),ntest ∶= 128 H2d2 log (4/δ′)
+
+ε2 ,nsamp ∶= 512 d2 log (256 d/δ′),mboost ∶= 2048 d2 log (4/δ′),nreject ∶= 8Hd log (( nsamp + n2
+
+> samp
+
+mboost ) / δ′)
+
+ε ,nspan ∶=
+
+⎡⎢⎢⎢⎢
+
+16 Hd √log (4d)nsamp 
+
+ε + 32 Hd log (4d)
+
+ε + 8Hdn samp 
+
+ε
+
+⎤⎥⎥⎥⎥
+
+,ncover = nfqi ∶= ⌈log 2(H2d/δ′)⌉ ⋅ nspan .
+
+(17) 21 E Guarantee of SubspaceCover 
+
+Lemma E.1 (Discovery of a new direction). Consider a call to SubspaceCover with inputs h, Ψ1∶h−1,
+
+ε, and δ ∈ (0, 1), and let δ′ be as in (17). Suppose SubspaceCover reaches step i ≥ 1 in iteration t ≥ 1,and let ̂ πt,i, ± be the policies returned by the FQI calls on Algorithm 4 of Algorithm 4. Then, conditioned on ̂
+
+πt,i, ±, with probability at least 1 − δ′ (over the randomness of the ntest test samples used to compute n±
+
+> outlier
+
+in Algorithm 4): 
+
+∣ n−
+
+> outlier
+
+ntest 
+
+− P [ϕ̂ 
+
+> πt,i, −
+> h
+
+(x1) ∉ St
+
+> h
+
+]∣ ≤
+
+√ 2 log (4/δ′)
+
+ntest 
+
+and ∣ n+
+
+> outlier
+
+ntest 
+
+− P [ϕ̂ 
+
+> πt,i, +
+> h
+
+(x1) ∉ St
+
+> h
+
+]∣ ≤
+
+√ 2 log (4/δ′)
+
+ntest 
+
+. (18) 
+
+Proof. The result follows by applying Hoeffding’s inequality to the random variables I{ϕ̂ 
+
+> πt,i, ±
+> h
+
+(x1) ∉ St
+
+> h
+
+},which are i.i.d. Bernoulli random variables with mean P [ϕ̂ πt,i, ± 
+
+> h
+
+(x1) ∉ St
+
+> h
+
+].
+
+Lemma E.2 (Computing outlier direction). Consider a call to SubspaceCover with inputs h, Ψ1∶h−1,
+
+ε, and δ ∈ (0, 1), and let δ′ be as in (17). Suppose that SubspaceCover reaches step i ≥ 1 of iteration 
+
+t ≥ 1, and let ̂ πt,i be the policy computed on Algorithm 4 of Algorithm 4. Furthermore, assume that the if condition on Algorithm 4 of the algorithm is true, and let vt,i be the output of ComputeOutlierDirection 
+
+in Algorithm 4. Then, conditioned on ̂ πt,i and noutlier , with probability at least 1 − 2δ′ (over the randomness of vt,i ), the following holds for i.i.d. random variables x1, x1
+
+> 1
+
+, . . . , xnsamp  
+
+> 1
+
+:
+
+P [vt,i ∈ Span {ϕ̂ 
+
+> πt,i
+> h
+
+(x1
+
+> 1
+
+)⊥, . . . , ϕ ̂ πt,i  
+
+> h
+
+(xnsamp  
+
+> 1
+
+)⊥} ∣ ϕ̂ 
+
+> πt,i
+> h
+
+(xm 
+
+> 1
+
+) ∉ St
+
+> h
+
+, ∀m ∈ [nsamp ]] 
+
+≥ I {p ≥ ε
+
+8Hd } ⋅
+
+⎛⎜⎝
+
+1 − dnsamp + 1 − 2
+
+√ log (2nsamp /δ′)
+
+2mboost 
+
+−
+
+¿ÁÁÀ log (2/δ′)
+
+2nsamp 
+
+⎞⎟⎠
+
+, (19) 
+
+where p = P [ϕ̂ πt,i  
+
+> h
+
+(x1) ∉ St
+
+> h
+
+] and ϕ̂ πt,i  
+
+> h
+
+(⋅)⊥ = Proj (Sth)⊥ (ϕ̂ πt,i  
+
+> h
+
+(⋅)) denotes the orthogonal projection of ϕ̂ πt,i  
+
+> h
+
+(⋅)
+
+onto (St
+
+> h
+
+)⊥ (note that St 
+
+> h
+
+is a subspace). 
+
+Proof. By Lemma J.1 (the generic guarantee of ComputeOutlierDirection ) and Lemma M.1 (which accounts for the approximate sampling from P̂
+
+> πt,i
+
+[⋅ ∣ ϕ̂ 
+
+> πt,i
+> h
+
+(x1) ∉ St
+
+> h
+
+] via rejection sampling), we get that with probability at least 1 − δ′ − (nsamp + mboost n2
+
+> samp
+
+) ⋅ (1 − p)nreject (p is as in the lemma’s statement), 
+
+P [vt,i ∈ Span {ϕ̂ 
+
+> πt,i
+> h
+
+(x1
+
+> 1
+
+)⊥, . . . , ϕ ̂ πt,i  
+
+> h
+
+(xnsamp  
+
+> 1
+
+)⊥} ∣ ϕ̂ 
+
+> πt,i
+> h
+
+(xm 
+
+> 1
+
+) ∉ St
+
+> h
+
+, ∀m ∈ [nsamp ]] 
+
+≥ 1 − dnsamp + 1 − 2
+
+√ log (2nsamp /δ′)
+
+2mboost 
+
+−
+
+¿ÁÁÀ log (2/δ′)
+
+2nsamp 
+
+. (20) When p ≥ ε 
+
+> 8Hd
+
+, the choice of nreject in (17) ensures that (nsamp + mboost n2
+
+> samp
+
+)( 1 − p)nreject ≤ δ′, which implies (19) with the desired confidence level. When p < ε 
+
+> 8Hd
+
+, (19) holds trivially with probability 1. 
+
+Lemma E.3 (Guarantee of Algorithm 4). Consider a call to SubspaceCover with inputs h, Ψ1∶h−1,and ε, δ . Suppose the following: 
+
+• Assumptions 2.1 and 2.2 hold and S1∶h−1 are subspaces of Rd.
+
+• For all ℓ ∈ [h − 1], u ∈ Sℓ, and i.i.d. x1, x1
+
+> 1
+
+, . . . , xnspan  
+
+> 1
+
+(nspan as in (17)) initial states 
+
+P[u ∈ Span {ϕπℓ (xm 
+
+> 1
+
+) ∶ m ∈ [nspan ], π ∈ Ψℓ}] ≥ 1/2. (21) 
+
+• P[x1 ∈ X h] ≥ 1 − (h − 1) ⋅ ε/H, where X h ∶= ⋂ℓ∈[h−1]{x ∈ X ∣ Span {ϕπℓ (x) ∶ π ∈ Π} ⊆ Sℓ}.
+
+22 Then, with probability at least 1 − δ, SubspaceCover returns (St
+
+> h
+
+, Ψt
+
+> h
+
+) such that: 
+
+P [Span {ϕπh (x1) ∶ π ∈ Π} ⊆ St
+
+> h
+
+, x1 ∈ X h] ≥ 1 − hε H , (22) 
+
+and for all u ∈ St
+
+> h
+
+, and x1, x1
+
+> 1
+
+, . . . , xnspan  
+
+> 1
+
+i.i.d., we have 
+
+P[u ∈ Span {ϕπh (xm 
+
+> 1
+
+) ∶ m ∈ [nspan ], π ∈ Ψt
+
+> h
+
+}] ≥ 12 . (23) 
+
+Proof. Suppose that SubspaceCover reaches step i ≥ 1 of iteration t ≥ 1, and let ̂ πt,i, ± be the policies returned by FQI on Algorithm 4 of Algorithm 4. Let n± 
+
+> outlier
+
+be as in Algorithm 4 and (ntest , δ ′) be as in (17). We have the following: 
+
+• From (21), the definition of nfqi in (17), and Lemma O.1, we obtain the following amplified coverage statement: for each fixed ℓ ∈ [h − 1], if x1, x1
+
+> 1
+
+, . . . , xnfqi  
+
+> 1
+
+are i.i.d., then 
+
+P [Sℓ ⊆ Span {ϕπℓ (xm 
+
+> 1
+
+) ∶ m ∈ [nfqi ], π ∈ Ψℓ}] ≥ 1 − δ′
+
+H2 . (24) 
+
+• Fix a step (t, i ) and recall that θt,i ∈ (St
+
+> h
+
+)⊥ is the i-th basis vector chosen in that step. Let Efqi be the event that for all x ∈ X h,
+
+ϕ̂ πt,i, − 
+
+> h
+
+(x)⊺θt,i ≤ min  
+
+> π∈Π
+
+ϕπh (x)⊺θt,i and max  
+
+> π∈Π
+
+ϕπh (x)⊺θt,i ≤ ϕ̂ 
+
+> πt,i, +
+> h
+
+(x)⊺θt,i . (25) By Corollary K.1 (applied to rewards rh(⋅, ⋅) = ±ϕh(⋅, ⋅)⊺θt,i and r1∶h−1 ≡ 0) and the coverage condition (24), we have 
+
+P[Efqi ] ≥ 1 − δ′. (26) 
+
+• Fix a step (t, i ) and condition on the realized outputs ̂ πt,i, − and ̂ πt,i, + of the two FQI calls on Algorithm 4. Let Enewdir be the event that 
+
+∣ n−
+
+> outlier
+
+ntest 
+
+− P [ϕ̂ 
+
+> πt,i, −
+> h
+
+(x1) ∉ St
+
+> h
+
+]∣ ≤
+
+√ 2 log (4/δ′)
+
+ntest 
+
+and 
+
+∣ n+
+
+> outlier
+
+ntest 
+
+− P [ϕ̂ 
+
+> πt,i, +
+> h
+
+(x1) ∉ St
+
+> h
+
+]∣ ≤
+
+√ 2 log (4/δ′)
+
+ntest 
+
+.
+
+(27) By Lemma E.1, for every fixed realization of ̂ πt,i, ±,
+
+P[Enewdir ∣̂ πt,i, −,̂ πt,i, +] ≥ 1 − δ′. (28) 
+
+• Fix a step (t, i ) and condition on the realized policy ̂ πt,i selected on Algorithm 4 (which is a deterministic function of ̂ πt,i, ± and of the ntest test trajectories used to compute n±
+
+> outlier
+
+). If the condition on Algorithm 4 of Algorithm 4 is not satisfied (i.e., the outlier branch does not execute), define Eoutlier to be the sure event. Otherwise, let Eoutlier be the event that 
+
+P [vt,i ∈ Span {ϕ̂ 
+
+> πt,i
+> h
+
+(xm 
+
+> 1
+
+)⊥ ∶ m ∈ [nsamp ]} ∣ ϕ̂ 
+
+> πt,i
+> h
+
+(xm 
+
+> 1
+
+) ∉ St
+
+> h
+
+, ∀m ∈ [nsamp ]] 
+
+≥ I {P [ϕ̂ πt,i  
+
+> h
+
+(x1) ∉ St
+
+> h
+
+] ≥ ε
+
+8Hd } ⋅ (1 − 14d ) , (29) where vt,i is the output of ComputeOutlierDirection in Algorithm 4 at step (t, i ). By Lemma E.2, for every fixed realization of ̂ πt,i and noutlier ,
+
+P[Eoutlier ∣̂ πt,i , n outlier ] ≥ 1 − 2δ′. (30) 23 Local consolidation within a fixed step (t, i ). Define the step success event 
+
+Et,i ∶= Efqi ∩ Enewdir ∩ Eoutlier .
+
+By a union bound, 
+
+P[( Et,i )c] ≤ P[( Efqi )c] + P[( Enewdir )c] + P[( Eoutlier )c].
+
+We bound the three terms on the right-hand side using the conditional guarantees stated above. First, by (26), we have P[( Efqi )c] ≤ δ′. Second, by (28), for every realization of ̂ πt,i, ± we have P[( Enewdir )c ∣̂ πt,i, ±] ≤ δ′.Third, by (30), for every realization of ̂ πt,i and noutlier , we have P[( Eoutlier )c ∣̂ πt,i , n outlier ] ≤ 2δ′ (and this bound holds trivially when the outlier branch does not execute, since Eoutlier is then the sure event). By the tower property, 
+
+P[( Enewdir )c] = E [P[( Enewdir )c ∣̂ πt,i, ±]] ≤ δ′
+
+and 
+
+P[( Eoutlier )c] = E [P[( Eoutlier )c ∣̂ πt,i , n outlier ]] ≤ 2δ′.
+
+Combining the bounds P[( Et,i )c] ≤ δ′ + δ′ + 2δ′ = 4δ′, and hence 
+
+P[Et,i ] ≥ 1 − 4δ′. (31) 
+
+Global consolidation across all steps of Algorithm 4. We now combine the (local) success Et,i events across the entire execution of Algorithm 4. In this context, a “step” means a pair (t, i ) corresponding to the i-th direction tested in outer iteration t. Recall that t ∈ {1, . . . , d + 1} and Kt = d − dim (St
+
+> h
+
+) ≤ d, hence the total number of potential steps is 
+
+T ∶=
+
+> d+1
+
+∑
+
+> t=1
+
+Kt ≤ (d + 1)d ≤ 2d2. (32) Order the potential steps in the order they would be executed, and let τ ∈ [T ] be the (random) number of steps actually executed before return; then τ is a stopping time for the natural filtration of the algorithm. Let E be the event that E(t,i ) holds for every step (t, i ) executed by Algorithm 4. Since the bounds (26), (28), and (30) are conditional on the algorithm state before each step, the step-level failure bound P[( E(t,i ))c] ≤ 4δ′
+
+holds conditioned on the prior history. By Lemma O.4, 
+
+P[E] ≥ 1 − 4δ′T. 
+
+With δ′ = δ/( 8Hd 2Niter ) (from (17)) and T ≤ 2d2, we have 
+
+4δ′T ≤ 4 ⋅ δ
+
+8Hd 2Niter 
+
+⋅ 2d2 = δHN iter 
+
+≤ δH .
+
+Moving forward, let t⋆ ∈ [d + 1] denote the (random) iteration at which the algorithm returns, and condition on the event E.
+
+Proving (23) via induction. We show by induction that for all t ∈ [t⋆], u ∈ St
+
+> h
+
+, and i.i.d. initial states 
+
+x1, x1
+
+> 1
+
+, . . . , xnspan  
+
+> 1
+
+, we have 
+
+P[u ∈ Span {ϕπh (xm 
+
+> 1
+
+) ∶ m ∈ [nspan ], π ∈ Ψt
+
+> h
+
+}] ≥ 1 − (t − 1)
+
+2d . (33) 
+
+Base case. The base case t = 1 holds trivially since S1 
+
+> h
+
+= Ψ1 
+
+> h
+
+= ∅ (see Algorithm 4). 
+
+General case. Suppose the claim holds for t ∈ [t⋆ − 1]. We show it holds for t + 1. Since t < t⋆, the algorithm does not return at iteration t, so case II (the if condition on Algorithm 4 is false for all i ∈ [Kt]) cannot hold. Therefore, the if condition on Algorithm 4 is satisfied for some i ∈ [Kt] (recall that Kt = d − dim (St
+
+> h
+
+)). Fix 24 this i. From (27), the definition of ̂ πt,i in Algorithm 4, and the fact that the condition on Algorithm 4 is satisfied, we have that 
+
+P [ϕ̂ πt,i  
+
+> h
+
+(x1) ∉ St
+
+> h
+
+] ≥ ε
+
+4Hd −
+
+√ 2 log (4/δ′)
+
+ntest 
+
+,
+
+≥ ε
+
+8Hd , (34) where the last inequality follows from the choice of ntest in (17). By (34), (29), Lemma O.5, and the choice of nspan in (17), we have that 
+
+P [vt,i ∈ Span {ϕ̂ 
+
+> πt,i
+> h
+
+(xm 
+
+> 1
+
+)⊥ ∶ m ∈ [nspan ]}] ≥ 1 − 12d . (35) Now, fix u ∈ St+1 
+
+> h
+
+. Because St+1 
+
+> h
+
+= Span {St 
+
+> h
+
+∪ {vt,i }} , we have that either u ∈ St 
+
+> h
+
+or u has a non-zero component along vt,i . In the former case, the induction hypothesis applies. In the latter case, we can write u = v + w,where v ∈ Span {vt,i } and w ∈ St
+
+> h
+
+. By the induction hypothesis, we have that 
+
+P[w ∈ Span {ϕπh (xm 
+
+> 1
+
+) ∶ m ∈ [nspan ], π ∈ Ψt
+
+> h
+
+}] ≥ 1 − t − 12d . (36) Now, because Ψt+1 
+
+> h
+
+= Ψt 
+
+> h
+
+∪ {̂ πt,i }, we have by (35), (36), and a union bound that 
+
+P[u ∈ Span {ϕπh (xm 
+
+> 1
+
+) ∶ m ∈ [nspan ], π ∈ Ψt+1 
+
+> h
+
+}] ≥ 1 − t
+
+2d . (37) This completes the induction. 
+
+Proving (22). It remains to prove that if the algorithm returns at iteration t, then 
+
+P [Span {ϕπh (x1) ∶ π ∈ Π} ⊆ St
+
+> h
+
+, x1 ∈ X h] ≥ 1 − hε H . (38) When the algorithm returns at iteration t, we either have that I) dim (St
+
+> h
+
+) = d; or II) for all i ∈ [Kt], the if condition on Algorithm 4 is not satisfied. In case I), (38) holds trivially. We now consider the second case. The fact that the if condition on Algorithm 4 is not satisfied for all i ∈ [Kt] implies 
+
+ε
+
+4Hd ≥ noutlier 
+
+ntest 
+
+≥ n−
+
+> outlier
+
+ntest 
+
+∨ n+
+
+> outlier
+
+ntest 
+
+, (39) where the right-most inequality follows from the definition of noutlier in Algorithm 4. Combining (39) with (27), we get that for all i ∈ [Kt],
+
+P [ϕ̂ πt,i, − 
+
+> h
+
+(x1) ∉ St
+
+> h
+
+] ∨ P [ϕ̂ πt,i, + 
+
+> h
+
+(x1) ∉ St
+
+> h
+
+] ≤ ε
+
+4dH +
+
+√ 2 log (4/δ′)
+
+ntest 
+
+. (40) Note that because (θt,j )j∈[Kt] are an orthogonal basis of (St
+
+> h
+
+)⊥, we have that for all π ∈ Π,
+
+ϕπh (x) ∉ St 
+
+> h
+
+⇐⇒ max 
+
+> i∈[Kt]
+
+∣ϕπh (x)⊺θt,i ∣ ≠ 0. (41) Now, by (25), we have that for all x ∈ X h and π ∈ Π,
+
+max 
+
+> i∈[Kt]
+
+∣ϕπh (x)⊺θt,i ∣ ≠ 0 Ô⇒ ( min  
+
+> i∈[Kt]
+
+ϕ̂ πt,i, − 
+
+> h
+
+(x)⊺θt,i < 0 or max  
+
+> i∈[Kt]
+
+ϕ̂ πt,i, + 
+
+> h
+
+(x)⊺θt,i > 0) . (42) 25 Therefore, we have that 
+
+P [Span {ϕπh (x1) ∶ π ∈ Π} / ⊆ St 
+
+> h
+
+and x1 ∈ X h]
+
+= P [ max  
+
+> i∈[Kt]
+
+sup 
+
+> π∈Π
+
+∣ϕπh (x1)⊺θt,i ∣ ≠ 0 and x1 ∈ X h] ,
+
+≤ P [ max  
+
+> i∈[Kt]
+
+max (ϕ̂ πt,i, + 
+
+> h
+
+(x1)⊺θt,i , −ϕ̂ πt,i, − 
+
+> h
+
+(x1)⊺θt,i ) > 0 and x1 ∈ X h] ,
+
+≤ ∑
+
+> i∈[Kt]
+
+P [ϕ̂ πt,i, + 
+
+> h
+
+(x1)⊺θt,i > 0 and x1 ∈ X h] + ∑
+
+> i∈[Kt]
+
+P [ϕ̂ πt,i, − 
+
+> h
+
+(x1)⊺θt,i < 0 and x1 ∈ X h] ,
+
+≤ ∑
+
+> i∈[Kt]
+
+P [ϕ̂ πt,i, + 
+
+> h
+
+(x1) ∉ St 
+
+> h
+
+and x1 ∈ X h] + ∑
+
+> i∈[Kt]
+
+P [ϕ̂ πt,i, − 
+
+> h
+
+(x1) ∉ St 
+
+> h
+
+and x1 ∈ X h] ,
+
+and using that Kt ≤ d, we get 
+
+≤ ε
+
+2H + 2d
+
+√ 2 log (4/δ′)
+
+ntest 
+
+,
+
+≤ εH , (43) where the last inequality follows from the choice of ntest in (17). Therefore, we have that 
+
+P [Span {ϕπh (x1) ∶ π ∈ Π} ⊆ St 
+
+> h
+
+and x1 ∈ X h]
+
+= P[x1 ∈ X h] − P [Span {ϕπh (x1) ∶ π ∈ Π} / ⊆ St 
+
+> h
+
+and x1 ∈ X h] ,
+
+≥ 1 − (h − 1) εH − εH , (44) where the last inequality follows from (43). This completes the proof. 
+
+# F Guarantee of ComputeSpanner fqi (Algorithm 5) 
+
+This section provides the proof of Lemma 4.1, which establishes that Algorithm 5 computes valid policy covers with both the coverage property (for Ψ1∶H ) and the approximate barycentric spanner property (for Γ1∶H ). The proof proceeds in two steps: first, we show that FQI with coverage policies serves as a valid approximate linear optimization oracle (Lemma F.1), enabling large action space algorithms to avoid the polynomial-in-∣A∣ cost of 
+
+OCP ; then, we verify that the oracles used by RobustSpanner satisfy the preconditions of Proposition N.1, yielding the spanner guarantee (Lemma F.3). The final result follows by induction over layers. We first show that the FQI and EstVec subroutines used in Algorithm 5 satisfy the requirements of Assumption N.1 (guarantee of RobustSpanner ), with a small error influenced by the state concentration property. For subspaces S1∶h−1 ⊆ Rd and policy collections Ψ1∶h−1, define the coverage event 
+
+Ecov  
+
+> h
+
+∶= h−1
+
+⋂
+
+> ℓ=1
+
+{Sℓ ⊆ Span {ϕπℓ (xm 
+
+> 1
+
+) ∶ m ∈ [ncover ], π ∈ Ψℓ}} , (45) where x1
+
+> 1
+
+, . . . , xncover  
+
+> 1
+
+are i.i.d. samples from the initial state distribution. 
+
+Lemma F.1 (Validity of FQI as LinOpt ). Let ε > 0 and δ ∈ (0, 1) be the accuracy and confidence parameters input to Algorithm 5, and consider Step h of the algorithm. Let S1∶h−1 and Ψ1∶h−1 be the subspaces and policy collections computed by Algorithm 5 prior to Step h. For θ ∈ Rd ∖ {0}, let LinOpt (θ) correspond to the call FQI (h, r 1∶h, Ψ1∶h−1, n fqi ) with rewards r1∶h−1 ≡ 0 and rh(⋅, ⋅) = θ⊺ϕh(⋅, ⋅). Let δ′ be as in (17), and let X h be defined as in (5) (in terms of S1∶h−1). Suppose Assumptions 2.1 and 2.2 hold. 
+
+26 Conditioned on the coverage event Ecov  
+
+> h
+
+(defined in (45)), for each fixed θ ∈ Rd ∖ {0}, with probability at least 
+
+1 − δ′ over the samples used by FQI , the policy ̂ π = LinOpt (θ) satisfies: 
+
+E[ϕ̂ 
+
+> πh
+
+(x1)⊺θ] ≥ max  
+
+> π∈Π
+
+E[ϕπh (x1)⊺θ] − 2∥θ∥ ⋅ P[x1 ∉ X h]. (46) 
+
+Proof. Condition on Ecov  
+
+> h
+
+. Then for all ℓ ∈ [h − 1], we have Sℓ ⊆ Span {ϕπℓ (xm 
+
+> 1
+
+) ∶ m ∈ [ncover ], π ∈ Ψℓ}. This is precisely the subspace coverage condition required by Lemma K.1 (the guarantee of FQI ; specifically Item 3 with n = ncover samples). Therefore, Lemma K.1 applies, and on its success event (which holds with probability at least 1 − δ′ over the FQI samples), we have for all x ∈ X h: ϕ̂ πh (x)⊺θ ≥ max π∈Π ϕπh (x)⊺θ.Condition on this success event for the remainder of the proof. Taking expectations over x1 and splitting based on {x1 ∈ X h}:
+
+E[ϕ̂ 
+
+> πh
+
+(x1)⊺θ]
+
+= E[ϕ̂ 
+
+> πh
+
+(x1)⊺θ ⋅ I{x1 ∈ X h}] + E[ϕ̂ 
+
+> πh
+
+(x1)⊺θ ⋅ I{x1 ∉ X h}] ,
+
+≥ E [( max  
+
+> π∈Π
+
+ϕπh (x1)⊺θ) ⋅ I{x1 ∈ X h}] − ∥θ∥ ⋅ P[x1 ∉ X h],
+
+= E [max  
+
+> π∈Π
+
+ϕπh (x1)⊺θ] − E [( max  
+
+> π∈Π
+
+ϕπh (x1)⊺θ) ⋅ I{x1 ∉ X h}] − ∥θ∥ ⋅ P[x1 ∉ X h],
+
+≥ max  
+
+> π∈Π
+
+E [ϕπh (x1)⊺θ] − 2∥θ∥ ⋅ P[x1 ∉ X h],
+
+where we used sup (x,a ) ∥ϕh(x, a )∥ ≤ 1 (from Assumption 2.2). 
+
+Lemma F.2 (Validity of EstVec as Vec ). Consider the setting of Step h in Algorithm 5 with accuracy parameter ε > 0 and confidence parameter δ ∈ (0, 1). Let δ′ be as in (17). Let Vec (π) correspond to the call 
+
+EstVec (h, ϕ h, π, n veceval ) with nveceval as in Algorithm 5. Then, for each fixed π ∈ Π, with probability at least 
+
+1 − δ′ over the samples used by EstVec :
+
+∥Vec (π) − E[ϕπh (x1)]∥ ≤ εrob . (47) 
+
+Proof. This follows directly from Lemma L.1 (guarantee of EstVec ) and the choice of nveceval in (17), which ensures the error is at most εrob with probability 1 − δ′.
+
+Lemma F.3 (Guarantee of RobustSpanner for ComputeSpanner fqi ). Let ε > 0 and δ ∈ (0, 1) be the accuracy and confidence parameters input to Algorithm 5, and consider the call to RobustSpanner at Step h. Let S1∶h−1 and Ψ1∶h−1 be the subspaces and policy collections computed by Algorithm 5 prior to Step h.Let X h be defined as in (5) (in terms of S1∶h−1), and let δ′, Niter , εrob be as in (17). Suppose Assumptions 2.1 and 2.2 hold. Conditioned on the coverage event Ecov  
+
+> h
+
+(defined in (45)), if P[x1 ∈ X h] ≥ 1 − εconc for some εconc ≥ 0, then with probability at least 1 − δ 
+
+> 4H
+
+over the samples used by RobustSpanner , its output Γh = (π1, . . . , π d) satisfies the following: for any π ∈ Π, there exist β1, . . . , β d ∈ [−2, 2] such that 
+
+XXXXXXXXXXX
+
+E[ϕπh (x1)] −
+
+> d
+
+∑
+
+> j=1
+
+βj E[ϕπj 
+
+> h
+
+(x1)] XXXXXXXXXXX
+
+≤ 24 dε conc + ε
+
+10 H2 . (48) 
+
+Proof. Condition on Ecov  
+
+> h
+
+throughout. We verify that the oracles LinOpt and Vec satisfy the requirements of Assumption N.1 (the preconditions of Proposition N.1, the guarantee of RobustSpanner ). By Proposition N.1, RobustSpanner terminates after at most Niter iterations and makes at most 2Niter 
+
+calls to each of LinOpt and Vec .
+
+Verifying approximate linear optimization (first condition of Assumption N.1). Since we condition on Ecov  
+
+> h
+
+,the preconditions of Lemma F.1 are satisfied. Thus, for each call to LinOpt with input θ ≠ 0, Lemma F.1 27 implies that with probability 1 − δ′ over the samples used: 
+
+E[ϕ̂ 
+
+> πh
+
+(x1)⊺θ] ≥ max  
+
+> π∈Π
+
+E[ϕπh (x1)⊺θ] − 2∥θ∥ ⋅ P[x1 ∉ X h].
+
+Given P[x1 ∈ X h] ≥ 1 − εconc , the right-hand side is at least max π E[ϕπh (x1)⊺θ] − 2∥θ∥εconc , so LinOpt satisfies the approximate linear optimization condition of Assumption N.1 with error εrob = 2εconc .
+
+Verifying vector estimation (second condition of Assumption N.1). For each call to Vec with input π,Lemma F.2 guarantees that with probability 1 − δ′ over the samples used, ∥Vec (π) − E[ϕπh (x1)]∥ ≤ εrob (as defined in (17)), so Vec satisfies the vector estimation condition of Assumption N.1 with error εest = εrob .
+
+Union bound over oracle calls. Let Eorc denote the event that all 2Niter calls to LinOpt satisfy the first condition of Assumption N.1 (approximate linear optimization) and all 2Niter calls to Vec satisfy the second condition of Assumption N.1 (vector estimation). Each individual oracle call succeeds with probability at least 1 − δ′ (conditioned on Ecov  
+
+> h
+
+). By a union bound over the 4Niter total oracle calls: 
+
+P[Eorc ∣ Ecov  
+
+> h
+
+] ≥ 1 − 4Niter δ′ = 1 − δ
+
+2Hd 2 , (49) where the equality uses δ′ = δ/( 8Hd 2Niter ) from (17). 
+
+Applying Proposition N.1. On the event Eorc , Assumption N.1 holds with combined error ε′ = εrob + εest ≤
+
+2εconc + εrob . Algorithm 5 invokes RobustSpanner with inputs (LinOpt , Vec , C = 2, ε rob ). Applying Proposition N.1 with these parameters (setting the proposition’s accuracy parameter to εrob ) and oracle error 
+
+ε′, the output Γh is a 2-approximate barycentric spanner with error: 
+
+3Cd (εrob + 2ε′) ≤ 6d (εrob + 2 (2εconc + εrob )) = 6d (3εrob + 4εconc ) .
+
+Simplifying: 6d ⋅ 3εrob = 18 d ⋅ ε 
+
+> 192 dH 2
+
+= 18 ε 
+
+> 192 H2
+
+≤ ε 
+
+> 10 H2
+
+and 6d ⋅ 4εconc = 24 dε conc . This gives the bound in (48). 
+
+Proof of Lemma 4.1. For each h ∈ [H], let Elazy  
+
+> h
+
+denote the success event of the call 
+
+(Sh, Ψh) ← SubspaceCover (h, Ψ1∶h−1, ε, δ 
+
+> 4H
+
+) ,
+
+within Algorithm 5; namely the event on which the conclusions of Lemma E.3 (guarantee of SubspaceCover )hold for that call. Let Ecov  
+
+> h
+
+denote the event that for i.i.d. samples x1
+
+> 1
+
+, . . . , xncover  
+
+> 1
+
+from the initial state distribution, the following holds simultaneously for all ℓ ∈ [h − 1]:
+
+Sℓ ⊆ Span {ϕπℓ (xm 
+
+> 1
+
+) ∶ m ∈ [ncover ], π ∈ Ψℓ} . (50) Let Erob  
+
+> h
+
+denote the event that the conclusions of Lemma F.3 (guarantee of RobustSpanner ) hold for the call to RobustSpanner at Step h. Define Eh ∶= Elazy  
+
+> h
+
+∩ Ecov  
+
+> h
+
+∩ Erob  
+
+> h
+
+. Let E<h ∶= ⋂h−1 
+
+> ℓ=1
+
+Eℓ, with E<1 being the sure event. For any h ∈ [H], let Hh denote the hypothesis that Algorithm 5’s variables (Sh, Ψh, Γh) satisfy: 1. Coverage at h: For i.i.d. x1, x1
+
+> 1
+
+, . . . , xncover  
+
+> 1
+
+, P[Sh ⊆ Span {ϕπh (xm 
+
+> 1
+
+) ∶ m ∈ [ncover ], π ∈ Ψh}] ≥ 1 − δ/H2.2. State concentration at h + 1: P[x1 ∈ X h+1] ≥ 1 − hε /H, where X h is defined in (5). 3. Spanner property at h: The property in (6) holds for Γh.We proceed by induction to show that for all h ∈ [H], the event Eh occurs with high probability and implies 
+
+Hh. The key to the induction is that success at previous steps ( H1, . . . , Hh−1) ensures that the inputs passed to the subroutines SubspaceCover and RobustSpanner at step h satisfy the conditions of Lemma E.3 (guarantee of SubspaceCover ) and Lemma F.3 (guarantee of RobustSpanner ), respectively. Specifically: 
+
+• The Coverage properties (Item 1) established in steps 1, . . . , h − 1 ensure that the preconditions for invoking Lemma E.3 at step h are met. 
+
+• The State concentration property (Item 2) established in step h − 1 ensures that the preconditions for invoking Lemma F.3 at step h are met. 28 Base case ( h = 1). At step h = 1, the inputs (S0, Ψ0) are empty, so the coverage requirements for 
+
+SubspaceCover are vacuously satisfied, and Ecov  
+
+> 1
+
+is the sure event. Also, X 1 = X , so P[x1 ∈ X 1] = 1,satisfying the state concentration requirement in Lemma F.3. By Lemma E.3, P[( Elazy  
+
+> 1
+
+)c] ≤ δ/( 4H). Since 
+
+Ecov  
+
+> 1
+
+is the sure event, Lemma F.3 gives P[( Erob  
+
+> 1
+
+)c] = P[( Erob  
+
+> 1
+
+)c ∣ Ecov  
+
+> 1
+
+] ≤ δ/( 4H). By a union bound, 
+
+P[( E1)c] ≤ δ/( 2H). On the event E1, the subroutines succeed, which directly implies H1: Items 1 and 2 hold by Lemma E.3, and Item 3 holds by Lemma F.3. 
+
+Inductive step. Fix h ∈ {2, . . . , H }. Assume that on the event E<h = ⋂h−1 
+
+> ℓ=1
+
+Eℓ, the hypotheses H1, . . . , Hh−1
+
+hold. We verify that the algorithm can successfully execute step h:
+
+• Valid inputs for SubspaceCover : To invoke Lemma E.3 for SubspaceCover , we require that the previous outputs (Sℓ, Ψℓ)ℓ<h satisfy the coverage property in Item 1. This is exactly established by the inductive hypotheses H1, . . . , Hh−1.
+
+• Valid distribution for RobustSpanner : To invoke Lemma F.3 for RobustSpanner , we require that the state distribution is concentrated on X h. Item 2 of Hh−1 gives exactly this: P[x1 ∈ X h] ≥ 1 − (h − 1)ε/H.
+
+• Coverage event for RobustSpanner : Lemma F.3 requires conditioning on Ecov  
+
+> h
+
+. On E<h, by Item 1 of 
+
+H1, . . . , Hh−1, each layer ℓ ∈ [h − 1] satisfies P[(50) holds for layer ℓ] ≥ 1 − δ/H2. By a union bound over the (h − 1) layers: 
+
+P[( Ecov  
+
+> h
+
+)c ∣ E<h] ≤ (h − 1)δ/H2. (51) Since the requirements are met (on E<h), the subroutine guarantees apply: 
+
+• By Lemma E.3: P[( Elazy  
+
+> h
+
+)c ∣ E<h] ≤ δ/( 4H).
+
+• By (51): P[( Ecov  
+
+> h
+
+)c ∣ E<h] ≤ (h − 1)δ/H2.
+
+• By Lemma F.3: P[( Erob  
+
+> h
+
+)c ∣ Ecov  
+
+> h
+
+∩ E<h] ≤ δ/( 4H).By a union bound: 
+
+P [( Eh)c ∣ E<h] ≤ P[( Elazy  
+
+> h
+
+)c ∣ E<h] + P[( Ecov  
+
+> h
+
+)c ∣ E<h] + P[( Erob  
+
+> h
+
+)c ∩ Ecov  
+
+> h
+
+∣ E<h]
+
+≤ P[( Elazy  
+
+> h
+
+)c ∣ E<h] + P[( Ecov  
+
+> h
+
+)c ∣ E<h] + P[( Erob  
+
+> h
+
+)c ∣ Ecov  
+
+> h
+
+∩ E<h]
+
+≤ δ
+
+4H + (h − 1)δH2 + δ
+
+4H . (52) Conditioned on Eh occurring, we establish Hh:
+
+• Coverage at h: Lemma E.3 guarantees that for any u ∈ Sh, P[u ∈ Span {ϕπh (xm 
+
+> 1
+
+) ∶ m ∈ [nspan ], π ∈ Ψh}] ≥ 1/2.Since ncover = nspan ⋅ ⌈log 2(H2d/δ′)⌉ , Lemma O.1 implies that P[Sh ⊆ Span {ϕπh (xm 
+
+> 1
+
+) ∶ m ∈ [ncover ], π ∈ Ψh}] ≥
+
+1 − δ/H2, establishing Item 1. 
+
+• State concentration at h + 1: Lemma E.3 ensures that 
+
+P [Span {ϕπh (x1) ∶ π ∈ Π} ⊆ Sh, x1 ∈ X h] ≥ 1 − hε H .
+
+By definition, X h+1 = X h ∩ {x ∶ Span {ϕπh (x) ∶ π ∈ Π} ⊆ Sh}. Thus, the left-hand side equals P[x1 ∈ X h+1],establishing Item 2. 
+
+• Spanner property at h: By Lemma F.3, the output satisfies the property with error at most 24 dε conc + ε 
+
+> 10 H2
+
+,where εconc = (h − 1)ε/H ≤ ε. Thus, the total error is bounded by 24 dε + ε ≤ 25 dε , establishing Item 3. 29 Global success probability. Summing (52) over all h ∈ [H]:
+
+P [( H
+
+⋂
+
+> h=1
+
+Eh)
+
+> c
+
+] ≤
+
+> H
+
+∑
+
+> h=1
+
+P[( Eh)c ∣ E<h]
+
+≤
+
+> H
+
+∑
+
+> h=1
+
+( δ
+
+4H + (h − 1)δH2 + δ
+
+4H )
+
+= H ⋅ δ
+
+2H + δH2
+
+> H
+
+∑
+
+> h=1
+
+(h − 1)
+
+= δ
+
+2 + δH2 ⋅ H(H − 1)
+
+2
+
+= δ
+
+2 + (H − 1)δ
+
+2H < δ. (53) Thus P[⋂Hh=1 Eh] ≥ 1 − δ.On this event, Hh holds for all h ∈ [H], and Items 1 to 3 of the lemma follow from Items 1 to 3 of Hh
+
+respectively. 
+
+# G Guarantee of Algorithm 6 ( PolicyOpt fqi )
+
+Lemma G.1 (Guarantee of PolicyOpt fqi ). Fix δ ∈ (0, 1) and let εspan > 0 be given. Consider a call to 
+
+PolicyOpt fqi (Ψ1∶H , Γ1∶H , n, λ ) (Algorithm 6). Further, let S1∶H ⊆ Rd be a collection of subspaces and define 
+
+X H ∶= ⋂ℓ∈[H−1] {x ∈ X ∣ Span {ϕπℓ (x) ∶ π ∈ Π} ⊆ Sℓ} . Suppose: 1. Assumptions 2.1 and 2.2 hold. 2. The collection of policies Ψ1∶H satisfies the condition: for all ℓ ∈ [H] and i.i.d. x1, x1
+
+> 1
+
+, . . . , xn 
+
+> 1
+
+:
+
+P[Sℓ ⊆ Span {ϕπℓ (xm 
+
+> 1
+
+) ∶ m ∈ [n], π ∈ Ψℓ}] ≥ 1 − δH2 . (54) 
+
+3. The collection Γ1∶H satisfies: for all ℓ ∈ [H] and ρ ∈ Π, there exists a coefficient map βℓ ∶ Γℓ → [−2, 2] such that 
+
+XXXXXXXXXXX
+
+Eρ[ϕℓ(xℓ, aℓ)] − ∑
+
+> π∈Γℓ
+
+βℓ(π) ⋅ Eπ [ϕℓ(xℓ, aℓ)] XXXXXXXXXXX
+
+≤ εspan . (55) 
+
+4. The collection of policies Ψ1∶H and Γ1∶H satisfy ∣Ψh∣ ≤ d and ∣Γh∣ ≤ d for all h ∈ [H].5. We have P[x1 ∈ X H ] ≥ 1 − εconc for some εconc ≥ 0.Then, with probability at least 1 − 3δ, for every π ∈ Π, the output policy ̂ π1∶H satisfies: 
+
+E [V π 
+
+> 1
+
+(x1) − V̂ π 
+
+> 1
+
+(x1)] ≤
+
+> H
+
+∑
+
+> ℓ=1
+
+⎛⎝2
+
+√ dn ⋅ ζ(δ) + 2dε stat + (√d + C) εspan 
+
+⎞⎠ + H ⋅ C ⋅ εconc , (56) 
+
+where ζ(δ) ∶= √λd + √2 log (H/δ) + d log (1 + n/λ), C ∶= √d + λ−1/2ζ(δ), and 
+
+εstat ∶= C ⋅
+
+√
+
+8 (d log (1 + 2nC ) + log (2Hd /δ)) 
+
+n + 2
+
+n . (57) 
+
+Proof. We write V π 
+
+> 1
+
+(⋅; r⋆ 
+
+> 1∶H
+
+) for the value under the MDP’s rewards and V π 
+
+> 1
+
+(⋅;̂ r1∶H ) for the value under the deterministic proxy rewards ̂ r1∶H in Algorithm 6 (see Section 2 for the notation). By linearity of expectation, for any π ∈ Π,
+
+E[V π 
+
+> 1
+
+(x1; r⋆ 
+
+> 1∶H
+
+) − V π 
+
+> 1
+
+(x1;̂ r1∶H )] =
+
+> H
+
+∑
+
+> ℓ=1
+
+Eπ [rℓ −̂ rℓ(xℓ, aℓ)] . (58) 30 Reward estimation bound. The algorithm computes ̂ wℓ = (λI + Σℓ)−1 ∑(x,a,r )∈Dℓ ϕℓ(x, a ) ⋅ r, where 
+
+Σℓ = ∑
+
+> (x,a )∈Dℓ
+
+ϕℓ(x, a )ϕℓ(x, a )⊺.
+
+Further, let Vℓ = λI + Σℓ. By Assumption 2.2 (reward linearity), for any ℓ ∈ [H] and (x, a ) ∈ X × A, there exists 
+
+wℓ ∈ Rd such that E[rℓ ∣ xℓ = x, aℓ = a] = ϕℓ(x, a )⊺wℓ. We now apply Lemma O.6 (ridge regression guarantee) by identifying the sequence (Ak, X k) with the samples (ϕℓ(x, a ), r ) in Dℓ (ordered arbitrarily), and θ⋆ = wℓ.Let ηℓ = rℓ − E[rℓ ∣ xℓ, aℓ] = rℓ − ϕℓ(xℓ, aℓ)⊺wℓ. Since rℓ ∈ [0, 1] (by Assumption 2.2) and E[rℓ ∣ xℓ, aℓ] ∈ [0, 1],we have ηℓ ∈ [−1, 1] almost surely. By Hoeffding’s lemma, ηℓ is 1-sub-Gaussian, satisfying the requirement of Lemma O.6. Let Eridge  
+
+> ℓ
+
+be the event that 
+
+∥̂ wℓ − wℓ∥Vℓ ≤ √λ∥wℓ∥ + √2 log (H/δ) + d log (1 + n∣Γℓ∣/( λd )) 
+
+≤ ζ(δ), (59) where the last inequality follows from ∣Γℓ∣ ≤ d (so n∣Γℓ∣/( λd ) ≤ n/λ) and ∥wℓ∥ ≤ √d (by Assumption 2.2). By Lemma O.6, 
+
+P[Eridge  
+
+> ℓ
+
+] ≥ 1 − δH .
+
+On the same event Eridge  
+
+> ℓ
+
+, by Corollary O.3 (which is a direct consequence of Lemma O.6), we also have 
+
+∥̂ wℓ∥ ≤ ∥wℓ∥ + 1
+
+√λ ζ(δ) ≤ √d + λ−1/2ζ(δ) = C. 
+
+Empirical and concentration bounds along Γℓ. Fix ℓ ∈ [H] and π′ ∈ Γℓ. Let Estat  
+
+> ℓ,π ′
+
+be the event that for every θ ∈ ΘC ∶= {θ ∈ Rd ∶ ∥θ∥ ≤ C},
+
+∣Eπ′
+
+[ϕℓ(xℓ, aℓ)⊺θ] − 1
+
+n
+
+> n
+
+∑
+
+> m=1
+
+ϕℓ(xm,π ′ 
+
+> ℓ
+
+, a m,π ′ 
+
+> ℓ
+
+)⊺θ∣ ≤ εstat ,
+
+where the expectation is under the distribution of (xℓ, aℓ) induced by π′ at layer ℓ. By Lemma O.7, 
+
+P[Estat  
+
+> ℓ,π ′
+
+] ≥ 1 − δHd .
+
+Define Estat  
+
+> ℓ
+
+∶= ⋂π′∈Γℓ Estat  
+
+> ℓ,π ′
+
+. Since ∣Γℓ∣ ≤ d, a union bound yields 
+
+P[Estat  
+
+> ℓ
+
+] ≥ 1 − δH .
+
+A uniform success event. Define 
+
+Egood ∶= H
+
+⋂
+
+> ℓ=1
+
+(Eridge  
+
+> ℓ
+
+∩ Estat  
+
+> ℓ
+
+) .
+
+By the bounds on P[Eridge  
+
+> ℓ
+
+] and P[Estat  
+
+> ℓ
+
+] and a union bound over ℓ ∈ [H], we have 
+
+P[Egood ] ≥ 1 − 2δ. 
+
+Condition on Egood for the remainder of the proof. In particular, for every ℓ ∈ [H] we have 
+
+∥̂ wℓ∥ ≤ C and ∥wℓ −̂ wℓ∥Vℓ ≤ ζ(δ),
+
+where ζ is as in the lemma’s statement. 31 Empirical bound along Γℓ. For each π′ ∈ Γℓ, let {( xm,π ′ 
+
+> ℓ
+
+, a m,π ′ 
+
+> ℓ
+
+)} nm=1 denote the independent samples in 
+
+Dℓ collected from π′ at layer ℓ. Using Cauchy-Schwarz, we have 
+
+∑
+
+> π′∈Γℓ
+> n
+
+∑
+
+> m=1
+
+∣ϕℓ(xm,π ′ 
+
+> ℓ
+
+, a m,π ′ 
+
+> ℓ
+
+)⊺(wℓ −̂ wℓ)∣ ≤ √∣Γℓ∣n ⋅
+
+√
+
+∑
+
+> (x,a,r )∈Dℓ
+
+(ϕℓ(x, a )⊺(wℓ −̂ wℓ)) 2,
+
+≤ √∣Γℓ∣n ⋅ ∥wℓ −̂ wℓ∥Vℓ ≤ √dn ⋅ ζ(δ), (60) where the last step uses ∣Γℓ∣ ≤ d and the bound ∥wℓ −̂ wℓ∥Vℓ ≤ ζ(δ) on Egood .
+
+Bounding Eρ[ϕ⊺ 
+
+> ℓ
+
+(wℓ −̂ wℓ)] for arbitrary ρ. Fix an arbitrary policy ρ ∈ Π. Using Item 3 in the lemma’s statement and linearity, we have 
+
+∣Eρ[ϕℓ(xℓ, aℓ)] ⊺(wℓ −̂ wℓ)∣ 
+
+≤
+
+RRRRRRRRRRR
+
+∑
+
+> π′∈Γℓ
+
+βℓ(π′)Eπ′
+
+[ϕℓ(xℓ, aℓ)] ⊺(wℓ −̂ wℓ)RRRRRRRRRRR
+
++ εspan ∥wℓ −̂ wℓ∥,
+
+≤ ∑
+
+> π′∈Γℓ
+
+∣βℓ(π′)∣ ( 1
+
+n
+
+> n
+
+∑
+
+> m=1
+
+∣ϕℓ(xm,π ′ 
+
+> ℓ
+
+, a m,π ′ 
+
+> ℓ
+
+)⊺(wℓ −̂ wℓ)∣ + εstat ) + εspan ∥wℓ −̂ wℓ∥,
+
+≤ 2 ⋅ 1
+
+n ∑
+
+> π′∈Γℓ
+> n
+
+∑
+
+> m=1
+
+∣ϕℓ(xm,π ′ 
+
+> ℓ
+
+, a m,π ′ 
+
+> ℓ
+
+)⊺(wℓ −̂ wℓ)∣ + 2d ε stat + εspan ∥wℓ −̂ wℓ∥,
+
+≤ 2
+
+√ dn ⋅ ζ(δ) + 2d ε stat + εspan (∥ wℓ∥ + ∥̂ wℓ∥) ,
+
+≤ 2
+
+√ dn ⋅ ζ(δ) + 2d ε stat + (√d + C) εspan , (61) where we used (60), ∣βℓ(π′)∣ ≤ 2, ∣Γℓ∣ ≤ d, and ∥wℓ∥ + ∥̂ wℓ∥ ≤ √d + C on Egood .
+
+From feature error to reward error. By Assumption 2.2 (reward linearity), we have E[rℓ ∣ xℓ, aℓ] =
+
+ϕℓ(xℓ, aℓ)⊺wℓ and ̂ rℓ(xℓ, aℓ) = ϕℓ(xℓ, aℓ)⊺̂ wℓ, hence for any ρ ∈ Π,
+
+Eρ[rℓ −̂ rℓ(xℓ, aℓ)] = Eρ[ϕℓ(xℓ, aℓ)] ⊺(wℓ −̂ wℓ).
+
+Therefore, (61) bounds ∣Eρ[rℓ −̂ rℓ(xℓ, aℓ)]∣ for every ρ ∈ Π.
+
+Optimization guarantee. The algorithm calls FQI (H, ̂ r1∶H , Ψ1∶H−1, n ) with deterministic rewards ̂ r1∶H .Let Efqi be the event that for all x ∈ X H ,
+
+V̂ π 
+
+> 1
+
+(x;̂ r1∶H ) ≥ V π 
+
+> 1
+
+(x;̂ r1∶H ).
+
+Since Ψ1∶H satisfies (54), by Lemma K.1 we have 
+
+P[Efqi ] ≥ 1 − δ. 
+
+Condition on Efqi for the remainder of this paragraph. Splitting on the event x1 ∈ X H , we obtain 
+
+E[V π 
+
+> 1
+
+(x1;̂ r1∶H ) − V̂ π 
+
+> 1
+
+(x1;̂ r1∶H )] ≤ E [( V π 
+
+> 1
+
+(x1;̂ r1∶H ) − V̂ π 
+
+> 1
+
+(x1;̂ r1∶H )) ⋅ I{x1 ∈ X H }] 
+
++ E [( V π 
+
+> 1
+
+(x1;̂ r1∶H ) − V̂ π 
+
+> 1
+
+(x1;̂ r1∶H )) ⋅ I{x1 ∉ X H }] 
+
+≤ 0 + E [
+
+> H
+
+∑
+
+> ℓ=1
+
+∣̂ rℓ(xℓ, aℓ)∣ ⋅ I{x1 ∉ X H }] 
+
+≤ H ⋅ C ⋅ P[x1 ∉ X H ] ≤ H ⋅ C ⋅ εconc , (62) where we used ∣̂ rℓ(x, a )∣ = ∣ϕℓ(x, a )⊺̂ wℓ∣ ≤ ∥̂ wℓ∥ ≤ C on Egood .32 Conclusion. Using (58) for π and for ̂ π, together with (61) (applied to ρ = π and ρ =̂ π) and (62), we obtain 
+
+E[V π 
+
+> 1
+
+(x1) − V̂ π 
+
+> 1
+
+(x1)] ≤
+
+> H
+
+∑
+
+> ℓ=1
+
+⎛⎝2
+
+√ dn ⋅ ζ(δ) + 2dε stat + (√d + C) εspan 
+
+⎞⎠ + H ⋅ C ⋅ εconc . (63) Finally, by a union bound, 
+
+P[Egood ∩ Efqi ] ≥ 1 − 3δ. 
+
+This completes the proof. 
+
+# H Proof of Theorem 4.1 (Guarantee For Large Actions) 
+
+Proof. We verify that the outputs of Algorithm 5 satisfy the preconditions of Lemma G.1 (guarantee of 
+
+PolicyOpt fqi ), and then combine the guarantees. 
+
+Step 1: Applying Lemma 4.1. Let Ecov denote the event (over the randomness in Algorithm 5) that the outputs (S1∶H , Ψ1∶H , Γ1∶H ) satisfy: 
+
+• Coverage (distributional): For all h ∈ [H], the conditional probability (over n fresh i.i.d. samples from the initial distribution) satisfies 
+
+P [Sh ⊆ Span {ϕπh (xm 
+
+> 1
+
+) ∶ m ∈ [n], π ∈ Ψh} ∣ outputs of Algorithm 5 ] ≥ 1 − δ
+
+4H2 .
+
+• State concentration: P[x1 ∈ X (H)] ≥ 1 − ε′.
+
+• Spanner property: For all h ∈ [H] and π ∈ Π, there exist β1, . . . , β d ∈ [−2, 2] such that 
+
+XXXXXXXXXXX
+
+Eπ [ϕh(xh, ah)] −
+
+> d
+
+∑
+
+> j=1
+
+βj Eπj [ϕh(xh, ah)] XXXXXXXXXXX
+
+≤ 25 dε ′.
+
+• Cardinality bounds: For all h ∈ [H], ∣Ψh∣ ≤ d and ∣Γh∣ ≤ d.We now show P[Ecov ] ≥ 1 − δ/4. Let Ethm denote the event that the outputs of Algorithm 5 satisfy all three conclusions of Lemma 4.1 simultaneously for all h ∈ [H]: concentration, spanner, and for each h the conditional inclusion probability (over fresh samples, given the outputs) is ≥ 1 − δ/( 4H2) for ncover i.i.d. samples. By Lemma 4.1, P[Ethm ] ≥ 1 − δ/4. We now argue that Ethm ⊆ Ecov . The concentration and spanner properties in 
+
+Ecov match those in Ethm . For coverage: on Ethm , the conditional inclusion probability is ≥ 1 − δ/( 4H2) for 
+
+ncover samples; to upgrade to n samples, draw n i.i.d. samples and consider the first ncover ; if inclusion holds for the first ncover , it holds for all n (since the span can only grow); hence the conditional probability for n
+
+samples is at least that for ncover samples. The cardinality bounds hold deterministically by construction: Algorithm 5 constructs Γh via RobustSpanner which returns d policies, and Ψh is built iteratively with at most d policies added per layer. Thus Ethm ⊆ Ecov , so P[Ecov ] ≥ P[Ethm ] ≥ 1 − δ/4.
+
+Step 2: Applying Lemma G.1. On Ecov , all preconditions of Lemma G.1 are satisfied with sample size 
+
+n, εspan = 25 dε ′ = 25 ε/( c0dH 2L), and εconc = ε′ = ε/( c0d2H2L). Define (matching the notation in Lemma G.1 with λ = 1 and δ replaced by δ/4): 
+
+ζ ∶= √d + √2 log (4H/δ) + d log (1 + n), C ∶= √d + ζ, 
+
+and let εstat be as in (57) with δ replaced by δ/4.Let Eopt denote the event that the output policy ̂ π of PolicyOpt fqi satisfies: for all π ∈ Π,
+
+E [V π 
+
+> 1
+
+(x1) − V̂ π 
+
+> 1
+
+(x1)] ≤ H ⎛⎝2
+
+√ dn ⋅ ζ + 2dε stat + (√d + C) ⋅ 25 dε ′⎞⎠ + H ⋅ C ⋅ ε′. (64) By Lemma G.1 (with λ = 1), P[Eopt ∣ Ecov ] ≥ 1 − 3δ/4.33 Step 3: Bounding the suboptimality. Since Algorithm 5 is called with accuracy parameter ε′, the parameter ncover from (17) is instantiated with ε′ in place of ε. From (7), we have n ≥ ncover and n ≥
+
+c2d4H2ε−2L2.Recall from Step 2 that ζ = √d + √2 log (4H/δ) + d log (1 + n) and C = √d + ζ. Since n ≥ c2d4H2ε−2L2, we have 
+
+log (1 + n) = O(log (d) + log (H) + log (1/ε) + log (L)) = O(L).
+
+For the last equality: if log (dH /( δε )) ≥ 1, then L = log (dH /( δε )) ≥ log (d), log (H), log (1/ε) (since dH /( δε ) ≥
+
+d, H, 1/ε respectively, using dH /δ ≥ 1), and log (L) ≤ L since L ≥ 1. If log (dH /( δε )) < 1, then L = 1 and all the logarithms log (d), log (H), log (1/ε), log (L) are O(1), so the bound holds trivially. Throughout the remainder of this step, we use that log (1 + n) = O(L), hence log (n) = O(L) and log (1 + 2nC ) = O(L). From the above, 
+
+ζ = O(√dL ), so C = O(√dL ).We bound each term in (64): 
+
+• Ridge regression term: H ⋅ 2√d/n ⋅ ζ.With n ≥ c2d4H2ε−2L2, we have √d/n ≤ ε/( c1/22 d3/2HL ). Thus this term is at most 
+
+H ⋅ εc1/22 d3/2HL ⋅ O(√dL ) = O ⎛⎝
+
+εc1/22 d√L
+
+⎞⎠ ≤ ε
+
+8
+
+for c2 sufficiently large (using d ≥ 1 and L ≥ 1). 
+
+• Statistical error term: H ⋅ 2dε stat .From (57), εstat = C ⋅
+
+√ 8(d log (1+2nC )+log (2Hd /δ))  
+
+> n
+
++ 2 
+
+> n
+
+. Since C = O(√dL ), we have log (C) = O(log (d) +
+
+log (L)) = O(L) (using log (d) ≤ L and log (L) ≤ L since L ≥ 1). Thus log (1 + 2nC ) = O(log (n) +
+
+log (C)) = O(L). Also, log (2Hd /δ) = O(L) since L ≥ log (dH /( δε )) and ε ≤ 1. The numerator is thus 
+
+d log (1 + 2nC ) + log (2Hd /δ) = O(dL ). Thus 
+
+εstat = O ⎛⎝C ⋅
+
+√ dL n
+
+⎞⎠ = O ⎛⎝√dL ⋅
+
+√ dL c2d4H2ε−2L2
+
+⎞⎠ = O ⎛⎝
+
+εc1/22 dH 
+
+⎞⎠ .
+
+Thus this term is at most 
+
+H ⋅ 2d ⋅ O ⎛⎝
+
+εc1/22 dH 
+
+⎞⎠ = O ⎛⎝
+
+εc1/22
+
+⎞⎠ ≤ ε
+
+8 ,
+
+for c2 sufficiently large. 
+
+• Span error term: H ⋅ (√d + C) ⋅ 25 dε ′.With ε′ = ε/( c0d2H2L) and √d + C = O(√dL ), this is 
+
+O (H ⋅ √dL ⋅ d ⋅ εc0d2H2L ) = O ( ε√dL c0dHL ) = O ( εc0
+
+√dH √L ) ≤ ε
+
+8
+
+for c0 sufficiently large (using d, H, L ≥ 1). 
+
+• Concentration error term: H ⋅ C ⋅ ε′.This is O ( 
+
+> √dL ⋅εc0d2HL
+
+) = O ( εc0d3/2H√L ) ≤ ε 
+
+> 8
+
+for c0 sufficiently large (using d, H, L ≥ 1). Summing all four contributions yields E[V π 
+
+> 1
+
+(x1) − V̂ π 
+
+> 1
+
+(x1)] ≤ ε for all π ∈ Π.34 Step 4: Combining the events. By the chain rule for conditional probabilities, 
+
+P[Ecov ∩ Eopt ] = P[Ecov ] ⋅ P[Eopt ∣ Ecov ] ≥ (1 − δ/4)( 1 − 3δ/4) ≥ 1 − δ. 
+
+On the event Ecov ∩ Eopt , the bound (64) holds, and the analysis in Step 3 gives the stated suboptimality guarantee. 
+
+# Part III 
+
+# Auxiliary Results and Additional Related Work 
+
+# I Related Works 
+
+Tabular and linear MDPs. The simplest RL setting is the tabular case, where both the state and action spaces are finite and small enough that every state-action pair can be visited multiple times. Here, computationally efficient and near-optimal algorithms have been known for decades, including classical methods such as Q-learning (Watkins and Dayan, 1992) and value iteration (Bertsekas and Tsitsiklis, 1996), as well as modern optimistic exploration algorithms such as UCBVI (Azar et al., 2017), Q-learning-UCB (Jin et al., 2018), and variants achieving optimal sample complexity (Zhang et al., 2020). The linear MDP setting (Jin et al., 2020; Yang and Wang, 2019) extends the tabular case to large state and action spaces by assuming that the transition dynamics and rewards are linear in known feature maps 
+
+ϕh(x, a ) ∈ Rd. Specifically, there exist an unknown signed measure μh and an unknown vector θh ∈ Rd
+
+such that for all bounded measurable functions f ∶ X → R and all (x, a ) ∈ X × A, E[f (xh+1) ∣ xh = x, ah =
+
+a] = ⟨ϕh(x, a ), μ h(f )⟩ , where μh(f ) ∶= ∫ f (x′)dμ h(x′), and rh(x, a ) = ⟨ϕh(x, a ), θ h⟩, with ∥θh∥ ≤ √d. This structure allows efficient exploration via optimistic bonuses, leading to computationally efficient algorithms such as LSVI-UCB (Jin et al., 2020), with recent refinements achieving optimal or near-optimal rates (Agarwal et al., 2022; He et al., 2023; Zanette et al., 2020a). 
+
+Statistically efficient approaches. Linear Bellman completeness strictly generalizes linear MDPs but does not impose any structure on the transition function—it only requires that Bellman backups of linear value functions remain linear (Zanette et al., 2020b). This makes the setting significantly more challenging computationally, since techniques that work for linear MDPs (e.g., adding quadratic exploration bonuses) no longer apply: quadratic functions do not remain linear under Bellman backups in this setting. Early work established that linear Bellman completeness is statistically tractable. Munos (2005); Munos and Szepesvári (2008) showed that with sufficiently exploratory data, fitted Q-iteration succeeds under Bellman completeness. Zanette et al. (2020b) proposed ELEANOR, an algorithm that achieves polynomial sample complexity in the online setting by maintaining a version space and performing global optimistic planning. Similarly, Jin et al. (2021) proposed GOLF using Bellman eluder dimension, and Du et al. (2021) studied bilinear classes. However, all these algorithms are computationally intractable : they require solving nonconvex optimization problems to implement optimistic planning over complex version spaces, even when the value function class is linear. 
+
+Reachability and constant actions. The first computationally efficient algorithm for linear Bellman completeness was FRANCIS (Zanette et al., 2020c), which works under a strong reachability assumption that for every direction in feature space, there exists a policy whose expected features have non-trivial projection onto that direction. The question of computationally efficient learning without reachability remained open until very recently. Golowich and Moitra (2024a) made a breakthrough by introducing a 
+
+local optimism approach that constructs exploration bonuses preserving Bellman linearity. This was the first polynomial-time algorithm for the general setting. However, their approach has a critical limitation: the 35 sample and computational complexity scale as poly (d, H, 1/ε)O(∣ A∣) , exponential in the number of actions. As they note, this restricts their method to settings where ∣A∣ is a small constant (e.g., ∣A∣ = 2 or 3). Additionally, their algorithm requires a bounded Q-function parameter assumption: that the parameter θ satisfying 
+
+Qh(⋅, ⋅) = ϕh(⋅, ⋅)⊺θ has ∥θ∥2 ≤ R for some polynomial R in d. As shown by Wu et al. (2024), this assumption limits generality: it excludes linear MDPs as a special case, since Bellman backups can amplify parameter norms arbitrarily in that setting. 
+
+Deterministic dynamics setting. The special case of deterministic transition dynamics has been studied as a stepping stone toward the general problem, and is practically relevant for applications such as game environments and robotic systems with known kinematics. Wen and Van Roy (2017) provided a polynomial-time algorithm when both transitions and rewards are deterministic. For finite action spaces, our algorithm builds on their work, using their subroutines for constructing approximate spanners and for policy optimization (see Section 3). For large action spaces, we develop a different approach based on exact identification of relevant feature directions (see Section 4). Du et al. (2020) extended this to stochastic rewards under a 
+
+positive suboptimality gap assumption, meaning that suboptimal policies have value strictly bounded away from optimal. Most recently, Wu et al. (2024) studied the same setting as ours: deterministic transitions with stochastic rewards and initial states, without assuming a suboptimality gap. Their algorithm uses a randomization-based approach called “null space randomization,” which adds exploration noise only in the null space of previously collected data. However, their algorithm requires solving constrained regression problems that rely on a linear optimization oracle over the feature space, specifically the ability to compute 
+
+sup (x,a )∈X ×A ϕh(x, a )⊺θ for any θ. Our work removes this oracle assumption for finite action spaces, achieving end-to-end computational efficiency using only standard regression and value function evaluation. For infinite action spaces, we require only an argmax oracle over actions (i.e., argmax a∈A ϕh(x, a )⊺θ for a given x and θ), which optimizes only over actions rather than state-action pairs. This is a strictly weaker requirement and is the standard oracle assumption in computationally efficient algorithms for linear MDPs (Jin et al., 2020; Yang and Wang, 2019). 
+
+Policy covers and spanning arguments. Our algorithm is inspired by the policy cover framework (Du et al., 2019; Misra et al., 2020), which constructs a small set of policies that collectively “cover” the state space. This approach has been successful in related problems such as representation learning in RL (Mhammedi et al., 2023b,a; Golowich and Moitra, 2023) and learning in POMDPs (Golowich and Moitra, 2022). A key challenge in applying policy covers to linear Bellman completeness is that coverage errors compound across layers: if the policy cover at layer h fails to span some relevant feature directions, these gaps propagate and amplify at subsequent layers, causing the cover to miss increasingly more of the feature space as the horizon grows. Our contribution is showing how deterministic dynamics help address this challenge. For finite action spaces, we show that approximate spanners suffice (see Section 3). For large action spaces, we develop machinery ( SubspaceCover ) that exactly identifies all relevant feature directions at each layer, avoiding the error compounding entirely (see Section 4). 
+
+Exploration via randomization. Randomization has proven to be a powerful alternative to bonus-based exploration in RL. A prominent example is Randomized Least-Squares Value Iteration (RLSVI) (Osband et al., 2016), which adds Gaussian noise to least-squares estimates and has been shown to achieve near-optimal worst-case regret for linear MDPs (Agrawal et al., 2021; Zanette et al., 2020a). Ishfaq et al. (2021) developed randomization algorithms for general function approximation under bounded eluder dimension and Bellman completeness. In preference-based RL, randomization has led to the first computationally efficient algorithm with near-optimal regret for linear MDPs (Wu et al., 2023). However, these randomization approaches face challenges when applied to linear Bellman completeness: many inject noise larger than the estimation error to ensure optimism, which can cause exponential growth of parameter values over the horizon. Truncating these values works for low-rank MDPs but is problematic under linear Bellman completeness, since truncation may break the linearity property. Our work and the concurrent work of Wu et al. (2024) address this by restricting noise to the null space of collected data, though we differ in our approach to ensuring computational efficiency. 36 Broader structural conditions. Linear Bellman completeness is captured by several broader structural conditions studied in the RL literature, including Bellman rank (Jiang et al., 2017), witness rank (Sun et al., 2019), Bellman eluder dimension (Jin et al., 2021), the decision-estimation coefficient (Foster et al., 2021), and bilinear classes (Du et al., 2021). These frameworks provide different lenses for understanding when RL is statistically tractable. While statistically efficient algorithms exist for these settings, computationally efficient algorithms remain unknown in general. 
+
+Offline setting In the offline setting, Golowich and Moitra (2024b) recently established a computationally efficient algorithm for linear Bellman completeness, leveraging different techniques suitable for the batch setting. 
+
+# J Guarantee of ComputeOutlierDirection 
+
+Algorithm 7 ComputeOutlierDirection (P, n, m ).
+
+Require: P (distribution over Rd), n, m . 
+
+> 1:
+
+Draw n samples U = {u1, . . . , un} from P . 
+
+> 2:
+
+for i = 1, . . . , n do  
+
+> 3:
+
+Initialize counter Si ← 0. 
+
+> 4:
+
+for j = 1, . . . , m do  
+
+> 5:
+
+Draw a fresh set of n samples W j = {wj
+
+> 1
+
+, . . . , wj
+
+> n
+
+} from P . 
+
+> 6:
+
+if ui ∈ Span (W j ) then  
+
+> 7:
+
+Si ← Si + 1. 
+
+> 8:
+
+Compute the empirical estimate: ˆpi = Si/m. 
+
+> 9:
+
+Select index i⋆ = argmax i∈{1,...,n } ˆpi. 
+
+> 10:
+
+Return: v = ui⋆ .
+
+Lemma J.1. Let P be a distribution over Rd and consider a call to ComputeOutlierDirection (P, n, m )
+
+for some given n, m ∈ N. Let w1, . . . , wn be a set of i.i.d. samples from P . Then, for any δ ∈ (0, 1), with probability at least 1 − δ, the output vector v of ComputeOutlierDirection satisfies: 
+
+P[v ∈ Span {w1, . . . , wn} ∣ v] ≥ 1 − dn + 1 − 2
+
+√ log (4n/δ)
+
+2m −
+
+√ log (4/δ)
+
+2n . (65) 
+
+Further, the algorithm samples from P a total of K = n + mn 2 points. 
+
+Proof. Let w1, . . . , wn be i.i.d. samples from P and let u1, . . . , un be as Algorithm 7. Let Sn denote the random subspace Span {w1, . . . , wn}. For any fixed vector x ∈ Rd, we define the “spannability” probability: 
+
+p(x) = P[x ∈ Sn].
+
+Step 1: Lower bound on the population mean. Fix i ∈ [n] and consider the expectation of p(ui):
+
+μ ∶= E[p(ui)] = E[P[ui ∈ Sn ∣ ui]] = P[ui ∈ Sn].
+
+Since ui, w1, . . . , wn are i.i.d. samples from P , by Lemma J.2, we have 
+
+P[ui ∉ Sn] ≤ dn + 1 .
+
+Therefore, the expected success probability is lower bounded by: 
+
+μ ≥ 1 − dn + 1 . (66) 37 Step 2: Concentration of the empirical average. Fix δ ∈ (0, 1). By Hoeffding’s Inequality, there is an event E of measure at least 1 − δ/2 such that under E, we have that 
+
+1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+p(ui) ≥ μ −
+
+√ log (4/δ)
+
+2n . (67) Now, consider the quantity ˆpi in Algorithm 7. By Hoeffding’s inequality, there are events E1, . . . , En such that for each i, P[Ei] ≥ 1 − δ 
+
+> 2n
+
+and under Ei, we have that 
+
+p(ui) +
+
+√
+
+log (4n/δ)
+
+2m ≥ ˆpi ≥ p(ui) −
+
+√
+
+log (4n/δ)
+
+2m . (68) Let i⋆ be as in Algorithm 7. By combining (67) and (68) and using the union bound (so that (67) and (68), for all i, hold simultaneously), we have that with probability at least 1 − δ,
+
+P[v ∈ Span {w1, . . . , wn} ∣ v] = p(ui⋆ ),
+
+≥ max  
+
+> i∈[n]
+
+ˆpi −
+
+√ log (4n/δ)
+
+2m , (by (68) and the definition of i⋆)
+
+≥ 1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+ˆpi −
+
+√ log (4n/δ)
+
+2m ,
+
+≥ 1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+p(ui) − 2
+
+√ log (4n/δ)
+
+2m ,
+
+≥ μ − 2
+
+√ log (4n/δ)
+
+2m −
+
+√ log (4/δ)
+
+2n , (by (67)) 
+
+≥ 1 − dn + 1 − 2
+
+√ log (4n/δ)
+
+2m −
+
+√ log (4/δ)
+
+2n , (69) where the last inequality follows from (66). 
+
+Lemma J.2. Let P be an arbitrary probability distribution over Rd. Let u1, . . . , un+1 be i.i.d. random vectors drawn from P . Then, the expected probability that the (n + 1)-th sample falls outside the span of the first n
+
+samples is bounded by: 
+
+P [un+1 ∉ Span (u1, . . . , un)] ≤ dn + 1 .
+
+Proof. Let S = {u1, . . . , un+1} be the set of n + 1 i.i.d. samples. We utilize a symmetry (exchangeability) argument based on the concept of “critical” samples. 
+
+Critical samples. For a fixed set of samples S, we say that the sample ui ∈ S is critical with respect to S
+
+if it does not belong to the span of the other samples: 
+
+ui ∉ Span (S ∖ {ui}) .
+
+If ui is critical, it implies that removing ui strictly decreases the dimension of the subspace spanned by the set. That is: 
+
+dim (Span (S ∖ {ui})) < dim (Span (S)) .
+
+Bounding the number of critical samples. Let C ⊆ S be the set of all critical samples in S. We claim that the vectors in C are linearly independent. 38 • Suppose for the sake of contradiction that the vectors in C are linearly dependent. Then, there exists a non-trivial linear combination: 
+
+∑ 
+
+> uj∈C
+
+αj uj = 0,
+
+where not all αj are zero. 
+
+• Let uk ∈ C be a vector with a non-zero coefficient αk ≠ 0. We can rewrite the equation as: 
+
+uk = − ∑ 
+
+> uj∈C,j ≠k
+
+αj
+
+αk
+
+uj .
+
+• This equation expresses uk as a linear combination of other vectors in C. Since C ⊆ S, the other vectors are in S ∖ {uk}. Thus, uk ∈ Span (S ∖ {uk}) .
+
+• This contradicts the definition of uk being a critical sample. Therefore, the set of critical samples C must be linearly independent. Since the vectors lie in Rd, the size of any linearly independent set is bounded by the dimension d. Consequently, the number of critical samples is at most d:
+
+∣C∣ ≤ d. 
+
+Applying exchangeability. Define the indicator variable Ii for the event that ui is critical in the set of 
+
+n + 1 samples: 
+
+Ii = I{ui ∉ Span ({ u1, . . . , un+1} ∖ {ui})} .
+
+The quantity we wish to bound is the probability that the specific sample un+1 is not in the span of the previous n. By the definition above, this is exactly the probability that un+1 is critical: 
+
+P[un+1 ∉ Span (u1, . . . , un)] = P[In+1 = 1].
+
+Since the samples u1, . . . , un+1 are i.i.d. the joint distribution is invariant under permutations. Thus, the probability of being critical is identical for every index i:
+
+P[I1 = 1] = P[I2 = 1] = ⋅ ⋅ ⋅ = P[In+1 = 1].
+
+Let this common probability be pfail . The expected number of critical samples is the sum of these probabilities: 
+
+E[number of critical samples ] = E [
+
+> n+1
+
+∑
+
+> i=1
+
+Ii] ,
+
+=
+
+> n+1
+
+∑
+
+> i=1
+
+P[Ii = 1] = (n + 1) ⋅ pfail . (70) However, we established deterministically that the number of critical samples is never greater than d.Therefore, 
+
+(n + 1) ⋅ pfail ≤ d Ô⇒ pfail ≤ dn + 1 .
+
+Substituting pfail = P[un+1 ∉ Span (u1, . . . , un)] , we obtain: 
+
+P[un+1 ∉ Span (u1, . . . , un)] ≤ dn + 1 .
+
+39 Algorithm 8 FQI (h, r 1∶h, Ψ1∶h−1, n ): Fitted Q-iteration (Munos and Szepesvári, 2008). 
+
+Require: h, r 1∶h, Ψ1∶h−1, n . 
+
+> 1:
+
+Define ̂ Qh(⋅, ⋅) = rh(⋅, ⋅) and set ̂ πh(⋅) ∈ argmax a∈Â Qh(⋅, a ). 
+
+> 2:
+
+for ℓ = h − 1, . . . , 1 do  
+
+> 3:
+
+Set Dℓ ← ∅. 
+
+> 4:
+
+for π ∈ Ψℓ do  
+
+> 5:
+
+for n times do  
+
+> 6:
+
+Sample (x1, a1, . . . , xℓ, aℓ, xℓ+1) ∼ Pπ . 
+
+> 7:
+
+Set yℓ ← rℓ(xℓ, aℓ) + max a∈Â Qℓ+1(xℓ+1, a ). 
+
+> 8:
+
+Update Dℓ ← Dℓ ∪ {( xℓ, aℓ, yℓ)} . 
+
+> 9:
+
+Set Σℓ ← ∑(x,a,y )∈Dℓ ϕℓ(x, a )ϕℓ(x, a )⊺. 
+
+> 10:
+
+Set ̂ θℓ ← Σ† 
+
+> ℓ
+
+⋅ ∑(x,a,y )∈Dℓ ϕℓ(x, a ) ⋅ y. 
+
+> 11:
+
+Define ̂ Qℓ(⋅, ⋅) ∶= ϕℓ(⋅, ⋅)⊺̂ θℓ and set ̂ πℓ(⋅) ∶= argmax a∈Â Qℓ(⋅, a ). 
+
+> 12:
+
+Return: ̂ π =̂ π1∶h.
+
+# K Guarantee of FQI with Deterministic Rewards and Transitions 
+
+Lemma K.1. Fix δ ∈ (0, 1). Consider a call to FQI (Algorithm 8) with input h ≥ 1, rewards r1∶h, collection of policies Ψ1∶h−1, and n ∈ N. Further, let S1∶h−1 ⊆ Rd be a collection of subspaces and define X ℓ ∶= ⋂j∈[ℓ−1]{x ∈
+
+X ∣ Span {ϕπj (x) ∶ π ∈ Π} ⊆ Sj } for ℓ ∈ [h]. Suppose the following: 1. Assumptions 2.1 and 2.2 hold. 2. The rewards r1∶h are such that for all ℓ ∈ [h], there exists a vector wℓ ∈ Rd such that rℓ(⋅, ⋅) = w⊺ 
+
+> ℓ
+
+ϕℓ(⋅, ⋅).3. The collections of policies Ψ1∶h−1 satisfy: for all ℓ ∈ [h − 1] and i.i.d. x1, x1
+
+> 1
+
+, . . . , xn 
+
+> 1
+
+:
+
+P[Sℓ ⊆ Span {ϕπℓ (xm 
+
+> 1
+
+) ∶ m ∈ [n], π ∈ Ψℓ}] ≥ 1 − δH2 . (71) 
+
+Then, with probability at least 1 − δ, the output policies ̂ π1∶h of FQI satisfy, 
+
+∀x ∈ X h, max  
+
+> π∈Π
+
+V π 
+
+> 1
+
+(x; r1∶h) ≤ V̂ π 
+
+> 1
+
+(x; r1∶h). (72) 
+
+Corollary K.1. Fix δ ∈ (0, 1). Consider the setting of Lemma K.1 with r1∶h−1 ≡ 0 and rh(⋅, ⋅) = w⊺
+
+> h
+
+ϕh(⋅, ⋅) for some wh ∈ Rd. Then, with probability at least 1 − δ, the output policies ̂ π1∶h of FQI satisfy, 
+
+∀x ∈ X h, max  
+
+> π∈Π
+
+ϕπh (x)⊺wh ≤ ϕ̂ 
+
+> πh
+
+(x)⊺wh. (73) 
+
+Proof of Lemma K.1. Let T rh [Q]( x, a ) ∶= rh(x, a )+E [max a′∈A Q(xh+1, a ′) ∣ xh = x, ah = a] be the Bellman operator under rewards r1∶H . Fix x ∈ X h and π ∈ Π. By Corollary O.1, we have 
+
+V π 
+
+> 1
+
+(x; r1∶h) − V̂ π 
+
+> 1
+
+(x; r1∶h) ≤
+
+> h
+
+∑
+
+> ℓ=1
+
+Eπ [( T rℓ [̂ Qℓ+1] −̂ Qℓ) ( xℓ, aℓ) ∣ x1 = x]
+
+−
+
+> h
+
+∑
+
+> ℓ=1
+
+Ê 
+
+> π
+
+[( T rℓ [̂ Qℓ+1] −̂ Qℓ) ( xℓ, aℓ) ∣ x1 = x] ,
+
+≤
+
+> h−1
+
+∑
+
+> ℓ=1
+
+Eπ [( T rℓ [̂ Qℓ+1] −̂ Qℓ) ( xℓ, aℓ) ∣ x1 = x]
+
+−
+
+> h−1
+
+∑
+
+> ℓ=1
+
+Ê 
+
+> π
+
+[( T rℓ [̂ Qℓ+1] −̂ Qℓ) ( xℓ, aℓ) ∣ x1 = x] , (74) 40 where the last step follows from the fact that for ℓ = h, T rh [̂ Qh+1] −̂ Qh ≡ 0. Using Assumption 2.1 (linear Bellman completeness), we have that there exists ̃ θℓ ∈ Rd such that for all (x′, a ) ∈ X × A:
+
+rℓ(x′, a ) + E [max 
+
+> a′∈A
+
+̂ Qℓ+1(xℓ+1, a ′) ∣ xℓ = x′, aℓ = a] = ϕℓ(x′, a )⊺̃ θℓ.
+
+Using this, the definition of the regression targets yℓ in Algorithm 8, and the deterministic assumption (which implies that yℓ = E[yℓ ∣ xℓ, aℓ]), we have 
+
+yℓ = rℓ(xℓ, aℓ) + E [max 
+
+> a′∈A
+
+̂ Qℓ+1(xℓ+1, a ′) ∣ xℓ, aℓ] = ϕℓ(xℓ, aℓ)⊺̃ θℓ. (75) Thus, since ̂ Qℓ(⋅, ⋅) = ϕℓ(⋅, ⋅)⊺̂ θℓ, the Bellman residual is linear: 
+
+(T rℓ [̂ Qℓ+1] −̂ Qℓ)( ⋅, ⋅) = ⟨̃ θℓ −̂ θℓ, ϕ ℓ(⋅, ⋅)⟩ . (76) Substituting this into (74), we get 
+
+V π 
+
+> 1
+
+(x) − V̂ π 
+
+> 1
+
+(x) ≤
+
+> h−1
+
+∑
+
+> ℓ=1
+
+⟨̃ θℓ −̂ θℓ, ϕ πℓ (x) − ϕ̂ πℓ (x)⟩ . (77) Note that by definition of X h and the fact that x ∈ X h and Sℓ is a subspace, we have that 
+
+ϕπℓ (x) − ϕ̂ πℓ (x) ∈ Sℓ, ∀ℓ ∈ [h − 1]. (78) Now, fix ℓ ∈ [h − 1]. Consider the dataset Dℓ constructed in Algorithm 8. For every π′ ∈ Ψℓ, Dℓ contains 
+
+n i.i.d. tuples (xℓ, aℓ, yℓ), where (xℓ, aℓ) are generated by executing π′ up to time ℓ. Define uℓ(x, π ) ∶=
+
+ϕπℓ (x) − ϕ̂ 
+
+> πℓ
+
+(x). By (78) we have uℓ(x, π ) ∈ Sℓ. Applying Item 3, we have that with probability at least 
+
+1 − δ/H,
+
+Eℓ ∶= {Sℓ ⊆ Span {ϕℓ(x′, a ) ∶ (x′, a, y ) ∈ Dℓ}} (79) holds. Condition on Eℓ for the remaining argument. Since uℓ(x, π ) ∈ Sℓ, we have 
+
+uℓ(x, π ) ∈ Span {ϕℓ(x′, a ) ∶ (x′, a, y ) ∈ Dℓ}. (80) On the other hand, by Lemma O.2 applied to the minimum-norm least-squares estimator ̂ θℓ with targets yℓ
+
+(which are linear in ϕℓ as shown above), we have 
+
+Σℓ(̂ θℓ −̃ θℓ) = 0, (81) where Σℓ = ∑(x′,a,y )∈Dℓ ϕℓ(x′, a )ϕℓ(x′, a )⊺. Since Col (Σℓ) = Span {ϕℓ(x′, a ) ∶ (x′, a, y ) ∈ Dℓ}, (81) implies that ̂
+
+θℓ −̃ θℓ is orthogonal to Span {ϕℓ(x′, a ) ∶ (x′, a, y ) ∈ Dℓ}, and so by (80), we have 
+
+⟨̂ θℓ −̃ θℓ, ϕ πℓ (x) − ϕ̂ πℓ (x)⟩ = 0.
+
+By a union bound over ℓ ∈ [h − 1], with probability at least 1 − δ, Eℓ holds for all ℓ ∈ [h − 1]. Further, under 
+
+⋂h−1 
+
+> ℓ=1
+
+Eℓ, we have 
+
+∀ℓ ∈ [h − 1], ∣ ⟨̃ θℓ −̂ θℓ, ϕ πℓ (x) − ϕ̂ πℓ (x)⟩ ∣ = 0. (82) Plugging this into (77) yields V π 
+
+> 1
+
+(x; r1∶h) − V̂ π 
+
+> 1
+
+(x; r1∶h) ≤ 0.41 Algorithm 9 EstVec (h, F, π, n ): Estimate Eπ [F (xh, ah)] for policy π and function F ∶ X × A → Rd.
+
+Require: 
+
+• Target layer h ∈ [H].
+
+• Vector-valued function F ∶ X × A → Rd.
+
+• Policy π ∈ Π.
+
+• Number of samples n ∈ N. 
+
+> 1:
+
+D ← ∅. 
+
+> 2:
+
+for n times do  
+
+> 3:
+
+Sample (xh, ah) ∼ π. 
+
+> 4:
+
+Update dataset: D ← D ∪ {( xh, ah)} . 
+
+> 5:
+
+Return: ¯F = 1 
+
+> n
+
+∑(x,a )∈D F (x, a ).
+
+Algorithm 10 RejectionSampling (Q, A, K ): Rejection sampling (to approximate Q(⋅ ∣ A) with budget 
+
+K) 
+
+> 1:
+
+for j = 1, 2, . . . , K do  
+
+> 2:
+
+Draw Xj ∼ Q independently  
+
+> 3:
+
+if Xj ∈ A then  
+
+> 4:
+
+return Y ← Xj 
+
+> 5:
+
+return Y ← 0
+
+# L Guarantee of EstVec 
+
+Lemma L.1 (Guarantee of EstVec ). Let δ ∈ (0, 1), h ∈ [H], ϕ ∈ Φ, θ ∈ Rd, π ∈ Π, and n ∈ N be given. The output ϕh = EstVec (h, ϕ, π, n ) (Algorithm 9) satisfies, with probability at least 1 − δ,
+
+∥ϕh − Eπ [ϕ(xh, ah)]∥ ≤ c ⋅ √n−1 ⋅ log (1/δ), (83) 
+
+where c > 0 is a sufficiently large absolute constant. 
+
+Proof of Lemma L.1. By a standard vector-valued concentration bound in Euclidean space (see for example Pinelis (1994)) and the fact that ∥ϕ(x, a )∥ ≤ 1 for all x ∈ X and a ∈ A, there exists an absolute constant c > 0 such that with probability at least 1 − δ,
+
+∥ϕh − Eπ [ϕ(xh, ah)]∥ ≤ c ⋅
+
+√ log (1/δ)
+
+n . (84) 
+
+# M Guarantee of RejectionSampling 
+
+Lemma M.1 (Transfer under finite-budget rejection sampling on Rd). Let Q be a probability distribution on Rd and let A ⊆ Rd be measurable with p ∶= Q(A) ∈ (0, 1]. Define the conditional distribution 
+
+P ∶= Q(⋅ ∣ A) on Rd. Consider a (possibly randomized) algorithm Alg which, when run with access to i.i.d. samples from a distribution D on Rd, draws exactly N ∈ N samples from D (possibly adaptively) and outputs 
+
+Out (D). Assume that when Alg is run with i.i.d. samples from P , its output satisfies an event E with probability at least 1 − δ:
+
+P[E holds for Out (P )] ≥ 1 − δ, (85) 
+
+where the probability is over the i.i.d. P -samples used by Alg and any internal randomness of Alg .
+
+42 Define Alg RS as the implementation of Alg in which each time Alg requests a sample from P , we instead invoke RejectionSampling (Q, A, K ); the value returned by RejectionSampling (Q, A, K ) is provided to 
+
+Alg as the requested sample Let Out RS denote the resulting output. Then the following statements hold: 
+
+P[E holds for Out RS ] ≥ 1 − δ − N (1 − p)K ≥ 1 − δ − N e −pK .
+
+Proof. Step 1: Fix one invocation of RejectionSampling (Q, A, K ) and let X1, . . . , X K ∼ Q be the i.i.d. samples drawn within that invocation. Let J be the (random) index of the first accepted sample, with the convention J = ∞ if no accept occurs. On the event {J < ∞}, the returned value is XJ , while on {J = ∞} the algorithm returns 0.Fix any measurable B ⊆ Rd and any 1 ≤ j ≤ K. By independence, 
+
+P[XJ ∈ B, J = j] = P[X1 ∉ A, . . . , X j−1 ∉ A, X j ∈ (B ∩ A)] = (1 − p)j−1Q(B ∩ A),
+
+where p = Q(A). Summing over j yields 
+
+P[XJ ∈ B, J < ∞] =
+
+> K
+
+∑
+
+> j=1
+
+(1 − p)j−1Q(B ∩ A) = Q(B ∩ A) ⋅ 1 − (1 − p)K
+
+p .
+
+Also, P[J < ∞] = 1 − (1 − p)K . Therefore, 
+
+P[XJ ∈ B ∣ J < ∞] = P[XJ ∈ B, J < ∞]
+
+P[J < ∞] = Q(B ∩ A)
+
+p = Q(B ∩ A)
+
+Q(A) = Q(B ∣ A) = P (B).
+
+Thus, conditional on not returning 0, a single call to RejectionSampling (Q, A, K ) returns an exact draw from P .
+
+Step 2: coupling for N calls (including adaptive requests). Run Alg RS and let G be the event that all N calls to RejectionSampling (Q, A, K ) return a nonzero vector. On G, each call returns an exact draw from P by Step 1, and the internal randomness used across calls is independent because each call uses fresh i.i.d. draws from Q. Therefore, the sequence of N values provided to Alg on G is i.i.d. with law P , even if 
+
+Alg requests them adaptively. It follows that the conditional distribution of the entire execution of Alg RS 
+
+given G matches that of Alg run with true i.i.d. P -samples, which implies 
+
+Law (Out RS ∣ G) = Law (Out (P )) .
+
+Step 3: lower bound on P[G]. Let Fi be the event that the i-th call to RejectionSampling (Q, A, K )
+
+returns 0. Then Fi occurs exactly when K consecutive draws from Q miss A, hence 
+
+P[Fi] = (1 − p)K .
+
+By the union bound, 
+
+P[Gc] = P [ N
+
+⋃
+
+> i=1
+
+Fi] ≤
+
+> N
+
+∑
+
+> i=1
+
+P[Fi] = N (1 − p)K ,
+
+so P[G] ≥ 1 − N (1 − p)K . Using 1 − p ≤ e−p yields (1 − p)K ≤ e−pK , hence also P[G] ≥ 1 − N e −pK .
+
+Step 4: transferring the guarantee. By Step 2 and the assumption (85), 
+
+P[E ∣ G] = P [E holds for Out (P )] ≥ 1 − δ. 
+
+Therefore, 
+
+P[E] ≥ P[E ∩ G] = P[E ∣ G] ⋅ P[G] ≥ (1 − δ)P[G] ≥ 1 − δ − P[Gc] ≥ 1 − δ − N (1 − p)K ,
+
+which gives the first inequality in the last paragraph of the lemma. The second inequality follows from 
+
+(1 − p)K ≤ e−pK .43 Choosing K. In Lemma M.1 we obtained 
+
+P[E holds for Out RS ] ≥ 1 − δ − N (1 − p)K ,
+
+where p = Q(A). To ensure 
+
+P[E holds for Out RS ] ≥ 1 − 2δ, 
+
+it suffices to make the rejection-sampling failure term at most δ, i.e. 
+
+N (1 − p)K ≤ δ. 
+
+Equivalently, 
+
+(1 − p)K ≤ δN .
+
+Taking logs (noting log (1 − p) < 0) gives the exact requirement 
+
+K ≥ log (N /δ)
+
+− log (1 − p) .
+
+Convenient sufficient choice. Using − log (1 − p) ≥ p (valid for p ∈ (0, 1)), a simpler sufficient condition is 
+
+K ≥ 1
+
+p log ( Nδ ) ,
+
+which guarantees (1 − p)K ≤ e−pK ≤ δ/N and hence N (1 − p)K ≤ δ.
+
+# N Generic Guarantee for RobustSpanner 
+
+This section recalls the RobustSpanner algorithm and its guarantee from (Mhammedi et al., 2023a). The algorithm computes an approximate barycentric spanner using oracles LinOpt and Vec satisfying the following assumption. 
+
+Assumption N.1 ( LinOpt and Vec as approximate Linear Optimization Oracles). For some abstract set Z and a collection of vectors {wz ∈ Rd ∣ z ∈ Z} indexed by elements in Z, there exists ε′ > 0 such that for any θ ∈ Rd ∖ {0} and z ∈ Z, the outputs ˆzθ ∶= LinOpt (θ/∥ θ∥) and ˆwz ∶= Vec (z) satisfy 
+
+sup 
+
+> z∈Z
+
+θ⊺wz ≤ θ⊺wˆzθ + ε′ ⋅ ∥θ∥, and ∥ ˆwz − wz ∥ ≤ ε′. (86) Let W ∶= {wz ∣ z ∈ Z} and assume W ⊆ B(1). The following proposition, adapted from Mhammedi et al. (2023a, Proposition E.1), bounds the number of iterations of RobustSpanner and shows that the output is an approximate barycentric spanner for W (see Section 3). 
+
+Proposition N.1 (Mhammedi et al. (2023a, Proposition E.1)). Fix C > 1 and ε ∈ (0, 1) and suppose that {wz ∣ z ∈ Z} ⊆ B(1). If RobustSpanner (Algorithm 11) is run with parameters C, ε > 0 and oracles 
+
+LinOpt , Vec satisfying Assumption N.1 with parameter ε′, then it terminates after d+⌈ d 
+
+> 2
+
+log C 100 dε2 ⌉ iterations, and requires at most twice that many calls to each of LinOpt and Vec . Furthermore, the output z1∶d has the property that for all z ∈ Z, there exist β1, . . . , β d ∈ [−C, C ], such that 
+
+∥wz −
+
+> d
+
+∑
+
+> i=1
+
+βiwzi ∥ ≤ 3Cd (ε + 2ε′). (87) 44 Algorithm 11 RobustSpanner : Approximate barycentric spanner via approximate linear optimization (adapted from RobustSpanner in Mhammedi et al. (2023a)) 
+
+Require: 
+
+• Approximate linear optimization subroutine LinOpt ∶ Rd → Z.
+
+• Approximate index-to-vector subroutine Vec ∶ Z → Rd.
+
+• Parameters C, ε > 0. 
+
+> 1:
+
+Set W = (w1, . . . , w d) = (e1, . . . , e d). 
+
+> 2:
+
+for i = 1, . . . , d do  
+
+> 3:
+
+Set θi = (det (ej , W −i)) j∈[d] ∈ Rd. // W−i is defined to be W without the ith column  
+
+> 4:
+
+Set z+ 
+
+> i
+
+= LinOpt (θi/∥ θi∥) and w+ 
+
+> i
+
+= Vec (z+ 
+
+> i
+
+). 
+
+> 5:
+
+Set z− 
+
+> i
+
+= LinOpt (−θi/∥ θi∥) and w− 
+
+> i
+
+= Vec (z− 
+
+> i
+
+). 
+
+> 6:
+
+if θ⊺ 
+
+> i
+
+w+ 
+
+> i
+
+≥ −θ⊺ 
+
+> i
+
+w− 
+
+> i
+
+then  
+
+> 7:
+
+Set ̃ wi = w+ 
+
+> i
+
+, zi = z+ 
+
+> i
+
+, and wi =̃ wi + εθ i/∥ θi∥. 
+
+> 8:
+
+else  
+
+> 9:
+
+Set ̃ wi = w− 
+
+> i
+
+, zi = z− 
+
+> i
+
+, and wi =̃ wi − εθ i/∥ θi∥. 
+
+> 10:
+
+for n = 1, 2, . . . do  
+
+> 11:
+
+Set i = 1. 
+
+> 12:
+
+while i ≤ d do  
+
+> 13:
+
+Set θi = (det (ej , W −i)) j∈[d] ∈ Rd. 
+
+> 14:
+
+Set z+ 
+
+> i
+
+= LinOpt (θi/∥ θi∥) and w+ 
+
+> i
+
+= Vec (z+ 
+
+> i
+
+). 
+
+> 15:
+
+Set z− 
+
+> i
+
+= LinOpt (−θi/∥ θi∥) and w− 
+
+> i
+
+= Vec (z− 
+
+> i
+
+). 
+
+> 16:
+
+if θ⊺ 
+
+> i
+
+w+ 
+
+> i
+
++ ε ⋅ ∥θi∥ ≥ C ⋅ ∣ det (wi, W −i)∣ then  
+
+> 17:
+
+Set ̃ wi = w+ 
+
+> i
+
+, zi = z+ 
+
+> i
+
+, and wi =̃ wi + ε ⋅ θi/∥ θi∥. 
+
+> 18:
+
+break  
+
+> 19:
+
+else if −θ⊺ 
+
+> i
+
+w− 
+
+> i
+
++ ε ⋅ ∥θi∥ ≥ C ⋅ ∣ det (wi, W −i)∣ then  
+
+> 20:
+
+Set ̃ wi = w− 
+
+> i
+
+, zi = z− 
+
+> i
+
+, and wi =̃ wi − ε ⋅ θi/∥ θi∥. 
+
+> 21:
+
+break  
+
+> 22:
+
+Set i = i + 1. 
+
+> 23:
+
+if i = d + 1 then  
+
+> 24:
+
+break  
+
+> 25:
+
+Return: (z1, . . . , z d).45 O Helper Lemmas 
+
+Lemma O.1 (Uniform amplification for a subspace target). Let δ ∈ (0, 1) and let u1, u2, . . . be i.i.d. random vectors in Rd. Fix a linear subspace S ⊆ Rd and an integer n ≥ 1. Let r ∶= dim (S) and assume r ≥ 1.Assume that for every v ∈ S,
+
+P [v ∈ Span (u1, . . . , un)] ≥ 12 .
+
+Let k ∶= ⌈log 2 ( rδ )⌉ and m ∶= kn . Then 
+
+P [S ⊆ Span (u1, . . . , um)] ≥ 1 − δ. 
+
+Proof. Fix a basis b1, . . . , b r of S. For each i ∈ [r] and each j ∈ {1, . . . , k } define the block event 
+
+Aj (bi) ∶= {bi ∈ Span {u(j−1)n+1, . . . , ujn }} .
+
+By the i.i.d. assumption, for every fixed i ∈ [r], the events A1(bi), . . . , A k(bi) are independent and identically distributed, and 
+
+P [Aj (bi)] = P [bi ∈ Span {u1, . . . , un}] ≥ 12 for all j ∈ {1, . . . , k }.
+
+Let W ∶= Span {u1, . . . , um}. If Aj (bi) occurs for some j, then bi ∈ Span {u(j−1)n+1, . . . , ujn } ⊆ W , hence 
+
+> k
+
+⋃
+
+> j=1
+
+Aj (bi) ⊆ {bi ∈ W }.
+
+Therefore, 
+
+P[bi ∉ W ] ≤ P [ k
+
+⋂
+
+> j=1
+
+Aj (bi)c] =
+
+> k
+
+∏
+
+> j=1
+
+P [Aj (bi)c] ≤ (1 − 12 )
+
+> k
+
+= 2−k.
+
+By the choice k = ⌈log 2 (r/δ)⌉ , we have 2−k ≤ δ/r, hence 
+
+P[bi ∈ W ] ≥ 1 − δr .
+
+Using a union bound over i ∈ [r], we obtain 
+
+P [∀i ∈ [r], b i ∈ W ] ≥ 1 −
+
+> r
+
+∑
+
+> i=1
+
+P[bi ∉ W ] ≥ 1 − δ. 
+
+On the event {∀i ∈ [r], b i ∈ W } we have S = Span (b1, . . . , b r ) ⊆ W . This gives 
+
+P [S ⊆ Span {u1, . . . , um}] ≥ 1 − δ. 
+
+Lemma O.2 (Noiseless linear regression). Fix ℓ ∈ [h] and let Dℓ be a finite dataset of triples (x, a, R ).For each (x, a, R ) ∈ Dℓ define 
+
+Σℓ ∶= ∑
+
+> (x,a,R )∈Dℓ
+
+ϕℓ(x, a )ϕℓ(x, a )⊺, bℓ ∶= ∑
+
+> (x,a,R )∈Dℓ
+
+ϕℓ(x, a )R. 
+
+Assume linear realizability with deterministic targets: there exists θ⋆ 
+
+> ℓ
+
+∈ Rd such that 
+
+R = ϕℓ(x, a )⊺θ⋆ 
+
+> ℓ
+
+for all (x, a, R ) ∈ Dℓ.
+
+46 Define the (minimum-norm) least-squares estimator ̂ θℓ ∶= Σ† 
+
+> ℓ
+
+bℓ. Then 
+
+Σℓ(̂ θℓ − θ⋆ 
+
+> ℓ
+
+) = 0. (88) 
+
+In particular, for every u ∈ Col (Σℓ) = Span {ϕℓ(x, a ) ∶ (x, a, R ) ∈ Dℓ},
+
+⟨̂ θℓ − θ⋆ 
+
+> ℓ
+
+, u ⟩ = 0, (89) 
+
+and hence for every (x, a, R ) ∈ Dℓ,
+
+ϕℓ(x, a )⊺̂ θℓ = ϕℓ(x, a )⊺θ⋆ 
+
+> ℓ
+
+= R. (90) 
+
+Proof. By the realizability assumption, 
+
+bℓ = ∑
+
+> (x,a,R )∈Dℓ
+
+ϕℓ(x, a )ϕℓ(x, a )⊺θ⋆ 
+
+> ℓ
+
+= Σℓθ⋆ 
+
+> ℓ
+
+.
+
+Therefore, ̂
+
+θℓ = Σ†
+
+> ℓ
+
+bℓ = Σ†
+
+> ℓ
+
+Σℓθ⋆ 
+
+> ℓ
+
+.
+
+Multiplying by Σℓ on the left and using ΣℓΣ†
+
+> ℓ
+
+Σℓ = Σℓ gives 
+
+Σℓ̂ θℓ = ΣℓΣ†
+
+> ℓ
+
+Σℓθ⋆ 
+
+> ℓ
+
+= Σℓθ⋆ 
+
+> ℓ
+
+,
+
+which proves (88). For (89), fix any u ∈ Col (Σℓ). Then, there exists v ∈ Rd such that u = Σℓv. Since Σℓ is symmetric, we have 
+
+⟨̂ θℓ − θ⋆ 
+
+> ℓ
+
+, u ⟩ = ⟨̂ θℓ − θ⋆ 
+
+> ℓ
+
+, Σℓv⟩ = ⟨Σℓ(̂ θℓ − θ⋆ 
+
+> ℓ
+
+), v ⟩ = 0,
+
+where the last equality uses (88). Finally, for any (x, a, R ) ∈ Dℓ, we have ϕℓ(x, a ) ∈ Col (Σℓ), so applying (89) with u = ϕℓ(x, a ) yields ϕℓ(x, a )⊺(̂ θℓ − θ⋆ 
+
+> ℓ
+
+) = 0, which is exactly (90). 
+
+Lemma O.3. Let r1∶H be any collection of reward functions with rh ∶ X × A → R. For any policy π ∈ Π and ̂
+
+Q1∶H ⊆ {f ∶ X × A → R}, we have 
+
+E [V π 
+
+> 1
+
+(x1; r1∶H )] − E [max 
+
+> a∈A
+
+̂ Q1(x1, a )] 
+
+=
+
+> H
+
+∑
+
+> h=1
+
+Eπ [( T rh [̂ Qh+1] −̂ Qh) ( xh, ah)] +
+
+> H
+
+∑
+
+> h=1
+
+Eπ [̂ Qh(xh, ah) −̂ Vh(xh)] , (91) 
+
+where T rh [Q]( x, a ) ∶= rh(x, a ) + E [max a′∈A Q(xh+1, a ′) ∣ xh = x, ah = a] is the Bellman operator under rewards 
+
+r1∶H .
+
+Proof. Fix π ∈ Π. Let ̂ Vh(⋅) ∶= max a∈Â Qh(⋅, a ). By definition of the operators, we have 
+
+Eπ [( T rh [̂ Qh+1] −̂ Qh) ( xh, ah)] = Eπ [rh(xh, ah) +̂ Vh+1(xh+1) −̂ Qh(xh, ah)] .
+
+Summing over h = 1, . . . , H and using linearity of expectation: RHS = Eπ [
+
+> H
+
+∑
+
+> h=1
+
+rh(xh, ah)] + Eπ [
+
+> H
+
+∑
+
+> h=1
+
+(̂ Vh+1(xh+1) −̂ Qh(xh, ah))] 
+
+= E [V π 
+
+> 1
+
+(x1; r1∶H )] + Eπ [
+
+> H
+
+∑
+
+> h=1
+
+(̂ Vh+1(xh+1) −̂ Vh(xh) +̂ Vh(xh) −̂ Qh(xh, ah))] .
+
+The term ∑Hh=1(̂ Vh+1(xh+1) −̂ Vh(xh)) telescopes to ̂ VH+1 −̂ V1 = −̂V1 (since ̂ VH+1 ≡ 0). Thus, RHS = E [V π 
+
+> 1
+
+(x1; r1∶H )] − E [̂ V1(x1)] +
+
+> H
+
+∑
+
+> h=1
+
+Eπ [̂ Vh(xh) −̂ Qh(xh, ah)] .
+
+Rearranging the terms yields the result. 47 Corollary O.1 (Bellman residual decomposition). Let r1∶H be any collection of reward functions with 
+
+rh ∶ X × A → R. For any policy π ∈ Π and ̂ Q1∶H ⊆ {f ∶ X × A → R}. Further, let ̂ πh(⋅) ∈ argmax a∈Â Qh(⋅, a ),for all h ∈ [H]. Then, we have 
+
+E [V π 
+
+> 1
+
+(x1; r1∶H )] − E [V̂ π 
+
+> 1
+
+(x1; r1∶H )] 
+
+≤
+
+> H
+
+∑
+
+> h=1
+
+Eπ [( T rh [̂ Qh+1] −̂ Qh) ( xh, ah)] −
+
+> H
+
+∑
+
+> h=1
+
+Ê 
+
+> π
+
+[( T rh [̂ Qh+1] −̂ Qh) ( xh, ah)] . (92) 
+
+Proof. We decompose the difference as 
+
+E [V π 
+
+> 1
+
+(x1; r1∶H )] − E [V̂ π 
+
+> 1
+
+(x1; r1∶H )] 
+
+= E [V π 
+
+> 1
+
+(x1; r1∶H )] − E [̂ V1(x1)] ´¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¸¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¶ 
+
+> (i)
+
++ E [̂ V1(x1)] − E [V̂ π 
+
+> 1
+
+(x1; r1∶H )] ´¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¸¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¶ 
+
+> (ii )
+
+,
+
+where ̂ V1(x) ∶= max a∈Â Q1(x, a ). For the first term (i), Lemma O.3 implies 
+
+(i) =
+
+> H
+
+∑
+
+> h=1
+
+Eπ [( T rh [̂ Qh+1] −̂ Qh) ( xh, ah)] +
+
+> H
+
+∑
+
+> h=1
+
+Eπ [̂ Qh(xh, ah) −̂ Vh(xh)] .
+
+Since ̂ Vh(x) = max â Qh(x, a ), we have ̂ Qh(x, a )−̂ Vh(x) ≤ 0 for all (x, a ). Thus, the second sum is non-positive, so 
+
+(i) ≤
+
+> H
+
+∑
+
+> h=1
+
+Eπ [( T rh [̂ Qh+1] −̂ Qh) ( xh, ah)] .
+
+For the second term (ii ), applying Lemma O.3 to ̂ π gives 
+
+−(ii ) = E [V̂ π 
+
+> 1
+
+(x1; r1∶H )] − E [̂ V1(x1)] ,
+
+=
+
+> H
+
+∑
+
+> h=1
+
+Ê 
+
+> π
+
+[( T rh [̂ Qh+1] −̂ Qh) ( xh, ah)] +
+
+> H
+
+∑
+
+> h=1
+
+Ê 
+
+> π
+
+[̂ Qh(xh, ah) −̂ Vh(xh)] .
+
+Since ̂ π is greedy with respect to ̂ Q, we have ̂ Qh(x, ̂ πh(x)) = max â Qh(x, a ) =̂ Vh(x), so the second sum is exactly zero. Thus, 
+
+(ii ) = −
+
+> H
+
+∑
+
+> h=1
+
+Ê 
+
+> π
+
+[( T rh [̂ Qh+1] −̂ Qh) ( xh, ah)] .
+
+Combining the bounds for (i) and (ii ) yields the result. 
+
+Lemma O.4 (Sequential union bound with random stopping). Let T ∈ N and δ ∈ (0, 1). Consider an algorithm A with state space S. During its execution, A may call a subroutine B repeatedly, for at most T
+
+calls in total. Index these potential calls by i ∈ {1, 2, . . . , T }, and let τ ∈ {0, 1, . . . , T } be the (random) total number of calls that are actually executed. For each i ∈ {1, . . . , T }, let Si, − ∈ S be the random state of A immediately before the i-th call to B, and let 
+
+Si, + ∈ S be the random state of A immediately after that call (when executed). Let Fi−1 be the σ-algebra generated by the history of A up to (and including) Si, −, and assume that τ is a stopping time with respect to (Fi)i≥0.Assume further that for each i and each s ∈ S, there exists a measurable set Ei(s) ⊆ S such that the event 
+
+{Si, + ∈ Ei(Si, −)} is measurable and 
+
+P [Si, + ∈ Ei(s) ∣ Si, − = s] ≥ 1 − δ. 
+
+Then 
+
+P [∀i ∈ {1, . . . , τ } ∶ Si, + ∈ Ei(Si, −)] ≥ 1 − δ E[τ ].
+
+In particular, since τ ≤ T almost surely, the right-hand side is at least 1 − T δ .
+
+48 Proof. For each i ∈ {1, . . . , T } define the failure event 
+
+Fi ∶= {Si, + ∉ Ei(Si, −)} .
+
+We use the pointwise bound 
+
+I { τ
+
+⋃
+
+> i=1
+
+Fi} ≤
+
+> τ
+
+∑
+
+> i=1
+
+I{Fi}.
+
+Taking expectations and expanding the random sum, 
+
+P [ τ
+
+⋃
+
+> i=1
+
+Fi] ≤ E [
+
+> τ
+
+∑
+
+> i=1
+
+I{Fi}] =
+
+> T
+
+∑
+
+> i=1
+
+E [I{i ≤ τ } ⋅ I{Fi}] .
+
+By the tower property, 
+
+E [I{i ≤ τ } ⋅ I{Fi}] = E [I{i ≤ τ } ⋅ E [I{Fi} ∣ Fi−1]] .
+
+Since τ is a stopping time, the event {i ≤ τ } is Fi−1-measurable. Moreover, 
+
+E [I{Fi} ∣ Fi−1] = P [Fi ∣ Fi−1] = E [P [Fi ∣ Si, −] ∣ Fi−1] .
+
+By assumption, for every realization s ∈ S we have 
+
+P [Fi ∣ Si, − = s] = 1 − P [Si, + ∈ Ei(s) ∣ Si, − = s] ≤ δ, 
+
+so P[Fi ∣ Fi−1] ≤ δ almost surely. Hence 
+
+E [I{i ≤ τ } ⋅ I{Fi}] ≤ E [I{i ≤ τ } ⋅ δ] = δ P[i ≤ τ ].
+
+Summing over i gives 
+
+P [ τ
+
+⋃
+
+> i=1
+
+Fi] ≤ δ
+
+> T
+
+∑
+
+> i=1
+
+P[i ≤ τ ] = δ E[τ ],
+
+where the last identity uses E[τ ] = ∑Ti=1 P[i ≤ τ ] for τ ∈ {0, 1, . . . , T }. Taking complements yields the stated success bound. 
+
+Lemma O.5 (Boosting a conditional spanning guarantee by oversampling). Let S ⊆ Rd be a linear subspace, and let x be an Rd-valued random variable with 
+
+p ∶= P[x ∉ S] ≥ ε. 
+
+Let Q denote the conditional law Q ∶= Law (x ∣ x ∉ S), and let u ∈ S⊥ be fixed. Assume that for some n ∈ N
+
+and δ ∈ (0, 1),
+
+Q⊗n [u ∈ Span {y⊥ 
+
+> 1
+
+, . . . , y⊥
+
+> n
+
+}] ≥ 1 − δ, 
+
+where y1, . . . , yn are i.i.d. from Q and (⋅)⊥ denotes orthogonal projection onto S⊥.Set m ∶= ⌈ nε + 2√log (1/δ)nε + 4 log (1/δ) 
+
+> ε
+
+⌉ and let x1, . . . , xm be i.i.d. copies of x. Then 
+
+P [u ∈ Span {x⊥ 
+
+> 1
+
+, . . . , x⊥
+
+> m
+
+}] ≥ 1 − 2δ. 
+
+Proof. Define the indicators Ii ∶= I{xi ∉ S} and the count 
+
+N ∶=
+
+> m
+
+∑
+
+> i=1
+
+Ii.
+
+Then N ∼ Bin (m, p ) with mean μ ∶= E[N ] = mp . Since p ≥ ε and m = ⌈( 1 + c)n/ε⌉,
+
+μ = mp ≥ mε ≥ (1 + c)n. 
+
+49 Let J ∶= {i ∈ {1, . . . , m } ∶ Ii = 1} be the random index set of samples that fall outside S. On the event {N ≥ n},define i1 < ⋅ ⋅ ⋅ < in to be the first n indices in J.We first relate the target event to these n selected indices. Since 
+
+Span {x⊥ 
+
+> i1
+
+, . . . , x⊥ 
+
+> in
+
+} ⊆ Span {x⊥ 
+
+> 1
+
+, . . . , x⊥
+
+> m
+
+} ,
+
+we have 
+
+P [u ∈ Span {x⊥ 
+
+> 1
+
+, . . . , x⊥
+
+> m
+
+}] ≥ P [{ N ≥ n} ∩ {u ∈ Span {x⊥ 
+
+> i1
+
+, . . . , x⊥ 
+
+> in
+
+}}] .
+
+By conditioning on (I1, . . . , I m),
+
+P [{ N ≥ n} ∩ {u ∈ Span {x⊥ 
+
+> i1
+
+, . . . , x⊥ 
+
+> in
+
+}}] = E [I{N ≥ n} P [u ∈ Span {x⊥ 
+
+> i1
+
+, . . . , x⊥ 
+
+> in
+
+} ∣ I1, . . . , I m]] .
+
+We now analyze the conditional probability inside the expectation. Fix any realization of (I1, . . . , I m) with 
+
+N ≥ n. Conditional on (I1, . . . , I m), the variables {xi ∶ Ii = 1} are independent and each has law Q. Therefore the selected tuple (xi1 , . . . , xin ) is i.i.d. from Q, and hence 
+
+P [u ∈ Span {x⊥ 
+
+> i1
+
+, . . . , x⊥ 
+
+> in
+
+} ∣ I1, . . . , I m] = Q⊗n [u ∈ Span {y⊥ 
+
+> 1
+
+, . . . , y⊥
+
+> n
+
+}] ≥ 1 − δ. 
+
+Plugging this back gives 
+
+P [u ∈ Span {x⊥ 
+
+> 1
+
+, . . . , x⊥
+
+> m
+
+}] ≥ (1 − δ)P[N ≥ n].
+
+It remains to lower bound P[N ≥ n]. Since μ ≥ (1 + c)n, we have n ≤ μ/( 1 + c), so 
+
+{N < n} ⊆ {N ≤ (1 − α) μ} where α ∶= 1 − 11 + c = c
+
+1 + c .
+
+By the multiplicative Chernoff bound for a binomial random variable, 
+
+P [N ≤ (1 − α) μ] ≤ exp (− α2
+
+2 μ) .
+
+Therefore, 
+
+P[N < n] ≤ exp (− 12 ( c
+
+1 + c )
+
+> 2
+
+μ) ≤ exp (− 12 ( c
+
+1 + c )
+
+> 2
+
+(1 + c)n) = exp (− c2
+
+2(1 + c) n) ,
+
+and hence 
+
+P[N ≥ n] ≥ 1 − exp (− c2
+
+2(1 + c) n) .
+
+Combining the bounds and setting c ≥ max {2
+
+√ Ln , 4Ln } completes the proof. 
+
+Lemma O.6 (Ridge regression confidence ellipsoid). Let λ > 0 and let (Fk)k≥0 be a filtration. Let 
+
+Ak ∈ Rd be Fk−1-measurable and let 
+
+Xk = ⟨Ak, θ ⋆⟩ + ηk,
+
+where θ⋆ ∈ Rd is fixed and (ηk) is conditionally 1-subgaussian: for all α ∈ R,
+
+E [exp (αη k) ∣ Fk−1] ≤ exp (α2/2) a.s. Define 
+
+Vk(λ) ∶= λI +
+
+> k
+
+∑
+
+> s=1
+
+AsA⊺ 
+
+> s
+
+,̂ θk ∶= Vk(λ)−1 k
+
+∑
+
+> s=1
+
+XsAs.
+
+Then for any ζ ∈ (0, 1), with probability at least 1 − ζ, it holds that for all k ∈ N,
+
+∥̂ θk − θ⋆∥Vk (λ) ≤ √λ ∥θ⋆∥2 + √2 log (1/ζ) + log (det (Vk(λ)) / λd).
+
+50 Corollary O.2 (Directional ridge bound). On the event of Lemma O.6, for any fixed u ∈ Rd and any 
+
+k ∈ N,
+
+∣⟨̂ θk − θ⋆, u ⟩∣ ≤ βk(ζ) ⋅ ∥u∥Vk (λ)−1 ,
+
+where 
+
+βk(ζ) ∶= √λ ∥θ⋆∥2 + √2 log (1/ζ) + log (det (Vk(λ)) / λd).
+
+Corollary O.3 (Estimator Norm Bound). On the event of Lemma O.6, for all k ∈ N,
+
+∥̂ θk∥2 ≤ ∥θ⋆∥2 + 1
+
+√λ βk(ζ), (93) 
+
+where βk(ζ) is defined in Corollary O.2. 
+
+Proof. By triangle inequality, ∥̂ θk∥2 ≤ ∥θ⋆∥2 + ∥̂ θk − θ⋆∥2. Since Vk(λ) ≥ λI , we have ∥u∥2  
+
+> Vk(λ)
+
+= u⊺Vk(λ)u ≥
+
+λ∥u∥22, which implies ∥u∥2 ≤ 1√λ ∥u∥Vk (λ). Applying this to the error term: ∥̂ θk − θ⋆∥2 ≤ 1√λ ∥̂ θk − θ⋆∥Vk (λ).Using the bound from Lemma O.6, ∥̂ θk − θ⋆∥Vk (λ) ≤ βk(ζ). Combining these gives the result. 
+
+A convenient determinant bound.. Under ∥As∥2 ≤ 1 for all s we have 
+
+log ( det (Vk(λ)) 
+
+λd ) ≤ d log (1 + kλd ) . (94) (Apply det (λI + M ) ≤ (λ + 1 
+
+> d
+
+tr (M )) d with M = ∑ks=1 AsA⊺ 
+
+> s
+
+.) 
+
+Lemma O.7 (Uniform convergence for linear classes). Let Θ ⊂ Rd be a class of parameter vectors with ∥θ∥ ≤ C for all θ ∈ Θ. Let (x, a), (x1, a1), . . . , (xn, an) ∈ X × A be i.i.d. samples from some distribution. Further, let ϕ ∶ X × A → Rd be a feature map such that sup x,a ∥ϕ(x, a )∥ 2 ≤ 1. For any fixed δ ∈ (0, 1), with probability at least 1 − δ, we have: 
+
+sup 
+
+> θ∈Θ
+
+∣E[ϕ(x, a)⊺θ] − 1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+ϕ(xi, ai)⊺θ∣ ≤ C
+
+√ 8(d log (1 + 2nC ) + log (2/δ)) 
+
+n + 2
+
+n . (95) 
+
+Proof. We apply a covering number argument. Let ϵ = 1/n. Let Nϵ be an ϵ-cover of Θ in the ℓ2-norm. Standard results for Euclidean balls imply ∣Nϵ∣ ≤ (1 + 2C/ϵ)d = (1 + 2nC )d. For any fixed θ ∈ Nϵ, let 
+
+Zi = ϕ(xi, ai)⊺θ. Since sup x,a ∥ϕ(x, a )∥ 2 ≤ 1 and ∥θ∥ ≤ C, we have ∣Zi∣ ≤ C almost surely. We apply Lemma C.1 (Azuma-Hoeffding) of Foster et al. (2025) to the sequence Zi. With probability 1 − δ′,
+
+∣
+
+> n
+
+∑
+
+> i=1
+
+Zi − nE[Zi]∣ ≤ C√8n log (2/δ′).
+
+Dividing by n, we get ∣ 1 
+
+> n
+
+∑ni=1 Zi − E[Zi]∣ ≤ C
+
+√ 8 log (2/δ′) 
+
+> n
+
+.We take a union bound over all θ ∈ Nϵ. Setting δ′ = δ/∣ Nϵ∣, the bound holds simultaneously for all θ ∈ Nϵ with probability at least 1−δ. Substituting ∣Nϵ∣ ≤ (1+2nC )d, the log term becomes log (2/δ′) = log (2/δ)+log (∣ Nϵ∣) ≤
+
+log (2/δ) + d log (1 + 2nC ). Thus, under the success event, we have: 
+
+∣E[ϕ(x, a)⊺θ] − 1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+ϕ(xi, ai)⊺θ∣ ≤ C
+
+√ 8(d log (1 + 2nC ) + log (2/δ)) 
+
+n .
+
+We condition on this success event for the remainder of the proof. 51 Finally, for any θ ∈ Θ, let θ′ ∈ Nϵ be such that ∥θ − θ′∥ ≤ ϵ. The error decomposes as: 
+
+∣E[ϕ(x, a)⊺θ] − 1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+ϕ(xi, ai)⊺θ∣ (96) 
+
+≤ ∣E[ϕ(x, a)⊺θ′] − 1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+ϕ(xi, ai)⊺θ′∣ + ∣E[ϕ(x, a)⊺(θ − θ′)]∣ + ∣ 1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+ϕ(xi, ai)⊺(θ − θ′)∣ (97) 
+
+≤ C
+
+√
+
+8(d log (1 + 2nC ) + log (2/δ)) 
+
+n + ∥θ − θ′∥ + ∥θ − θ′∥ (98) 
+
+≤ C
+
+√ 8(d log (1 + 2nC ) + log (2/δ)) 
+
+n + 2ϵ. (99) Substituting ϵ = 1/n yields the result. 52

@@ -1,0 +1,538 @@
+Title: AnyID: Ultra-Fidelity Universal Identity-Preserving Video Generation from Any Visual References
+
+URL Source: https://arxiv.org/pdf/2603.25188v1
+
+Published Time: Fri, 27 Mar 2026 00:52:15 GMT
+
+Number of Pages: 20
+
+Markdown Content:
+# AnyID: Ultra-Fidelity Universal Identity-Preserving Video Generation from Any Visual References 
+
+## Jiahao Wang 1 Hualian Sheng 2 Sijia Cai 2, † Yuxiao Yang 3 Weizhan Zhang 1, ∗
+
+## Caixia Yan 1 Bing Deng 2 Jieping Ye 2
+
+> 1
+
+School of Computer Science and Technology, MOEKLINNS, Xi’an Jiaotong University 
+
+> 2
+
+Alibaba Cloud Computing 3Tsinghua University 
+
+jiahaowang@stu.xjtu.edu.cn stephen.csj@alibaba-inc.com zhangwzh@xjtu.edu.cn Change:  Background  
+
+> Change: Clothing& Background
+
+Free-form References   
+
+> videos
+> faces portraits
+> Change: Hairstyle& Clothing& Background
+> P
+> PPPP
+
+Figure 1. AnyID incorporates free-form visual references (e.g., faces, portraits, videos), including one primary reference and several auxiliary references. Controlled by a differential prompt, AnyID is able to perform universal identity-preserving generation based on the primary reference with ultra-high fidelity. The primary reference is boxed in red while the auxiliary references are boxed in black. 
+
+## Abstract 
+
+Identity-preserving video generation offers powerful tools for creative expression, allowing users to customize videos featuring their beloved characters. However, prevailing methods are typically designed and optimized for a sin-gle identity reference. This underlying assumption restricts creative flexibility by inadequately accommodating diverse real-world input formats. Relying on a single source also constitutes an ill-posed scenario, causing an inherently ambiguous setting that makes it difficult for the model to faithfully reproduce an identity across novel contexts. To   
+
+> ∗Corresponding Author
+> †Project Lead
+
+address these issues, we present AnyID, an ultra-fidelity identity-preservation video generation framework that fea-tures two core contributions. First, we introduce a scalable omni-referenced architecture that effectively unifies hetero-geneous identity inputs (e.g., faces, portraits, and videos) into a cohesive representation. Second, we propose a primary-referenced generation paradigm, which designates one reference as a canonical anchor and uses a novel dif-ferential prompt to enable precise, attribute-level controlla-bility. We conduct training on a large-scale, meticulously curated dataset to ensure robustness and high fidelity, and then perform a final fine-tuning stage using reinforcement learning. This process leverages a preference dataset con-structed from human evaluations, where annotators per-
+
+1
+
+> arXiv:2603.25188v1 [cs.CV] 26 Mar 2026
+
+formed pairwise comparisons of videos based on two key criteria: identity fidelity and prompt controllability. Ex-tensive evaluations validate that AnyID achieves ultra-high identity fidelity as well as superior attribute-level controlla-bility across different task settings. Project page: https: //johnneywang.github.io/AnyID-webpage .
+
+## 1. Introduction 
+
+The advances of diffusion models [6, 27, 30] have sparked remarkable progress in generative modeling, revolutioniz-ing the creation of visual content, especially in the context of video generation. Large-scale training based on the diffu-sion transformer (DiT) [23] architecture paired with a varia-tional autoencoder (VAE) fosters the generation of visually stunning images and videos, showing potential for a wide spectrum of applications [9–11, 19, 22, 32–35, 37–39, 42]. Despite the achievements, the realism of universal human-centric video generation (e.g., narrative continuation, short film creation, long movie generation), which features ele-ment consistency in identity, hairstyle, clothing, and back-ground across synthesized videos, remains an enticing yet unresolved challenge. As a pioneering task of human-centric generation, 
+
+identity-preserving video generation [17, 40, 43, 44] en-ables users to customize videos showing their beloved char-acter in various contexts. Along this technical thread, early tuning-based pipelines [16, 17, 28] fine-tune the model to learn a specific identity from user-provided images. However, they require laborious tuning every time a new identity is introduced, severely diminishing their usabil-ity. Recently, encoder-based pipelines [3, 22, 40, 43] have emerged as a trend for the avoidance of per-identity tuning. They enforce one single facial image as input, introduce a facial encoder leveraging visual expert models [1, 24] to inject facial information into the DiT, and conduct train-ing on a curated dataset for generalized identity modeling. However, this single-reference paradigm is fundamentally flawed, which constitutes an ill-posed problem during iden-tity modeling. A person’s identity is defined by both their 3D facial structure and their characteristic dynamics of ex-pression. A single 2D snapshot is incapable of capturing this multifaceted information. This inherent ambiguity re-sults in identity deviation when the generated facial angle and expression are different from the reference. For this is-sue, we argue that the solution lies in embracing multiple free-form references. This approach holds a dual advan-tage. Technically, it mitigates the ill-posedness by allowing the model to infer 3D shape and dynamic patterns from mul-tiple images or video clips. Practically, it aligns with user behavior, enabling them to leverage their diverse, existing collections of photos and videos to provide a rich, holistic portrait of an individual. To this end, we present AnyID, a framework for ultra-fidelity universal identity-preserving video generation. Our contributions can be summarized as: (1) We introduce a novel task formulation that incorporates multiple free-form references. To unify the heterogeneous inputs for con-solidated identity modeling, we design a scalable omni-referenced model architecture in which we leverage the original VAE instead of visual experts to inject iden-tity representations for simplicity and broader compatibil-ity. (2) For precise control over attribute variation and invariance, we propose a primary-referenced generation paradigm along with a differential prompt to determine a vi-sual anchor and the expected modification direction. (3) To facilitate supervised training, we construct a human-centric data pipeline based on the PortraitGala dataset [34] to en-sure stable and accurate construction of the free-form ref-erences and the corresponding differential prompts. (4) In further pursuit of refined generation quality, we introduce a human-centric reinforcement learning strategy to align the trained model with high-level human expectations. By tai-loring two distinct tracks of identity fidelity and prompt controllability, we construct a win-lose dataset to conduct preference tuning for an optimal model performance. To validate the effectiveness of our framework, we de-velop a benchmark for a comprehensive evaluation of uni-versal identity-preserving video generation. The results demonstrate that AnyID achieves outstanding dynamic fi-delity as well as fine-grained prompt controllability, show-ing promising potential for diverse applications, which also echoes our initial motivation. 
+
+## 2. Related Work 
+
+Identity-Preserving Video Generation. The ability to generate videos of a specific person in diverse contexts is a cornerstone of human-centric applications like vir-tual avatars and personalized storytelling. Early works of-ten require laborious per-identity fine-tuning [16, 17]. To improve usability, recent works have shifted towards an encoder-based paradigm which uses a vision encoder to in-ject identity features from a single reference image and con-ducts training on a curated dataset [4, 40, 43]. However, this single-reference paradigm is fundamentally limited as it constitutes an ill-posed problem, often resulting in iden-tity drift when generating faces in significantly different an-gles or with varied expressions. In contrast, our work mit-igates this limitation by proposing a framework that lever-ages multiple, free-form references, including images and videos, to build a more complete and robust identity repre-sentation. 
+
+Reinforcement Learning in Diffusion Models. The suc-cess of Reinforcement Learning from Human Feedback (RLHF) in Large Language Models (LLMs) [12, 25, 29] 2has inspired numerous efforts to adapt these techniques for visual generation [21, 31, 36]. Among these, Direct Pref-erence Optimization (DPO) [31] has emerged as a particu-larly effective and efficient branch. By optimizing a proxy loss derived directly from preference data, DPO avoids the need for an explicit reward model, significantly reducing training overhead. This approach has been successfully adapted to enhance diffusion models along various dimen-sions, such as overall visual quality and compositional rea-soning. Building on this, our work introduces a specialized DPO approach for universal identity-preserving video gen-eration, which learns from explicitly disentangled human preferences on identity fidelity and prompt controllability. 
+
+## 3. Preliminaries 
+
+Flow-Based Video Generation. Prevailing video gener-ation models predominantly employ Rectified Flow (RF) [2, 20] to model the distribution of videos. Given a video 
+
+x along with its description d, the video is first mapped to a latent code z through a pre-trained variational autoen-coder (VAE) [15] E : x 7 → z. In parallel, the description is encoded to a semantic embedding by a pre-trained text en-coder T : d 7 → c. The latent code is then mixed with Gaus-sian noise ϵ, controlled by a timestep t: zt = tz0 +(1 −t)ϵ,where ϵ ∼ N (0 , I), t ∈ [0 , 1] . RF defines the velocity field to progressively connect noise and data, where a paramet-ric network θ, usually a DiT [23], is trained to predict the velocity at a specific timestep vt = dz t 
+
+> dt
+
+= z0 − ϵ given the condition c using the following objective: 
+
+LRF (θ) = ∥vθ (zt, t, c) − vt∥22. (1) Later during inference, Classifier-Free Guidance (CFG) [5] combines the conditional and unconditional scores to pre-dict the velocity at each step: 
+
+ˆvt = (1 − g) · vθ (zt, t, c∅) + g · vθ (zt, t, c), (2) where g is the guidance scale. 
+
+Direct Preference Optimization. To incorporate human preferences into generative process, Bradley-Terry (BT) model is adopted to define the preference distribution be-tween a pair of positive and negative generated cases 
+
+{x+, x−} under the same condition c: pBT (x+ ≻ x−|c) = 
+
+σ(r(x+, c) − r(x−, c)) , where σ(·) is the sigmoid function and the reward r(c, x) measures the utility of each case. In the context of latent flow models, Diffusion-DPO [31] presents a tractable formulation to optimize the reward via implicit reward modeling: 
+
+LFlow-DPO (θ) = log σ(−β(s(z+ 
+
+> t
+
+, t, c, θ )) −s(z− 
+
+> t
+
+, t, c, θ ))) ,
+
+(3) 
+
+s(zt, t, c, θ) = ∥vθ (zt, t, c) − vt∥22 − ∥ vref (zt, t, c ) − vt∥22,
+
+(4) where β is a hyperparameter that controls regularization. 
+
+## 4. Method 
+
+To achieve universal identity-preserving generation, we begin by harmonizing various tasks and expanding their boundaries with a free-form reference formulation in Sec. 4.1. We then design a scalable omni-referenced framework to unify heterogeneous input forms in Sec. 4.2. For precise prompt controllability, we propose a primary-referenced generation paradigm along with the concept of differential prompt in Sec. 4.3. In pursuit of optimal iden-tity fidelity and prompt controllability, we further perform a human-centric reinforcement learning in Sec. 4.4. The supervised training is facilitated by a multi-reference data curation pipeline in Sec. 4.5. 
+
+4.1. Task Formulation 
+
+Single-reference video generation is an inherently ill-posed problem, where the ambiguity of inferring 3D structure and dynamics from a static image leads to severe artifacts and low fidelity. Therefore, in this paper, the objective of uni-versal identity-preserving video generation is to synthesize a video x that preserves a person’s identity from a set of ref-erence inputs while adhering to a given prompt. Formally, this problem has two sets of inputs: • A Reference Set R: A collection of N visual inputs, 
+
+R = {ri}Ni=1 , that provide information about a per-son’s identity and appearance. These references can be of mixed modalities, such as static images and video clips, capturing the person in various contexts. • A Target Prompt d: A textual description specifying the target video’s content and dynamics. Given these inputs, the objective is to generate a target video x that simultaneously satisfies two core constraints: identity preservation and prompt controllability. 
+
+4.2. Omni-Referenced Identity-Preserving Model 
+
+Unifying Diverse Identity References. Given a set of N
+
+free-form visual references R, the central challenge is how to harmonize the heterogeneous conditions for consolidated identity modeling. Existing methods often rely on dedicated external encoders (e.g., face or CLIP encoders) to embed identity information. However, this approach often creates an architectural bottleneck, which limits generative fidelity and inherently struggles with diverse input formats. In con-trast, we propose a simple yet scalable omni-referenced ap-proach that leverages the generalization capability of a sin-gle, pretrained VAE encoder. Our process begins with input standardization, as illustrated in Fig. 2(a). All visual ref-erences, with static images treated as single-frame videos, are first padded to a uniform resolution of H × W while preserving their original aspect ratios. Subsequently, each standardized input ri is independently encoded into latent representations using the VAE encoder E(·). These latent codes are then concatenated along the temporal dimension 3Primary&auxiliary references Target video 
+
+Noise  
+
+> 0 0 t t t 0t t
+
+Timesteps 
+
+Text Encoder 
+
+Time-Concat 
+
+VAE Encoder 
+
+Differential Prompt 
+
+Self-Attn Cross-Attn 
+
+DiT Block 
+
+> Modulate
+
+Omni-Referenced Model  
+
+> 0t t
+
+Target output (a) Supervised Training 
+
+Meta-data pool (c) Data Pipeline     
+
+> ID#1 ID#2
+> …
+> Primary Auxiliary Target Primary Target
+
+Instance #1 Instance #2             
+
+> Construct
+> Auxiliary
+> Static close-up shot. The expression is a warm and
+> fond gaze with a sense of nostalgia. The action is
+> holding a white envelope.
+> Static close-up shot. The hairstyle is layered with bangs. The
+> expression is ... The action is sitting at a wooden desk ... The
+> background is a classroom ...
+
+(b) RL Tuning 
+
+> Output#1 ID-group
+> Construct
+
+Omni-Referenced Model              
+
+> Valid win-lose pair
+> Prompt Auxiliary
+> The expression is...
+> The action is...
+> The background is ...
+> Prompt Controllability
+> Assessment
+> Identity Fidelity
+> Assessment
+> Provided Provided
+> Output#2 Primary #2 #1
+> Static medium-shot.
+> The expression ... The action ...
+> The background ..
+> #2 #1
+
+Figure 2. The overall framework of AnyID consists of two stages of training: (a) During supervised tuning, we propose a scalable omni-referenced model to unify the identity inputs and design a primary-referenced generation to enable precise control. (b) RL tuning is further performed to enhance the identity fidelity and prompt controllability. (c) The training is facilitated by a meticulously devised data pipeline. 
+
+to form a unified condition: 
+
+y = Concat( {E (I(ri)) }Ni=1 ), (5) where I(·) denotes the resizing and padding operation. Afterwards, given the corresponding ground-truth video-description pair {x, d} during training, we encode the target video into z0 = E(x) and mix it with Gaussian noise ϵ to obtain zt. The description d is also encoded into c by a text encoder. During the forward process, the clean reference la-tents and the noisy target latent are also concatenated along the temporal dimension. To enable the model to distinguish between these two inputs, we employ a timestep manipu-lation strategy. Specifically, we assign a static timestep of 
+
+t = 0 to all the reference latents, indicating they are noise-free. In contrast, the target latent is assigned its correspond-ing sampled timestep t > 0. When the composite sequence, along with the description c and timestep embeddings, is fed into the DiT backbone, the model learns to process them differently. The network’s output components correspond-ing to the zero-timestep references are discarded, while the output for the target is used to compute the final RF loss: 
+
+LRF (θ) = ∥vθ (zt, y, t, c) − (z0 − ϵ)∥22, (6) 
+
+Aggregating Unconditional Guidance. Prior works like [22] often handle multiple conditions by performing a sep-arate inference pass for each, which significantly increases computational overhead. To overcome this limitation, we establish a single, unified unconditional state for guidance by simultaneously nullifying all modalities. Specifically, this is achieved by inputting the latent code of pure black pixels y∅ visually and the embedding of an empty prompt 
+
+c∅ semantically. The predicted velocity during inference is: 
+
+ˆvt = (1 − g) · vθ (zt, y∅, t, c∅) + g · vθ (zt, y, t, c), (7) where g is the guidance scale. This design avoids extra in-ference computation and functions well in practice. 
+
+4.3. Primary-Referenced Generation 
+
+Generating Differential Prompt. Establishing a person’s identity from multiple visual references introduces an in-herent challenge: how to reconcile contextual inconsisten-cies across the references. Variations in lighting, makeup, and background can indicate conflicting representations of a person’s attributes (e.g., makeup, hairstyle, clothes). To resolve this conflict, we propose a primary-referenced gen-eration paradigm. In this framework, we designate a single source, the primary reference ( r1), as the canonical anchor for all static attributes. This novel primary-referenced struc-ture necessitates a new way of specifying transformations. Conventional prompting strategies, which rely on absolute, 4overall descriptions of the target scene, are ill-suited for this task. Such prompts are not only laborious for users to craft but also struggle to precisely describe one specific change relative to the primary reference, often leading to unex-pected alterations. To address this issue, we introduce the concept of a differential prompt . To specify, the differential prompt describes only the changes from the primary refer-ence to the target content, while anything not mentioned in it is expected to remain consistent. This differential strat-egy minimizes descriptive noise by focusing the model’s attention exclusively on specified changes while ensuring a stable contextual foundation by anchoring every transfor-mation to a single reference point. During practice, we dissect the video content into seven predefined portrait-video elements : shot type, hairstyle, clothes, accessory, expression, action, and background. Our differential prompt generation process unfolds in two stages. First, for a given primary reference ri and the tar-get video x, we employ a VLM to generate detailed tex-tual descriptions for each element, resulting in a reference description set dref and a target description set dtar . Sec-ond, we use an LLM to perform a comparative analysis. The LLM quantifies the semantic similarity for each corre-sponding element pair between dref and dtar . Elements with a similarity score exceeding a threshold γ are deemed un-changed and are pruned from dtar . The remaining descrip-tions constitute the final differential prompt d. Our experi-ments show that directly using a single VLM for differential prompting is currently unstable, often leading to hallucina-tions and omissions. Therefore, our two-stage pipeline of-fers a more robust solution by decomposing the task. Even so, our core contribution is introducing the concept of dif-ferential prompting, not its specific extraction method. Asufficiently advanced VLM could potentially perform this task directly in the future. 
+
+4.4. Human-Centric Reinforcement Learning 
+
+While the supervised training in existing works with a pixel-wise Mean Squared Error (MSE) loss establishes a strong baseline, it is fundamentally misaligned with high-level hu-man perception. MSE often leads to overly smooth out-puts that degrade the fine-grained features essential for both identity fidelity and prompt controllability. To overcome this limitation, we are in need of a learning strategy that op-timizes directly based on human perceptual judgment. Re-inforcement learning (RL), particularly when guided by hu-man feedback, serves as an ideal solution to bridge this gap between pixel-level metrics and user-centric goals. To this end, we introduce a human-centric reinforcement learning framework, shown in Fig. 2(b), which uses human prefer-ence annotations as its optimization objective. Concretely, we first extract numerous sets of inputs from the training dataset and sample two videos for each set us-ing our trained model to form a matchup. Then, paired sam-ples are evaluated along two tracks: omni-referenced iden-tity fidelity and primary-referenced prompt controllability. To assess identity fidelity, annotators are provided with the complete set of clips from the source ID-group as a compre-hensive reference. They are then tasked with selecting the video that better preserves the person’s dynamic identity. For the primary-referenced prompt controllability evalua-tion, annotators review the primary reference and the differ-ential prompt. Their task is to select the video that better aligns with the prompt’s intended transformation while pre-serving consistency in aspects not specified by the prompt. A pair is deemed a valid training sample only if one video is unequivocally superior to the other across both evaluation axes (i.e., achieves Pareto dominance). We collect 1,000 valid pairs to fine-tune our model via reinforcement learn-ing with the DPO objective in Eq. (3). 
+
+4.5. Multi-Reference Data Curation 
+
+Building Meta-Data Pool. The foundation for achieving ultra-high fidelity is a dataset that enables the model to learn identity invariance across diverse and complex scenarios. To this end, we construct a large-scale human identity meta-data pool by curating the PortraitGala dataset [34]. While PortraitGala inherently groups clips by person identity (ID-groups), we apply a rigorous filtering pipeline to enhance data quality. This process involves two steps: first, we ap-ply face detection to isolate single-subject clips, and second, we filter out low-quality samples, such as those with blurry faces or extreme head poses. To further enrich the dataset, the annotations of each video are augmented with its corre-sponding face and person detection outputs (e.g., bounding boxes). This curation process yields a meta set of 100k ID-groups and 300k video clips. 
+
+Constructing Diverse Reference Forms. While the cu-rated data pool provides high-quality, identity-consistent video clips, its homogeneity does not reflect the diversity of real-world inputs. To bridge this gap, we implement a data augmentation strategy to synthesize these varied reference forms from our curated clips. Starting from one ID-group of clips, we first sample N
+
+reference videos and a target video x. To simulate real-world scenarios with varied reference formats, we trans-form each of the N reference videos into one of three forms (i.e., face, portrait, or video) as follows: • Face image reference: The facial region is cropped from a single, randomly selected frame. • Portrait image reference: A wider or tighter portrait is generated by cropping the region around the person from a random frame. • Video reference: A random video segment is sampled, and its unified person region is subsequently cropped. In summary, each iteration of this data construction pipeline 5yields a complete training instance: a primary reference, a set of auxiliary references in a variety of formats, and a tar-get video. This multi-faceted data structure is crucial for endowing our model with the versatility to handle hetero-geneous reference inputs. 
+
+## 5. Experiments 
+
+Implementation Details. AnyID is implemented based on Wan-5B [32]. We set the resolution to 1280 ×704 and the frame number to 121, which is equivalent to 5 seconds of 720p video. During training and inference, the number of references N varies from 1 to 5. The probability of null con-ditions p∅ is set to 0.1, and the guidance scale g is set to 5.0. The supervised training and RL tuning are both conducted in the LoRA [8] manner. The training of AnyID takes about 4,500 NVIDIA A100 GPU hours in total. 
+
+Baselines. To comprehensively evaluate the performance of AnyID, we compare it against a diverse set of baselines from both academia and industry: (1) ConsisID [40] and FantasyID [44], both implemented based on CogvideoX-5B [7]; (2) Phantom [22] and SkyReels-A2 [3], both imple-mented based on Wan-14B [32]. The configurations for all the baselines remain set to default. 
+
+5.1. Benchmark 
+
+Evaluation Set. To facilitate a comprehensive and rig-orous performance evaluation, we propose a benchmark tailored for universal identity-preserving video genera-tion. To start with, we define two types of tasks: 
+
+identity-preserving generation (IPT2V), which only pre-serves identity, and identity-element-preserving genera-tion (IEPT2V), which preserves identity along with cer-tain elements. We then collect 50 free-form reference sets of 50 celebrities, each containing 5 visual references showing various facial angles and motions. We instruct LLM to accordingly generate 50 IPT2V prompts and 50 IEPT2V prompts, preserving hairstyle, hairstyle&clothing, or hairstyle&clothing&background. Note that since the baselines are incompatible with multiple references, we only input the primary reference. ConsisID and FantasyID don’t participate in the IEPT2V task. 
+
+Metrics. We further assess quantitative metrics across four dimensions: (1) Identity fidelity : Different from conven-tional single-reference benchmarks, we calculate the av-erage normalized cosine similarity between the generated face and all the reference faces utilizing ArcFace [1] and CurricularFace [13] to report more trustworthy holistic met-rics, Holi-Arc and Holi-Cur. Such a measurement reflects the overall fidelity of the generated character across dif-ferent facial angles. (2) Element consistency : We utilize Grounded-SAM [26] to segment all the elements expected to be preserved from the primary reference and the gener-ated video and then compute the normalized cosine similar-ity between their embeddings utilizing CLIP [24] and DINO [41] to report Ele-CLIP and Ele-DINO. (3) Prompt control-lability : To reflect motion conformity and fine-grained con-trollability, unlike conventional benchmarks that measure the visual-semantic similarity, we turn to VLM to score the alignment between the prompt and the whole video in three aspects: human appearance (App.), camera and human mo-tions (Mot.), background (Bg.). (4) Visual quality : We fol-low Vbench [14] to instruct VLM to score in two aspects. Static score (Sta.) covers clarity, color saturation, content layout, etc. Dynamic score (Dyn.) covers smoothness, tem-poral consistency, reasonableness, etc. 
+
+5.2. Qualitative Evaluation 
+
+IPT2V. In the upper part of Fig. 3, we illustrate the qualita-tive comparison in IPT2V task. With only one facial refer-ence, the negative effects of ill-posedness are evident across all baselines: (1) Inferior dynamic fidelity is observed in ConsisID, FantasyID, and Phantom with significant iden-tity deviation when the head rotates or when the facial ex-pression changes differently from the reference image. (2) A severe bias toward the reference image is observed in SkyReels-A2, ignoring the prompt control and even causing visual distortion. In contrast, our AnyID demonstrates su-perior identity fidelity across varying facial angles and mo-tions. This benefits from the rich multi-view information provided by free-form references, which resonates with our initial motivation. 
+
+IEPT2V. The lower part of Fig. 3 illustrates the perfor-mance in IEPT2V task. As shown, Phantom continuously exhibits identity distortion across varying facial angles and expressions. While for SkyReels-A2, the bias issue still persists with unexpected ”copy-paste” of clothes and even the background. By comparison, in addition to showcasing ultra-high facial fidelity as always, our AnyID simultane-ously achieves the optimal balance of element consistency and prompt controllability. For the example in the bottom-right corner of Fig. 3, AnyID not only preserves the iden-tity, hairstyle, and clothing but also renders the most nat-ural visual effect according to the described environment and lighting, showcasing unparalleled quality. This proves that AnyID effectively models the identity invariance across varying contexts and aligns with human preferences, owing to the supervised training and RL tuning. 
+
+5.3. Quantitative Evaluation 
+
+Metric Results. We report the quantitative results of AnyID and baselines in Tab. 1. Our method scores the highest 73.22% on Holi-Arc and 67.52 % on Holi-Arc, demonstrat-ing ultra-high dynamic identity fidelity. For subject con-sistency, the top performance of SkyReels-A2 is a result 6SkyReels-A2  Phantom  SkyReels-A2  Phantom  FantasyID  ConsisID                                          
+
+> ShotType: medium-shot Hairstyle: messy blond hair
+> Clothing: light blue denim jacket, black-and-white striped sweater
+> Action: stand on a boat, head turns right , point to the horizon
+> Background: at sunset on a vast lake, with misty mountains in the distance
+> ( Preserve Identity )
+> ShotType: close-up Hairstyle: neat black hair
+> Clothing: light gray hoodie with a geometric pattern on the chest
+> Expression: confident, serious Action: wave the head while speaking
+> Background: abandoned lab, computer screen with codes
+> ( Preserve Identity&Hairstyle&Clothing )
+> ShotType: medium-shot Expression: calm and focused
+> Action: hands typing on a translucent holographic interface
+> Background: a cyberpunk city at night, varying multicolored neon lights
+> ( Preserve Identity )
+> ( Preserve Identity&Hairstyle )
+> ShotType: upward medium-shot Accessory: earrings, silver necklace
+> Clothing: burgundy velvet dress Action: smile, hands folded on lap
+> Background: an autumn park with amber maple trees and fallen leaves
+> PPPP
+
+Figure 3. Illustration of AnyID and baselines. Across different settings, AnyID continuously demonstrates ultra-high identity fidelity in varying facial angles and motions as well as superior prompt controllability, benefiting from the free-form references. The primary reference is boxed in red while the auxiliary references are boxed in black. Please zoom in for a better view. 
+
+of the ”copy-paste” phenomenon, as discussed in Sec. 5.2. For Phantom, we observe a divergence in scores between Ele-CLIP and Ele-DINO. We speculate that this is because Phantom’s visual results exhibit a stylistic tendency, alter-ing the high-frequency information of elements, which is captured by CLIP but not by DINO. In terms of prompt controllability, our method tops the scoreboard with a re-markable 86.56% App., 60.31% Mot., and 84.79% Bg. Fi-nally, our method leads with 82.03% Sta. and 91.12% Dyn., showing superior overall visual quality. 
+
+User Study. To assess the performance from the perspec-tive of human preference, we further conduct a user study involving 20 participants. We instruct each of them to per-form binary voting in 40 one-on-one matchups between AnyID and the baselines across the above-mentioned four dimensions. As shown in Fig.5, AnyID wins more than 70% matchups in identity fidelity and prompt controllability and wins more than 60% matchups in element consistency and 7Table 1. Metric results of AnyID, baselines, and ablation models. The best and second-best scores are denoted bold and underlined. 
+
+Identity fidelity Element consistency Prompt controllability Visual quality 
+
+Holi-Arc Holi-Cur Ele-CLIP Ele-DINO App. Mot. Bg. Sta. Dyn. ConsisID-5B 68.92 65.07 - - 66.56 51.88 78.54 74.75 75.37 FantasyID-5B 69.60 65.03 - - 73.12 58.74 82.50 73.81 82.81 Phantom-14B 70.01 64.01 66.01 75.90 61.88 54.37 83.12 77.62 83.54 SkyReels-A2-14B 69.12 64.89 78.14 79.87 50.19 58.75 54.37 78.62 78.25 AnyID-5B w/o P&D 72.58 66.90 63.87 64.03 80.82 56.45 83.60 81.81 89.39 AnyID-5B w/o RL 72.61 66.95 65.49 65.96 80.77 57.80 83.92 81.79 90.44 AnyID-5B w/o AR 72.38 66.77 68.61 69.55 86.19 60.30 83.24 81.98 91.11 AnyID-5B (ours) 73.22 67.52 68.78 69.50 86.56 60.31 84.79 82.03 91.12 AnyID w/o P&D AnyID w/o AR     
+
+> AnyID w/o RL
+> Preserve Identity& Hairstyle ｜Change Clothing& Background
+> PP
+
+Figure 4. Generated cases by AnyID and three ablation models, which confirms that our proposed components function as expected Identity fidelity Element consistency Prompt controllability Visual quality     
+
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> Winning rate (%)
+> 82.5 83.0
+> 90.1
+> 84.1
+> 72.1
+> 88.3
+> 76.8
+> 65.5
+> 77.1
+> 66.8
+> 78.2
+> 61.2
+> 89.3
+> 67.2
+> vs ConsisID vs FantasyID vs Phantom vs SkyReels-A2
+
+Figure 5. Results of user study. The overall high winning rate proves that AnyID better aligns with human preferences. 
+
+visual quality, showing an absolute advantage. Among the results, the victory in element consistency comes as a sur-prise. During the post interviews, it was revealed that many participants included naturalness in their subjective judg-ment of element consistency, leading to a preference toward our method. In general, the user study reconfirms the excel-lence of AnyID, which echoes the qualitative results. 
+
+5.4. Ablation Study 
+
+We conduct an ablation study to verify the effectiveness of the proposed architecture. To specify, we construct three ablation models: (1) our method excluding the primary-reference and differential-prompt design, using the ordinary prompt (AnyID w/o P&D); (2) our method excluding rein-forcement learning (AnyID w/o RL); (3) our method ex-cluding auxiliary references during inference (AnyID w/o AR). We report the quantitative ablation results in Tab. 1. Observing the case shown in Fig. 4, we can draw three con-clusions: (1) P&D enables the model to resolve the hairstyle conflicts across multiple references, faithfully preserving the expected hairstyle. (2) AR provides additional facial dynamic information during inference, facilitating precise modeling of identity invariance across diverse facial mo-tions. (3) RL refines the performance in aspects that subtly affect fidelity, such as hair shine, texture, and facial shading. These three conclusions confirm that our proposed architec-ture is practically effective and aligns with expectations. 
+
+## 6. Conclusion 
+
+We present AnyID, an identity-preserving video generation framework that addresses the key limitations of existing methods. We identify that the reliance on one single im-age reference causes identity ambiguity and limits creative flexibility. For these issues, we design a scalable omni-referenced architecture that unifies heterogeneous inputs and a primary-referenced generation paradigm that uses dif-ferential prompting for anchored control. To further refine the performance, we employ a reinforcement learning stage based on human feedback. Comprehensive experiments demonstrate that our method significantly outperforms ex-isting baselines, particularly in the critical dimensions of identity fidelity and prompt controllability. 8References 
+
+[1] Jiankang Deng, Jia Guo, Jing Yang, Niannan Xue, Irene Kot-sia, and Stefanos Zafeiriou. Arcface: Additive angular mar-gin loss for deep face recognition. TPAMI , 2022. 2, 6 [2] Patrick Esser, Sumith Kulal, Andreas Blattmann, Rahim Entezari, Jonas M¨ uller, Harry Saini, Yam Levi, Dominik Lorenz, Axel Sauer, Frederic Boesel, et al. Scaling recti-fied flow transformers for high-resolution image synthesis. In ICML , 2024. 3 [3] Zhengcong Fei, Debang Li, Di Qiu, Jiahua Wang, Yikun Dou, Rui Wang, Jingtao Xu, Mingyuan Fan, Guibin Chen, Yang Li, et al. Skyreels-a2: Compose anything in video dif-fusion transformers. arXiv preprint arXiv:2504.02436 , 2025. 2, 6 [4] Xuanhua He, Quande Liu, Shengju Qian, Xin Wang, Tao Hu, Ke Cao, Keyu Yan, and Jie Zhang. Id-animator: Zero-shot identity-preserving human video generation. arXiv preprint arXiv:2404.15275 , 2024. 2 [5] Jonathan Ho and Tim Salimans. Classifier-free diffusion guidance. arXiv preprint arXiv:2207.12598 , 2022. 3 [6] Jonathan Ho, Ajay Jain, and Pieter Abbeel. Denoising diffu-sion probabilistic models. In NeurIPS , 2020. 2 [7] Wenyi Hong, Ming Ding, Wendi Zheng, Xinghan Liu, and Jie Tang. Cogvideo: Large-scale pretraining for text-to-video generation via transformers. In ICLR , 2023. 6 [8] Edward J. Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, and Weizhu Chen. Lora: Low-rank adaptation of large language models. In 
+
+ICLR , 2022. 6 [9] Li Hu. Animate anyone: Consistent and controllable image-to-video synthesis for character animation. In CVPR , 2024. 2[10] Xirui Hu, Jiahao Wang, Hao Chen, Weizhan Zhang, Benqi Wang, Yikun Li, and Haishun Nan. Dynamicid: Zero-shot multi-id image personalization with flexible facial editabil-ity. In ICCV , 2025. [11] Xirui Hu, Yanbo Ding, Jiahao Wang, Tingting Shi, Yali Wang, Guo Zhi Zhi, and Weizhan Zhang. Motionweaver: Holistic 4d-anchored framework for multi-humanoid image animation. arXiv preprint arXiv:2602.13326 , 2026. 2 [12] Muye Huang, Lingling Zhang, Yifei Li, Yaqiang Wu, and Jun Liu. Sketchvl: Policy optimization via fine-grained credit assignment for chart understanding and more. arXiv preprint arXiv:2601.05688 , 2026. 2 [13] Yuge Huang, Yuhan Wang, Ying Tai, Xiaoming Liu, Pengcheng Shen, Shaoxin Li, Jilin Li, and Feiyue Huang. Curricularface: Adaptive curriculum learning loss for deep face recognition. In CVPR , 2020. 6 [14] Ziqi Huang, Yinan He, Jiashuo Yu, Fan Zhang, Chenyang Si, Yuming Jiang, Yuanhan Zhang, Tianxing Wu, Qingyang Jin, Nattapol Chanpaisit, Yaohui Wang, Xinyuan Chen, Limin Wang, Dahua Lin, Yu Qiao, and Ziwei Liu. Vbench: Com-prehensive benchmark suite for video generative models. In 
+
+CVPR , 2024. 6 [15] Diederik P. Kingma and Max Welling. Auto-encoding vari-ational bayes. In ICLR , 2014. 3 [16] Hengjia Li, Lifan Jiang, Xi Xiao, Tianyang Wang, Hongwei Yi, Boxi Wu, and Deng Cai. Magicid: Hybrid preference optimization for id-consistent and dynamic-preserved video customization. In ICCV , 2025. 2 [17] Hengjia Li, Haonan Qiu, Shiwei Zhang, Xiang Wang, Yu-jie Wei, Zekun Li, Yingya Zhang, Boxi Wu, and Deng Cai. Personalvideo: High id-fidelity video customization without dynamic and semantic degradation. In ICCV , 2025. 2 [18] Junxian Li, Kai Liu, Leyang Chen, Weida Wang, Zhixin Wang, Jiaqi Xu, Fan Li, Renjing Pei, Linghe Kong, and Yulun Zhang. Planviz: Evaluating planning-oriented image generation and editing for computer-use tasks. arXiv preprint arXiv:2602.06663 , 2026. [19] Haonan Lin, Yan Chen, Jiahao Wang, Wenbin An, Meng-meng Wang, Feng Tian, Yong Liu, Guang Dai, Jingdong Wang, and Qianying Wang. Schedule your edit: A simple yet effective diffusion noise schedule for image editing. In 
+
+NeurIPS , 2024. 2 [20] Yaron Lipman, Ricky T. Q. Chen, Heli Ben-Hamu, Maxim-ilian Nickel, and Matthew Le. Flow matching for generative modeling. In ICLR , 2023. 3 [21] Jie Liu, Gongye Liu, Jiajun Liang, Yangguang Li, Jiaheng Liu, Xintao Wang, Pengfei Wan, Di Zhang, and Wanli Ouyang. Flow-grpo: Training flow matching models via on-line rl. arXiv preprint arXiv:2505.05470 , 2025. 3 [22] Lijie Liu, Tianxiang Ma, Bingchuan Li, Zhuowei Chen, Ji-awei Liu, Gen Li, Siyu Zhou, Qian He, and Xinglong Wu. Phantom: Subject-consistent video generation via cross-modal alignment. In ICCV , 2025. 2, 4, 6 [23] William Peebles and Saining Xie. Scalable diffusion models with transformers. In ICCV , 2023. 2, 3 [24] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, Gretchen Krueger, and Ilya Sutskever. Learning transferable visual models from natural language supervision. In ICML , 2021. 2, 6 [25] Rafael Rafailov, Archit Sharma, Eric Mitchell, Christo-pher D. Manning, Stefano Ermon, and Chelsea Finn. Direct preference optimization: Your language model is secretly a reward model. In NeurIPS , 2023. 2 [26] Tianhe Ren, Shilong Liu, Ailing Zeng, Jing Lin, Kunchang Li, He Cao, Jiayu Chen, Xinyu Huang, Yukang Chen, Feng Yan, et al. Grounded sam: Assembling open-world models for diverse visual tasks. arXiv preprint arXiv:2401.14159 ,2024. 6 [27] Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Bj¨ orn Ommer. High-resolution image syn-thesis with latent diffusion models. In CVPR , 2022. 2 [28] Nataniel Ruiz, Yuanzhen Li, Varun Jampani, Yael Pritch, Michael Rubinstein, and Kfir Aberman. Dreambooth: Fine tuning text-to-image diffusion models for subject-driven generation. In CVPR , 2023. 2 [29] John Schulman, Filip Wolski, Prafulla Dhariwal, Alec Rad-ford, and Oleg Klimov. Proximal policy optimization algo-rithms. arXiv preprint arXiv:1707.06347 , 2017. 2 [30] Jiaming Song, Chenlin Meng, and Stefano Ermon. Denois-ing diffusion implicit models. In ICLR , 2021. 2 
+
+9[31] Bram Wallace, Meihua Dang, Rafael Rafailov, Linqi Zhou, Aaron Lou, Senthil Purushwalkam, Stefano Ermon, Caiming Xiong, Shafiq Joty, and Nikhil Naik. Diffusion model align-ment using direct preference optimization. In CVPR , 2024. 3[32] Team Wan, Ang Wang, Baole Ai, Bin Wen, Chaojie Mao, Chen-Wei Xie, Di Chen, Feiwu Yu, Haiming Zhao, Jianxiao Yang, et al. Wan: Open and advanced large-scale video gen-erative models. arXiv preprint arXiv:2503.20314 , 2025. 2, 6[33] Jiahao Wang, Caixia Yan, Haonan Lin, Weizhan Zhang, Mengmeng Wang, Tieliang Gong, Guang Dai, and Hao Sun. Oneactor: Consistent subject generation via cluster-conditioned guidance. In NeurIPS , 2024. [34] Jiahao Wang, Hualian Sheng, Sijia Cai, Weizhan Zhang, Caixia Yan, Yachuang Feng, Bing Deng, and Jieping Ye. Echoshot: Multi-shot portrait video generation. In NeurIPS ,2025. 2, 5 [35] Jiahao Wang, Caixia Yan, Weizhan Zhang, Haonan Lin, Mengmeng Wang, Guang Dai, Tieliang Gong, Hao Sun, and Jingdong Wang. Spotactor: Training-free layout-controlled consistent image generation. In AAAI , 2025. 2 [36] Jiazheng Xu, Xiao Liu, Yuchen Wu, Yuxuan Tong, Qinkai Li, Ming Ding, Jie Tang, and Yuxiao Dong. Imagere-ward: Learning and evaluating human preferences for text-to-image generation. In NeurIPS , 2023. 3 [37] Yuxiao Yang, Peihao Li, Yuhong Zhang, Junzhe Lu, Xian-glong He, Minghan Qin, Weitao Wang, and Haoqian Wang. Nova3d: Normal aligned video diffusion model for single image to 3d generation. In ICME , 2025. 2 [38] Yuxiao Yang, Xiaoxiao Long, Zhiyang Dou, Cheng Lin, Yuan Liu, Qingsong Yan, Yuexin Ma, Haoqian Wang, Zhiqiang Wu, and Wei Yin. Wonder3d++: Cross-domain diffusion for high-fidelity 3d generation from a single image. 
+
+TPAMI , 2025. [39] Yuxiao Yang, Hualian Sheng, Sijia Cai, Jing Lin, Jiahao Wang, Bing Deng, Junzhe Lu, Haoqian Wang, and Jieping Ye. Echomotion: Unified human video and motion genera-tion via dual-modality diffusion transformer. arXiv preprint arXiv:2512.18814 , 2025. 2 [40] Shenghai Yuan, Jinfa Huang, Xianyi He, Yunyuan Ge, Yu-jun Shi, Liuhan Chen, Jiebo Luo, and Li Yuan. Identity-preserving text-to-video generation by frequency decompo-sition. In CVPR , 2025. 2, 6 [41] Hao Zhang, Feng Li, Shilong Liu, Lei Zhang, Hang Su, Jun Zhu, Lionel M. Ni, and Heung-Yeung Shum. DINO: DETR with improved denoising anchor boxes for end-to-end object detection. In ICLR , 2023. 6 [42] Lvmin Zhang, Anyi Rao, and Maneesh Agrawala. Adding conditional control to text-to-image diffusion models. In 
+
+ICCV , 2023. 2 [43] Yuechen Zhang, Yaoyang Liu, Bin Xia, Bohao Peng, Zexin Yan, Eric Lo, and Jiaya Jia. Magicmirror: Id-preserved video generation in video diffusion transformers. In ICCV , 2025. 2[44] Yunpeng Zhang, Qiang Wang, Fan Jiang, Yaqi Fan, Mu Xu, and Yonggang Qi. Fantasyid: Face knowledge en-hanced id-preserving video generation. arXiv preprint arXiv:2502.13995 , 2025. 2, 6 
+
+10 Appendix 
+
+## Table of Contents 
+
+A. Details of Dataset Construction 13 B. More Experimental Details 13 C. Details of Benchmark 14 D. Analysis of Multiple References 15 E. Detailed Ablation Study 15 F. Implementation of Preference Annotation 16 G. Implementation of User Study 20 H. Societal Impacts and Safeguards 21 A. Details of Dataset Construction 1. [shot] Static close-up shot. 2. [hairstyle]  He has short, black hair styled layered with bangs covering his forehead. 3. [clothing] He wears a school uniform, which consists of a white, short-sleeved, button-down collared shirt and a simple, dark green necktie. 4. [accessory] No  accessories. 5. [expression] His expression is pensive and contemplative. 6. [action]  He is sitting at a wooden desk,  leaning on his left elbow, propping his head up with his hand against his cheek. 7. [background]  In a class room,  bright window with a blurry outdoor scene. 
+
+Primary Auxiliary Target 
+
+Frame&Crop Segment 
+
+Video ref Face ref Portrait ref 
+
+ID#2                                
+
+> 1. [shot] Hand-hold close-up shot. 2. [hairstyle] He has short, dark brown hair styled with some volume on top and parted bangs that frame his forehead. 3. [clothing] He wears a school uniform, consisting of a white, short-sleeved collared shirt and a dark, loosely tied necktie. 4. [accessory] No accessories. 5. [expression] His expression is one of intense concentration and seriousness. 6. [action] He is leaning forward, looking down and reading a book. 7. [background] At night in a poorly lit room.
+> Aspect Similarity Judgement [shot] 0.50 changed
+> [hairstyle] 0.65 changed
+> [clothing] 0.90 unchanged
+> [accessory] 1.00 unchanged
+> [expression] 0.40 changed
+> [action] 0.45 changed
+> [background] 0.00 changed
+
+## Vision Language Model Large Language Model                  
+
+> 1. [shot] Static close-up shot. 2. [hairstyle] He has short, black hair styled layered with bangs covering his forehead. 3. [clothing] He wears a school uniform, which consists of a white, short-sleeved, button-down collared shirt and a simple, dark green necktie.
+> 4. [accessory] No accessories.
+> 5. [expression] His expression is pensive and contemplative. 6. [action] He is sitting at a wooden desk, leaning on his left elbow, propping his head up with his hand against his cheek. 7. [background] In a class room, bright window with a blurry outdoor scene.
+
+Final differential prompt 
+
+Sample 
+
+Figure 6. A construction example of the visual references and the differential prompt for the supervised training. 
+
+In our paper, we introduce a data pipeline for construct-ing diverse visual references and differential prompts to fa-cilitate supervised training. Here, we provide a detailed de-scription with a construction example in Fig. 6. As illus-trated, the whole pipeline starts from sampling one video as the primary reference, several videos as auxiliary refer-ences, and one video as the target. All the reference videos randomly undergo operations to produce different forms of visual references. Temporal segmentation produces video references. Sampling one frame and cropping the facial re-gion produces face image references. Sampling one frame and cropping the region around the person produces por-trait image references. Afterwards, the primary reference and the target video are respectively input to a VLM for de-tailed descriptions in the seven portrait-video aspects. The two descriptions are then input to an LLM to quantify the similarity between them in terms of the seven aspects. As-pects with a similarity score exceeding a threshold γ, which is set to 0.8 in practice, are deemed unchanged. The un-changed aspects are removed from the description of the target video to produce the final differential prompt. 
+
+## B. More Experimental Details 
+
+We utilize the text input mode of Gemini-2.5-Pro as the LLM and the text-video input mode as the VLM. All the training is carried out on NVIDIA A100 80GB GPUs. The supervised training starts from standard Wan-5B us-ing LoRA, which takes 4,000 GPU hours. The RL tuning starts from the merged weights after supervised training, also using LoRA, which takes additional 500 GPU hours. Throughout the training, all the important settings are listed below: 
+
+Table 2. Experimental settings of AnyID. 
+
+Parameter Value 
+
+Video height 704 Video width 1280 Video frame 121 FPS 24 LoRA rank 128 LoRA alpha 128 Batchsize 64 Train timesteps 1000 Train shift 5.0 Optimizer AdamW Learning rate 1e-4 Weight decay 0.001 Sample timesteps 50 Sample shift 5.0 Sample guidance scale 5.0 13 C. Details of Benchmark 
+
+Celebrities. To construct a comprehensive and objective evaluation set, we must initially choose target individuals with consistent appearances, abundant and easily accessi-ble visual records, and preferably well-known to the pub-lic, for better intuitive evaluation of the generated fidelity. Hence, we utilized LLM to generate a list of 50 celebrities with a balanced distribution of ethnicity and gender, span-ning diverse fields such as AI academia, entrepreneurship, athletics, acting, and music. The list of celebrities is as fol-lows: • 001 Sam Altman • 002 Jensen Huang • 003 Elon Musk • 004 Jun Lei • 005 Yun Ma • 006 Shou Zi Chew • 007 Feifei Li • 008 Yann LeCun • 009 Stephen Curry • 010 Ming Yao • 011 Kobe Bryant • 012 Luka Doncic • 013 LeBron James • 014 Lionel Messi • 015 Cristiano Ronaldo • 016 Long Ma • 017 Hanyu Yuzuru • 018 Eileen Gu • 019 Ziyi Zhang • 020 Yuyan Peng • 021 Andy Lau • 022 Yi Zhang • 023 Liying Zhao • 024 Jackie Chan • 025 Crystal Liu • 026 Benedict Cumberbatch • 027 Morgan Freeman • 028 Leonardo DiCaprio • 029 Robert Downey Jr. • 030 Will Smith • 031 Emma Watson • 032 Andrew Garfield • 033 Rowan Atkinson • 034 Anne Hathaway • 035 Scarlett Johansson • 036 Keira Knightley • 037 Halle Berry • 038 Satomi Ishihara • 039 Hiroshi Abe • 040 Jay Chou • 041 Rihanna • 042 Taylor Swift • 043 Eason Chan • 044 Billie Eilish • 045 JJ Lin • 046 Mika Nakashima • 047 Lana Del Rey • 048 Ed Sheeran • 049 Bruno Mars • 050 Beyonc´ e
+
+Visual References. For each celebrity, we elaborately col-lect four portrait images and one video from the website, ensuring that they are free of visual filters, with clear and unobstructed faces, and captured under bright and suffi-cient lighting conditions. The four portraits are chosen to exhibit significant angular differences and expression vari-ance, offering a range of prior perspectives. The video length is approximately 10 seconds, without shot cuts, typ-ically sourced from interview footage due to its clarity of facial features and stable camera set. 
+
+Prompts. To comprehensively evaluate the generative ca-pabilities across diverse scenarios, we devise a systematic process of prompt construction for the IPT2V and IEPT2V tasks. We start with the construction for the IPT2V task, where all seven portrait-video elements are expected to change. We instruct LLM to generate 50 prompts in the predefined format comprising seven elements, with 25 for males and 25 for females. In the instructions, we empha-sized the necessity for a wide variety of scenes and styles, such as indoor settings, landscapes, science fiction, fantasy, elegance, and grandeur. We also stress the need for an ap-propriate degree of change in characters’ expressions and movements. Subsequently, we randomly remove descrip-tions of hairstyle, clothing, or accessory from the prompts to generate 50 differential prompts for the IEPT2V task. These prompts can be randomly combined with sets of visual ref-erences to generate up to 750 evaluation cases for each task. In the evaluation of our paper, we sample 50 sets of IPT2V cases and 50 sets of IEPT2V cases to compute metrics and draw comparisons, resulting in Tab. 1 and Fig. 3. Note that when for the baselines, we transform the prompts into a for-mat suitable for their text encoders by simplifying or para-phrasing them. Here, to briefly showcase the format of the generated prompts, three examples are provided below: • Handheld shot, medium shot. The person has short, messy ash-blonde hair with bangs casually falling over his forehead. He is wearing a navy-and-white striped sailor shirt. His expression is filled with cu-riosity and excitement, eyes wide open. Slowly, he tilts his head back, following something in the sky with his gaze, until his face is almost pointing up-ward toward the heavens. Then, he gradually lowers his head and flashes an open, cheerful smile at the 14 camera. The character’s action takes place by the railing on a seaside promenade, with the sea breeze gently blowing through his hair. One hand shields his eyes from the sun while the other points to the sky. The video setting is a sunny coastal boulevard, with a backdrop of the deep blue ocean and white seagulls. The lighting is strong midday sunlight, cre-ating a fresh, free-spirited, and energetic summer at-mosphere. • Static shot, medium shot. The person has long, straight black hair tied neatly into a ponytail, adorned with an intricate golden crown. He wears a lavish red silk robe embroidered with golden dragon patterns. His expression is solemn and majestic, with sharp, piercing eyes that exude authority with-out effort. Slowly, he turns his head from the left side toward the front, his gaze softening from its ini-tial intensity into a compassionate gentleness. The character’s posture shows him seated regally on a high-backed chair, hands folded across his chest. As he moves his head, his shoulders shift slightly, ev-ery motion deliberate and steady. The video setting is the terrace of an ancient palace, with red pillars in the background and distant rolling green moun-tains. The lighting comes from bright natural day-light, bathing his dignified face and highlighting the gold embroidery on his robes, evoking a grand, ma-jestic, and historically rich ambiance. • Push-in shot, transitioning from medium to close-up. The person has a sleek black high ponytail. She wears a form-fitting navy-blue pilot uniform paired with a flight helmet, the visor pushed up onto her head. Her expression initially reflects post-mission relaxation, with a hint of fatigue in her eyes. Upon hearing instructions through her communicator, her gaze sharpens instantly. Slowly turning her head, she lifts the corner of her mouth into a confident smile, ready to embrace the next challenge. The character’s action depicts her seated inside the cockpit of a mech or combat aircraft. The video setting is a high-tech hangar, with other mechs undergoing maintenance in the background. The lighting consists of complex in-strument panel glows within the cockpit, combined with the bright operational lights of the hangar, cre-ating layered illumination full of tense anticipation for battle. 
+
+## D. Analysis of Multiple References 
+
+The core contribution and motivation of AnyID is the in-troduction of multiple visual references. To further analyze the benefits brought by multiple references, we carry out a comparison in Fig. 7, from which we can draw the follow-ing conclusions: (1) Multiple references can provide prior information on static facial features of the target person, in-cluding facial markers such as freckles and moles. Taking the particular example of ”Obama” in Fig. 7, for instance, he has a mole on one side of his nose. Only a single-angle reference lacks prior knowledge on this, making it com-pletely impossible for the model to generate high-fidelity videos. This is the ill-posedness we have been emphasiz-ing. By comparison, multiple references provide a holistic prior for the person, enabling the model to reconstruct the person with the highest possible fidelity. (2) Multiple ref-erences can provide prior information on dynamic features such as muscle movements and behavioral habits. As shown in the ”Downey Jr.” example in Fig. 7, when references in the same expression are provided, the dynamics of the gen-erated character will deviate. If we provide an additional reference for the expected expression, the results will im-prove significantly. In summary, multiple references can provide richer prior information, thereby significantly enhancing the fidelity of the model’s output. Based on this, we also recommend pro-viding references with a variety of expressions and angles when using our AnyID, rather than references with minimal variation. 
+
+## E. Detailed Ablation Study 
+
+Primary Reference&Differential Prompt Design. Our AnyID features the design of a primary-reference gener-ation and a differential prompt. The primary reference acts like a visual anchor, which provides element priors such as hairstyle and clothes. The differential prompt in-dicates the user-expected direction of modification, while the unmentioned aspects are expected to remain unchanged. Such design endows AnyID with the ability to follow the changes specified in the prompt and perfectly maintain the consistency of unmentioned elements. To prove this, we construct an ablating model of AnyID w/o primary refer-ence&differential prompt design and compare it with the full model in Fig. 8. As shown, without such a design, the model’s preservation of elements will be entirely con-trolled by the prompt, which is a weak constraint. As a result, the generations fail to preserve the hairstyle or the clothing from the reference. By comparison, the full model naturally anchors to the primary reference and succeeds in preserving the elements from it. 
+
+Reinforcement Learning. AnyID introduces a human-centric reinforcement learning (RL) strategy to achieve the best identity fidelity and prompt controllability. To evaluate its effect, we illustrate the generations of AnyID w/o rein-forcement learning (i.e., the model after supervised train-ing) and the full model in Fig. 9. As shown, the model without RL exhibits frequent flaws such as inconsistencies in details when preserving the elements or unsatisfactory 15 Inferior fidelity in a varied facial angle, lack of prior on facial markers (e.g., freckles, moles) 
+
+> Ultra-high fidelity across various facial angles, even preserving the facial markers
+> Inferior fidelity in a varied facial expression
+> Ultra-high fidelity across various facial motions
+
+P
+
+P
+
+Reference 
+
+P
+
+Reference 
+
+P
+
+Generated Video Generated Video Figure 7. Illustration of ablating the primary reference&differential prompt design. 
+
+facial fidelity when preserving the identity. By comparison, benefiting from the RL tuning based on human feedback, the full model stably demonstrates perfect identity fidelity, element consistency, and prompt controllability. 
+
+## F. Implementation of Preference Annotation 
+
+The preference annotation process in our paper consists of two tracks: identity fidelity and prompt controllability. In practice, we build a frontend interface with two modes for these two tracks. Fig. 10 shows the identity fidelity mode, where all the clips from the source ID-group are provided to ensure that annotators have comprehensive prior informa-tion about the character’s identity. The prompt is not pro-vided to avoid distractions. Annotators need to choose the preferred video with higher fidelity from the two generation options. By comparison, Fig. 11 shows the prompt con-trollability mode, where only the primary reference and the differential prompt are used. Annotators need to choose the preferred video that better changes according to the prompt while preserving consistency in aspects not specified by the prompt. 16 Preserve: 
+
+Identity 
+
+Hairstyle 
+
+Change: 
+
+Clothing 
+
+Background AnyID w/o Primary Reference & Differential Prompt 
+
+(full) 
+
+Preserve: 
+
+Identity 
+
+Hairstyle 
+
+Clothing 
+
+Change: 
+
+Background 
+
+Fail to preserve the hairstyle from the reference 
+
+Succeed in preserving the hairstyle from the reference 
+
+Fail to preserve anything besides identity 
+
+Succeed in preserving the hairstyle, clothes and accessories 
+
+(full) AnyID w/o Primary Reference & Differential Prompt 
+
+P
+
+PFigure 8. Illustration of ablating the primary reference&differential prompt design. Preserve: 
+
+Identity 
+
+Hairstyle 
+
+Clothing 
+
+Change: 
+
+Background 
+
+P
+
+AnyID w/o Reinforcement Learning 
+
+(full) AnyID w/o Reinforcement Learning 
+
+Preserve: 
+
+Identity 
+
+Hairstyle 
+
+Change: 
+
+Clothing 
+
+Background 
+
+Inconsistencies in the clothing details 
+
+P
+
+Perfect consistency in every detail 
+
+Unsatisfactory facial fidelity 
+
+Perfect identity fidelity 
+
+(full) 
+
+Figure 9. Illustration of ablating the reinforcement learning. 
+
+17 Figure 10. A preference annotation example of the identity fidelity track. 
+
+Figure 11. A preference annotation example of the prompt controllability track. 
+
+18 Figure 12. An example of the user study. 
+
+19 G. Implementation of User Study 
+
+To conduct the user study, we recruit volunteers and provide them with basic training based on the instructions below. We also build up a frontend interface shown in Fig. 12. The user study is based on the evaluation set of celebrities. In each matchup, only the primary reference of the celebrity and the prompt are provided since the faces of celebrities are already widely recognized. Participants need to select the winner in four dimensions, under the guidance of the instructions. 
+
+Instructions for Participants Thank you for participating in our study! 
+
+We appreciate your willingness to contribute to our research. Below, you will find detailed in-structions on how to complete the tasks involved in this study. Please read this information care-fully before beginning. 
+
+1. Purpose of the Study 
+
+The goal of this study is to evaluate different methods for generating identity-preserving por-trait videos given a visual reference of a celebrity and a prompt. Your feedback will help us evalu-ate which method produces videos with the best quality. Your participation is highly valuable to us! 
+
+2. Task Overview 
+
+You will be asked to compare two methods by evaluating their outputs in a series of one-on-one matchups. Each matchup will present re-sults generated by our proposed method and a random baseline method (both anonymous). You will be given the visual reference along with the prompt. Note that the prompt only specifies the required changes, while aspects not mentioned in the prompt should remain consistent with the ref-erence. Your task is to vote for your preferred option in each matchup based on the following criteria: • Identity Fidelity : Which method better pre-serves the dynamic identity of the celebrity (e.g., facial features, expressions, and overall appearance) across all frames and shots in the video? • Element Consistency : Which method better preserves the consistency of the unmentioned elements, such as hairstyle or clothing? (Note that this item is optional; some matchups will have it while others will not.) • Prompt Controllability : Which method more accurately changes the aspects specified in the given prompt (e.g., appearance, expres-sions, actions, and background) in the gener-ated video? • Visual Quality : Which method produces a video with higher visual quality, considering factors like sharpness, smoothness of motion, and absence of artifacts (e.g., blurriness or un-natural textures)? 
+
+3. How to Complete the Task 
+
+• You will complete 40 matchups in total. • For each matchup, you will see two outputs side by side. • To cast your vote, click on the button corre-sponding to your preferred option. • There are no right or wrong answers. Please choose the option that feels best to you. 
+
+4. Time Commitment 
+
+The study should take approximately 20-30 min-utes to complete. You can work at your own pace, but we recommend completing the task in one sit-ting to ensure consistency. 
+
+5. Voluntary Participation 
+
+Your participation in this study is entirely volun-tary . You are free to withdraw at any time with-out penalty or explanation. If you decide to with-draw, your responses will not be included in the analysis. 
+
+6. Privacy and Data Use 
+
+• Your responses will be anonymized and used solely for research purposes. • No personally identifiable information will be collected or stored. 
+
+7. Questions or Concerns 
+
+If you have any questions about the study or en-counter technical issues, please contact us. We are happy to assist you. 
+
+8. Consent 
+
+By proceeding with the study, you confirm that: • You have read and understood the instructions. 20 • You agree to participate voluntarily. • You understand that you can withdraw at any time without penalty. Thank you again for your time and effort. Let’s get started! 
+
+## H. Societal Impacts and Safeguards 
+
+The introduction of AnyID represents a significant leap forward in identity-preserving video generation, with far-reaching societal implications. By enabling ultra-fidelity synthesis of personalized characters from diverse and het-erogeneous identity references—ranging from static por-traits to dynamic video clips—AnyID empowers creators, educators, filmmakers, and developers to produce highly consistent, controllable, and expressive visual content with unprecedented ease. This capability lowers barri-ers to professional-grade video creation, fostering inclu-sivity in digital storytelling, virtual communication, gam-ing, and personalized education. Moreover, the fine-grained attribute-level control offered by our primary-referenced generation paradigm opens new avenues for creative expres-sion, adaptive avatars, and immersive user experiences in metaverse and AR/VR applications. Nevertheless, such powerful generative capabilities en-tail substantial societal risks that must be proactively ad-dressed. The potential for malicious use—such as generat-ing convincing deepfakes, non-consensual impersonations, or deceptive media—poses serious threats to individual pri-vacy, public trust, and information integrity. Additionally, the automation of high-quality video production may dis-rupt traditional creative workflows, potentially displacing roles in video editing, animation, and performance cap-ture, thereby necessitating workforce reskilling and ethical transitions in creative industries. To mitigate these con-cerns, AnyID incorporates robust safeguards inherited from the Wan foundation model suite, including built-in content moderation filters and output watermarking for provenance tracking. Besides, in alignment with responsible AI prin-ciples, we commit to full transparency: all code, models, and datasets will be publicly released under licenses that prohibit misuse and require attribution. By balancing in-novation with ethical stewardship, we aim to ensure that AnyID serves as a force for creative empowerment while safeguarding against societal harm. 21

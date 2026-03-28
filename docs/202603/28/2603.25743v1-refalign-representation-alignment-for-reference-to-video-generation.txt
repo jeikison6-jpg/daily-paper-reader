@@ -1,0 +1,711 @@
+Title: RefAlign: Representation Alignment for Reference-to-Video Generation
+
+URL Source: https://arxiv.org/pdf/2603.25743v1
+
+Published Time: Fri, 27 Mar 2026 01:30:21 GMT
+
+Number of Pages: 17
+
+Markdown Content:
+# RefAlign: Representation Alignment for Reference-to-Video Generation 
+
+Lei Wang 1,2*, ‡
+
+, Yuxin Song 2‡ Ge Wu 1, Haocheng Feng 2, Hang Zhou 2, Jingdong Wang 2
+
+Yaxing Wang 4†, Jian Yang 1,3 †
+
+> 1
+
+PCA Lab, VCIP, College of Computer Science, Nankai University 2 Baidu Inc.  
+
+> 3
+
+PCA Lab, School of Intelligence Science and Technology, Nanjing University  
+
+> 4
+
+College of Artificial Intelligence, Jilin University 
+
+{scitop1998}@gmail.com , {songyuxinbb}@outlook.com , {yaxing,csjyang}@nankai.edu.cn 
+
+Code: https://github.com/gudaochangsheng/RefAlign References Video 
+
+> Temporal
+
+Figure 1: Reference-to-video generation using our proposed method, RefAlign. 
+
+Abstract 
+
+Reference-to-video (R2V) generation is a controllable video synthesis paradigm that constrains the generation process using both text prompts and reference im-ages, enabling applications such as personalized advertising and virtual try-on. In practice, existing R2V methods typically introduce additional high-level se-mantic or cross-modal features alongside the VAE latent representation of the reference image and jointly feed them into the diffusion Transformer (DiT). These auxiliary representations provide semantic guidance and act as implicit alignment signals, which can partially alleviate pixel-level information leakage in the VAE latent space. However, they may still struggle to address copy–paste artifacts and multi-subject confusion caused by modality mismatch across heterogeneous encoder features. In this paper, we propose RefAlign, a representation alignment framework that explicitly aligns DiT reference-branch features to the semantic space of a visual foundation model (VFM). The core of RefAlign is a reference   
+
+> †Corresponding authors. *Interns in Baidu Inc. ‡Equal contribution Preprint.
+> arXiv:2603.25743v1 [cs.CV] 26 Mar 2026
+
+alignment loss that pulls the reference features and VFM features of the same sub-ject closer to improve identity consistency, while pushing apart the corresponding features of different subjects to enhance semantic discriminability. This simple yet effective strategy is applied only during training, incurring no inference-time overhead, and achieves a better balance between text controllability and reference fidelity. Extensive experiments on the OpenS2V-Eval benchmark demonstrate that RefAlign outperforms current state-of-the-art methods in TotalScore, validating the effectiveness of explicit reference alignment for R2V tasks. 
+
+1 Introduction 
+
+Diffusion models have driven rapid advances in video generation. Representative commercial systems (e.g., Sora) [ 1, 2 , 3] and open-source models [ 4, 5 , 6] now achieve high-fidelity text-to-video (T2V) and image-to-video (I2V) synthesis. However, T2V relies solely on the prompt and offers limited fine-grained control (e.g., identity and appearance), while I2V is more controllable but restricts diversity due to the reference image. To bridge this gap, reference-to-video (R2V) [ 7, 8 , 9] has attracted increasing attention. Conditioned on the prompt and the reference image, it aims to generate instruction-following videos while preserving subject identity and appearance, with applications in personalized advertising [ 10 , 11 ] and virtual try-on [ 12 , 13 ]. A key challenge, however, is effective multi-modal conditioning during video generation. To alleviate the aforementioned challenges, prior work [ 9 , 14 , 7] typically adopts a “two-stream reference” paradigm: it leverages a 3D VAE to extract reference features that provide low-level details; meanwhile, it also introduces an additional encoder to encode the reference images and supply higher-level semantic cues, which can partially mitigate the detail leakage caused by the former. However, because both reference images and textual prompts are often processed by separate, independent encoders, these methods may struggle to model complex cross-modal interactions—particularly for prompts that involve spatial relations and temporal reasoning. Furthermore, some methods [ 15 , 16 , 17 ] leverage cross-modal representations from multimodal large language models (MLLM) to enhance deeper semantic interactions among multimodal inputs. However, this often incurs substantial inference overhead (e.g., introducing models such as Qwen2/2.5-VL-7B [18, 19]). More importantly, these approaches still fundamentally rely on feeding additional semantic features together with cross-modal features into the diffusion transformer, attempting to mitigate modality mismatch via implicit alignment. Here, modality mismatch refers to the discrepancy between DiT’s internal reference representations derived from VAE latents and the external semantic reference representations injected for conditioning, making implicit alignment less effective. Lacking explicit constraints on the alignment mechanism itself, the marginal benefit of the extra features may be limited. As a result, existing models can still suffer from copy–paste artifacts ( i.e. , overly replicating the reference image in generated videos, Fig. 2(a)(top)) and multi-subject confusion ( i.e. ,mutual interference and blending of different subjects’ appearances, Fig. 2(a)(bottom)). In this paper, we propose a simple yet effective strategy called RefAlign to mitigate the misalignment among multimodal features. Fig. 2(b) visualizes the latent distributions of reference images produced by different encoders. For the VAE, the features input to DiT are scattered and poorly structured, with strong cross-reference entanglement. As a result, discriminative boundaries are hard to establish. In contrast, features extracted by DINOv3 [ 22 ] demonstrate stronger separability: distributions from different reference images are more distinct, while features belonging to the same reference remain compact and consistent. Motivated by this observation, we design a vision foundation model (VFM)–guided optimization strategy for the VAE-based reference representation in DiT. We find that VFM guidance can compensate for the limited semantic expressiveness of DiT latent features, thereby alleviating copy—paste artifacts and multi-subject confusion. Fig. 2(c) provides qualitative evidence supporting this claim. RefAlign’s main contribution is the proposed reference alignment (RA) loss, which aligns the DiT features of reference images into the feature space of a pretrained VFM during training. Although di-rectly incorporating VFM features as a complement to VAE features yields performance gains—likely because additional semantic information facilitates implicit multimodal alignment—this strategy introduces an extra encoder and increases inference cost. In contrast, we find that a carefully designed 2Reference                 
+
+> The video depicts an office setting where a woman is …
+> .. .He is wearing a straw hat ,gloves ,…
+> Generated Video (a) Reference1 Reference2
+> push
+> Alignment loss
+> Reference -aligned feature
+> pull
+> pull
+> DINOv3
+> feature
+> DiT
+> feature (b) …The person on the left, wearing a white shirt, is holding a smartphone …
+> w/o RefAlign (left) RefAlign (right)
+> (c)
+
+Figure 2: Motivation of the proposed RefAlign method. (a) The R2V task suffers from copy–paste artifacts (top) and multi-subject confusion (bottom), both generated by Kling [ 20 ]. (b) t-SNE [ 21 ]visualization of reference feature distributions. DiT features (conditioned on VAE-encoded inputs) are highly entangled and overlap substantially across references, whereas DINOv3 features are more separable. RefAlign aligns DiT features to the DINOv3 feature space via an alignment loss, improving reference separability by pulling same-reference features closer and pushing different-reference features farther apart. (c) Visual comparison with and without RefAlign. RA loss plays a key role in achieving effective alignment without additional inference overhead. RA loss is designed to regularize the feature distribution while preserving the expressive capacity of DiT reference features. Moreover, to prevent overly strong similarity constraints from causing representation collapse and exacerbating multi-subject confusion, our RA loss further incorporates a negative alignment mechanism. Finally, we systematically investigate the impact of different VFMs on alignment effectiveness. To evaluate generation performance on the R2V task, we apply RA loss to one of the most representa-tive video generation backbones, Wan2.1 [ 4 ]. We conduct a comprehensive evaluation of RefAlign on the OpenS2V-Eval [ 23 ] benchmark, where it achieves state-of-the-art performance in TotalScore. Qualitative results further demonstrate clear improvements in subject fidelity and consistency. The main contributions of this paper are summarized as follows. • We propose RefAlign, the first R2V framework that regularizes reference image features by leveraging a vision foundation model. • We introduce the RA loss, which effectively alleviates both copy–paste artifacts and multi-subject confusion in R2V without introducing additional inference overhead. • On the OpenS2V-Eval benchmark, RefAlign outperforms prior R2V methods, and extensive ablation studies further validate the effectiveness and necessity of the proposed design. We will make the model and code publicly available to support reproducibility and further research. 
+
+2 Related Work 
+
+2.1 Reference-to-Video Generation 
+
+Reference-to-video (R2V) aims to synthesize high-quality videos conditioned on text and reference images. R2V has evolved from human-centric identity-preserving generation [ 24 , 25 , 26 , 27 ] to more general objects and scenes [ 9, 14 , 16 , 28 , 8], enabling more flexible control. By reference-conditioning strategy, R2V methods fall into three categories: multi-encoder reference conditioning, reference disentanglement, and MLLM-based cross-modal guidance. The first category introduces a semantic branch independent of the VAE encoder to impose global semantic constraints on the reference [ 9, 14 , 7, 15 , 16 ], mitigating pixel-level leakage and copy–paste artifacts. For example, Phantom [ 9] injects fine-grained appearance cues via VAE features while anchoring subject semantics with CLIP [29] features. 3The second category either decouples reference conditioning from video representations [28, 30] or explicitly aligns each reference subject with its corresponding text [ 31 , 8], reducing multi-subject interference and identity confusion. For instance, Kaleido [ 28 ] adopts rotational positional encoding to distinguish image conditions from video tokens, whereas MAGREF [ 31 ] and ConceptMaster [ 8]bind subjects to their textual descriptions via masking and a decoupled attention module, respectively. The third category leverages MLLMs for deeper vision–text interaction to provide cross-modal relational and semantic guidance [ 15 , 16 , 32 , 33 , 17 , 34 ]. For example, BindWeave [ 16 ] uses Qwen2.5-VL [ 19 ] to facilitate multi-reference interaction, while PolyVivid [ 32 ] employs an internal LLaVA [ 35 ] to embed visual identity into the text space for precise semantic alignment. In addition, VACE [ 36 ] is a unified model that supports both R2V and video editing via a context adapter; however, due to the difficulty of multi-task optimization, it may still struggle to fully preserve identity consistency in reference-guided generation. Unlike the above methods, we use external visual encoder features as semantic anchors and apply explicit feature alignment to pull same-subject features closer and push different-subject features apart, improving identity consistency and semantic discriminability while reducing multi-subject confusion. 
+
+2.2 Alignment-based Method 
+
+Recently, REPA [ 37 ] accelerates training convergence by aligning DiT mid-block features to those of a Vision Foundation Model (VFM). Building on this, REPA-E [38] enables end-to-end VAE tuning, while DDT [ 39 ] improves the alignment paradigm by decoupling the encoder and decoder. In a parallel line of work, REG [ 40 ] and ReDi [ 41 ] jointly model image latents and semantic signals within the diffusion process. Beyond aligning the denoiser, VA-VAE [ 42 ] extends alignment to the VAE tokenizer; ARRA [ 43 ] transfers the alignment principle for autoregressive text-to-image generation; and VideoREPA [ 44 ] generalizes alignment to video generation to enhance physical consistency. In contrast, RefAlign aligns reference-conditioning features to VFM features, rather than aligning the generation target to VFM, which can strengthening conditional semantics and improving fine-tuning stability. This reference-centric alignment approach may also inspire video editing and may promote unified modeling of understanding and generation tasks. 
+
+3 Method 
+
+We first briefly introduce text-to-video generation and representation alignment (REPA) [ 37 ] in Sec. 3.1, which form the foundation of our work. Inspired by REPA, we present the overall RefAlign pipeline in Sec. 3.2 and its core design, the reference alignment (RA) loss, in Sec. 3.3. We further discuss the choice of target encoders for alignment in Sec. 3.4. Finally, we summarize the key differences between RefAlign and REPA in Sec. 3.5. 
+
+3.1 Preliminary Text-to-Video Generation. Text-to-video (T2V) synthesis [ 4] typically performs generative denois-ing modeling in a low-dimensional latent space, thereby significantly reducing computational cost. Its training objective follows the Rectified Flow (RF) [ 45 ] paradigm. RF defines a straight-line trajectory in this space by linearly interpolating between the noise and data latents. Therefore, the training loss function can be formulated as: 
+
+LRF = Ez,ϵ,c,t 
+
+h
+
+∥εΘ (zt, c, t ) − (ϵ − z0)∥22
+
+i
+
+, (1) where ϵ ∼ N (0 , I ) is a standard Gaussian noise sample, z0 denotes the latent variable of the clean video data, zt is the noisy latent variable at timestep t, c is the condition (e.g., prompt) and εΘ (zt, c, t )
+
+is the output predicted by the network parameterized by Θ.
+
+Representation Alignment. Representation Alignment (REPA) [ 37 ] is a regularization method designed to accelerate the convergence of diffusion transformers (DiT). It projects DiT hidden states through an MLP and aligns them with clean-image representations from a frozen pretrained vision encoder (e.g., DINOv2 [46]). The REPA loss can be formulated as: 
+
+LREPA = −E
+
+"
+
+1
+
+N
+
+> N
+
+X
+
+> n=1
+
+cos 
+
+
+
+f ∗ 
+
+> n
+
+, ˆhtn
+
+#
+
+, (2) 4A man is playing with             
+
+> a beach ball by the sea .
+> 3D VAE
+> Noise Latents
+> K×DiT Blocks
+> ℒ!"
+> QKV
+> Self -Attention
+> Self -Attention
+> Video Image
+> Vision Foundation
+> Models
+> References Prompt
+> T5
+> (L-K)×DiT Blocks
+> ℒ!#
+> Noise video
+> features
+> Image feature
+> (aligned )
+> Trainable Frozen Discarded durin ginferenc e
+> Training
+
+(a) References                                                                                    
+
+> DiT
+> Block
+> VFM
+> Encoder
+> h!
+> !…h"
+> !h!
+> #…h"
+> #
+> h!
+> !…h"
+> !h!
+> #…h"
+> #
+> h!
+> !…h𝑵
+> !h!
+> 𝟐 …h𝑵
+> 𝟐
+> f!
+> !#h!
+> !…f!
+> !#h𝑵
+> !f!
+> !#h!
+> 𝟐 …f!
+> !#h𝑵
+> 𝟐
+> ………………
+> f$
+> !#h!
+> !…f$
+> !#h$
+> !f$
+> !#h!
+> %…f$
+> !#h$
+> %
+> f!
+> %#h!
+> !…f!
+> %#h$
+> !f!
+> %#h!
+> %…f!
+> %#h$
+> %
+> ………………
+> f$
+> %#h!
+> !…f$
+> %#h$
+> !f$
+> %#h!
+> %…f$
+> %#h𝑵
+> 𝟐
+> f!
+> !
+> …
+> f$
+> !
+> f!
+> %
+> …
+> f$
+> %
+> Subject1 Subject2
+> MLP
+> Subject1 Subject2
+> pull
+> Subject1
+> Subject2
+> Reference Alignment Loss VFM  feature
+> DiT feature
+> push
+
+(b) 
+
+Figure 3: (a) Overview of RefAlign. During training, we apply the proposed reference alignment loss 
+
+LRA to intermediate features in selected DiT blocks and align them to target features extracted by a frozen vision foundation model (VFM). During inference, we discard the alignment process and the VFM. (b) Illustration of the reference alignment (RA) loss. RA loss aligns DiT reference features to their corresponding VFM teacher features by pulling matched (same-subject) pairs together and pushing mismatched (cross-subject) pairs apart, improving reference-consistent generation. where cos( ·, ·) denotes cosine similarity, n is the patch index, t denotes the timestep, f ∗ ∈ RN ×D
+
+is the vision-encoder features with N patch tokens of dimension D, and ˆht = Ψ( ht) ∈ RN ×D is obtained by projecting the DiT hidden states ht through an MLP projector Ψ( ·).
+
+3.2 Pipeline 
+
+The overall framework of RefAlign is illustrated in Fig. 3(a). Our model comprises a frozen T5 encoder [ 47 ] εT5 , a frozen Wan-VAE [ 4] εVAE , and a trainable diffusion transformer (DiT) [ 4]parameterized by Θ. Given a text prompt ctext , reference images I = {Im}Mm=1 , a target video x, and the noisy latent zt at timestep t, we encode the prompt, references, and target video as: 
+
+ˆctext = εT5 (ctext ) , ˆI = {εVAE (Im)}Mm=1 , z0 = εVAE (x) . (3) We employ a DiT consisting of L transformer blocks. Following REPA [ 37 ], we apply the alignment only to the intermediate reference image-token features extracted from the first K blocks (Sec. 3.3). Importantly, all L blocks are jointly optimized under the RF objective. The DiT takes (zt, ˆctext , ˆI, t )
+
+as input and outputs εΘ(zt, ˆctext , ˆI, t ). The RF objective in Eq. (1) can be written as: 
+
+LRF = Ez0,ϵ,t 
+
+
+
+εΘ
+
+
+
+zt, ˆctext , ˆI, t 
+
+
+
+− (ϵ − z0) 22
+
+
+
+. (4) 
+
+Inference. At inference, we remove the training-time VFM and MLP (Fig. 3(a)) to avoid extra overhead. Following Phantom [ 9] and Video Alchemist [ 7], we use an RF sampler with classifier-free guidance (CFG) [48]. At timestep t, the guided prediction is: 
+
+ˆεΘ
+
+
+
+zt, ˆctext , ˆI, t 
+
+
+
+= εΘ (zt, ⊘, ⊘, t ) + μ1
+
+
+
+εΘ
+
+
+
+zt, ⊘, ˆI, t 
+
+
+
+− εΘ (zt, ⊘, ⊘, t )
+
+
+
++ μ2
+
+
+
+εΘ
+
+
+
+zt, ˆctext , ˆI, t 
+
+
+
+− εΘ
+
+
+
+zt, ⊘, ˆI, t 
+
+  
+
+.
+
+(5) where ⊘ denotes dropping the corresponding condition (i.e., a null text embedding or a null reference embedding). μ1 and μ2 balance the reference-image and text conditions. 
+
+3.3 Reference Alignment Loss 
+
+By comparing the feature distributions of reference images encoded by DiT and DINOv3, we observe that DiT features are strongly coupled across references, whereas DINOv3 features are more separable. Motivated by this observation, we introduce a reference alignment (RA) loss that aligns DiT reference representations to the vision foundation model (VFM) feature space. As shown in Fig. 3(a), we align the reference image-token features produced inside the self-attention of the first K DiT blocks to features extracted by a frozen VFM εVFM (·). Specifically, for each training sample we obtain the VFM features from I,
+
+f = {εVFM (Im)}Mm=1 , ∈ RM ×N ×D . (6) 5Let h(l) = εΘ(l) (I) be the reference image-token features from the self-attention module of the l-th DiT block ( l ≤ K), and we project them with an MLP Ψproj (·) to match the VFM feature dimension: 
+
+ˆh(l) = Ψ proj 
+
+
+
+h(l)
+
+, ∈ RM ×N ×D . (7) As illustrated in Fig. 3(b), we define the RA loss with a positive (diagonal) term and a negative (off-diagonal) term. We pull DiT reference tokens closer to the corresponding VFM tokens for the same subject: 
+
+L(l)pos = 1
+
+M
+
+> M
+
+X
+
+> m=1
+
+1
+
+N
+
+> N
+
+X
+
+> n=1
+
+
+
+1 − cos 
+
+ˆh(l),m n , f mn
+
+ 
+
+. (8) To enforce subject-level separation, we push features from subject m away from features of other subjects m′̸ = m using a margin δ:
+
+L(l)neg = 1
+
+M (M − 1) 
+
+> M
+
+X
+
+> m=1
+> M
+
+X 
+
+> m′=1
+> m′̸=m
+
+1
+
+N 2
+
+> N
+
+X
+
+> n=1
+> N
+
+X
+
+> n′=1
+
+h
+
+δ −
+
+
+
+1 − cos 
+
+ˆh(l),m n , f m′
+
+> n′
+
+i 
+
+> +
+
+, (9) where [x]+ = max( x, 0) . Then, we average over the first K blocks and combine the two terms: 
+
+LRA = 1
+
+K
+
+> K
+
+X
+
+> l=1
+
+
+
+L(l)pos + λ L(l)neg 
+
+
+
+, (10) where λ controls the weight of the negative term. Special case. When M = 1 (i.e., only one reference), the inter-subject negative term is undefined and we set L(l)neg = 0 , so LRA reduces to the positive alignment loss. Finally, combining Eq. (4) and Eq. (10) , we optimize our model with the following overall objective: 
+
+L = LRF + η LRA , (11) where η is a scalar hyperparameter balancing RA and RF losses. 
+
+3.4 Alignment Using Different Encoders 
+
+In RefAlign, EVFM aligns the intermediate features of DiT’s reference branch to establish a stable subject anchor. Therefore, the representational characteristics of EVFM strongly influence the behavior of the alignment constraint. Below, we discuss the differences induced by three types of encoders. 
+
+DINOv3. DINOv3 provides self-supervised patch representations with strong instance-level dis-criminability [ 22 , 37 ]. When used as the alignment target, it encourages the reference branch to preserve identity-relevant cues while being less sensitive to appearance variations such as background, illumination, and pose. Its limitation is the lack of language supervision, resulting in relatively weaker high-level semantic constraints. Therefore, using EDINOv3 VFM steers RefAlign to emphasize intra-subject representation consistency and inter-subject separability, helping mitigate the effects of appearance variations and cross-subject interference on the reference-branch representations. 
+
+SigLIP2. SigLIP2 is trained using contrastive learning, which encourages patch representations to be consistent with global semantic separability [ 49 ]. As a result, local cues are often consolidated into more stable category- or attribute-level features. However, when the subject and background are highly co-occurring, this global discriminative bias can also encode background co-occurrence patterns as informative signals. Therefore, when using ESigLIP2 VFM as the alignment target, RefAlign tends to emphasize consistency along semantic-attribute dimensions: attribute cues that persist in the reference images and align with the prompt semantics are more likely to be amplified in the reference-branch representations. 
+
+Qwen2.5-VL. Qwen2.5-VL vision tokens are strongly coupled with textual semantics through multimodal pre-training, making them well-suited for providing cross-modal semantic supervi-sion [ 19 ]. When used as the alignment target, the reference branch is more likely to be pulled toward a prompt-consistent semantic direction (in contrast to SigLIP2, which tends to emphasize category/attribute-level semantics). A limitation is that multimodal fusion and sequence structuring can weaken the stability of local spatial correspondences, and the model is heavier (7B), incurring 6Table 1: Quantitative comparison of RefAlign and other methods on zero-shot OpenS2V-Eval results. 
+
+↑ denotes that higher is better.                                                                                                                                         
+
+> Method TotalScore ↑Aesthetics ↑MotionSmoothness ↑MotionAmplitude ↑FaceSim ↑GmeScore ↑NexusScore ↑NaturalScore ↑
+> Closed-source
+> Vidu2.0 [2] 51.95% 41.48% 90.45% 13.52% 35.11% 67.57% 43.37% 65.88% Pika2.1 [50] 51.88% 46.88% 87.06% 24.71% 30.38% 69.19% 45.40% 63.32% Kling1.6 [20] 56.23% 44.59% 86.93% 41.60% 40.10% 66.20% 45.89% 74.59% Saber-14B [30] 57.91% 42.42% 96.12% 21.12% 49.89% 67.50% 47.22% 72.55%
+> Open-source
+> VACE-1.3B [36] 49.89% 48.24% 97.20% 18.83% 20.57% 71.26% 37.91% 65.46% VACE-P1.3B [36] 48.98% 47.34% 96.80% 12.03% 16.59% 71.38% 40.19% 64.31% Phantom-1.3B [9] 54.89% 46.67% 93.30% 14.29% 48.56% 69.43% 42.48% 62.50%
+> RefAlign-1.3B 56.30 %42.96% 94.74% 20.74 %53.06 %66.85% 43.97 %66.25 %VACE-14B [36] 57.55% 47.21% 94.97% 15.02% 55.09% 67.27% 44.08% 67.04% SkyReels-A2-P14B [14] 52.25% 39.41% 87.93% 25.60% 45.95% 64.54% 43.75% 60.32% Phantom-14B [9] 56.77% 46.39% 96.31% 33.42% 51.46% 70.65% 37.43% 69.35% MAGREF-480P [31] 52.51% 45.02% 93.17% 21.81% 30.83% 70.47% 43.04% 66.90% VINO [34] 57.85% 45.92% 94.73% 12.30% 52.00% 69.69% 42.67% 71.99% Kaleido [28] 56.59% 46.15% 98.11% 12.67% 34.56% 67.51% 41.70% 82.18% BindWeave [16] 57.61% 45.55% 95.90% 13.91% 53.71% 67.79% 46.84% 66.85%
+> RefAlign-14B 60.42 %46.84% 97.61% 22.48% 55.23 %68.32% 48.52 %73.63%
+
+higher training cost and VRAM pressure. Therefore, when using EQwen2.5-VL VFM as the alignment tar-get, RefAlign places more emphasis on contextualized compositional semantics, encouraging the reference-branch representation to organize reference cues into concept-level features aligned with the prompt semantics. 
+
+Overall, RefAlign tends to benefit more from supervision that is spatially consistent, identity-sensitive, and robust to appearance variations . DINOv3 may align better with this form of supervision; by contrast, SigLIP2 tends to emphasize semantic discrimination and Qwen2.5-VL leans toward multimodal semantic fusion, making their alignment signals more likely to deviate from pure “subject anchoring”. 
+
+3.5 Relationship to REPA DiT Block s VFM Encoder        
+
+> Alignment
+> noise image feature clean image feature
+> frozen scratch
+> Aligned tokens
+> DiT Block s
+
+(a) REPA Training VFM Encoder DiT Block s         
+
+> noise video feature clean image feature
+> fine -tune frozen
+> Aligned tokens
+> DiT Block s
+> Alignment
+
+(b) RefAlign Training 
+
+Figure 4: Training comparison between REPA and RefAlign. (a) REPA: Trained from scratch, aligning noisy generation targets with clean VFM features to accelerate DiT convergence. (b) RefAlign: Fine-tuned from Wan2.1 [ 4 ] initialization, aligning clean reference-branch image features with clean VFM features to optimize reference representations and improve reference controllability. Our RefAlign and REPA both leverage representations from VFM to assist DiT training, but they differ fundamentally in motivation, objective, and mechanism (as shown in Fig. 4). 1) Different motivations : REPA uses VFM to regularize DiT’s target representations, easing semantic learning from noise. However, RefAlign regularizes the reference condition with VFM to mitigate VAE-induced pixel-level leakage and copy–paste artifacts, improving reference controllability. 2) Different objectives : REPA targets training from scratch , using semantic regularization to speed convergence. By contrast, RefAlign targets fine-tuning pretrained video generators (e.g., Wan2.1 [ 4 ]), balancing text and reference conditions while largely preserving generative quality. 3) Different task suitability : In multi-reference settings, REPA’s one-to-one alignment can be overly hard, potentially collapsing dif-ferent reference representations toward an average and thus reducing discriminability and increasing subject confusion (see Tab. 2 and Fig. 6). RefAlign instead enforces inter-reference separability via cross-subject discrimination (e.g., Lneg ), making it well suited to multi-reference-to-video generation. 
+
+4) Different alignment representations : REPA pulls noisy representations toward VFM, making it more suitable for training from scratch. In contrast, RefAlign aligns the clean DiT reference-image representations to VFM, reducing interference with the generative backbone for stable fine-tuning. 74 Experiment 
+
+4.1 Experiment Setting Datasets and Evaluation. RefAlign is fine-tuned on a high-quality subset (360K sam-ples) curated from OpenS2V-5M [ 23 ] and Phantom-Data [ 51 ]. The subset consists of im-age–text–video triplets, with a regular-pair to cross-pair ratio of 6:4. To validate effective-ness, we generate 180 videos on the OpenS2V-Eval [ 23 ] benchmark. We report Aesthetics (visual quality), MotionSmoothness (motion continuity), MotionAmplitude (motion magnitude), FaceSim (face fidelity), NexusScore (subject consistency), NaturalScore (naturalness), and Gme Score (video–text alignment). 
+
+Implementation Details. RefAlign is fine-tuned on the Wan2.1 [ 4] T2V backbone. The MLP for 
+
+LRA has two linear layers with SiLU, and its parameters are not shared across DiT blocks. The model is trained for 3000 iterations with AdamW [ 52 ] ( β1 = 0 .9, β2 = 0 .999 , weight decay = 0 .01 ), a learning rate of 5 e-5, and a global batch size of 128. To mitigate copy–paste artifacts, we apply data augmentation to the reference images in regular pairs (e.g., random rotation, scaling, horizontal flip, affine transformations (including shear), Gaussian blur, and color jitter). We set λ and η in Eqs. (10) and (11) to 1.0. During inference, we use a 50-step Euler sampler, with μ1 and μ2 in Eq. (5) set to 5.0 and 7.5, respectively. 
+
+Baselines. We choose closed-source models (e.g., Vidu [ 2], Pika [ 50 ], Kling [ 20 ], and Saber [ 30 ]) and 
+
+open-source methods (e.g., VACE [ 36 ], SkyReels-A2 [ 14 ], Phantom [ 9], MAGREF [ 31 ], VINO [ 34 ], Kaleido [28], and BindWeave [16]) as baselines for comparison with RefAlign. a man playing with his dog on the beach.    
+
+> Kling1.6 Phantom VINO Ours
+> Kling1.6 Phantom VINO Ours
+> …They appear to be engaged in a relaxed conversation, with the person in
+> the plaid shirt leaning forward and the other sitting back, holding a stick ...
+> Kling1.6 Phantom VINO Ours
+> The video opens with a person pedaling smoothly on a bicycle along a quiet
+> street…
+> Kling1.6 Phantom VINO Ours
+> The video features a man standing at an easel, focused intently as his brush
+> dances across the canvas… He wears a paint -splattered apron ,.. .
+
+Figure 5: Qualitative results. We compare RefAlign with three representative methods, namely Kling1.6 [20], Phantom [9], and VINO [34]. 
+
+4.2 Quantitative Results 
+
+Tab. 1 reports the R2V generation performance of RefAlign, open-source baselines, and closed-source baselines on the OpenS2V-Eval benchmark. For the 1.3B model, RefAlign achieves the state-of-the-art (SOTA) TotalScore, indicating a better overall trade-off across evaluation metrics than competing methods. Specifically, RefAlign obtains the best results on NexusScore and FaceSim, demonstrating its clear advantage in subject consistency and fidelity. Meanwhile, RefAlign also delivers competitive performance on NaturalScore. For the 14B model, RefAlign likewise achieves the SOTA TotalScore, further validating its effectiveness across different model scales. To the best of our knowledge, RefAlign is the first model to achieve a TotalScore of 60.42% among existing publicly reported results. 8Table 2: Ablation study on the impact of the RA loss design in RefAlign on the OpenS2V-Eval. Config D adopts a dual-encoder input, feeding both VAE and DINOv3 features into DiT simultaneously. Configuration TotalScore ↑ Aesthetics ↑ MotionSmoothness ↑ MotionAmplitude ↑ FaceSim ↑ GmeScore ↑ NexusScore ↑ NaturalScore ↑                                    
+
+> A: LRA 55.73% 41.53% 90.00% 29.53% 53.15% 67.54% 46.23% 62.96% B: LRA (w/o Lneg )51.75% 41.12% 91.80% 17.67% 48.67% 61.31% 46.61% 53.75% C: w/o LRA 49.93% 36.46% 88.97% 28.62% 68.45% 58.83% 38.63% 40.46% D: VAE + DINOv3 52.15% 37.14% 87.98% 39.26% 35.11% 67.58% 45.78% 66.06%
+
+4.3 Qualitative Results 
+
+Fig. 5 presents qualitative comparisons between RefAlign and existing SOTA R2V methods. Overall, RefAlign achieves a better balance between preserving the appearance consistency of the reference subject and following the text prompt, producing videos with more stable temporal coherence and smoothness. In contrast, Kling1.6 shows noticeable copy–paste artifacts in some examples (top-left), and the subject fidelity may degrade in certain scenarios (bottom-left); Phantom exhibits similar issues. In addition, both methods appear to underutilize the background reference image in some cases, leading to reduced background consistency (bottom-left). The strongest open-source baseline, VINO, still shows erroneous copying of clothing textures in some results (top-right), and its instruction following becomes weaker under some prompts (bottom-right). 
+
+4.4 Ablation Study 
+
+To validate the effectiveness of the RA loss, we conduct a systematic ablation study from three aspects: loss design, alignment depth, and the alignment encoder. Notably, all experiments are conducted under a unified setting of 1800 training iterations to ensure a fair comparison. The baseline configuration (w/o LRA ) only encodes the reference image with the VAE and feeds it into the DiT, without introducing the RA loss. The video features two individuals standing side by side in front of a car, with a building and some greenery in    
+
+> the background. The person on the left is wearing a light blue button -up shirt and is holding a car key fob in their
+> right hand, raised slightly above shoulder level . The individual on the right is dressed in a light -colored, possibly
+> beige, button -up shirt with a subtle pattern. Both individuals are facing the camera, and their posture suggests
+> they are posing for the photo. Throughout the video, there are no significant changes in their positions,
+> expressions, or the environment around them. The lighting remains consistent, indicating that the video was
+> likely taken in a single continuous shot without any noticeable camera movement or action progression.
+> AB
+> CD
+
+Figure 6: Qualitative Ablation Study. RA loss (A) improves reference fidelity and instruction following. Removing the negative loss (B) leads to multi-reference confusion; removing RA loss (C) causes copy–paste artifacts; using DINOv3 features as input (D) reduces subject fidelity. 
+
+Effectiveness of RA loss. 
+
+To validate the design of the proposed RA loss, we conduct an ablation study with different config-urations. As shown in Tab. 2, configuration A achieves the best TotalScore (55.73%), indicating a favorable trade-off. Configuration B lowers TotalScore mainly due to drops in FaceSim and Natu-ralScore, showing Lneg is important for suppressing incorrect alignments and improving naturalness. Without RA loss (configuration C), TotalScore drops sharply (55.73% →49.93%) while FaceSim increases markedly, indicating RA loss mitigates copy–paste artifacts. Configuration D improves over C (52.15% vs. 49.93%), but still trails A, suggesting direct alignment to DINOv3 is more effective than using DINOv3 as an extra input, likely due to reduced modality mismatch and more stable fine-tuning. The qualitative comparisons in Fig. 6 visually support the above analysis. Configuration B shows clear confusion in gender-related attributes; configuration C retains high facial fidelity but fails to follow “holding a car key”; configuration D better follows the action instruction, yet facial fidelity drops and slight identity confusion emerges. Overall, configuration A offers a more stable trade-off between instruction following and identity consistency. 
+
+Effectiveness of alignment depth. 
+
+To study the effect of alignment depth for the RA loss, we treat w/o LRA as depth = 0 and compare different depths. As shown in Fig. 7 (a), TotalScore follows an “increase-then-decrease” trend and 90 1 7 9 11 13 15 30 
+
+> Depth
+> 50
+> 51
+> 52
+> 53
+> 54
+> 55
+> TotalScore (%)
+
+(a) 0 1 7 9 11 13 15 30  
+
+> Depth
+> 10
+> 20
+> 30
+> 40
+> 50
+> 60
+> 70
+> FaceSim (%)
+
+(b) 0 1 7 9 11 13 15 30  
+
+> Depth
+> 40
+> 50
+> 60
+> 70
+> 80
+> NaturalScore (%)
+
+(c) 
+
+Figure 7: Effect of alignment depth on three key metrics. Subfigures (a), (b), and (c) illustrate how alignment depth affects TotalScore, FaceSim, and NaturalScore, respectively. We treat w/o LRA as depth 0. Table 3: Ablation study on the impact of the alignment encoder in RefAlign on the OpenS2V-Eval. Encoder TotalScore ↑ Aesthetics ↑ MotionSmoothness ↑ MotionAmplitude ↑ FaceSim ↑ GmeScore ↑ NexusScore ↑ NaturalScore ↑                                                         
+
+> w/o LRA 49.93% 36.46% 88.97% 28.62% 68.45% 58.83% 38.63% 40.46%
+> Encoder size ablation
+> DINOv3-B 55.40% 38.83% 93.04% 22.49% 54.28% 66.07% 41.92% 66.62% DINOv3-L 55.73% 41.53% 90.00% 29.53% 53.15% 67.54% 46.23% 62.96% DINOv3-H+ 55.30% 43.72% 94.25% 20.09% 53.07% 66.90% 44.24% 61.48%
+> Encoder type ablation
+> DINOv3-L 55.73% 41.53% 90.00% 29.53% 53.15% 67.54% 46.23% 62.96% SigLIP2-So 54.25% 43.95% 94.79% 17.90% 46.00% 68.43% 40.81% 65.00% Qwen2.5-VL-7B 53.12% 37.50% 92.09% 32.13% 44.96% 64.40% 45.07% 63.43%
+
+peaks at depth = 9 , suggesting that moderate depth yields a favorable trade-off. FaceSim decreases monotonically with depth (Fig. 7 (b)), indicating that overly deep alignment weakens subject identity fidelity, while NaturalScore generally increases with minor fluctuations (Fig. 7 (c)), indicating that deeper alignment improves naturalness. Based on this observation, we set depth = 9 by default. 
+
+Effectiveness of alignment encoder. 
+
+To evaluate the impact of the alignment encoder on the RA loss, we ablate encoder size and type. As shown in Tab. 3, using an alignment encoder consistently outperforms w/o LRA under both settings, suggesting the benefit of external representations as RA targets. In the size ablation ,DINOv3-B/L/H+ all bring substantial gains, with only 0.33% to 0.43% variation in TotalScore, indicating that RA loss is robust to encoder size. Considering the trade-off between performance and computational cost, we use DINOv3-L as the default. In the type ablation , the improvement generalizes across different encoders (DINOv3-L, SigLIP2-So, and Qwen2.5-VL-7B), indicating it is not tied to a specific architecture. They also show distinct metric preferences: DINOv3-L performs best on consistency-related metrics (e.g., NexusScore and FaceSim), SigLIP2-So favors quality and naturalness metrics (e.g., Aesthetics, MotionSmoothness, and NaturalScore), while Qwen2.5-VL-7B performs better on MotionAmplitude. Overall, DINOv3-L achieves a favorable trade-off. 
+
+4.5 User Study 0 20 40 60 80 100    
+
+> Rate (%) User Study
+> Kling
+> Phantom
+> VINO
+> 22.0%
+> 34.7%
+> 23.3%
+> 19.0%
+> 21.3%
+> 25.0%
+> 59.0%
+> 44.0%
+> 51.7%
+> Lose Rate Tie Rate Win Rate
+
+Figure 8: User study results comparing RefAlign with Kling, Phantom, and VINO. We conduct a user study with 30 volunteers evaluating visual quality, reference fidelity, and video–text alignment. For each comparison pair, two videos from different methods are shown anonymously in random order, and participants choose the better one or a tie. As shown in Fig. 8, RefAlign achieves the highest overall human preference. 
+
+5 Conclusion 
+
+This paper presents RefAlign, a representation alignment framework to enhance controllability in R2V generation. RefAlign aligns the reference-branch representation to an underlying vision foundation model (VFM) at the feature level via a reference alignment (RA) loss, helping alleviate copy–paste artifacts and multi-subject confusion from modality mismatch. The alignment is applied only during training and removed at inference, incurring no inference-time overhead. Extensive experiments 10 show that RefAlign outperforms SOTA methods (e.g., Kling1.6, Phantom, and VINO) in reference subject fidelity and consistency. We hope this work provides new insights into reference-driven video generation and video editing, and further may promote a unified modeling paradigm for visual understanding and generation. 
+
+Limitations and future work. Limited training data diversity currently prevents an optimal balance between instruction following and reference fidelity. Moreover, the underlying foundation model limits RefAlign to 81-frame videos, restricting long-video generation. In addition, a single VFM guidance signal may be incomplete, as different VFM features emphasize different aspects of visual representations. Future work includes using more diverse data to improve the trade-off, extending R2V to longer videos, and combining multiple VFM features as alignment targets for more robust and comprehensive alignment. 
+
+Acknowledgement 
+
+This work was supported by the National Science Fund of China under Grant Nos, 62361166670 and U24A20330, the “Science and Technology Yongjiang 2035” key technology breakthrough plan project (2024Z120), the Shenzhen Science and Technology Program (JCYJ20240813114237048), the Chinese government-guided local science and technology development fund projects (scien-tific and technological achievement transfer and transformation projects) (254Z0102G), and the Supercomputing Center of Nankai University (NKSC). 
+
+References 
+
+[1] Tim Brooks, Bill Peebles, Connor Holmes, Will DePue, Yufei Guo, Li Jing, David Schnurr, Joe Taylor, Troy Luhman, Eric Luhman, et al. Video generation models as world simulators. 
+
+OpenAI Blog , 1(8):1, 2024. 2 [2] Fan Bao, Chendong Xiang, Gang Yue, Guande He, Hongzhou Zhu, Kaiwen Zheng, Min Zhao, Shilong Liu, Yaole Wang, and Jun Zhu. Vidu: a highly consistent, dynamic and skilled text-to-video generator with diffusion models. arXiv preprint arXiv:2405.04233 , 2024. 2, 7, 8 [3] Kling Team, Jialu Chen, Yuanzheng Ci, Xiangyu Du, Zipeng Feng, Kun Gai, Sainan Guo, Feng Han, Jingbin He, Kang He, et al. Kling-omni technical report. arXiv preprint arXiv:2512.16776 ,2025. 2 [4] Team Wan, Ang Wang, Baole Ai, Bin Wen, Chaojie Mao, Chen-Wei Xie, Di Chen, Feiwu Yu, Haiming Zhao, Jianxiao Yang, et al. Wan: Open and advanced large-scale video generative models. arXiv preprint arXiv:2503.20314 , 2025. 2, 3, 4, 5, 7, 8 [5] Zhuoyi Yang, Jiayan Teng, Wendi Zheng, Ming Ding, Shiyu Huang, Jiazheng Xu, Yuanming Yang, Wenyi Hong, Xiaohan Zhang, Guanyu Feng, et al. Cogvideox: Text-to-video diffusion models with an expert transformer. In ICLR , 2025. 2 [6] Bing Wu, Chang Zou, Changlin Li, Duojun Huang, Fang Yang, Hao Tan, Jack Peng, Jianbing Wu, Jiangfeng Xiong, Jie Jiang, et al. Hunyuanvideo 1.5 technical report. arXiv preprint arXiv:2511.18870 , 2025. 2 [7] Tsai-Shien Chen, Aliaksandr Siarohin, Willi Menapace, Yuwei Fang, Kwot Sin Lee, Ivan Skorokhodov, Kfir Aberman, Jun-Yan Zhu, Ming-Hsuan Yang, and Sergey Tulyakov. Multi-subject open-set personalization in video generation. In CVPR , pages 6099–6110, 2025. 2, 3, 5[8] Yuzhou Huang, Ziyang Yuan, Quande Liu, Qiulin Wang, Xintao Wang, Ruimao Zhang, Pengfei Wan, Di Zhang, and Kun Gai. Conceptmaster: Multi-concept video customization on diffusion transformer models without test-time tuning. arXiv preprint arXiv:2501.04698 , 2025. 2, 3, 4 [9] Lijie Liu, Tianxiang Ma, Bingchuan Li, Zhuowei Chen, Jiawei Liu, Gen Li, Siyu Zhou, Qian He, and Xinglong Wu. Phantom: Subject-consistent video generation via cross-modal alignment. In ICCV , pages 14951–14961, October 2025. 2, 3, 5, 7, 8, 16 11 [10] Shoufa Chen, Chongjian Ge, Yuqi Zhang, Yida Zhang, Fengda Zhu, Hao Yang, Hongxiang Hao, Hui Wu, Zhichao Lai, Yifei Hu, et al. Goku: Flow based video generative foundation models. In CVPR , pages 23516–23527, 2025. 2 [11] Feng Liang, Haoyu Ma, Zecheng He, Tingbo Hou, Ji Hou, Kunpeng Li, Xiaoliang Dai, Felix Juefei-Xu, Samaneh Azadi, Animesh Sinha, et al. Movie weaver: Tuning-free multi-concept video personalization with anchored prompts. In CVPR , pages 13146–13156, 2025. 2 [12] Hung Nguyen, Quang Qui-Vinh Nguyen, Khoi Nguyen, and Rang Nguyen. Swifttry: Fast and consistent video virtual try-on with diffusion models. In AAAI , volume 39, pages 6200–6208, 2025. 2 [13] Dong Li, Wenqi Zhong, Wei Yu, Yingwei Pan, Dingwen Zhang, Ting Yao, Junwei Han, and Tao Mei. Pursuing temporal-consistent video virtual try-on via dynamic pose interaction. In 
+
+CVPR , pages 22648–22657, 2025. 2 [14] Zhengcong Fei, Debang Li, Di Qiu, Jiahua Wang, Yikun Dou, Rui Wang, Jingtao Xu, Mingyuan Fan, Guibin Chen, Yang Li, et al. Skyreels-a2: Compose anything in video diffusion transform-ers. arXiv preprint arXiv:2504.02436 , 2025. 2, 3, 7, 8 [15] Yufan Deng, Xun Guo, Yizhi Wang, Jacob Zhiyuan Fang, Angtian Wang, Shenghai Yuan, Yiding Yang, Bo Liu, Haibin Huang, and Chongyang Ma. Cinema: Coherent multi-subject video generation via mllm-based guidance. arXiv preprint arXiv:2503.10391 , 2025. 2, 3, 4 [16] Zhaoyang Li, Dongjun Qian, Kai Su, Qishuai Diao, Xiangyang Xia, Chang Liu, Wenfei Yang, Tianzhu Zhang, and Zehuan Yuan. Bindweave: Subject-consistent video generation via cross-modal integration. ICLR , 2026. 2, 3, 4, 7, 8 [17] Panwang Pan, Jingjing Zhao, Yuchen Lin, Chenguo Lin, Chenxin Li, Hengyu Liu, Tingting Shen, and Yadong Mu. Id-crafter: Vlm-grounded online rl for compositional multi-subject video generation. CVPR , 2026. 2, 4 [18] Peng Wang, Shuai Bai, Sinan Tan, Shijie Wang, Zhihao Fan, Jinze Bai, Keqin Chen, Xuejing Liu, Jialin Wang, Wenbin Ge, et al. Qwen2-vl: Enhancing vision-language model’s perception of the world at any resolution. arXiv preprint arXiv:2409.12191 , 2024. 2 [19] Shuai Bai, Keqin Chen, Xuejing Liu, Jialin Wang, Wenbin Ge, Sibo Song, Kai Dang, Peng Wang, Shijie Wang, Jun Tang, et al. Qwen2. 5-vl technical report. arXiv preprint arXiv:2502.13923 ,2025. 2, 4, 6, 14 [20] kling. Image to video elements feature. https://klingai.com/image-to-video/ multi-id/new/ , 2024. 3, 7, 8, 16 [21] Laurens van der Maaten and Geoffrey Hinton. Visualizing data using t-sne. JMLR , 9(86):2579– 2605, 2008. 3 [22] Oriane Siméoni, Huy V Vo, Maximilian Seitzer, Federico Baldassarre, Maxime Oquab, Cijo Jose, Vasil Khalidov, Marc Szafraniec, Seungeun Yi, Michaël Ramamonjisoa, et al. Dinov3. 
+
+arXiv preprint arXiv:2508.10104 , 2025. 2, 6, 14 [23] Shenghai Yuan, Xianyi He, Yufan Deng, Yang Ye, Jinfa Huang, Bin Lin, Jiebo Luo, and Li Yuan. Opens2v-nexus: A detailed benchmark and million-scale dataset for subject-to-video generation. 
+
+NeurIPS , 2025. 3, 8, 14, 15 [24] Bowen Xue, Zheng-Peng Duan, Qixin Yan, Wenjing Wang, Hao Liu, Chun-Le Guo, Chongyi Li, Chen Li, and Jing Lyu. Stand-in: A lightweight and plug-and-play identity control for video generation. CVPR , 2026. 3 [25] Yong Zhong, Zhuoyi Yang, Jiayan Teng, Xiaotao Gu, and Chongxuan Li. Concat-id: Towards universal identity-preserving video synthesis. In ICCVW , pages 1906–1915, 2025. 3 [26] Shenghai Yuan, Jinfa Huang, Xianyi He, Yunyang Ge, Yujun Shi, Liuhan Chen, Jiebo Luo, and Li Yuan. Identity-preserving text-to-video generation by frequency decomposition. In CVPR ,pages 12978–12988, 2025. 3 12 [27] Shen Sang, Tiancheng Zhi, Tianpei Gu, Jing Liu, and Linjie Luo. Lynx: Towards high-fidelity personalized video generation. In CVPR , 2026. 3 [28] Zhenxing Zhang, Jiayan Teng, Zhuoyi Yang, Tiankun Cao, Cheng Wang, Xiaotao Gu, Jie Tang, Dan Guo, and Meng Wang. Kaleido: Open-sourced multi-subject reference video generation model. arXiv preprint arXiv:2510.18573 , 2025. 3, 4, 7, 8 [29] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning transferable visual models from natural language supervision. In ICML , pages 8748–8763. PmLR, 2021. 3, 14 [30] Zijian Zhou, Shikun Liu, Haozhe Liu, Haonan Qiu, Zhaochong An, Weiming Ren, Zhiheng Liu, Xiaoke Huang, Kam Woh Ng, Tian Xie, et al. Scaling zero-shot reference-to-video generation. 
+
+arXiv preprint arXiv:2512.06905 , 2025. 4, 7, 8 [31] Yufan Deng, Xun Guo, Yuanyang Yin, Jacob Zhiyuan Fang, Yiding Yang, Yizhi Wang, Shenghai Yuan, Angtian Wang, Bo Liu, Haibin Huang, et al. Magref: Masked guidance for any-reference video generation. ICLR , 2026. 4, 7, 8 [32] Teng Hu, Zhentao Yu, Zhengguang Zhou, Jiangning Zhang, Yuan Zhou, Qinglin Lu, and Ran Yi. Polyvivid: Vivid multi-subject video generation with cross-modal interaction and enhancement. 
+
+NeurIPS , 2025. 4 [33] Teng Hu, Zhentao Yu, Zhengguang Zhou, Sen Liang, Yuan Zhou, Qin Lin, and Qinglin Lu. Hunyuancustom: A multimodal-driven architecture for customized video generation. arXiv preprint arXiv:2505.04512 , 2025. 4 [34] Junyi Chen, Tong He, Zhoujie Fu, Pengfei Wan, Kun Gai, and Weicai Ye. Vino: A unified visual generator with interleaved omnimodal context. arXiv preprint arXiv:2601.02358 , 2026. 4, 7, 8, 16 [35] Haotian Liu, Chunyuan Li, Qingyang Wu, and Yong Jae Lee. Visual instruction tuning. NeurIPS ,36:34892–34916, 2023. 4 [36] Zeyinzi Jiang, Zhen Han, Chaojie Mao, Jingfeng Zhang, Yulin Pan, and Yu Liu. Vace: All-in-one video creation and editing. In ICCV , pages 17191–17202, 2025. 4, 7, 8 [37] Sihyun Yu, Sangkyung Kwak, Huiwon Jang, Jongheon Jeong, Jonathan Huang, Jinwoo Shin, and Saining Xie. Representation alignment for generation: Training diffusion transformers is easier than you think. In ICLR , 2025. 4, 5, 6 [38] Xingjian Leng, Jaskirat Singh, Yunzhong Hou, Zhenchang Xing, Saining Xie, and Liang Zheng. Repa-e: Unlocking vae for end-to-end tuning of latent diffusion transformers. In ICCV , pages 18262–18272, 2025. 4 [39] Shuai Wang, Zhi Tian, Weilin Huang, and Limin Wang. Ddt: Decoupled diffusion transformer. 
+
+CVPR , 2026. 4 [40] Ge Wu, Shen Zhang, Ruijing Shi, Shanghua Gao, Zhenyuan Chen, Lei Wang, Zhaowei Chen, Hongcheng Gao, Yao Tang, Jian Yang, et al. Representation entanglement for generation: Training diffusion transformers is much easier than you think. NeurIPS , 2025. 4 [41] Theodoros Kouzelis, Efstathios Karypidis, Ioannis Kakogeorgiou, Spyros Gidaris, and Nikos Komodakis. Boosting generative image modeling via joint image-feature synthesis. NeurIPS ,2025. 4 [42] Jingfeng Yao, Bin Yang, and Xinggang Wang. Reconstruction vs. generation: Taming optimiza-tion dilemma in latent diffusion models. In CVPR , pages 15703–15712, 2025. 4 [43] Xing Xie, Jiawei Liu, Ziyue Lin, Huijie Fan, Zhi Han, Yandong Tang, and Liangqiong Qu. Unleashing the potential of large language models for text-to-image generation through autore-gressive representation alignment. AAAI , 2026. 4 13 [44] Xiangdong Zhang, Jiaqi Liao, Shaofeng Zhang, Fanqing Meng, Xiangpeng Wan, Junchi Yan, and Yu Cheng. Videorepa: Learning physics for video generation through relational alignment with foundation models. NeurIPS , 2025. 4 [45] Patrick Esser, Sumith Kulal, Andreas Blattmann, Rahim Entezari, Jonas Müller, Harry Saini, Yam Levi, Dominik Lorenz, Axel Sauer, Frederic Boesel, et al. Scaling rectified flow transform-ers for high-resolution image synthesis. In ICML , 2024. 4 [46] Maxime Oquab, Timothée Darcet, Théo Moutakanni, Huy Vo, Marc Szafraniec, Vasil Khalidov, Pierre Fernandez, Daniel Haziza, Francisco Massa, Alaaeldin El-Nouby, et al. Dinov2: Learning robust visual features without supervision. TMLR , 2024. 4, 14 [47] Colin Raffel, Noam Shazeer, Adam Roberts, Katherine Lee, Sharan Narang, Michael Matena, Yanqi Zhou, Wei Li, and Peter J Liu. Exploring the limits of transfer learning with a unified text-to-text transformer. JMLR , 21(140):1–67, 2020. 5 [48] Jonathan Ho and Tim Salimans. Classifier-free diffusion guidance. arXiv preprint arXiv:2207.12598 , 2022. 5 [49] Michael Tschannen, Alexey Gritsenko, Xiao Wang, Muhammad Ferjad Naeem, Ibrahim Alab-dulmohsin, Nikhil Parthasarathy, Talfan Evans, Lucas Beyer, Ye Xia, Basil Mustafa, et al. Siglip 2: Multilingual vision-language encoders with improved semantic understanding, localization, and dense features. arXiv preprint arXiv:2502.14786 , 2025. 6, 14 [50] Pika. Pikascenes. https://pika.art/ingredients/ , 2024. 7, 8 [51] Zhuowei Chen, Bingchuan Li, Tianxiang Ma, Lijie Liu, Mingcong Liu, Yi Zhang, Gen Li, Xinghui Li, Siyu Zhou, Qian He, and Xinglong Wu. Phantom-data: Towards a general subject-consistent video generation dataset. ICLR , 2026. 8, 14 [52] Ilya Loshchilov and Frank Hutter. Decoupled weight decay regularization. ICLR , 2019. 8 [53] Kaiming He, Xinlei Chen, Saining Xie, Yanghao Li, Piotr Dollár, and Ross Girshick. Masked autoencoders are scalable vision learners. In CVPR , pages 16000–16009, 2022. 14 [54] Jianlin Su, Murtadha Ahmed, Yu Lu, Shengfeng Pan, Wen Bo, and Yunfeng Liu. Roformer: Enhanced transformer with rotary position embedding. Neurocomputing , 568:127063, 2024. 14 
+
+A Appendix 
+
+A.1 Additional Training Details 
+
+During training, we randomly drop the prompt, the reference, or both, each with a probability of 10%, for CFG. We train our model in two stages. In Stage 1, we use 200K regular-pair samples from OpenS2V [ 23 ] to better learn reference conditioning. In Stage 2, we use 160K cross-pair samples from Phantom-Data [51] to alleviate copy–paste artifacts. 
+
+A.2 Additional Ablation Studies 
+
+We present the detailed results of the alignment depth study in Tab. 4. 
+
+A.3 Choice of the Vision Foundation Model 
+
+We choose DINOv3 [ 22 ], SigLIP2 [ 49 ], and Qwen2.5-VL-7B [ 19 ] as the feature encoders for alignment targets due to their flexibility in handling non-square input resolutions. Our reference images have a resolution of 480×832, whereas many commonly used encoders (e.g., DINOv2 [ 46 ], CLIP [ 29 ], and MAE [ 53 ]) are trained with fixed square inputs such as 224×224, making them less suitable for non-square images. In contrast, DINOv3 employs RoPE [ 54 ] and naturally supports arbitrary resolutions, while SigLIP2 and Qwen2.5-VL also accommodate flexible input resolutions and aspect ratios. 14 Table 4: Ablation study on the impact of alignment depth on OpenS2V-Eval [ 23 ], with the best results in bold .                                                                         
+
+> Depth TotalScore ↑Aesthetics ↑MotionSmoothness ↑MotionAmplitude ↑FaceSim ↑GmeScore ↑NexusScore ↑NaturalScore ↑
+> w/o LRA 49.93% 36.46% 88.97% 28.62% 68.45% 58.83% 38.63% 40.46% 152.32% 35.43% 92.96% 18.64% 58.49% 60.41% 48.53% 50.19% 752.66% 41.39% 97.87% 7.78% 56.29% 62.15% 44.40% 51.71% 955.40 %38.83% 93.04% 22.49% 54.28% 66.07% 41.92% 66.62% 11 53.87% 37.22% 90.93% 23.31% 36.95% 68.39% 42.78% 74.35% 13 51.99% 35.45% 90.70% 23.15% 25.99% 67.98% 42.80% 77.08% 15 51.35% 39.07% 90.12% 34.93% 25.90% 68.38% 43.71% 70.28% 30 50.12% 32.57% 94.40% 17.98% 9.59% 68.86% 47.25% 80.21%
+
+The video features a man standing at an easel, 
+
+focused intently as his brush dances across the 
+
+canvas … He wears a paint-splattered apron, ... 
+
+Video 1 
+
+Video 2
+
+Reference Prompt 
+
+Question: Among the following two video results, considering reference image 
+
+consistency , prompt adherence , and overall video quality and smoothness , which 
+
+one is better? 
+
+A：Video 1 is better B:Video 2 is better C：Both are comparable 
+
+Figure 9: An example of the user study. 
+
+A.4 User study details 
+
+An example of the questionnaire is shown in the Fig 9. 
+
+A.5 More Visualization Results 
+
+Additional visualization results of R2V generation are shown in the Fig. 10 and Fig. 11. 15 Kling1.6 Phantom VINO Ours 
+
+The person on the left, dressed in a gray uniform, is holding a tablet and 
+
+gesturing with her hands while speaking. Her posture indicates she is 
+
+explaining something, possibly related to the tablet's content. The individual 
+
+on the right, wearing a light -colored robe, is seated and listening attentively, 
+
+smiling slightly, which suggests a positive interaction. 
+
+> Kling1.6 Phantom VINO Ours
+
+The women are exchanging gifts, with one woman in a red dress holding a 
+
+gift box while others reach out to take theirs. The gift boxes vary in color and 
+
+design, with some featuring polka dots and others striped patterns. The 
+
+women are smiling and laughing, indicating a joyful and friendly interaction. 
+
+> Kling1.6 Phantom VINO Ours
+
+The video features a girl sitting on a stool, playing a guitar with her fingers 
+
+moving skillfully across the strings, creating a soulful melody. Her eyes are 
+
+closed, and there's a slight smile on her face, conveying a sense of deep 
+
+connection to the music. 
+
+> Kling1.6 Phantom VINO Ours
+
+The video features a woman jogging along a trail beside a serene lake. She 
+
+has short, curly hair and is wearing athletic wear and sneakers. The 
+
+surrounding trees and the shimmering water create a peaceful atmosphere, 
+
+while the woman maintains a steady pace, focusing on her exercise. The 
+
+morning sunlight casts a soft glow on the scene, adding to the sense of calm. Figure 10: Qualitative results. We compare RefAlign with three representative methods, namely Kling1.6 [20], Phantom [9], and VINO [34]. 16 References Video 
+
+> Temporal
+
+Figure 11: Reference-to-video generation using our proposed method, RefAlign. 17

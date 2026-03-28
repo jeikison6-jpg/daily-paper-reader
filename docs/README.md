@@ -6,73 +6,127 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-03-27
-- 运行时间：2026-03-27 19:45:51 UTC
+- 最新运行日期：2026-03-28
+- 运行时间：2026-03-28 19:26:16 UTC
 - 运行状态：成功
-- 本次总论文数：17
-- 精读区：6
-- 速读区：11
+- 本次总论文数：35
+- 精读区：23
+- 速读区：12
 
 ### 今日简报（AI）
-今日聚焦 17 篇 AI 顶尖成果，深度解析世界模型在机器人稳定预测与自动驾驶物理一致性上的重大突破。
-核心结论指出，强化学习可显著提升机器人长程模拟的稳定性，而新型架构正解决复杂轨迹下的驾驶视频失真难题。
-建议优先研读具身智能与多模态生成的融合趋势，特别是如何通过视频合成技术优化机器人交互的形态一致性。
-- 详情：[/202603/27/README](/202603/27/README)
+今日精选 35 篇前沿成果，重点突破个性化视频生成架构与分布式强化学习效率。
+LumosX 实现了身份与属性的精准关联生成，而 FIPO 等研究则通过策略优化显著提升了大模型的深度推理能力。
+建议关注视频生成中的推理一致性评估工具，并尝试将高效探索机制引入大模型的强化学习训练中。
+- 详情：[/202603/28/README](/202603/28/README)
 
 ### 精读区论文标签
-1. [Persistent Robot World Models: Stabilizing Multi-Step Rollouts via Reinforcement Learning](/202603/27/2603.25685v1-persistent-robot-world-models-stabilizing-multi-step-rollouts-via-reinforcement-learning)  
-   标签：评分：10.0/10、query:rl-vg
-   evidence：用于稳定视频世界模型的强化学习后训练
-2. [Toward Physically Consistent Driving Video World Models under Challenging Trajectories](/202603/27/2603.24506v1-toward-physically-consistent-driving-video-world-models-under-challenging-trajectories)  
+1. [LumosX: Relate Any Identities with Their Attributes for Personalized Video Generation](/202603/28/2603.20192v1-lumosx-relate-any-identities-with-their-attributes-for-personalized-video-generation)  
    标签：评分：9.0/10、query:rl-vg
-   evidence：视频生成模型作为自动驾驶模拟的世界模型
-3. [TIGFlow-GRPO: Trajectory Forecasting via Interaction-Aware Flow Matching and Reward-Driven Optimization](/202603/27/2603.24936v1-tigflow-grpo-trajectory-forecasting-via-interaction-aware-flow-matching-and-reward-driven-optimization)  
+   evidence：使用扩散模型的个性化视频生成
+2. [Delightful Distributed Policy Gradient](/202603/28/2603.20521v1-delightful-distributed-policy-gradient)  
    标签：评分：9.0/10、query:rl-dm
-   evidence：使用流匹配进行轨迹生成的奖励驱动优化
-4. [ShotStream: Streaming Multi-Shot Video Generation for Interactive Storytelling](/202603/27/2603.25746v1-shotstream-streaming-multi-shot-video-generation-for-interactive-storytelling)  
+   evidence：分布式强化学习算法与策略梯度更新
+3. [PivotRL: High Accuracy Agentic Post-Training at Low Compute Cost](/202603/28/2603.21383v1-pivotrl-high-accuracy-agentic-post-training-at-low-compute-cost)  
+   标签：评分：9.0/10、query:rl-dm
+   evidence：用于智能体后训练的新型强化学习框架，使用局部在线策略回放
+4. [Speed by Simplicity: A Single-Stream Architecture for Fast Audio-Video Generative Foundation Model](/202603/28/2603.21986v1-speed-by-simplicity-a-single-stream-architecture-for-fast-audio-video-generative-foundation-model)  
    标签：评分：9.0/10、query:rl-vg
-   evidence：多镜头视频生成与分布匹配蒸馏
-5. [P-Flow: Prompting Visual Effects Generation](/202603/27/2603.22091v1-p-flow-prompting-visual-effects-generation)  
-   标签：评分：8.0/10、query:rl-vg
-   evidence：用于视频高级视觉效果的生成模型
-6. [PAM: A Pose-Appearance-Motion Engine for Sim-to-Real HOI Video Generation](/202603/27/2603.22193v2-pam-a-pose-appearance-motion-engine-for-sim-to-real-hoi-video-generation)  
-   标签：评分：8.0/10、query:rl-vg
-   evidence：从仿真到真实的持物交互视频生成
+   evidence：以人为中心的音视频生成基础模型
+5. [A Context Engineering Framework for Improving Enterprise AI Agents based on Digital-Twin MDP](/202603/28/2603.22083v1-a-context-engineering-framework-for-improving-enterprise-ai-agents-based-on-digital-twin-mdp)  
+   标签：评分：9.0/10、query:rl-dm
+   evidence：通过离线强化学习改进企业智能体
+6. [Cross-Modal Reinforcement Learning for Navigation with Degraded Depth Measurements](/202603/28/2603.22182v1-cross-modal-reinforcement-learning-for-navigation-with-degraded-depth-measurements)  
+   标签：评分：9.0/10、query:rl-dm
+   evidence：基于强化学习的导航策略
+7. [PAM: A Pose-Appearance-Motion Engine for Sim-to-Real HOI Video Generation](/202603/28/2603.22193v1-pam-a-pose-appearance-motion-engine-for-sim-to-real-hoi-video-generation)  
+   标签：评分：9.0/10、query:rl-vg
+   evidence：用于虚实迁移手物交互视频生成的统一引擎
+8. [End-to-End Training for Unified Tokenization and Latent Denoising](/202603/28/2603.22283v1-end-to-end-training-for-unified-tokenization-and-latent-denoising)  
+   标签：评分：9.0/10、query:rl-dm
+   evidence：扩散模型的统一标记化与潜空间去噪
+9. [Neural ODE and SDE Models for Adaptation and Planning in Model-Based Reinforcement Learning](/202603/28/2603.23245v1-neural-ode-and-sde-models-for-adaptation-and-planning-in-model-based-reinforcement-learning)  
+   标签：评分：9.0/10、query:rl-dm
+   evidence：用于模型化强化学习中自适应与规划的SDE模型
+10. [Off-Policy Value-Based Reinforcement Learning for Large Language Models](/202603/28/2603.23355v1-off-policy-value-based-reinforcement-learning-for-large-language-models)  
+   标签：评分：9.0/10、query:rl-dm
+   evidence：针对大语言模型的离线价值强化学习框架
+11. [End-to-End Efficient RL for Linear Bellman Complete MDPs with Deterministic Transitions](/202603/28/2603.23461v1-end-to-end-efficient-rl-for-linear-bellman-complete-mdps-with-deterministic-transitions)  
+   标签：评分：9.0/10、query:rl-dm
+   evidence：MDP中具有线性函数逼近的强化学习
+12. [Optimal Variance-Dependent Regret Bounds for Infinite-Horizon MDPs](/202603/28/2603.23926v1-optimal-variance-dependent-regret-bounds-for-infinite-horizon-mdps)  
+   标签：评分：9.0/10、query:rl-dm
+   evidence：无限时界MDP的最优遗憾界
+13. [From AI Assistant to AI Scientist: Autonomous Discovery of LLM-RL Algorithms with LLM Agents](/202603/28/2603.23951v1-from-ai-assistant-to-ai-scientist-autonomous-discovery-of-llm-rl-algorithms-with-llm-agents)  
+   标签：评分：9.0/10、query:rl-dm
+   evidence：语言模型策略优化算法的自动发现
+14. [Calibri: Enhancing Diffusion Transformers via Parameter-Efficient Calibration](/202603/28/2603.24800v1-calibri-enhancing-diffusion-transformers-via-parameter-efficient-calibration)  
+   标签：评分：9.0/10、query:rl-vg
+   evidence：扩散Transformer的黑盒奖励优化
+15. [DCARL: A Divide-and-Conquer Framework for Autoregressive Long-Trajectory Video Generation](/202603/28/2603.24835v1-dcarl-a-divide-and-conquer-framework-for-autoregressive-long-trajectory-video-generation)  
+   标签：评分：9.0/10、query:rl-vg
+   evidence：用于高保定视频扩散模型的自回归框架
+16. [Learning to Staff: Offline Reinforcement Learning and Fine-Tuned LLMs for Warehouse Staffing Optimization](/202603/28/2603.24883v1-learning-to-staff-offline-reinforcement-learning-and-fine-tuned-llms-for-warehouse-staffing-optimization)  
+   标签：评分：9.0/10、query:rl-dm
+   evidence：离线强化学习用于仓库人员配置优化
+17. [AnyID: Ultra-Fidelity Universal Identity-Preserving Video Generation from Any Visual References](/202603/28/2603.25188v1-anyid-ultra-fidelity-universal-identity-preserving-video-generation-from-any-visual-references)  
+   标签：评分：9.0/10、query:rl-vg
+   evidence：超高保真身份保持视频生成框架
+18. [Free-Lunch Long Video Generation via Layer-Adaptive O.O.D Correction](/202603/28/2603.25209v1-free-lunch-long-video-generation-via-layer-adaptive-ood-correction)  
+   标签：评分：9.0/10、query:rl-vg
+   evidence：使用预训练视频扩散模型生成长视频
+19. [Offline Decision Transformers for Neural Combinatorial Optimization: Surpassing Heuristics on the Traveling Salesman Problem](/202603/28/2603.25241v1-offline-decision-transformers-for-neural-combinatorial-optimization-surpassing-heuristics-on-the-traveling-salesman-problem)  
+   标签：评分：9.0/10、query:rl-dm
+   evidence：离线强化学习框架和决策 Transformer
+20. [MMaDA-VLA: Large Diffusion Vision-Language-Action Model with Unified Multi-Modal Instruction and Generation](/202603/28/2603.25406v1-mmada-vla-large-diffusion-vision-language-action-model-with-unified-multi-modal-instruction-and-generation)  
+   标签：评分：9.0/10、query:rl-dm
+   evidence：用于机器人控制的大型扩散视觉-语言-动作模型
+21. [Temporally Decoupled Diffusion Planning for Autonomous Driving](/202603/28/2603.25462v1-temporally-decoupled-diffusion-planning-for-autonomous-driving)  
+   标签：评分：9.0/10、query:rl-dm
+   evidence：用于自动驾驶轨迹生成和运动规划的扩散模型
+22. [Beyond the Golden Data: Resolving the Motion-Vision Quality Dilemma via Timestep Selective Training](/202603/28/2603.25527v1-beyond-the-golden-data-resolving-the-motion-vision-quality-dilemma-via-timestep-selective-training)  
+   标签：评分：9.0/10、query:rl-vg
+   evidence：视频扩散模型与动觉-视觉质量困境
+23. [RefAlign: Representation Alignment for Reference-to-Video Generation](/202603/28/2603.25743v1-refalign-representation-alignment-for-reference-to-video-generation)  
+   标签：评分：9.0/10、query:rl-vg
+   evidence：使用扩散 Transformer 的可控视频合成
 
 ### 速读区论文标签
-1. [Improving Joint Audio-Video Generation with Cross-Modal Context Learning](/202603/27/2603.18600v1-improving-joint-audio-video-generation-with-cross-modal-context-learning)  
+1. [FIPO: Eliciting Deep Reasoning with Future-KL Influenced Policy Optimization](/202603/28/2603.19835v2-fipo-eliciting-deep-reasoning-with-future-kl-influenced-policy-optimization)  
+   标签：评分：8.0/10、query:rl-dm
+   evidence：用于策略优化的强化学习算法
+2. [Experience is the Best Teacher: Motivating Effective Exploration in Reinforcement Learning for LLMs](/202603/28/2603.20046v1-experience-is-the-best-teacher-motivating-effective-exploration-in-reinforcement-learning-for-llms)  
+   标签：评分：8.0/10、query:rl-dm
+   evidence：用于大语言模型推理的强化学习框架
+3. [MME-CoF-Pro: Evaluating Reasoning Coherence in Video Generative Models with Text and Visual Hints](/202603/28/2603.20194v1-mme-cof-pro-evaluating-reasoning-coherence-in-video-generative-models-with-text-and-visual-hints)  
    标签：评分：8.0/10、query:rl-vg
-   evidence：基于扩散模型的音视频联合生成
-2. [Morphology-Consistent Humanoid Interaction through Robot-Centric Video Synthesis](/202603/27/2603.19709v1-morphology-consistent-humanoid-interaction-through-robot-centric-video-synthesis)  
-   标签：评分：8.0/10、query:rl-vg
-   evidence：通过生成式视频合成实现零样本交互的机器人中心框架
-3. [EgoForge: Goal-Directed Egocentric World Simulator](/202603/27/2603.20169v1-egoforge-goal-directed-egocentric-world-simulator)  
-   标签：评分：8.0/10、query:rl-vg
-   evidence：用于目标导向的第一人称视频合成的生成式世界模拟器
-4. [EVA: Efficient Reinforcement Learning for End-to-End Video Agent](/202603/27/2603.22918v1-eva-efficient-reinforcement-learning-for-end-to-end-video-agent)  
-   标签：评分：8.0/10、query:rl-vg
-   evidence：端到端视频智能体的强化学习框架
-5. [Efficient Video Diffusion with Sparse Information Transmission for Video Compression](/202603/27/2603.18501v1-efficient-video-diffusion-with-sparse-information-transmission-for-video-compression)  
+   evidence：评估视频生成模型中的推理连贯性
+4. [Generative Diffusion Model for Risk-Neutral Derivative Pricing](/202603/28/2603.20582v1-generative-diffusion-model-for-risk-neutral-derivative-pricing)  
+   标签：评分：8.0/10、query:rl-dm
+   evidence：用于资产价格动态的去噪扩散概率模型
+5. [Teaching an Agent to Sketch One Part at a Time](/202603/28/2603.19500v1-teaching-an-agent-to-sketch-one-part-at-a-time)  
+   标签：评分：7.0/10、query:rl-dm
+   evidence：用于智能体绘画的多轮过程奖励强化学习
+6. [ATHENA: Adaptive Test-Time Steering for Improving Count Fidelity in Diffusion Models](/202603/28/2603.19676v1-athena-adaptive-test-time-steering-for-improving-count-fidelity-in-diffusion-models)  
+   标签：评分：7.0/10、query:rl-dm
+   evidence：扩散去噪过程中的自适应引导
+7. [How Out-of-Equilibrium Phase Transitions can Seed Pattern Formation in Trained Diffusion Models](/202603/28/2603.20092v1-how-out-of-equilibrium-phase-transitions-can-seed-pattern-formation-in-trained-diffusion-models)  
+   标签：评分：7.0/10、query:rl-dm
+   evidence：反向扩散过程的理论框架
+8. [VideoSeek: Long-Horizon Video Agent with Tool-Guided Seeking](/202603/28/2603.20185v1-videoseek-long-horizon-video-agent-with-tool-guided-seeking)  
    标签：评分：7.0/10、query:rl-vg
-   evidence：用于高保真视频压缩和时间一致性的视频扩散模型
-6. [Training-Free Sparse Attention for Fast Video Generation via Offline Layer-Wise Sparsity Profiling and Online Bidirectional Co-Clustering](/202603/27/2603.18636v1-training-free-sparse-attention-for-fast-video-generation-via-offline-layer-wise-sparsity-profiling-and-online-bidirectional-co-clustering)  
-   标签：评分：7.0/10、query:rl-vg
-   evidence：扩散变换器中用于快速视频生成的稀疏注意力机制
-7. [Generation Models Know Space: Unleashing Implicit 3D Priors for Scene Understanding](/202603/27/2603.19235v1-generation-models-know-space-unleashing-implicit-3d-priors-for-scene-understanding)  
-   标签：评分：7.0/10、query:rl-vg
-   evidence：大规模视频生成模型的先验
-8. [Physion-Eval: Evaluating Physical Realism in Generated Video via Human Reasoning](/202603/27/2603.19607v1-physion-eval-evaluating-physical-realism-in-generated-video-via-human-reasoning)  
-   标签：评分：7.0/10、query:rl-vg
-   evidence：评估生成视频的物理真实性
-9. [AcceRL: A Distributed Asynchronous Reinforcement Learning and World Model Framework for Vision-Language-Action Models](/202603/27/2603.18464v2-accerl-a-distributed-asynchronous-reinforcement-learning-and-world-model-framework-for-vision-language-action-models)  
+   evidence：用于长周期视频理解的视频智能体模型
+9. [Hyperagents](/202603/28/2603.19461v1-hyperagents)  
    标签：评分：6.0/10、query:rl-dm
-   evidence：视觉-语言-动作模型的异步强化学习和世界模型框架
-10. [Agentic Flow Steering and Parallel Rollout Search for Spatially Grounded Text-to-Image Generation](/202603/27/2603.18627v1-agentic-flow-steering-and-parallel-rollout-search-for-spatially-grounded-text-to-image-generation)  
+   evidence：自我改进的强化学习智能体
+10. [LoopRPT: Reinforcement Pre-Training for Looped Language Models](/202603/28/2603.19714v1-looprpt-reinforcement-pre-training-for-looped-language-models)  
    标签：评分：6.0/10、query:rl-dm
-   evidence：生成模型的闭环并行展开搜索和流引导
-11. [6Bit-Diffusion: Inference-Time Mixed-Precision Quantization for Video Diffusion Models](/202603/27/2603.18742v1-6bit-diffusion-inference-time-mixed-precision-quantization-for-video-diffusion-models)  
-   标签：评分：6.0/10、query:rl-vg
-   evidence：视频扩散模型的混合精度量化以提高效率
+   evidence：用于潜空间推理的强化预训练
+11. [What If Consensus Lies? Selective-Complementary Reinforcement Learning at Test Time](/202603/28/2603.19880v1-what-if-consensus-lies-selective-complementary-reinforcement-learning-at-test-time)  
+   标签：评分：6.0/10、query:rl-dm
+   evidence：用于大语言模型推理和伪奖励推导的强化学习框架
+12. [Interpreting Reinforcement Learning Model Behavior via Koopman with Control](/202603/28/2603.19968v1-interpreting-reinforcement-learning-model-behavior-via-koopman-with-control)  
+   标签：评分：6.0/10、query:rl-dm
+   evidence：通过控制系统解释强化学习模型行为
 
 
 <div class="dpr-home-promo-card">
