@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-03-28T19:21:25.644655+00:00",
-  "updated_date": "20260328",
+  "generated_at": "2026-03-29T19:27:55.678654+00:00",
+  "updated_date": "20260329",
   "carryover_days": 9,
   "items": [
     {
@@ -26,66 +26,21 @@
         "query:RL VG"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "video diffusion priors for high-resolution image generation",
-      "llm_evidence_cn": "用于高分辨率图像生成的视频扩散先验",
-      "llm_evidence": "用于高分辨率图像生成的视频扩散先验",
-      "canonical_evidence": "用于高分辨率图像生成的视频扩散先验",
-      "llm_tldr_en": "Leverages video diffusion priors to synthesize ultra-high-resolution images at extreme aspect ratios.",
-      "llm_tldr_cn": "利用视频扩散先验在极端长宽比下合成超高分辨率图像。",
-      "llm_tldr": "利用视频扩散先验在极端长宽比下合成超高分辨率图像。",
+      "llm_evidence_en": "video diffusion priors for high-resolution synthesis",
+      "llm_evidence_cn": "用于高分辨率合成的视频扩散先验",
+      "llm_evidence": "用于高分辨率合成的视频扩散先验",
+      "canonical_evidence": "用于高分辨率合成的视频扩散先验",
+      "llm_tldr_en": "Reformulates ultra-high-resolution image generation as a continuous video diffusion process.",
+      "llm_tldr_cn": "将超高分辨率图像生成转化为连续的视频扩散过程，利用视频先验保证结构。",
+      "llm_tldr": "将超高分辨率图像生成转化为连续的视频扩散过程，利用视频先验保证结构。",
       "llm_tags": [
-        "query:rl-vg"
+        "query:rl-vg:composite"
       ],
-      "matched_query_tag": "query:rl-vg",
-      "matched_query_text": "Generative models for high-fidelity video synthesis",
-      "matched_requirement_id": "req-11",
+      "matched_query_tag": "query:rl-vg:composite",
+      "matched_query_text": "Papers central to 查找强化学习与视频生成相关的学术论文, especially work that connects or combines: Reinforcement learning techniques for video generation; Deep learning models for video generation and synthesis; Text-to-video generation using reinforcement learning; Generative models for high-fidelity video synthesis; State of the art reinforcement learning methods for video generation; Optimizing video diffusion models using reward based learning; Improving video temporal coherence with reinforcement learning policies.",
+      "matched_requirement_id": "req-composite-rl-vg",
       "selection_source": "carryover_cache",
       "paper_id": "2603.24270v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.24260v1",
-      "title": "Accelerating Diffusion-based Video Editing via Heterogeneous Caching: Beyond Full Computing at Sampled Denoising Timestep",
-      "abstract": "Diffusion-based video editing has emerged as an important paradigm for high-quality and flexible content generation. However, despite their generality and strong modeling capacity, Diffusion Transformers (DiT) remain computationally expensive due to the iterative denoising process, posing challenges for practical deployment. Existing video diffusion acceleration methods primarily exploit denoising timestep-level feature reuse, which mitigates the redundancy in denoising process, but overlooks the architectural redundancy within the DiT that many attention operations over spatio-temporal tokens are redundantly executed, offering little to no incremental contribution to the model output. This work introduces HetCache, a training-free diffusion acceleration framework designed to exploit the inherent heterogeneity in diffusion-based masked video-to-video (MV2V) generation and editing. Instead of uniformly reuse or randomly sampling tokens, HetCache assesses the contextual relevance and interaction strength among various types of tokens in designated computing steps. Guided by spatial priors, it divides the spatial-temporal tokens in DiT model into context and generative tokens, and selectively caches the context tokens that exhibit the strongest correlation and most representative semantics with generative ones. This strategy reduces redundant attention operations while maintaining editing consistency and fidelity. Experiments show that HetCache achieves a noticeable acceleration, including a 2.67$\\times$ latency speedup and FLOPs reduction over commonly used foundation models, with negligible degradation in editing quality.",
-      "authors": [
-        "Tianyi Liu",
-        "Ye Lu",
-        "Linfeng Zhang",
-        "Chen Cai",
-        "Jianjun Gao",
-        "Yi Wang",
-        "Kim-Hui Yap",
-        "Lap-Pui Chau"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV",
-        "cs.AI"
-      ],
-      "published": "2026-03-25T12:53:31+00:00",
-      "link": "https://arxiv.org/pdf/2603.24260v1",
-      "tags": [
-        "keyword:RL DM",
-        "keyword:RL VG",
-        "query:RL DM",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Diffusion-based video editing and content generation",
-      "llm_evidence_cn": "基于扩散模型的视频编辑与内容生成",
-      "llm_evidence": "基于扩散模型的视频编辑与内容生成",
-      "canonical_evidence": "基于扩散模型的视频编辑与内容生成",
-      "llm_tldr_en": "Accelerates diffusion-based video editing by reducing architectural redundancy in Diffusion Transformers.",
-      "llm_tldr_cn": "通过减少扩散 Transformer 中的架构冗余，加速基于扩散模型的视频编辑。",
-      "llm_tldr": "通过减少扩散 Transformer 中的架构冗余，加速基于扩散模型的视频编辑。",
-      "llm_tags": [
-        "query:rl-vg"
-      ],
-      "matched_query_tag": "query:rl-vg",
-      "matched_query_text": "Generative models for high-fidelity video synthesis",
-      "matched_requirement_id": "req-11",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.24260v1",
       "carry_days": 1
     },
     {
@@ -111,13 +66,13 @@
         "query:RL VG"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "reformulates image synthesis into a continuous video generation process using video diffusion priors",
-      "llm_evidence_cn": "利用视频扩散先验将图像合成重新表述为连续视频生成过程",
-      "llm_evidence": "利用视频扩散先验将图像合成重新表述为连续视频生成过程",
-      "canonical_evidence": "利用视频扩散先验将图像合成重新表述为连续视频生成过程",
-      "llm_tldr_en": "ScrollScape enables ultra-high-resolution image generation by leveraging video diffusion models as spatial priors.",
-      "llm_tldr_cn": "ScrollScape通过利用视频扩散模型作为空间先验，实现了超高分辨率图像的生成。",
-      "llm_tldr": "ScrollScape通过利用视频扩散模型作为空间先验，实现了超高分辨率图像的生成。",
+      "llm_evidence_en": "video diffusion priors for high-resolution image generation",
+      "llm_evidence_cn": "用于高分辨率图像生成的视频扩散先验",
+      "llm_evidence": "用于高分辨率图像生成的视频扩散先验",
+      "canonical_evidence": "用于高分辨率图像生成的视频扩散先验",
+      "llm_tldr_en": "Uses video diffusion priors to enable ultra-high-resolution image synthesis at extreme aspect ratios.",
+      "llm_tldr_cn": "利用视频扩散先验实现极端宽高比下的超高分辨率图像合成。",
+      "llm_tldr": "利用视频扩散先验实现极端宽高比下的超高分辨率图像合成。",
       "llm_tags": [
         "query:rl-vg"
       ],
@@ -126,92 +81,6 @@
       "matched_requirement_id": "req-11",
       "selection_source": "carryover_cache",
       "paper_id": "2603.24270v2",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.23413v1",
-      "title": "I3DM: Implicit 3D-aware Memory Retrieval and Injection for Consistent Video Scene Generation",
-      "abstract": "Despite remarkable progress in video generation, maintaining long-term scene consistency upon revisiting previously explored areas remains challenging. Existing solutions rely either on explicitly constructing 3D geometry, which suffers from error accumulation and scale ambiguity, or on naive camera Field-of-View (FoV) retrieval, which typically fails under complex occlusions. To overcome these limitations, we propose I3DM, a novel implicit 3D-aware memory mechanism for consistent video scene generation that bypasses explicit 3D reconstruction. At the core of our approach is a 3D-aware memory retrieval strategy, which leverages the intermediate features of a pre-trained Feed-Forward Novel View Synthesis (FF-NVS) model to score view relevance, enabling robust retrieval even in highly occluded scenarios. Furthermore, to fully utilize the retrieved historical frames, we introduce a 3D-aligned memory injection module. This module implicitly warps historical content to the target view and adaptively conditions the generation on reliable warping regions, leading to improved revisit consistency and accurate camera control. Extensive experiments demonstrate that our method outperforms state-of-the-art approaches, achieving superior revisit consistency, generation fidelity, and camera control precision.",
-      "authors": [
-        "Jia Li",
-        "Han Yan",
-        "Yihang Chen",
-        "Siqi Li",
-        "Xibin Song",
-        "Yifu Wang",
-        "Jianfei Cai",
-        "Tien-Tsin Wong",
-        "Pan Ji"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV"
-      ],
-      "published": "2026-03-24T16:45:40+00:00",
-      "link": "https://arxiv.org/pdf/2603.23413v1",
-      "tags": [
-        "keyword:RL VG",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "implicit 3D-aware memory for consistent video scene generation",
-      "llm_evidence_cn": "用于一致性视频场景生成的隐式3D感知记忆",
-      "llm_evidence": "用于一致性视频场景生成的隐式3D感知记忆",
-      "canonical_evidence": "用于一致性视频场景生成的隐式3D感知记忆",
-      "llm_tldr_en": "I3DM proposes an implicit 3D-aware memory mechanism to maintain long-term consistency in video generation.",
-      "llm_tldr_cn": "I3DM提出了一种隐式3D感知记忆机制，以维持视频生成中的长期场景一致性。",
-      "llm_tldr": "I3DM提出了一种隐式3D感知记忆机制，以维持视频生成中的长期场景一致性。",
-      "llm_tags": [
-        "query:rl-vg"
-      ],
-      "matched_query_tag": "query:rl-vg",
-      "matched_query_text": "Generative models for high-fidelity video synthesis",
-      "matched_requirement_id": "req-11",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.23413v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.25730v1",
-      "title": "PackForcing: Short Video Training Suffices for Long Video Sampling and Long Context Inference",
-      "abstract": "Autoregressive video diffusion models have demonstrated remarkable progress, yet they remain bottlenecked by intractable linear KV-cache growth, temporal repetition, and compounding errors during long-video generation. To address these challenges, we present PackForcing, a unified framework that efficiently manages the generation history through a novel three-partition KV-cache strategy. Specifically, we categorize the historical context into three distinct types: (1) Sink tokens, which preserve early anchor frames at full resolution to maintain global semantics; (2) Mid tokens, which achieve a massive spatiotemporal compression (32x token reduction) via a dual-branch network fusing progressive 3D convolutions with low-resolution VAE re-encoding; and (3) Recent tokens, kept at full resolution to ensure local temporal coherence. To strictly bound the memory footprint without sacrificing quality, we introduce a dynamic top-$k$ context selection mechanism for the mid tokens, coupled with a continuous Temporal RoPE Adjustment that seamlessly re-aligns position gaps caused by dropped tokens with negligible overhead. Empowered by this principled hierarchical context compression, PackForcing can generate coherent 2-minute, 832x480 videos at 16 FPS on a single H200 GPU. It achieves a bounded KV cache of just 4 GB and enables a remarkable 24x temporal extrapolation (5s to 120s), operating effectively either zero-shot or trained on merely 5-second clips. Extensive results on VBench demonstrate state-of-the-art temporal consistency (26.07) and dynamic degree (56.25), proving that short-video supervision is sufficient for high-quality, long-video synthesis. https://github.com/ShandaAI/PackForcing",
-      "authors": [
-        "Xiaofeng Mao",
-        "Shaohao Rui",
-        "Kaining Ying",
-        "Bo Zheng",
-        "Chuanhao Li",
-        "Mingmin Chi",
-        "Kaipeng Zhang"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV",
-        "cs.AI"
-      ],
-      "published": "2026-03-26T17:59:05+00:00",
-      "link": "https://arxiv.org/pdf/2603.25730v1",
-      "tags": [
-        "keyword:RL DM",
-        "keyword:RL VG",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "autoregressive video diffusion models",
-      "llm_evidence_cn": "自回归视频扩散模型",
-      "llm_evidence": "自回归视频扩散模型",
-      "canonical_evidence": "自回归视频扩散模型",
-      "llm_tldr_en": "Introduces a KV-cache strategy to enable long video sampling in autoregressive diffusion models.",
-      "llm_tldr_cn": "引入一种KV缓存策略，使自回归扩散模型能够进行长视频采样。",
-      "llm_tldr": "引入一种KV缓存策略，使自回归扩散模型能够进行长视频采样。",
-      "llm_tags": [
-        "query:rl-vg"
-      ],
-      "matched_query_tag": "query:rl-vg",
-      "matched_query_text": "Generative models for high-fidelity video synthesis",
-      "matched_requirement_id": "req-11",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.25730v1",
       "carry_days": 1
     },
     {
@@ -257,7 +126,7 @@
       "matched_requirement_id": "req-3",
       "selection_source": "carryover_cache",
       "paper_id": "2603.24198v1",
-      "carry_days": 2
+      "carry_days": 3
     },
     {
       "id": "2603.23132v1",
@@ -286,13 +155,13 @@
         "query:RL VG"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "speech-to-video synthesis and interactive dynamics synthesis",
-      "llm_evidence_cn": "语音到视频合成与交互动态合成",
-      "llm_evidence": "语音到视频合成与交互动态合成",
-      "canonical_evidence": "语音到视频合成与交互动态合成",
-      "llm_tldr_en": "Proposes InterDyad for naturalistic interactive dyadic speech-to-video generation using motion priors.",
-      "llm_tldr_cn": "提出InterDyad框架，利用运动先验实现自然的人机交互语音到视频生成。",
-      "llm_tldr": "提出InterDyad框架，利用运动先验实现自然的人机交互语音到视频生成。",
+      "llm_evidence_en": "speech-to-video generation and synthesis",
+      "llm_evidence_cn": "语音到视频的生成与合成",
+      "llm_evidence": "语音到视频的生成与合成",
+      "canonical_evidence": "语音到视频的生成与合成",
+      "llm_tldr_en": "Presents InterDyad for naturalistic interactive dyadic video synthesis using motion priors and MLLMs.",
+      "llm_tldr_cn": "提出InterDyad框架，利用运动先验和多模态大模型实现自然的人机互动视频合成。",
+      "llm_tldr": "提出InterDyad框架，利用运动先验和多模态大模型实现自然的人机互动视频合成。",
       "llm_tags": [
         "query:rl-vg"
       ],
@@ -329,13 +198,13 @@
         "query:RL VG"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "photorealistic video generation and synthesis",
-      "llm_evidence_cn": "写实视频生成与合成",
-      "llm_evidence": "写实视频生成与合成",
-      "canonical_evidence": "写实视频生成与合成",
-      "llm_tldr_en": "RealMaster bridges the sim-to-real gap for photorealistic video generation with structural precision.",
-      "llm_tldr_cn": "RealMaster 通过结构精度弥合了模拟与现实之间的差距，用于生成逼真的视频。",
-      "llm_tldr": "RealMaster 通过结构精度弥合了模拟与现实之间的差距，用于生成逼真的视频。",
+      "llm_evidence_en": "lifting rendered scenes into photorealistic video using generative models",
+      "llm_evidence_cn": "利用生成模型将渲染场景提升为写实视频",
+      "llm_evidence": "利用生成模型将渲染场景提升为写实视频",
+      "canonical_evidence": "利用生成模型将渲染场景提升为写实视频",
+      "llm_tldr_en": "RealMaster bridges the sim-to-real gap in video generation by combining 3D engines with generative models.",
+      "llm_tldr_cn": "RealMaster通过结合3D引擎与生成模型，弥补了视频生成中的虚实差距。",
+      "llm_tldr": "RealMaster通过结合3D引擎与生成模型，弥补了视频生成中的虚实差距。",
       "llm_tags": [
         "query:rl-vg"
       ],
@@ -344,45 +213,6 @@
       "matched_requirement_id": "req-11",
       "selection_source": "carryover_cache",
       "paper_id": "2603.23462v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.23491v1",
-      "title": "Foveated Diffusion: Efficient Spatially Adaptive Image and Video Generation",
-      "abstract": "Diffusion and flow matching models have unlocked unprecedented capabilities for creative content creation, such as interactive image and streaming video generation. The growing demand for higher resolutions, frame rates, and context lengths, however, makes efficient generation increasingly challenging, as computational complexity grows quadratically with the number of generated tokens. Our work seeks to optimize the efficiency of the generation process in settings where the user's gaze location is known or can be estimated, for example, by using eye tracking. In these settings, we leverage the eccentricity-dependent acuity of human vision: while a user perceives very high-resolution visual information in a small region around their gaze location (the foveal region), the ability to resolve detail quickly degrades in the periphery of the visual field. Our approach starts with a mask modeling the foveated resolution to allocate tokens non-uniformly, assigning higher token density to foveal regions and lower density to peripheral regions. An image or video is generated in a mixed-resolution token setting, yielding results perceptually indistinguishable from full-resolution generation, while drastically reducing the token count and generation time. To this end, we develop a principled mechanism for constructing mixed-resolution tokens directly from high-resolution data, allowing a foveated diffusion model to be post-trained from an existing base model while maintaining content consistency across resolutions. We validate our approach through extensive analysis and a carefully designed user study, demonstrating the efficacy of foveation as a practical and scalable axis for efficient generation.",
-      "authors": [
-        "Brian Chao",
-        "Lior Yariv",
-        "Howard Xiao",
-        "Gordon Wetzstein"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV"
-      ],
-      "published": "2026-03-24T17:57:35+00:00",
-      "link": "https://arxiv.org/pdf/2603.23491v1",
-      "tags": [
-        "keyword:RL DM",
-        "keyword:RL VG",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Efficient spatially adaptive image and video generation using diffusion models",
-      "llm_evidence_cn": "使用扩散模型进行高效的空间自适应图像和视频生成",
-      "llm_evidence": "使用扩散模型进行高效的空间自适应图像和视频生成",
-      "canonical_evidence": "使用扩散模型进行高效的空间自适应图像和视频生成",
-      "llm_tldr_en": "Optimizes diffusion model efficiency for high-resolution video synthesis using foveated vision principles.",
-      "llm_tldr_cn": "利用人眼视觉特性优化扩散模型，实现高效的高分辨率图像和视频生成。",
-      "llm_tldr": "利用人眼视觉特性优化扩散模型，实现高效的高分辨率图像和视频生成。",
-      "llm_tags": [
-        "query:rl-vg"
-      ],
-      "matched_query_tag": "query:rl-vg",
-      "matched_query_text": "Generative models for high-fidelity video synthesis",
-      "matched_requirement_id": "req-11",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.23491v1",
       "carry_days": 1
     },
     {
@@ -410,9 +240,9 @@
       "llm_evidence_cn": "扩散模型中去噪分数匹配的理论行为",
       "llm_evidence": "扩散模型中去噪分数匹配的理论行为",
       "canonical_evidence": "扩散模型中去噪分数匹配的理论行为",
-      "llm_tldr_en": "Analyzes the sample complexity and learning curves of diffusion models on low-dimensional manifolds.",
-      "llm_tldr_cn": "分析了低维流形上扩散模型的样本复杂度和学习曲线等理论特性。",
-      "llm_tldr": "分析了低维流形上扩散模型的样本复杂度和学习曲线等理论特性。",
+      "llm_tldr_en": "Analyzes learning curves of diffusion models on manifold data using random feature neural networks.",
+      "llm_tldr_cn": "研究了扩散模型在流形数据上使用随机特征神经网络时的渐近学习曲线。",
+      "llm_tldr": "研究了扩散模型在流形数据上使用随机特征神经网络时的渐近学习曲线。",
       "llm_tags": [
         "query:rl-dm"
       ],
@@ -421,50 +251,6 @@
       "matched_requirement_id": "req-2",
       "selection_source": "carryover_cache",
       "paper_id": "2603.22962v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.25734v1",
-      "title": "Unleashing Guidance Without Classifiers for Human-Object Interaction Animation",
-      "abstract": "Generating realistic human-object interaction (HOI) animations remains challenging because it requires jointly modeling dynamic human actions and diverse object geometries. Prior diffusion-based approaches often rely on hand-crafted contact priors or human-imposed kinematic constraints to improve contact quality. We propose LIGHT, a data-driven alternative in which guidance emerges from the denoising pace itself, reducing dependence on manually designed priors. Building on diffusion forcing, we factor the representation into modality-specific components and assign individualized noise levels with asynchronous denoising schedules. In this paradigm, cleaner components guide noisier ones through cross-attention, yielding guidance without auxiliary classifiers. We find that this data-driven guidance is inherently contact-aware, and can be enhanced when training is augmented with a broad spectrum of synthetic object geometries, encouraging invariance of contact semantics to geometric diversity. Extensive experiments show that pace-induced guidance more effectively mirrors the benefits of contact priors than conventional classifier-free guidance, while achieving higher contact fidelity, more realistic HOI generation, and stronger generalization to unseen objects and tasks.",
-      "authors": [
-        "Ziyin Wang",
-        "Sirui Xu",
-        "Chuan Guo",
-        "Bing Zhou",
-        "Jiangshan Gong",
-        "Jian Wang",
-        "Yu-Xiong Wang",
-        "Liang-Yan Gui"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV"
-      ],
-      "published": "2026-03-26T17:59:34+00:00",
-      "link": "https://arxiv.org/pdf/2603.25734v1",
-      "tags": [
-        "keyword:RL DM",
-        "keyword:RL VG",
-        "query:RL DM",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "guidance without classifiers for diffusion-based animation generation",
-      "llm_evidence_cn": "基于扩散的动画生成中的无分类器引导",
-      "llm_evidence": "基于扩散的动画生成中的无分类器引导",
-      "canonical_evidence": "基于扩散的动画生成中的无分类器引导",
-      "llm_tldr_en": "Proposes a classifier-free guidance method for human-object interaction animation using asynchronous denoising.",
-      "llm_tldr_cn": "提出一种无分类器引导方法，通过异步去噪调度生成逼真的人机交互动画。",
-      "llm_tldr": "提出一种无分类器引导方法，通过异步去噪调度生成逼真的人机交互动画。",
-      "llm_tags": [
-        "query:rl-dm"
-      ],
-      "matched_query_tag": "query:rl-dm",
-      "matched_query_text": "classifier-guided and classifier-free diffusion for RL",
-      "matched_requirement_id": "req-3",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.25734v1",
       "carry_days": 1
     },
     {
@@ -488,55 +274,13 @@
         "query:RL VG"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "diagnosing concept erasure in text-to-video diffusion models",
-      "llm_evidence_cn": "诊断文本到视频扩散模型中的概念擦除",
-      "llm_evidence": "诊断文本到视频扩散模型中的概念擦除",
-      "canonical_evidence": "诊断文本到视频扩散模型中的概念擦除",
-      "llm_tldr_en": "Proposes a diagnostic protocol to evaluate the reactivation potential of erased concepts in video diffusion models.",
-      "llm_tldr_cn": "提出了一种诊断协议，用于评估视频扩散模型中已擦除概念的重新激活潜力。",
-      "llm_tldr": "提出了一种诊断协议，用于评估视频扩散模型中已擦除概念的重新激活潜力。",
-      "llm_tags": [
-        "query:rl-vg"
-      ],
-      "matched_query_tag": "query:rl-vg",
-      "matched_query_text": "Deep learning models for video generation and synthesis",
-      "matched_requirement_id": "req-9",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.21547v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.22606v1",
-      "title": "TrajLoom: Dense Future Trajectory Generation from Video",
-      "abstract": "Predicting future motion is crucial in video understanding and controllable video generation. Dense point trajectories are a compact, expressive motion representation, but modeling their future evolution from observed video remains challenging. We propose a framework that predicts future trajectories and visibility from past trajectories and video context. Our method has three components: (1) Grid-Anchor Offset Encoding, which reduces location-dependent bias by representing each point as an offset from its pixel-center anchor; (2) TrajLoom-VAE, which learns a compact spatiotemporal latent space for dense trajectories with masked reconstruction and a spatiotemporal consistency regularizer; and (3) TrajLoom-Flow, which generates future trajectories in latent space via flow matching, with boundary cues and on-policy K-step fine-tuning for stable sampling. We also introduce TrajLoomBench, a unified benchmark spanning real and synthetic videos with a standardized setup aligned with video-generation benchmarks. Compared with state-of-the-art methods, our approach extends the prediction horizon from 24 to 81 frames while improving motion realism and stability across datasets. The predicted trajectories directly support downstream video generation and editing. Code, model checkpoints, and datasets are available at https://trajloom.github.io/.",
-      "authors": [
-        "Zewei Zhang",
-        "Jia Jun Cheng Xian",
-        "Kaiwen Liu",
-        "Ming Liang",
-        "Hang Chu",
-        "Jun Chen",
-        "Renjie Liao"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV"
-      ],
-      "published": "2026-03-23T22:10:58+00:00",
-      "link": "https://arxiv.org/pdf/2603.22606v1",
-      "tags": [
-        "keyword:RL DM",
-        "keyword:RL VG",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "dense future trajectory generation for controllable video generation",
-      "llm_evidence_cn": "用于可控视频生成的密集未来轨迹生成",
-      "llm_evidence": "用于可控视频生成的密集未来轨迹生成",
-      "canonical_evidence": "用于可控视频生成的密集未来轨迹生成",
-      "llm_tldr_en": "Proposes TrajLoom for predicting dense point trajectories to enhance controllable video generation.",
-      "llm_tldr_cn": "提出了 TrajLoom，通过预测密集点轨迹来增强可控视频生成。",
-      "llm_tldr": "提出了 TrajLoom，通过预测密集点轨迹来增强可控视频生成。",
+      "llm_evidence_en": "diagnosing concept capacity in text-to-video diffusion models",
+      "llm_evidence_cn": "诊断文本到视频扩散模型中的概念容量",
+      "llm_evidence": "诊断文本到视频扩散模型中的概念容量",
+      "canonical_evidence": "诊断文本到视频扩散模型中的概念容量",
+      "llm_tldr_en": "Introduces PROBE to evaluate the reactivation potential of erased concepts in text-to-video diffusion models.",
+      "llm_tldr_cn": "引入PROBE来评估文本到视频扩散模型中已擦除概念的重新激活潜力。",
+      "llm_tldr": "引入PROBE来评估文本到视频扩散模型中已擦除概念的重新激活潜力。",
       "llm_tags": [
         "query:rl-vg"
       ],
@@ -544,7 +288,7 @@
       "matched_query_text": "Generative models for high-fidelity video synthesis",
       "matched_requirement_id": "req-11",
       "selection_source": "carryover_cache",
-      "paper_id": "2603.22606v1",
+      "paper_id": "2603.21547v1",
       "carry_days": 1
     },
     {
@@ -573,64 +317,21 @@
         "query:RL VG"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "multi-view video-to-video transfer for embodied agents",
-      "llm_evidence_cn": "具身智能体的多视图视频到视频转换",
-      "llm_evidence": "具身智能体的多视图视频到视频转换",
-      "canonical_evidence": "具身智能体的多视图视频到视频转换",
-      "llm_tldr_en": "Presents VideoWeaver, a multi-view V2V framework for realistic resimulation of embodied AI tasks.",
-      "llm_tldr_cn": "提出 VideoWeaver，一个用于具身智能任务真实重采样的多视图视频转换框架。",
-      "llm_tldr": "提出 VideoWeaver，一个用于具身智能任务真实重采样的多视图视频转换框架。",
+      "llm_evidence_en": "video-to-video transfer for embodied agent policy learning",
+      "llm_evidence_cn": "用于具身智能体策略学习的视频到视频转换",
+      "llm_evidence": "用于具身智能体策略学习的视频到视频转换",
+      "canonical_evidence": "用于具身智能体策略学习的视频到视频转换",
+      "llm_tldr_en": "Introduces VideoWeaver for multi-view video translation to support embodied AI policy learning.",
+      "llm_tldr_cn": "推出VideoWeaver，通过多视角视频转换支持具身智能AI的策略学习。",
+      "llm_tldr": "推出VideoWeaver，通过多视角视频转换支持具身智能AI的策略学习。",
       "llm_tags": [
-        "query:rl-vg"
+        "query:rl-vg:composite"
       ],
-      "matched_query_tag": "query:rl-vg",
-      "matched_query_text": "Deep learning models for video generation and synthesis",
-      "matched_requirement_id": "req-9",
+      "matched_query_tag": "query:rl-vg:composite",
+      "matched_query_text": "Papers central to 查找强化学习与视频生成相关的学术论文, especially work that connects or combines: Reinforcement learning techniques for video generation; Deep learning models for video generation and synthesis; Text-to-video generation using reinforcement learning; Generative models for high-fidelity video synthesis; State of the art reinforcement learning methods for video generation; Optimizing video diffusion models using reward based learning; Improving video temporal coherence with reinforcement learning policies.",
+      "matched_requirement_id": "req-composite-rl-vg",
       "selection_source": "carryover_cache",
       "paper_id": "2603.25420v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.21299v1",
-      "title": "Identity-Consistent Video Generation under Large Facial-Angle Variations",
-      "abstract": "Single-view reference-to-video methods often struggle to preserve identity consistency under large facial-angle variations. This limitation naturally motivates the incorporation of multi-view facial references. However, simply introducing additional reference images exacerbates the \\textit{copy-paste} problem, particularly the \\textbf{\\textit{view-dependent copy-paste}} artifact, which reduces facial motion naturalness. Although cross-paired data can alleviate this issue, collecting such data is costly. To balance the consistency and naturalness, we propose $\\mathrm{Mv}^2\\mathrm{ID}$, a multi-view conditioned framework under in-paired supervision. We introduce a region-masking training strategy to prevent shortcut learning and extract essential identity features by encouraging the model to aggregate complementary identity cues across views. In addition, we design a reference decoupled-RoPE mechanism that assigns distinct positional encoding to video and conditioning tokens for better modeling of their heterogeneous properties. Furthermore, we construct a large-scale dataset with diverse facial-angle variations and propose dedicated evaluation metrics for identity consistency and motion naturalness. Extensive experiments demonstrate that our method significantly improves identity consistency while maintaining motion naturalness, outperforming existing approaches trained with cross-paired data.",
-      "authors": [
-        "Bin Hu",
-        "Zipeng Qi",
-        "Guoxi Huang",
-        "Zunnan Xu",
-        "Ruicheng Zhang",
-        "Chongjie Ye",
-        "Jun Zhou",
-        "Xiu Li",
-        "Jingdong Wang"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV"
-      ],
-      "published": "2026-03-22T15:54:16+00:00",
-      "link": "https://arxiv.org/pdf/2603.21299v1",
-      "tags": [
-        "keyword:RL VG",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Identity-consistent video generation framework",
-      "llm_evidence_cn": "身份一致性视频生成框架",
-      "llm_evidence": "身份一致性视频生成框架",
-      "canonical_evidence": "身份一致性视频生成框架",
-      "llm_tldr_en": "Proposes a multi-view conditioned framework to maintain identity consistency in video generation.",
-      "llm_tldr_cn": "提出了一种多视图条件框架，以在视频生成中保持身份一致性。",
-      "llm_tldr": "提出了一种多视图条件框架，以在视频生成中保持身份一致性。",
-      "llm_tags": [
-        "query:rl-vg"
-      ],
-      "matched_query_tag": "query:rl-vg",
-      "matched_query_text": "Deep learning models for video generation and synthesis",
-      "matched_requirement_id": "req-9",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.21299v1",
       "carry_days": 1
     },
     {
@@ -656,13 +357,13 @@
         "query:RL VG"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "Object motion editing and synthesis in videos",
-      "llm_evidence_cn": "视频中的物体运动编辑与合成",
-      "llm_evidence": "视频中的物体运动编辑与合成",
-      "canonical_evidence": "视频中的物体运动编辑与合成",
-      "llm_tldr_en": "Enables controllable object-centric motion editing in videos using first-frame trajectory guidance.",
-      "llm_tldr_cn": "利用首帧轨迹引导实现视频中可控的以物体为中心的运动编辑。",
-      "llm_tldr": "利用首帧轨迹引导实现视频中可控的以物体为中心的运动编辑。",
+      "llm_evidence_en": "controllable object-centric motion editing in videos",
+      "llm_evidence_cn": "视频中可控的以对象为中心的运动编辑",
+      "llm_evidence": "视频中可控的以对象为中心的运动编辑",
+      "canonical_evidence": "视频中可控的以对象为中心的运动编辑",
+      "llm_tldr_en": "TRACE enables precise object motion editing in videos using first-frame trajectory guidance.",
+      "llm_tldr_cn": "TRACE 通过首帧轨迹引导，实现了视频中精确的可控对象运动编辑。",
+      "llm_tldr": "TRACE 通过首帧轨迹引导，实现了视频中精确的可控对象运动编辑。",
       "llm_tags": [
         "query:rl-vg"
       ],
@@ -696,142 +397,21 @@
         "query:RL VG"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "reinforcement learning for aligning generative models with rewards",
-      "llm_evidence_cn": "使用强化学习对生成模型进行奖励对齐",
-      "llm_evidence": "使用强化学习对生成模型进行奖励对齐",
-      "canonical_evidence": "使用强化学习对生成模型进行奖励对齐",
-      "llm_tldr_en": "Uses RL to optimize autoregressive image models for quality and diversity using distribution-level rewards.",
-      "llm_tldr_cn": "利用强化学习和分布级奖励优化自回归图像生成的质量与多样性。",
-      "llm_tldr": "利用强化学习和分布级奖励优化自回归图像生成的质量与多样性。",
+      "llm_evidence_en": "RL for aligning generative models with rewards",
+      "llm_evidence_cn": "利用强化学习对齐生成模型与奖励",
+      "llm_evidence": "利用强化学习对齐生成模型与奖励",
+      "canonical_evidence": "利用强化学习对齐生成模型与奖励",
+      "llm_tldr_en": "Proposes a lightweight RL framework using GRPO to tune autoregressive image models with distribution rewards.",
+      "llm_tldr_cn": "提出轻量级强化学习框架，利用GRPO算法通过分布级奖励优化自回归图像生成。",
+      "llm_tldr": "提出轻量级强化学习框架，利用GRPO算法通过分布级奖励优化自回归图像生成。",
       "llm_tags": [
-        "query:rl-vg"
+        "query:rl-dm:composite"
       ],
-      "matched_query_tag": "query:rl-vg",
-      "matched_query_text": "Optimizing video diffusion models using reward based learning",
-      "matched_requirement_id": "req-13",
+      "matched_query_tag": "query:rl-dm:composite",
+      "matched_query_text": "Papers central to 强化学习与扩散模型相关的学术论文检索, especially work that connects or combines: reinforcement learning algorithms and frameworks; generative diffusion models and denoising processes; classifier-guided and classifier-free diffusion for RL; generative models for decision making and planning; advancements in reinforcement learning using diffusion models; diffusion models for offline reinforcement learning and policy optimization; integrating generative diffusion processes into decision making agents.",
+      "matched_requirement_id": "req-composite-rl-dm",
       "selection_source": "carryover_cache",
       "paper_id": "2603.23086v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.24938v1",
-      "title": "Infinite Gaze Generation for Videos with Autoregressive Diffusion",
-      "abstract": "Predicting human gaze in video is fundamental to advancing scene understanding and multimodal interaction. While traditional saliency maps provide spatial probability distributions and scanpaths offer ordered fixations, both abstractions often collapse the fine-grained temporal dynamics of raw gaze. Furthermore, existing models are typically constrained to short-term windows ($\\approx$ 3-5s), failing to capture the long-range behavioral dependencies inherent in real-world content. We present a generative framework for infinite-horizon raw gaze prediction in videos of arbitrary length. By leveraging an autoregressive diffusion model, we synthesize gaze trajectories characterized by continuous spatial coordinates and high-resolution timestamps. Our model is conditioned on a saliency-aware visual latent space. Quantitative and qualitative evaluations demonstrate that our approach significantly outperforms existing approaches in long-range spatio-temporal accuracy and trajectory realism.",
-      "authors": [
-        "Jenna Kang",
-        "Colin Groth",
-        "Tong Wu",
-        "Finley Torrens",
-        "Patsorn Sangkloy",
-        "Gordon Wetzstein",
-        "Qi Sun"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV"
-      ],
-      "published": "2026-03-26T02:02:08+00:00",
-      "link": "https://arxiv.org/pdf/2603.24938v1",
-      "tags": [
-        "keyword:RL DM",
-        "keyword:RL VG",
-        "query:RL DM",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "autoregressive diffusion model for video-based gaze generation",
-      "llm_evidence_cn": "用于视频注视点生成的自回归扩散模型",
-      "llm_evidence": "用于视频注视点生成的自回归扩散模型",
-      "canonical_evidence": "用于视频注视点生成的自回归扩散模型",
-      "llm_tldr_en": "Uses autoregressive diffusion to generate long-term human gaze trajectories in videos.",
-      "llm_tldr_cn": "利用自回归扩散模型在视频中生成长期的原始人类注视轨迹。",
-      "llm_tldr": "利用自回归扩散模型在视频中生成长期的原始人类注视轨迹。",
-      "llm_tags": [
-        "query:rl-vg"
-      ],
-      "matched_query_tag": "query:rl-vg",
-      "matched_query_text": "Deep learning models for video generation and synthesis",
-      "matched_requirement_id": "req-9",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.24938v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.21291v1",
-      "title": "Closed-form conditional diffusion models for data assimilation",
-      "abstract": "We propose closed-form conditional diffusion models for data assimilation. Diffusion models use data to learn the score function (defined as the gradient of the log-probability density of a data distribution), allowing them to generate new samples from the data distribution by reversing a noise injection process. While it is common to train neural networks to approximate the score function, we leverage the analytical tractability of the score function to assimilate the states of a system with measurements. To enable the efficient evaluation of the score function, we use kernel density estimation to model the joint distribution of the states and their corresponding measurements. The proposed approach also inherits the capability of conditional diffusion models of operating in black-box settings, i.e., the proposed data assimilation approach can accommodate systems and measurement processes without their explicit knowledge. The ability to accommodate black-box systems combined with the superior capabilities of diffusion models in approximating complex, non-Gaussian probability distributions means that the proposed approach offers advantages over many widely used filtering methods. We evaluate the proposed method on nonlinear data assimilation problems based on the Lorenz-63 and Lorenz-96 systems of moderate dimensionality and nonlinear measurement models. Results show the proposed approach outperforms the widely used ensemble Kalman and particle filters when small to moderate ensemble sizes are used.",
-      "authors": [
-        "Brianna Binder",
-        "Assad Oberai"
-      ],
-      "primary_category": "stat.ML",
-      "categories": [
-        "stat.ML",
-        "cs.LG",
-        "physics.comp-ph"
-      ],
-      "published": "2026-03-22T15:25:23+00:00",
-      "link": "https://arxiv.org/pdf/2603.21291v1",
-      "tags": [
-        "keyword:RL DM",
-        "query:RL DM",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "closed-form conditional diffusion models and score function",
-      "llm_evidence_cn": "闭式条件扩散模型与评分函数",
-      "llm_evidence": "闭式条件扩散模型与评分函数",
-      "canonical_evidence": "闭式条件扩散模型与评分函数",
-      "llm_tldr_en": "Develops closed-form conditional diffusion models for efficient data assimilation and state estimation.",
-      "llm_tldr_cn": "开发闭式条件扩散模型，用于高效的数据同化和状态估计。",
-      "llm_tldr": "开发闭式条件扩散模型，用于高效的数据同化和状态估计。",
-      "llm_tags": [
-        "query:rl-dm"
-      ],
-      "matched_query_tag": "query:rl-dm",
-      "matched_query_text": "generative diffusion models and denoising processes",
-      "matched_requirement_id": "req-2",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.21291v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.21177v1",
-      "title": "Prompt replay: speeding up grpo with on-policy reuse of high-signal prompts",
-      "abstract": "Reinforcement learning with verifiable rewards (RLVR) plays a crucial role in expanding the capacities of LLM reasoning, but GRPO-style training is dominated by expensive rollouts and wastes compute on unusable prompts. We propose Prompt Replay, an overhead-free online data selection method for GRPO that reuses prompts only (not trajectories), to preserve on-policy optimization. After each step, we insert prompts with medium difficulty into a buffer, and prioritize prompts closer to a pass rate of 0.5 (half answers correct, half wrong) to maximize the advantage, thus learning signal. Training batches are formed by mixing reused prompts with fresh samples, with cooldown steps and max reuse times controlling aggressiveness vs risk of overfitting. Across multiple model families (Llama-3.2- 3B, Qwen3-8B) and training datasets (Dolci, Polaris), evaluated using average accuracy on six standard math benchmarks, Prompt Replay reduces zero-variance prompts, increases mean absolute advantage and shows faster initial accuracy gains. Yet, it plateaus and converges with the baseline, as too aggressive configuration was used. The method is most efficient when the rollouts are the primary bottleneck and the dataset is difficult for the model. We additionally observe that Qwen2.5-Math can exhibit spurious-reward effects that invalidates ablations, raising a warning signal for using it as a sole testbed for GRPO method research.",
-      "authors": [
-        "Andrei Baroian",
-        "Rutger Berger"
-      ],
-      "primary_category": "cs.LG",
-      "categories": [
-        "cs.LG",
-        "cs.AI"
-      ],
-      "published": "2026-03-22T11:39:51+00:00",
-      "link": "https://arxiv.org/pdf/2603.21177v1",
-      "tags": [
-        "keyword:RL DM",
-        "keyword:RL VG",
-        "query:RL DM",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Reinforcement learning with verifiable rewards and GRPO training",
-      "llm_evidence_cn": "具有可验证奖励的强化学习与GRPO训练",
-      "llm_evidence": "具有可验证奖励的强化学习与GRPO训练",
-      "canonical_evidence": "具有可验证奖励的强化学习与GRPO训练",
-      "llm_tldr_en": "Proposes Prompt Replay to speed up GRPO reinforcement learning by reusing high-signal prompts.",
-      "llm_tldr_cn": "提出Prompt Replay方法，通过重用高信号提示词加速GRPO强化学习训练。",
-      "llm_tldr": "提出Prompt Replay方法，通过重用高信号提示词加速GRPO强化学习训练。",
-      "llm_tags": [
-        "query:rl-dm"
-      ],
-      "matched_query_tag": "query:rl-dm",
-      "matched_query_text": "reinforcement learning algorithms and frameworks",
-      "matched_requirement_id": "req-1",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.21177v1",
       "carry_days": 1
     },
     {
@@ -866,19 +446,19 @@
         "query:RL VG"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "Verbal reinforcement learning for task-level robotic planning",
-      "llm_evidence_cn": "用于任务级机器人规划的语言强化学习",
-      "llm_evidence": "用于任务级机器人规划的语言强化学习",
-      "canonical_evidence": "用于任务级机器人规划的语言强化学习",
-      "llm_tldr_en": "A VRL framework using LLMs and VLMs for iterative policy improvement in robotic task planning.",
-      "llm_tldr_cn": "一种利用大模型进行闭环反馈的语言强化学习框架，用于机器人任务规划。",
-      "llm_tldr": "一种利用大模型进行闭环反馈的语言强化学习框架，用于机器人任务规划。",
+      "llm_evidence_en": "Verbal Reinforcement Learning framework for robotic planning",
+      "llm_evidence_cn": "用于机器人规划的口头强化学习框架",
+      "llm_evidence": "用于机器人规划的口头强化学习框架",
+      "canonical_evidence": "用于机器人规划的口头强化学习框架",
+      "llm_tldr_en": "Proposes a Verbal RL framework using LLMs and VLMs for interpretable robotic task-level planning.",
+      "llm_tldr_cn": "提出一种利用大语言模型和视觉语言模型进行可解释机器人任务级规划的口头强化学习框架。",
+      "llm_tldr": "提出一种利用大语言模型和视觉语言模型进行可解释机器人任务级规划的口头强化学习框架。",
       "llm_tags": [
         "query:rl-dm"
       ],
       "matched_query_tag": "query:rl-dm",
-      "matched_query_text": "generative models for decision making and planning",
-      "matched_requirement_id": "req-4",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
       "selection_source": "carryover_cache",
       "paper_id": "2603.22169v1",
       "carry_days": 1
@@ -904,13 +484,13 @@
         "query:RL VG"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "Multi-step denoising process optimization in diffusion models",
-      "llm_evidence_cn": "扩散模型多步去噪过程优化",
-      "llm_evidence": "扩散模型多步去噪过程优化",
-      "canonical_evidence": "扩散模型多步去噪过程优化",
-      "llm_tldr_en": "Optimizes diffusion model efficiency using coarse-to-fine denoising and time step redistribution.",
-      "llm_tldr_cn": "通过由粗到精的去噪和时间步重分布优化扩散模型的推理效率。",
-      "llm_tldr": "通过由粗到精的去噪和时间步重分布优化扩散模型的推理效率。",
+      "llm_evidence_en": "Efficient diffusion models with time step sequence redistribution",
+      "llm_evidence_cn": "具有时间步序列重分布的高效扩散模型",
+      "llm_evidence": "具有时间步序列重分布的高效扩散模型",
+      "canonical_evidence": "具有时间步序列重分布的高效扩散模型",
+      "llm_tldr_en": "Proposes a coarse-to-fine denoising strategy to reduce computational overhead in diffusion model generation.",
+      "llm_tldr_cn": "提出一种由粗到精的去噪策略，以减少扩散模型生成过程中的计算开销。",
+      "llm_tldr": "提出一种由粗到精的去噪策略，以减少扩散模型生成过程中的计算开销。",
       "llm_tags": [
         "query:rl-dm"
       ],
@@ -919,247 +499,6 @@
       "matched_requirement_id": "req-2",
       "selection_source": "carryover_cache",
       "paper_id": "2603.21348v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.23889v1",
-      "title": "Off-Policy Safe Reinforcement Learning with Constrained Optimistic Exploration",
-      "abstract": "When safety is formulated as a limit of cumulative cost, safe reinforcement learning (RL) aims to learn policies that maximize return subject to the cost constraint in data collection and deployment. Off-policy safe RL methods, although offering high sample efficiency, suffer from constraint violations due to cost-agnostic exploration and estimation bias in cumulative cost. To address this issue, we propose Constrained Optimistic eXploration Q-learning (COX-Q), an off-policy safe RL algorithm that integrates cost-bounded online exploration and conservative offline distributional value learning. First, we introduce a novel cost-constrained optimistic exploration strategy that resolves gradient conflicts between reward and cost in the action space and adaptively adjusts the trust region to control the training cost. Second, we adopt truncated quantile critics to stabilize the cost value learning. Quantile critics also quantify epistemic uncertainty to guide exploration. Experiments on safe velocity, safe navigation, and autonomous driving tasks demonstrate that COX-Q achieves high sample efficiency, competitive test safety performance, and controlled data collection cost. The results highlight COX-Q as a promising RL method for safety-critical applications.",
-      "authors": [
-        "Guopeng Li",
-        "Matthijs T. J. Spaan",
-        "Julian F. P. Kooij"
-      ],
-      "primary_category": "cs.LG",
-      "categories": [
-        "cs.LG",
-        "cs.RO"
-      ],
-      "published": "2026-03-25T03:27:37+00:00",
-      "link": "https://arxiv.org/pdf/2603.23889v1",
-      "tags": [
-        "keyword:RL DM",
-        "keyword:RL VG",
-        "query:RL DM",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "off-policy safe RL and offline value learning",
-      "llm_evidence_cn": "离策安全强化学习与离线价值学习",
-      "llm_evidence": "离策安全强化学习与离线价值学习",
-      "canonical_evidence": "离策安全强化学习与离线价值学习",
-      "llm_tldr_en": "Proposes a safe RL algorithm integrating optimistic exploration and conservative offline learning.",
-      "llm_tldr_cn": "提出一种结合乐观探索与保守离线学习的安全强化学习算法。",
-      "llm_tldr": "提出一种结合乐观探索与保守离线学习的安全强化学习算法。",
-      "llm_tags": [
-        "query:rl-dm"
-      ],
-      "matched_query_tag": "query:rl-dm",
-      "matched_query_text": "diffusion models for offline reinforcement learning and policy optimization",
-      "matched_requirement_id": "req-6",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.23889v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.24541v1",
-      "title": "SEGAR: Selective Enhancement for Generative Augmented Reality",
-      "abstract": "Generative world models offer a compelling foundation for augmented-reality (AR) applications: by predicting future image sequences that incorporate deliberate visual edits, they enable temporally coherent, augmented future frames that can be computed ahead of time and cached, avoiding per-frame rendering from scratch in real time. In this work, we present SEGAR, a preliminary framework that combines a diffusion-based world model with a selective correction stage to support this vision. The world model generates augmented future frames with region-specific edits while preserving others, and the correction stage subsequently aligns safety-critical regions with real-world observations while preserving intended augmentations elsewhere. We demonstrate this pipeline in driving scenarios as a representative setting where semantic region structure is well defined and real-world feedback is readily available. We view this as an early step toward generative world models as practical AR infrastructure, where future frames can be generated, cached, and selectively corrected on demand.",
-      "authors": [
-        "Fanjun Bu",
-        "Chenyang Yuan",
-        "Hiroshi Yasuda"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV",
-        "cs.AI"
-      ],
-      "published": "2026-03-25T17:15:45+00:00",
-      "link": "https://arxiv.org/pdf/2603.24541v1",
-      "tags": [
-        "keyword:RL DM",
-        "keyword:RL VG",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Diffusion-based world model for generating future image sequences",
-      "llm_evidence_cn": "基于扩散模型的世界模型，用于生成未来图像序列",
-      "llm_evidence": "基于扩散模型的世界模型，用于生成未来图像序列",
-      "canonical_evidence": "基于扩散模型的世界模型，用于生成未来图像序列",
-      "llm_tldr_en": "Combines diffusion world models with selective correction for generative augmented reality.",
-      "llm_tldr_cn": "将扩散世界模型与选择性修正相结合，用于生成式增强现实任务。",
-      "llm_tldr": "将扩散世界模型与选择性修正相结合，用于生成式增强现实任务。",
-      "llm_tags": [
-        "query:rl-dm"
-      ],
-      "matched_query_tag": "query:rl-dm",
-      "matched_query_text": "generative models for decision making and planning",
-      "matched_requirement_id": "req-4",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.24541v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.24495v1",
-      "title": "Reflected diffusion models adapt to low-dimensional data",
-      "abstract": "While the mathematical foundations of score-based generative models are increasingly well understood for unconstrained Euclidean spaces, many practical applications involve data restricted to bounded domains. This paper provides a statistical analysis of reflected diffusion models on the hypercube $[0,1]^D$ for target distributions supported on $d$-dimensional linear subspaces. A primary challenge in this setting is the absence of Gaussian transition kernels, which play a central role in standard theory in $\\mathbb{R}^D$. By employing an easily implementable infinite series expansion of the transition densities, we develop analytic tools to bound the score function and its approximation by sparse ReLU networks. For target densities with Sobolev smoothness $α$, we establish a convergence rate in the $1$-Wasserstein distance of order $n^{-\\frac{α+1-δ}{2α+d}}$ for arbitrarily small $δ> 0$, demonstrating that the generative algorithm fully adapts to the intrinsic dimension $d$. These results confirm that the presence of reflecting boundaries does not degrade the fundamental statistical efficiency of the diffusion paradigm, matching the almost optimal rates known for unconstrained settings.",
-      "authors": [
-        "Asbjørn Holk",
-        "Claudia Strauch",
-        "Lukas Trottner"
-      ],
-      "primary_category": "math.ST",
-      "categories": [
-        "math.ST",
-        "stat.ML"
-      ],
-      "published": "2026-03-25T16:37:33+00:00",
-      "link": "https://arxiv.org/pdf/2603.24495v1",
-      "tags": [
-        "keyword:RL DM",
-        "query:RL DM",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Statistical analysis of reflected diffusion models on bounded domains",
-      "llm_evidence_cn": "有界域上反射扩散模型的统计分析",
-      "llm_evidence": "有界域上反射扩散模型的统计分析",
-      "canonical_evidence": "有界域上反射扩散模型的统计分析",
-      "llm_tldr_en": "Provides theoretical analysis of reflected diffusion models for data on bounded manifolds.",
-      "llm_tldr_cn": "对有界域上的反射扩散模型进行了统计分析和理论证明。",
-      "llm_tldr": "对有界域上的反射扩散模型进行了统计分析和理论证明。",
-      "llm_tags": [
-        "query:rl-dm"
-      ],
-      "matched_query_tag": "query:rl-dm",
-      "matched_query_text": "generative diffusion models and denoising processes",
-      "matched_requirement_id": "req-2",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.24495v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.22492v1",
-      "title": "Tiny Inference-Time Scaling with Latent Verifiers",
-      "abstract": "Inference-time scaling has emerged as an effective way to improve generative models at test time by using a verifier to score and select candidate outputs. A common choice is to employ Multimodal Large Language Models (MLLMs) as verifiers, which can improve performance but introduce substantial inference-time cost. Indeed, diffusion pipelines operate in an autoencoder latent space to reduce computation, yet MLLM verifiers still require decoding candidates to pixel space and re-encoding them into the visual embedding space, leading to redundant and costly operations. In this work, we propose Verifier on Hidden States (VHS), a verifier that operates directly on intermediate hidden representations of Diffusion Transformer (DiT) single-step generators. VHS analyzes generator features without decoding to pixel space, thereby reducing the per-candidate verification cost while improving or matching the performance of MLLM-based competitors. We show that, under tiny inference budgets with only a small number of candidates per prompt, VHS enables more efficient inference-time scaling reducing joint generation-and-verification time by 63.3%, compute FLOPs by 51% and VRAM usage by 14.5% with respect to a standard MLLM verifier, achieving a +2.7% improvement on GenEval at the same inference-time budget.",
-      "authors": [
-        "Davide Bucciarelli",
-        "Evelyn Turri",
-        "Lorenzo Baraldi",
-        "Marcella Cornia",
-        "Lorenzo Baraldi",
-        "Rita Cucchiara"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV",
-        "cs.AI",
-        "cs.MM"
-      ],
-      "published": "2026-03-23T19:00:02+00:00",
-      "link": "https://arxiv.org/pdf/2603.22492v1",
-      "tags": [
-        "keyword:RL DM",
-        "keyword:RL VG",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Verifier for intermediate hidden representations of Diffusion Transformer",
-      "llm_evidence_cn": "针对扩散Transformer中间隐藏表示的验证器",
-      "llm_evidence": "针对扩散Transformer中间隐藏表示的验证器",
-      "canonical_evidence": "针对扩散Transformer中间隐藏表示的验证器",
-      "llm_tldr_en": "Improves diffusion model inference by scaling with latent verifiers on hidden states.",
-      "llm_tldr_cn": "通过在隐藏状态上使用潜空间验证器进行推理侧缩放，优化扩散模型的生成质量。",
-      "llm_tldr": "通过在隐藏状态上使用潜空间验证器进行推理侧缩放，优化扩散模型的生成质量。",
-      "llm_tags": [
-        "query:rl-dm"
-      ],
-      "matched_query_tag": "query:rl-dm",
-      "matched_query_text": "generative diffusion models and denoising processes",
-      "matched_requirement_id": "req-2",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.22492v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.21810v1",
-      "title": "Partial Attention in Deep Reinforcement Learning for Safe Multi-Agent Control",
-      "abstract": "Attention mechanisms excel at learning sequential patterns by discriminating data based on relevance and importance. This provides state-of-the-art performance in advanced generative artificial intelligence models. This paper applies this concept of an attention mechanism for multi-agent safe control. We specifically consider the design of a neural network to control autonomous vehicles in a highway merging scenario. The environment is modeled as a Decentralized Partially Observable Markov Decision Process (Dec-POMDP). Within a QMIX framework, we include partial attention for each autonomous vehicle, thus allowing each ego vehicle to focus on the most relevant neighboring vehicles. Moreover, we propose a comprehensive reward signal that considers the global objectives of the environment (e.g., safety and vehicle flow) and the individual interests of each agent. Simulations are conducted in the Simulation of Urban Mobility (SUMO). The results show better performance compared to other driving algorithms in terms of safety, driving speed, and reward.",
-      "authors": [
-        "Turki Bin Mohaya",
-        "Peter Seiler"
-      ],
-      "primary_category": "eess.SY",
-      "categories": [
-        "eess.SY",
-        "cs.MA",
-        "cs.RO"
-      ],
-      "published": "2026-03-23T10:53:34+00:00",
-      "link": "https://arxiv.org/pdf/2603.21810v1",
-      "tags": [
-        "keyword:RL DM",
-        "keyword:RL VG",
-        "query:RL DM",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "deep reinforcement learning for multi-agent control",
-      "llm_evidence_cn": "用于多智能体控制的深度强化学习",
-      "llm_evidence": "用于多智能体控制的深度强化学习",
-      "canonical_evidence": "用于多智能体控制的深度强化学习",
-      "llm_tldr_en": "Applies attention mechanisms within a QMIX RL framework for safe multi-agent autonomous driving.",
-      "llm_tldr_cn": "在QMIX强化学习框架中应用注意力机制，实现多智能体安全自动驾驶。",
-      "llm_tldr": "在QMIX强化学习框架中应用注意力机制，实现多智能体安全自动驾驶。",
-      "llm_tags": [
-        "query:rl-dm"
-      ],
-      "matched_query_tag": "query:rl-dm",
-      "matched_query_text": "reinforcement learning algorithms and frameworks",
-      "matched_requirement_id": "req-1",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.21810v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.21613v1",
-      "title": "AgenticRec: End-to-End Tool-Integrated Policy Optimization for Ranking-Oriented Recommender Agents",
-      "abstract": "Recommender agents built on Large Language Models offer a promising paradigm for recommendation. However, existing recommender agents typically suffer from a disconnect between intermediate reasoning and final ranking feedback, and are unable to capture fine-grained preferences. To address this, we present AgenticRec, a ranking-oriented agentic recommendation framework that optimizes the entire decision-making trajectory (including intermediate reasoning, tool invocation, and final ranking list generation) under sparse implicit feedback. Our approach makes three key contributions. First, we design a suite of recommendation-specific tools integrated into a ReAct loop to support evidence-grounded reasoning. Second, we propose theoretically unbiased List-Wise Group Relative Policy Optimization (list-wise GRPO) to maximize ranking utility, ensuring accurate credit assignment for complex tool-use trajectories. Third, we introduce Progressive Preference Refinement (PPR) to resolve fine-grained preference ambiguities. By mining hard negatives from ranking violations and applying bidirectional preference alignment, PPR minimizes the convex upper bound of pairwise ranking errors. Experiments on benchmarks confirm that AgenticRec significantly outperforms baselines, validating the necessity of unifying reasoning, tool use, and ranking optimization.",
-      "authors": [
-        "Tianyi Li",
-        "Zixuan Wang",
-        "Guidong Lei",
-        "Xiaodong Li",
-        "Hui Li"
-      ],
-      "primary_category": "cs.IR",
-      "categories": [
-        "cs.IR",
-        "cs.AI"
-      ],
-      "published": "2026-03-23T06:18:56+00:00",
-      "link": "https://arxiv.org/pdf/2603.21613v1",
-      "tags": [
-        "keyword:RL DM",
-        "query:RL DM"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "optimizes the entire decision-making trajectory using policy optimization",
-      "llm_evidence_cn": "使用策略优化来优化整个决策轨迹",
-      "llm_evidence": "使用策略优化来优化整个决策轨迹",
-      "canonical_evidence": "使用策略优化来优化整个决策轨迹",
-      "llm_tldr_en": "Proposes AgenticRec, a framework that optimizes decision-making trajectories for recommender agents using RL.",
-      "llm_tldr_cn": "提出 AgenticRec 框架，利用强化学习优化推荐智能体的决策轨迹。",
-      "llm_tldr": "提出 AgenticRec 框架，利用强化学习优化推荐智能体的决策轨迹。",
-      "llm_tags": [
-        "query:rl-dm"
-      ],
-      "matched_query_tag": "query:rl-dm",
-      "matched_query_text": "reinforcement learning algorithms and frameworks",
-      "matched_requirement_id": "req-1",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.21613v1",
       "carry_days": 1
     },
     {
@@ -1202,219 +541,7 @@
       "matched_requirement_id": "req-1",
       "selection_source": "carryover_cache",
       "paper_id": "2603.23957v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.22983v1",
-      "title": "Markov-Enforced Discrete Diffusion Model for Digital Semantic Symbol Error Correction",
-      "abstract": "Diffusion models (DMs) have achieved remarkable success across various domains owing to their strong generative and denoising capabilities. Meanwhile, semantic communication based on neural joint source-channel coding (JSCC) has emerged as a promising paradigm for robust and efficient image transmission. However, severe channel noise can still distort the transmitted semantic symbols, resulting in significant performance degradation. Applying DMs to digital semantic symbols, particularly in vector quantization (VQ)-based systems, is fundamentally challenging because the Markov assumption does not hold for the symbol transition dynamics. To address this issue, we introduce SSCDM, a semantic symbol correcting diffusion model whose discrete-time transition dynamics are constructed using solutions from continuous-time Markov chain theory. Furthermore, to promote synergy between DMs and JSCC, our DM structure embeds discrete symbols into a latent feature space using a learned VQ codebook, and a self-organizing map-based loss is incorporated during codebook learning to enhance the geometric vicinity between neighboring digital symbols, thereby promoting topology-preserving semantic representations. Experimental results show that the proposed method significantly improves image reconstruction quality and outperforms previous symbol-level denoising techniques under low signal-to-noise ratio scenarios and different datasets.",
-      "authors": [
-        "Yoon Huh",
-        "Jeongho Kang",
-        "Wan Choi"
-      ],
-      "primary_category": "eess.SP",
-      "categories": [
-        "eess.SP"
-      ],
-      "published": "2026-03-24T09:21:37+00:00",
-      "link": "https://arxiv.org/pdf/2603.22983v1",
-      "tags": [
-        "keyword:RL DM",
-        "keyword:RL VG",
-        "query:RL DM",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "discrete diffusion model for generative and denoising capabilities",
-      "llm_evidence_cn": "用于生成和去噪能力的离散扩散模型",
-      "llm_evidence": "用于生成和去噪能力的离散扩散模型",
-      "canonical_evidence": "用于生成和去噪能力的离散扩散模型",
-      "llm_tldr_en": "Introduces a discrete diffusion model for semantic symbol error correction in communication systems.",
-      "llm_tldr_cn": "引入一种离散扩散模型，用于通信系统中的语义符号纠错。",
-      "llm_tldr": "引入一种离散扩散模型，用于通信系统中的语义符号纠错。",
-      "llm_tags": [
-        "query:rl-dm"
-      ],
-      "matched_query_tag": "query:rl-dm",
-      "matched_query_text": "generative diffusion models and denoising processes",
-      "matched_requirement_id": "req-2",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.22983v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.23246v1",
-      "title": "GO-Renderer: Generative Object Rendering with 3D-aware Controllable Video Diffusion Models",
-      "abstract": "Reconstructing a renderable 3D model from images is a useful but challenging task. Recent feedforward 3D reconstruction methods have demonstrated remarkable success in efficiently recovering geometry, but still cannot accurately model the complex appearances of these 3D reconstructed models. Recent diffusion-based generative models can synthesize realistic images or videos of an object using reference images without explicitly modeling its appearance, which provides a promising direction for object rendering, but lacks accurate control over the viewpoints. In this paper, we propose GO-Renderer, a unified framework integrating the reconstructed 3D proxies to guide the video generative models to achieve high-quality object rendering on arbitrary viewpoints under arbitrary lighting conditions. Our method not only enjoys the accurate viewpoint control using the reconstructed 3D proxy but also enables high-quality rendering in different lighting environments using diffusion generative models without explicitly modeling complex materials and lighting. Extensive experiments demonstrate that GO-Renderer achieves state-of-the-art performance across the object rendering tasks, including synthesizing images on new viewpoints, rendering the objects in a novel lighting environment, and inserting an object into an existing video.",
-      "authors": [
-        "Zekai Gu",
-        "Shuoxuan Feng",
-        "Yansong Wang",
-        "Hanzhuo Huang",
-        "Zhongshuo Du",
-        "Chengfeng Zhao",
-        "Chengwei Ren",
-        "Peng Wang",
-        "Yuan Liu"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV"
-      ],
-      "published": "2026-03-24T14:14:21+00:00",
-      "link": "https://arxiv.org/pdf/2603.23246v1",
-      "tags": [
-        "keyword:RL DM",
-        "keyword:RL VG",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "3D-aware controllable video diffusion models for object rendering",
-      "llm_evidence_cn": "用于物体渲染的3D感知可控视频扩散模型",
-      "llm_evidence": "用于物体渲染的3D感知可控视频扩散模型",
-      "canonical_evidence": "用于物体渲染的3D感知可控视频扩散模型",
-      "llm_tldr_en": "GO-Renderer uses controllable video diffusion guided by 3D proxies for high-quality object rendering.",
-      "llm_tldr_cn": "GO-Renderer结合3D代理引导的可控视频扩散模型，实现了高质量的物体渲染。",
-      "llm_tldr": "GO-Renderer结合3D代理引导的可控视频扩散模型，实现了高质量的物体渲染。",
-      "llm_tags": [
-        "query:rl-vg"
-      ],
-      "matched_query_tag": "query:rl-vg",
-      "matched_query_text": "Generative models for high-fidelity video synthesis",
-      "matched_requirement_id": "req-11",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.23246v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.24793v1",
-      "title": "AVControl: Efficient Framework for Training Audio-Visual Controls",
-      "abstract": "Controlling video and audio generation requires diverse modalities, from depth and pose to camera trajectories and audio transformations, yet existing approaches either train a single monolithic model for a fixed set of controls or introduce costly architectural changes for each new modality. We introduce AVControl, a lightweight, extendable framework built on LTX-2, a joint audio-visual foundation model, where each control modality is trained as a separate LoRA on a parallel canvas that provides the reference signal as additional tokens in the attention layers, requiring no architectural changes beyond the LoRA adapters themselves. We show that simply extending image-based in-context methods to video fails for structural control, and that our parallel canvas approach resolves this. On the VACE Benchmark, we outperform all evaluated baselines on depth- and pose-guided generation, inpainting, and outpainting, and show competitive results on camera control and audio-visual benchmarks. Our framework supports a diverse set of independently trained modalities: spatially-aligned controls such as depth, pose, and edges, camera trajectory with intrinsics, sparse motion control, video editing, and, to our knowledge, the first modular audio-visual controls for a joint generation model. Our method is both compute- and data-efficient: each modality requires only a small dataset and converges within a few hundred to a few thousand training steps, a fraction of the budget of monolithic alternatives. We publicly release our code and trained LoRA checkpoints.",
-      "authors": [
-        "Matan Ben-Yosef",
-        "Tavi Halperin",
-        "Naomi Ken Korem",
-        "Mohammad Salama",
-        "Harel Cain",
-        "Asaf Joseph",
-        "Anthony Chen",
-        "Urska Jelercic",
-        "Ofir Bibi"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV",
-        "cs.MM",
-        "cs.SD"
-      ],
-      "published": "2026-03-25T20:06:43+00:00",
-      "link": "https://arxiv.org/pdf/2603.24793v1",
-      "tags": [
-        "keyword:RL DM",
-        "keyword:RL VG",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Framework for controlling video and audio generation",
-      "llm_evidence_cn": "视频和音频生成的控制框架",
-      "llm_evidence": "视频和音频生成的控制框架",
-      "canonical_evidence": "视频和音频生成的控制框架",
-      "llm_tldr_en": "Introduces AVControl, a lightweight framework for multi-modal control in audio-visual foundation models.",
-      "llm_tldr_cn": "引入AVControl，一个用于音视频基础模型多模态控制的轻量级框架。",
-      "llm_tldr": "引入AVControl，一个用于音视频基础模型多模态控制的轻量级框架。",
-      "llm_tags": [
-        "query:rl-vg"
-      ],
-      "matched_query_tag": "query:rl-vg",
-      "matched_query_text": "Deep learning models for video generation and synthesis",
-      "matched_requirement_id": "req-9",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.24793v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.23550v1",
-      "title": "Implicit Turn-Wise Policy Optimization for Proactive User-LLM Interaction",
-      "abstract": "Multi-turn human-AI collaboration is fundamental to deploying interactive services such as adaptive tutoring, conversational recommendation, and professional consultation. However, optimizing these interactions via reinforcement learning is hindered by the sparsity of verifiable intermediate rewards and the high stochasticity of user responses. To address these challenges, we introduce Implicit Turn-wise Policy Optimization (ITPO). ITPO leverages an implicit process reward model to derive fine-grained, turn-wise process rewards from sparse outcome signals. Unlike volatile token-level rewards, these turn-level signals exhibit superior robustness and may utilize a normalization mechanism to further enhance training stability. We evaluate ITPO across three representative multi-turn collaborative tasks: math tutoring, document writing, and medical recommendation. Empirical results demonstrate that ITPO, when combined with PPO, GRPO, or RLOO, consistently achieves improved convergence than existing baselines. Elaborate trajectory analysis confirms that ITPO infers turn-wise preferences that are semantically aligned with human judgment. Code is publicly available at https://github.com/Graph-COM/ITPO.",
-      "authors": [
-        "Haoyu Wang",
-        "Yuxin Chen",
-        "Liang Luo",
-        "Buyun Zhang",
-        "Ellie Dingqiao Wen",
-        "Pan Li"
-      ],
-      "primary_category": "cs.LG",
-      "categories": [
-        "cs.LG"
-      ],
-      "published": "2026-03-21T18:59:32+00:00",
-      "link": "https://arxiv.org/pdf/2603.23550v1",
-      "tags": [
-        "keyword:RL DM",
-        "keyword:RL VG",
-        "query:RL DM",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Implicit turn-wise policy optimization via RL",
-      "llm_evidence_cn": "通过强化学习进行隐式轮次策略优化",
-      "llm_evidence": "通过强化学习进行隐式轮次策略优化",
-      "canonical_evidence": "通过强化学习进行隐式轮次策略优化",
-      "llm_tldr_en": "Introduces a turn-wise RL policy optimization method for proactive human-AI interaction.",
-      "llm_tldr_cn": "引入一种针对主动人机交互的轮次强化学习策略优化方法。",
-      "llm_tldr": "引入一种针对主动人机交互的轮次强化学习策略优化方法。",
-      "llm_tags": [
-        "query:rl-dm"
-      ],
-      "matched_query_tag": "query:rl-dm",
-      "matched_query_text": "reinforcement learning algorithms and frameworks",
-      "matched_requirement_id": "req-1",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.23550v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.25020v1",
-      "title": "GDPO-Listener: Expressive Interactive Head Generation via Auto-Regressive Flow Matching and Group reward-Decoupled Policy Optimization",
-      "abstract": "Generating realistic 3D head motion for dyadic interactions is a significant challenge in virtual human synthesis. While recent methods achieve impressive results with speaking heads, they frequently suffer from the `Regression-to-the-Mean' problem in listener motions, collapsing into static faces, and lack the parameter space for complex nonverbal motions. In this paper, we propose GDPO-Listener, a novel framework that achieves highly expressive speaking and listening motion generation. First, we introduce an Auto-Regressive Flow Matching architecture enabling stable supervised learning. Second, to overcome kinematic stillness, we apply the Group reward-Decoupled Policy Optimization (GDPO). By isolating reward normalization across distinct FLAME parameter groups, GDPO explicitly incentivizes high variance expressive generations. Finally, we enable explicit semantic text control for customizable responses. Extensive evaluations across the Seamless Interaction and DualTalk datasets demonstrate superior performance compared to existing baselines on long-term kinematic variance, visual expressivity and semantic controllability.",
-      "authors": [
-        "Zhangyu Jin",
-        "Maksim Siniukov",
-        "Deuksin Kwon",
-        "Ashutosh Chaubey",
-        "Mohammad Soleymani"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV"
-      ],
-      "published": "2026-03-26T04:36:27+00:00",
-      "link": "https://arxiv.org/pdf/2603.25020v1",
-      "tags": [
-        "keyword:RL DM",
-        "keyword:RL VG",
-        "query:RL DM",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "policy optimization for expressive interactive head generation",
-      "llm_evidence_cn": "用于表现力交互头部生成的策略优化",
-      "llm_evidence": "用于表现力交互头部生成的策略优化",
-      "canonical_evidence": "用于表现力交互头部生成的策略优化",
-      "llm_tldr_en": "Uses Group reward-Decoupled Policy Optimization for expressive 3D head motion generation in interactions.",
-      "llm_tldr_cn": "采用分组奖励解耦策略优化（GDPO）来实现交互中富有表现力的3D头部运动生成。",
-      "llm_tldr": "采用分组奖励解耦策略优化（GDPO）来实现交互中富有表现力的3D头部运动生成。",
-      "llm_tags": [
-        "query:rl-vg"
-      ],
-      "matched_query_tag": "query:rl-vg",
-      "matched_query_text": "State of the art reinforcement learning methods for video generation",
-      "matched_requirement_id": "req-12",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.25020v1",
-      "carry_days": 1
+      "carry_days": 2
     },
     {
       "id": "2603.22271v1",
@@ -1438,13 +565,13 @@
         "query:RL VG"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "Diffusion-based video super-resolution and generation",
-      "llm_evidence_cn": "基于扩散模型的视频超分辨率与生成",
-      "llm_evidence": "基于扩散模型的视频超分辨率与生成",
-      "canonical_evidence": "基于扩散模型的视频超分辨率与生成",
-      "llm_tldr_en": "A distillation framework to accelerate diffusion-based video super-resolution to one-step generation.",
-      "llm_tldr_cn": "一种将基于扩散的视频超分辨率加速至单步生成的蒸馏框架。",
-      "llm_tldr": "一种将基于扩散的视频超分辨率加速至单步生成的蒸馏框架。",
+      "llm_evidence_en": "diffusion-based video super-resolution and distribution matching distillation",
+      "llm_evidence_cn": "基于扩散模型的视频超分辨率与分布匹配蒸馏",
+      "llm_evidence": "基于扩散模型的视频超分辨率与分布匹配蒸馏",
+      "canonical_evidence": "基于扩散模型的视频超分辨率与分布匹配蒸馏",
+      "llm_tldr_en": "Proposes DUO-VSR for one-step video super-resolution using dual-stream distillation of diffusion models.",
+      "llm_tldr_cn": "提出DUO-VSR框架，通过双流蒸馏实现扩散模型的一步视频超分辨率生成。",
+      "llm_tldr": "提出DUO-VSR框架，通过双流蒸馏实现扩散模型的一步视频超分辨率生成。",
       "llm_tags": [
         "query:rl-vg"
       ],
@@ -1482,13 +609,13 @@
         "query:RL VG"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "Diffusion Transformers for video world models",
-      "llm_evidence_cn": "用于视频世界模型的扩散 Transformer",
-      "llm_evidence": "用于视频世界模型的扩散 Transformer",
-      "canonical_evidence": "用于视频世界模型的扩散 Transformer",
-      "llm_tldr_en": "A caching framework to accelerate diffusion-based video world models while maintaining temporal consistency.",
-      "llm_tldr_cn": "一种在保持时间一致性的同时加速基于扩散的视频世界模型的缓存框架。",
-      "llm_tldr": "一种在保持时间一致性的同时加速基于扩散的视频世界模型的缓存框架。",
+      "llm_evidence_en": "accelerated video world models using diffusion transformers",
+      "llm_evidence_cn": "使用扩散 Transformer 加速视频世界模型",
+      "llm_evidence": "使用扩散 Transformer 加速视频世界模型",
+      "canonical_evidence": "使用扩散 Transformer 加速视频世界模型",
+      "llm_tldr_en": "WorldCache accelerates video diffusion transformers using a perception-constrained dynamical caching framework.",
+      "llm_tldr_cn": "WorldCache 通过感知约束的动态缓存框架加速了视频扩散 Transformer 的推理。",
+      "llm_tldr": "WorldCache 通过感知约束的动态缓存框架加速了视频扩散 Transformer 的推理。",
       "llm_tags": [
         "query:rl-vg"
       ],
@@ -1497,6 +624,638 @@
       "matched_requirement_id": "req-11",
       "selection_source": "carryover_cache",
       "paper_id": "2603.22286v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.25053v1",
+      "title": "GaussFusion: Improving 3D Reconstruction in the Wild with A Geometry-Informed Video Generator",
+      "abstract": "We present GaussFusion, a novel approach for improving 3D Gaussian splatting (3DGS) reconstructions in the wild through geometry-informed video generation. GaussFusion mitigates common 3DGS artifacts, including floaters, flickering, and blur caused by camera pose errors, incomplete coverage, and noisy geometry initialization. Unlike prior RGB-based approaches limited to a single reconstruction pipeline, our method introduces a geometry-informed video-to-video generator that refines 3DGS renderings across both optimization-based and feed-forward methods. Given an existing reconstruction, we render a Gaussian primitive video buffer encoding depth, normals, opacity, and covariance, which the generator refines to produce temporally coherent, artifact-free frames. We further introduce an artifact synthesis pipeline that simulates diverse degradation patterns, ensuring robustness and generalization. GaussFusion achieves state-of-the-art performance on novel-view synthesis benchmarks, and an efficient variant runs in real time at 21 FPS while maintaining similar performance, enabling interactive 3D applications.",
+      "authors": [
+        "Liyuan Zhu",
+        "Manjunath Narayana",
+        "Michal Stary",
+        "Will Hutchcroft",
+        "Gordon Wetzstein",
+        "Iro Armeni"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-26T05:42:12+00:00",
+      "link": "https://arxiv.org/pdf/2603.25053v1",
+      "tags": [
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "geometry-informed video generator for 3D reconstruction",
+      "llm_evidence_cn": "用于3D重建的几何感知视频生成器",
+      "llm_evidence": "用于3D重建的几何感知视频生成器",
+      "canonical_evidence": "用于3D重建的几何感知视频生成器",
+      "llm_tldr_en": "Proposes GaussFusion, a video-to-video generator that refines 3DGS reconstructions for temporal consistency.",
+      "llm_tldr_cn": "提出GaussFusion，一种通过视频生成优化3D高斯泼溅重建质量的方法。",
+      "llm_tldr": "提出GaussFusion，一种通过视频生成优化3D高斯泼溅重建质量的方法。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Deep learning models for video generation and synthesis",
+      "matched_requirement_id": "req-9",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.25053v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.23964v1",
+      "title": "From Pixels to Digital Agents: An Empirical Study on the Taxonomy and Technological Trends of Reinforcement Learning Environments",
+      "abstract": "The remarkable progress of reinforcement learning (RL) is intrinsically tied to the environments used to train and evaluate artificial agents. Moving beyond traditional qualitative reviews, this work presents a large-scale, data-driven empirical investigation into the evolution of RL environments. By programmatically processing a massive corpus of academic literature and rigorously distilling over 2,000 core publications, we propose a quantitative methodology to map the transition from isolated physical simulations to generalist, language-driven foundation agents. Implementing a novel, multi-dimensional taxonomy, we systematically analyze benchmarks against diverse application domains and requisite cognitive capabilities. Our automated semantic and statistical analysis reveals a profound, data-verified paradigm shift: the bifurcation of the field into a \"Semantic Prior\" ecosystem dominated by Large Language Models (LLMs) and a \"Domain-Specific Generalization\" ecosystem. Furthermore, we characterize the \"cognitive fingerprints\" of these distinct domains to uncover the underlying mechanisms of cross-task synergy, multi-domain interference, and zero-shot generalization. Ultimately, this study offers a rigorous, quantitative roadmap for designing the next generation of Embodied Semantic Simulators, bridging the gap between continuous physical control and high-level logical reasoning.",
+      "authors": [
+        "Lijing Luo",
+        "Yiben Luo",
+        "Alexey Gorbatovski",
+        "Sergey Kovalchuk",
+        "Xiaodan Liang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-25T05:56:54+00:00",
+      "link": "https://arxiv.org/pdf/2603.23964v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "empirical study and taxonomy of reinforcement learning environments",
+      "llm_evidence_cn": "强化学习环境的实证研究与分类学",
+      "llm_evidence": "强化学习环境的实证研究与分类学",
+      "canonical_evidence": "强化学习环境的实证研究与分类学",
+      "llm_tldr_en": "Provides a large-scale data-driven analysis of the evolution and trends in reinforcement learning environments.",
+      "llm_tldr_cn": "对强化学习环境的发展演变和趋势进行了大规模数据驱动的分析。",
+      "llm_tldr": "对强化学习环境的发展演变和趋势进行了大规模数据驱动的分析。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.23964v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.24989v1",
+      "title": "Learning Rollout from Sampling:An R1-Style Tokenized Traffic Simulation Model",
+      "abstract": "Learning diverse and high-fidelity traffic simulations from human driving demonstrations is crucial for autonomous driving evaluation. The recent next-token prediction (NTP) paradigm, widely adopted in large language models (LLMs), has been applied to traffic simulation and achieves iterative improvements via supervised fine-tuning (SFT). However, such methods limit active exploration of potentially valuable motion tokens, particularly in suboptimal regions. Entropy patterns provide a promising perspective for enabling exploration driven by motion token uncertainty. Motivated by this insight, we propose a novel tokenized traffic simulation policy, R1Sim, which represents an initial attempt to explore reinforcement learning based on motion token entropy patterns, and systematically analyzes the impact of different motion tokens on simulation outcomes. Specifically, we introduce an entropy-guided adaptive sampling mechanism that focuses on previously overlooked motion tokens with high uncertainty yet high potential. We further optimize motion behaviors using Group Relative Policy Optimization (GRPO), guided by a safety-aware reward design. Overall, these components enable a balanced exploration-exploitation trade-off through diverse high-uncertainty sampling and group-wise comparative estimation, resulting in realistic, safe, and diverse multi-agent behaviors. Extensive experiments on the Waymo Sim Agent benchmark demonstrate that R1Sim achieves competitive performance compared to state-of-the-art methods.",
+      "authors": [
+        "Ziyan Wang",
+        "Peng Chen",
+        "Ding Li",
+        "Chiwei Li",
+        "Qichao Zhang",
+        "Zhongpu Xia",
+        "Guizhen Yu"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-03-26T03:29:46+00:00",
+      "link": "https://arxiv.org/pdf/2603.24989v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "reinforcement learning based on motion tokens for traffic simulation",
+      "llm_evidence_cn": "基于运动标记的强化学习用于交通仿真",
+      "llm_evidence": "基于运动标记的强化学习用于交通仿真",
+      "canonical_evidence": "基于运动标记的强化学习用于交通仿真",
+      "llm_tldr_en": "R1Sim explores reinforcement learning for high-fidelity and diverse traffic simulation policies.",
+      "llm_tldr_cn": "R1Sim 探索了用于高保真和多样化交通仿真策略的强化学习方法。",
+      "llm_tldr": "R1Sim 探索了用于高保真和多样化交通仿真策略的强化学习方法。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.24989v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.25357v1",
+      "title": "InstanceAnimator: Multi-Instance Sketch Video Colorization",
+      "abstract": "We propose InstanceAnimator, a novel Diffusion Transformer framework for multi-instance sketch video colorization. Existing methods suffer from three core limitations: inflexible user control due to heavy reliance on single reference frames, poor instance controllability leading to misalignment in multi-character scenarios, and degraded detail fidelity in fine-grained regions. To address these challenges, we introduce three corresponding innovations. First, a Canvas Guidance Condition eliminates workflow fragmentation by allowing free placement of reference elements and background, enabling unprecedented user flexibility. Second, an Instance Matching Mechanism resolves misalignment by integrating instance features with the sketches, ensuring precise control over multiple characters. Third, an Adaptive Decoupled Control Module enhances detail fidelity by injecting semantic features from characters, backgrounds, and text conditions into the diffusion process. Extensive experiments demonstrate that InstanceAnimator achieves superior multi-instance colorization with enhanced user control, high visual quality, and strong instance consistency.",
+      "authors": [
+        "Yinhan Zhang",
+        "Yue Ma",
+        "Bingyuan Wang",
+        "Kunyu Feng",
+        "Yeying Jin",
+        "Qifeng Chen",
+        "Anyi Rao",
+        "Zeyu Wang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-26T12:01:46+00:00",
+      "link": "https://arxiv.org/pdf/2603.25357v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Diffusion Transformer framework for sketch video colorization",
+      "llm_evidence_cn": "用于草图视频上色的扩散 Transformer 框架",
+      "llm_evidence": "用于草图视频上色的扩散 Transformer 框架",
+      "canonical_evidence": "用于草图视频上色的扩散 Transformer 框架",
+      "llm_tldr_en": "Proposes InstanceAnimator for multi-instance sketch video colorization with improved instance controllability.",
+      "llm_tldr_cn": "提出 InstanceAnimator，用于多实例草图视频上色，增强了实例可控性。",
+      "llm_tldr": "提出 InstanceAnimator，用于多实例草图视频上色，增强了实例可控性。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Deep learning models for video generation and synthesis",
+      "matched_requirement_id": "req-9",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.25357v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.24840v1",
+      "title": "Prune as You Generate: Online Rollout Pruning for Faster and Better RLVR",
+      "abstract": "Reinforcement Learning with Verifiable Rewards (RLVR) has significantly advanced the reasoning capabilities of Large Language Models (LLMs). However, methods such as GRPO and DAPO suffer from substantial computational cost, since they rely on sampling many rollouts for each prompt. Moreover, in RLVR the relative advantage is often sparse: many samples become nearly all-correct or all-incorrect, yielding low within-group reward variance and thus weak learning signals. In this paper, we introduce arrol (Accelerating RLVR via online Rollout Pruning), an online rollout pruning method that prunes rollouts during generation while explicitly steering the surviving ones more correctness-balanced to enhance learning signals. Specifically, arrol trains a lightweight quality head on-the-fly to predict the success probability of partial rollouts and uses it to make early pruning decisions. The learned quality head can further weigh candidates to improve inference accuracy during test-time scaling. To improve efficiency, we present a system design that prunes rollouts inside the inference engine and re-batches the remaining ones for log-probability computation and policy updates. Across GRPO and DAPO on Qwen-3 and LLaMA-3.2 models (1B-8B), arrol improves average accuracy by +2.30 to +2.99 while achieving up to 1.7x training speedup, and yielding up to +8.33 additional gains in average accuracy in test-time scaling. The code is available at https://github.com/Hsu1023/ARRoL.",
+      "authors": [
+        "Haobo Xu",
+        "Sirui Chen",
+        "Ruizhong Qiu",
+        "Yuchen Yan",
+        "Chen Luo",
+        "Monica Cheng",
+        "Jingrui He",
+        "Hanghang Tong"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-03-25T22:10:36+00:00",
+      "link": "https://arxiv.org/pdf/2603.24840v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Reinforcement Learning with Verifiable Rewards (RLVR) for LLMs",
+      "llm_evidence_cn": "针对大语言模型的可验证奖励强化学习 (RLVR)",
+      "llm_evidence": "针对大语言模型的可验证奖励强化学习 (RLVR)",
+      "canonical_evidence": "针对大语言模型的可验证奖励强化学习 (RLVR)",
+      "llm_tldr_en": "Introduces arrol, an online rollout pruning method to accelerate and improve RL with verifiable rewards.",
+      "llm_tldr_cn": "引入 arrol，一种在线展开剪枝方法，旨在加速并改进具有可验证奖励的强化学习。",
+      "llm_tldr": "引入 arrol，一种在线展开剪枝方法，旨在加速并改进具有可验证奖励的强化学习。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.24840v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.25464v1",
+      "title": "Maximum Entropy Behavior Exploration for Sim2Real Zero-Shot Reinforcement Learning",
+      "abstract": "Zero-shot reinforcement learning (RL) algorithms aim to learn a family of policies from a reward-free dataset, and recover optimal policies for any reward function directly at test time. Naturally, the quality of the pretraining dataset determines the performance of the recovered policies across tasks. However, pre-collecting a relevant, diverse dataset without prior knowledge of the downstream tasks of interest remains a challenge. In this work, we study $\\textit{online}$ zero-shot RL for quadrupedal control on real robotic systems, building upon the Forward-Backward (FB) algorithm. We observe that undirected exploration yields low-diversity data, leading to poor downstream performance and rendering policies impractical for direct hardware deployment. Therefore, we introduce FB-MEBE, an online zero-shot RL algorithm that combines an unsupervised behavior exploration strategy with a regularization critic. FB-MEBE promotes exploration by maximizing the entropy of the achieved behavior distribution. Additionally, a regularization critic shapes the recovered policies toward more natural and physically plausible behaviors. We empirically demonstrate that FB-MEBE achieves and improved performance compared to other exploration strategies in a range of simulated downstream tasks, and that it renders natural policies that can be seamlessly deployed to hardware without further finetuning. Videos and code available on our website.",
+      "authors": [
+        "Jiajun Hu",
+        "Nuria Armengol Urpi",
+        "Jin Cheng",
+        "Stelian Coros"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-26T14:07:01+00:00",
+      "link": "https://arxiv.org/pdf/2603.25464v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Zero-shot reinforcement learning for robotic control",
+      "llm_evidence_cn": "用于机器人控制的零样本强化学习",
+      "llm_evidence": "用于机器人控制的零样本强化学习",
+      "canonical_evidence": "用于机器人控制的零样本强化学习",
+      "llm_tldr_en": "Studies online zero-shot RL for quadrupedal control to improve policy recovery for arbitrary rewards.",
+      "llm_tldr_cn": "研究了用于四足机器人控制的在线零样本强化学习，提高了策略恢复能力。",
+      "llm_tldr": "研究了用于四足机器人控制的在线零样本强化学习，提高了策略恢复能力。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.25464v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.22228v1",
+      "title": "SpatialReward: Verifiable Spatial Reward Modeling for Fine-Grained Spatial Consistency in Text-to-Image Generation",
+      "abstract": "Recent advances in text-to-image (T2I) generation via reinforcement learning (RL) have benefited from reward models that assess semantic alignment and visual quality. However, most existing reward models pay limited attention to fine-grained spatial relationships, often producing images that appear plausible overall yet contain inaccuracies in object positioning. In this work, we present \\textbf{SpatialReward}, a verifiable reward model explicitly designed to evaluate spatial layouts in generated images. SpatialReward adopts a multi-stage pipeline: a \\emph{Prompt Decomposer} extracts entities, attributes, and spatial metadata from free-form prompts; expert detectors provide accurate visual grounding of object positions and attributes; and a vision-language model applies chain-of-thought reasoning over grounded observations to assess complex spatial relations that are challenging for rule-based methods. To more comprehensively evaluate spatial relationships in generated images, we introduce \\textbf{SpatRelBench}, a benchmark covering object attributes, orientation, inter-object relations, and rendered text placement. Experiments on Stable Diffusion and FLUX show that incorporating SpatialReward into RL training consistently improves spatial consistency and overall generation quality, with results aligned more closely to human judgments. These findings indicate that verifiable reward models hold considerable potential for enabling more accurate and controllable optimization in text-to-image generation models.",
+      "authors": [
+        "Sashuai Zhou",
+        "Qiang Zhou",
+        "Junpeng Ma",
+        "Yue Cao",
+        "Ruofan Hu",
+        "Ziang Zhang",
+        "Xiaoda Yang",
+        "Zhibin Wang",
+        "Jun Song",
+        "Cheng Yu",
+        "Bo Zheng",
+        "Zhou Zhao"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-23T17:26:35+00:00",
+      "link": "https://arxiv.org/pdf/2603.22228v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "reinforcement learning for text-to-image reward modeling",
+      "llm_evidence_cn": "用于文本生成图像奖励建模的强化学习",
+      "llm_evidence": "用于文本生成图像奖励建模的强化学习",
+      "canonical_evidence": "用于文本生成图像奖励建模的强化学习",
+      "llm_tldr_en": "A verifiable reward model for RL-based image generation to improve spatial consistency.",
+      "llm_tldr_cn": "为基于强化学习的图像生成提供可验证的奖励模型，提升空间一致性。",
+      "llm_tldr": "为基于强化学习的图像生成提供可验证的奖励模型，提升空间一致性。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Optimizing video diffusion models using reward based learning",
+      "matched_requirement_id": "req-13",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.22228v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.24241v1",
+      "title": "C-STEP: Continuous Space-Time Empowerment for Physics-informed Safe Reinforcement Learning of Mobile Agents",
+      "abstract": "Safe navigation in complex environments remains a central challenge for reinforcement learning (RL) in robotics. This paper introduces Continuous Space-Time Empowerment for Physics-informed (C-STEP) safe RL, a novel measure of agent-centric safety tailored to deterministic, continuous domains. This measure can be used to design physics-informed intrinsic rewards by augmenting positive navigation reward functions. The reward incorporates the agents internal states (e.g., initial velocity) and forward dynamics to differentiate safe from risky behavior. By integrating C-STEP with navigation rewards, we obtain an intrinsic reward function that jointly optimizes task completion and collision avoidance. Numerical results demonstrate fewer collisions, reduced proximity to obstacles, and only marginal increases in travel time. Overall, C-STEP offers an interpretable, physics-informed approach to reward shaping in RL, contributing to safety for agentic mobile robotic systems.",
+      "authors": [
+        "Guihlerme Daubt",
+        "Adrian Redder"
+      ],
+      "primary_category": "eess.SY",
+      "categories": [
+        "eess.SY",
+        "cs.LG"
+      ],
+      "published": "2026-03-25T12:28:55+00:00",
+      "link": "https://arxiv.org/pdf/2603.24241v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Physics-informed safe reinforcement learning for mobile agents",
+      "llm_evidence_cn": "物理启发的移动智能体安全强化学习",
+      "llm_evidence": "物理启发的移动智能体安全强化学习",
+      "canonical_evidence": "物理启发的移动智能体安全强化学习",
+      "llm_tldr_en": "Introduces C-STEP, a physics-informed intrinsic reward for optimizing safety and task completion in RL.",
+      "llm_tldr_cn": "引入 C-STEP，一种物理启发的内在奖励，用于在强化学习中同时优化安全性和任务完成度。",
+      "llm_tldr": "引入 C-STEP，一种物理启发的内在奖励，用于在强化学习中同时优化安全性和任务完成度。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.24241v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.22846v1",
+      "title": "CoMaTrack: Competitive Multi-Agent Game-Theoretic Tracking with Vision-Language-Action Models",
+      "abstract": "Embodied Visual Tracking (EVT), a core dynamic task in embodied intelligence, requires an agent to precisely follow a language-specified target. Yet most existing methods rely on single-agent imitation learning, suffering from costly expert data and limited generalization due to static training environments. Inspired by competition-driven capability evolution, we propose CoMaTrack, a competitive game-theoretic multi-agent reinforcement learning framework that trains agents in a dynamic adversarial setting with competitive subtasks, yielding stronger adaptive planning and interference-resilient strategies. We further introduce CoMaTrack-Bench, the first benchmark for competitive EVT, featuring game scenarios between a tracker and adaptive opponents across diverse environments and instructions, enabling standardized robustness evaluation under active adversarial interactions. Experiments show that CoMaTrack achieves state-of-the-art results on both standard benchmarks and CoMaTrack-Bench. Notably, a 3B VLM trained with our framework surpasses previous single-agent imitation learning methods based on 7B models on the challenging EVT-Bench, achieving 92.1% in STT, 74.2% in DT, and 57.5% in AT. The benchmark code will be available at https://github.com/wlqcode/CoMaTrack-Bench",
+      "authors": [
+        "Youzhi Liu",
+        "Li Gao",
+        "Liu Liu",
+        "Mingyang Lv",
+        "Yang Cai"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-24T06:35:19+00:00",
+      "link": "https://arxiv.org/pdf/2603.22846v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "game-theoretic multi-agent reinforcement learning",
+      "llm_evidence_cn": "博弈论多智能体强化学习",
+      "llm_evidence": "博弈论多智能体强化学习",
+      "canonical_evidence": "博弈论多智能体强化学习",
+      "llm_tldr_en": "Introduces a competitive MARL framework for embodied visual tracking to improve adaptive planning.",
+      "llm_tldr_cn": "引入了一种用于具身视觉追踪的竞争性多智能体强化学习框架，以提高自适应规划能力。",
+      "llm_tldr": "引入了一种用于具身视觉追踪的竞争性多智能体强化学习框架，以提高自适应规划能力。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.22846v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.24324v1",
+      "title": "Large Language Model Guided Incentive Aware Reward Design for Cooperative Multi-Agent Reinforcement Learning",
+      "abstract": "Designing effective auxiliary rewards for cooperative multi-agent systems remains a precarious task; misaligned incentives risk inducing suboptimal coordination, especially where sparse task feedback fails to provide sufficient grounding. This study introduces an automated reward design framework that leverages large language models to synthesize executable reward programs from environment instrumentation. The procedure constrains candidate programs within a formal validity envelope and evaluates their efficacy by training policies from scratch under a fixed computational budget; selection depends exclusively on the sparse task return. The framework is evaluated across four distinct Overcooked-AI layouts characterized by varied corridor congestion, handoff dependencies, and structural asymmetries. Iterative search generations consistently yield superior task returns and delivery counts, with the most pronounced gains occurring in environments dominated by interaction bottlenecks. Diagnostic analysis of the synthesized shaping components indicates increased interdependence in action selection and improved signal alignment in coordination-intensive tasks. These results demonstrate that the search for objectivegrounded reward programs can mitigate the burden of manual engineering while producing shaping signals compatible with cooperative learning under finite budgets.",
+      "authors": [
+        "Dogan Urgun",
+        "Gokhan Gungor"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "eess.SY"
+      ],
+      "published": "2026-03-25T14:05:59+00:00",
+      "link": "https://arxiv.org/pdf/2603.24324v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "reward design for cooperative multi-agent reinforcement learning",
+      "llm_evidence_cn": "协作式多智能体强化学习的奖励设计",
+      "llm_evidence": "协作式多智能体强化学习的奖励设计",
+      "canonical_evidence": "协作式多智能体强化学习的奖励设计",
+      "llm_tldr_en": "Uses LLMs to automatically design auxiliary rewards for improving coordination in multi-agent reinforcement learning.",
+      "llm_tldr_cn": "利用LLM自动设计辅助奖励，以改善多智能体强化学习中的协作效率。",
+      "llm_tldr": "利用LLM自动设计辅助奖励，以改善多智能体强化学习中的协作效率。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.24324v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.23871v1",
+      "title": "HDPO: Hybrid Distillation Policy Optimization via Privileged Self-Distillation",
+      "abstract": "Large language models trained with reinforcement learning (RL) for mathematical reasoning face a fundamental challenge: on problems the model cannot solve at all - \"cliff\" prompts - the RL gradient vanishes entirely, preventing any learning signal from reaching these failure modes. We introduce Hybrid Distillation Policy Optimization (HDPO), which augments standard RL with privileged self-distillation targeting cliff prompts. On each training step, HDPO identifies prompts where all rollouts fail, generates privileged rollouts by providing the model with ground-truth information, filters for correct solutions, and distills the teacher's token-level distribution into the student. Because teacher and student share the same weights - differing only in their input - the realizability gap is provably bounded, unlike cross-model distillation. We prove that R=1 filtered privileged generation recovers the optimal KL-regularized RL policy in the hard-threshold limit. Experiments on OpenMathInstruct-2 with Qwen2.5-Math-1.5B-Instruct show that HDPO consistently improves coverage metrics (pass@4 by +0.8-1.1%, pass@8 by +0.4-1.7%) while maintaining greedy accuracy, with the distillation weight lambda providing direct control over the exploration-exploitation tradeoff.",
+      "authors": [
+        "Ken Ding"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-25T02:59:36+00:00",
+      "link": "https://arxiv.org/pdf/2603.23871v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "augmenting standard RL with privileged self-distillation for policy optimization",
+      "llm_evidence_cn": "通过特权自蒸馏增强标准强化学习以进行策略优化",
+      "llm_evidence": "通过特权自蒸馏增强标准强化学习以进行策略优化",
+      "canonical_evidence": "通过特权自蒸馏增强标准强化学习以进行策略优化",
+      "llm_tldr_en": "Introduces HDPO to resolve the vanishing gradient problem in RL for LLM mathematical reasoning.",
+      "llm_tldr_cn": "引入HDPO，通过特权自蒸馏解决大语言模型数学推理强化学习中的梯度消失问题。",
+      "llm_tldr": "引入HDPO，通过特权自蒸馏解决大语言模型数学推理强化学习中的梯度消失问题。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.23871v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.22241v1",
+      "title": "MemDLM: Memory-Enhanced DLM Training",
+      "abstract": "Diffusion Language Models (DLMs) offer attractive advantages over Auto-Regressive (AR) models, such as full-attention parallel decoding and flexible generation. However, they suffer from a notable train-inference mismatch: DLMs are trained with a static, single-step masked prediction objective, but deployed through a multi-step progressive denoising trajectory. We propose MemDLM (Memory-Enhanced DLM), which narrows this gap by embedding a simulated denoising process into training via Bi-level Optimization. An inner loop updates a set of fast weights, forming a Parametric Memory that captures the local trajectory experience of each sample, while an outer loop updates the base model conditioned on this memory. By offloading memorization pressure from token representations to parameters, MemDLM yields faster convergence and lower training loss. Moreover, the inner loop can be re-enabled at inference time as an adaptation step, yielding additional gains on long-context understanding. We find that, when activated at inference time, this Parametric Memory acts as an emergent in-weight retrieval mechanism, helping MemDLM further reduce token-level attention bottlenecks on challenging Needle-in-a-Haystack retrieval tasks. Code: https://github.com/JarvisPei/MemDLM.",
+      "authors": [
+        "Zehua Pei",
+        "Hui-Ling Zhen",
+        "Weizhe Lin",
+        "Sinno Jialin Pan",
+        "Yunhe Wang",
+        "Mingxuan Yuan",
+        "Bei Yu"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-03-23T17:39:56+00:00",
+      "link": "https://arxiv.org/pdf/2603.22241v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "multi-step progressive denoising trajectory in diffusion language models",
+      "llm_evidence_cn": "扩散语言模型中的多步渐进去噪轨迹",
+      "llm_evidence": "扩散语言模型中的多步渐进去噪轨迹",
+      "canonical_evidence": "扩散语言模型中的多步渐进去噪轨迹",
+      "llm_tldr_en": "MemDLM improves diffusion language models by embedding a simulated denoising process into training via bi-level optimization.",
+      "llm_tldr_cn": "MemDLM通过双层优化将模拟去噪过程嵌入训练，改进了扩散语言模型。",
+      "llm_tldr": "MemDLM通过双层优化将模拟去噪过程嵌入训练，改进了扩散语言模型。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "generative diffusion models and denoising processes",
+      "matched_requirement_id": "req-2",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.22241v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.24570v1",
+      "title": "Anti-I2V: Safeguarding your photos from malicious image-to-video generation",
+      "abstract": "Advances in diffusion-based video generation models, while significantly improving human animation, poses threats of misuse through the creation of fake videos from a specific person's photo and text prompts. Recent efforts have focused on adversarial attacks that introduce crafted perturbations to protect images from diffusion-based models. However, most existing approaches target image generation, while relatively few explicitly address image-to-video diffusion models (VDMs), and most primarily focus on UNet-based architectures. Hence, their effectiveness against Diffusion Transformer (DiT) models remains largely under-explored, as these models demonstrate improved feature retention, and stronger temporal consistency due to larger capacity and advanced attention mechanisms. In this work, we introduce Anti-I2V, a novel defense against malicious human image-to-video generation, applicable across diverse diffusion backbones. Instead of restricting noise updates to the RGB space, Anti-I2V operates in both the $L$*$a$*$b$* and frequency domains, improving robustness and concentrating on salient pixels. We then identify the network layers that capture the most distinct semantic features during the denoising process to design appropriate training objectives that maximize degradation of temporal coherence and generation fidelity. Through extensive validation, Anti-I2V demonstrates state-of-the-art defense performance against diverse video diffusion models, offering an effective solution to the problem.",
+      "authors": [
+        "Duc Vu",
+        "Anh Nguyen",
+        "Chi Tran",
+        "Anh Tran"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-25T17:48:10+00:00",
+      "link": "https://arxiv.org/pdf/2603.24570v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "diffusion-based video generation models and image-to-video diffusion",
+      "llm_evidence_cn": "基于扩散的视频生成模型和图像到视频扩散",
+      "llm_evidence": "基于扩散的视频生成模型和图像到视频扩散",
+      "canonical_evidence": "基于扩散的视频生成模型和图像到视频扩散",
+      "llm_tldr_en": "Investigates adversarial attacks to protect photos from malicious image-to-video diffusion generation.",
+      "llm_tldr_cn": "研究对抗性攻击，以保护照片免受恶意图像到视频扩散生成的侵害。",
+      "llm_tldr": "研究对抗性攻击，以保护照片免受恶意图像到视频扩散生成的侵害。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Deep learning models for video generation and synthesis",
+      "matched_requirement_id": "req-9",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.24570v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.23414v1",
+      "title": "SortedRL: Accelerating RL Training for LLMs through Online Length-Aware Scheduling",
+      "abstract": "Scaling reinforcement learning (RL) has shown strong promise for enhancing the reasoning abilities of large language models (LLMs), particularly in tasks requiring long chain-of-thought generation. However, RL training efficiency is often bottlenecked by the rollout phase, which can account for up to 70% of total training time when generating long trajectories (e.g., 16k tokens), due to slow autoregressive generation and synchronization overhead between rollout and policy updates. We propose SortedRL, an online length-aware scheduling strategy designed to address this bottleneck by improving rollout efficiency and maintaining training stability. SortedRL reorders rollout samples based on output lengths, prioritizing short samples forming groups for early updates. This enables large rollout batches, flexible update batches, and near on-policy micro-curriculum construction simultaneously. To further accelerate the pipeline, SortedRL incorporates a mechanism to control the degree of off-policy training through a cache-based mechanism, and is supported by a dedicated RL infrastructure that manages rollout and update via a stateful controller and rollout buffer. Experiments using LLaMA-3.1-8B and Qwen-2.5-32B on diverse tasks, including logical puzzles, and math challenges like AIME 24, Math 500, and Minerval, show that SortedRL reduces RL training bubble ratios by over 50%, while attaining 3.9% to 18.4% superior performance over baseline given same amount of data.",
+      "authors": [
+        "Yiqi Zhang",
+        "Huiqiang Jiang",
+        "Xufang Luo",
+        "Zhihe Yang",
+        "Chengruidong Zhang",
+        "Yifei Shen",
+        "Dongsheng Li",
+        "Yuqing Yang",
+        "Lili Qiu",
+        "Yang You"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-24T16:48:31+00:00",
+      "link": "https://arxiv.org/pdf/2603.23414v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "reinforcement learning training framework and scheduling algorithms",
+      "llm_evidence_cn": "强化学习训练框架与调度算法",
+      "llm_evidence": "强化学习训练框架与调度算法",
+      "canonical_evidence": "强化学习训练框架与调度算法",
+      "llm_tldr_en": "SortedRL accelerates RL training for LLMs by reordering rollout samples based on length to improve efficiency.",
+      "llm_tldr_cn": "SortedRL通过根据长度重新排序Rollout样本，加速了大语言模型的强化学习训练效率。",
+      "llm_tldr": "SortedRL通过根据长度重新排序Rollout样本，加速了大语言模型的强化学习训练效率。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.23414v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.22844v1",
+      "title": "PhySe-RPO: Physics and Semantics Guided Relative Policy Optimization for Diffusion-Based Surgical Smoke Removal",
+      "abstract": "Surgical smoke severely degrades intraoperative video quality, obscuring anatomical structures and limiting surgical perception. Existing learning-based desmoking approaches rely on scarce paired supervision and deterministic restoration pipelines, making it difficult to perform exploration or reinforcement-driven refinement under real surgical conditions. We propose PhySe-RPO, a diffusion restoration framework optimized through Physics- and Semantics-Guided Relative Policy Optimization. The core idea is to transform deterministic restoration into a stochastic policy, enabling trajectory-level exploration and critic-free updates via group-relative optimization. A physics-guided reward imposes illumination and color consistency, while a visual-concept semantic reward learned from CLIP-based surgical concepts promotes smoke-free and anatomically coherent restoration. Together with a reference-free perceptual constraint, PhySe-RPO produces results that are physically consistent, semantically faithful, and clinically interpretable across synthetic and real robotic surgical datasets, providing a principled route to robust diffusion-based restoration under limited paired supervision.",
+      "authors": [
+        "Zining Fang",
+        "Cheng Xue",
+        "Chunhui Liu",
+        "Bin Xu",
+        "Ming Chen",
+        "Xiaowei Hu"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-24T06:32:12+00:00",
+      "link": "https://arxiv.org/pdf/2603.22844v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "diffusion restoration optimized through relative policy optimization",
+      "llm_evidence_cn": "通过相对策略优化改进的扩散模型修复",
+      "llm_evidence": "通过相对策略优化改进的扩散模型修复",
+      "canonical_evidence": "通过相对策略优化改进的扩散模型修复",
+      "llm_tldr_en": "Uses relative policy optimization to refine diffusion-based video restoration for surgical smoke removal.",
+      "llm_tldr_cn": "利用相对策略优化改进基于扩散模型的视频修复，用于手术烟雾去除。",
+      "llm_tldr": "利用相对策略优化改进基于扩散模型的视频修复，用于手术烟雾去除。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Optimizing video diffusion models using reward based learning",
+      "matched_requirement_id": "req-13",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.22844v1",
       "carry_days": 1
     }
   ]

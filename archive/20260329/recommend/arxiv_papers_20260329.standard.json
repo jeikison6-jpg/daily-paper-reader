@@ -1,0 +1,858 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-03-29T19:27:55.677201+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 43,
+    "deep_cap": 7,
+    "deep_selected": 9,
+    "quick_candidates": 103,
+    "quick_skim_target": 12,
+    "quick_selected": 12
+  },
+  "deep_dive": [
+    {
+      "id": "2603.21546v1",
+      "title": "What Do World Models Learn in RL? Probing Latent Representations in Learned Environment Simulators",
+      "abstract": "World models learn to simulate environment dynamics from experience, enabling sample-efficient reinforcement learning. But what do these models actually represent internally? We apply interpretability techniques--including linear and nonlinear probing, causal interventions, and attention analysis--to two architecturally distinct world models: IRIS (discrete token transformer) and DIAMOND (continuous diffusion UNet), trained on Atari Breakout and Pong. Using linear probes, we find that both models develop linearly decodable representations of game state variables (object positions, scores), with MLP probes yielding only marginally higher R^2, confirming that these representations are approximately linear. Causal interventions--shifting hidden states along probe-derived directions--produce correlated changes in model predictions, providing evidence that representations are functionally used rather than merely correlated. Analysis of IRIS attention heads reveals spatial specialization: specific heads attend preferentially to tokens overlapping with game objects. Multi-baseline token ablation experiments consistently identify object-containing tokens as disproportionately important. Our findings provide interpretability evidence that learned world models develop structured, approximately linear internal representations of environment state across two games and two architectures.",
+      "authors": [
+        "Xinyu Zhang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-23T04:00:53+00:00",
+      "link": "https://arxiv.org/pdf/2603.21546v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "probing diffusion-based world models in reinforcement learning",
+      "llm_evidence_cn": "探究强化学习中基于扩散模型的世界模型",
+      "llm_evidence": "探究强化学习中基于扩散模型的世界模型",
+      "canonical_evidence": "探究强化学习中基于扩散模型的世界模型",
+      "llm_tldr_en": "Analyzes internal representations of diffusion-based world models (DIAMOND) used in reinforcement learning.",
+      "llm_tldr_cn": "分析了强化学习中使用的基于扩散的世界模型（DIAMOND）的内部表示。",
+      "llm_tldr": "分析了强化学习中使用的基于扩散的世界模型（DIAMOND）的内部表示。",
+      "llm_tags": [
+        "query:rl-dm:composite"
+      ],
+      "matched_query_tag": "query:rl-dm:composite",
+      "matched_query_text": "Papers central to 强化学习与扩散模型相关的学术论文检索, especially work that connects or combines: reinforcement learning algorithms and frameworks; generative diffusion models and denoising processes; classifier-guided and classifier-free diffusion for RL; generative models for decision making and planning; advancements in reinforcement learning using diffusion models; diffusion models for offline reinforcement learning and policy optimization; integrating generative diffusion processes into decision making agents.",
+      "matched_requirement_id": "req-composite-rl-dm",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.20584v1",
+      "title": "Improving Diffusion Generalization with Weak-to-Strong Segmented Guidance",
+      "abstract": "Diffusion models generate synthetic images through an iterative refinement process. However, the misalignment between the simulation-free objective and the iterative process often causes accumulated gradient error along the sampling trajectory, which leads to unsatisfactory results and a failure to generalize. Guidance techniques like Classifier Free Guidance (CFG) and AutoGuidance (AG) alleviate this by extrapolating between the main and inferior signal for stronger generalization. Despite empirical success, the effective operational regimes of prevalent guidance methods are still under-explored, leading to ambiguity when selecting the appropriate guidance method given a precondition. In this work, we first conduct synthetic comparisons to isolate and demonstrate the effective regime of guidance methods represented by CFG and AG from the perspective of weak-to-strong principle. Based on this, we propose a hybrid instantiation called SGG under the principle, taking the benefits of both. Furthermore, we demonstrate that the W2S principle along with SGG can be migrated into the training objective, improving the generalization ability of unguided diffusion models. We validate our approach with comprehensive experiments. At inference time, evaluations on SD3 and SD3.5 confirm that SGG outperforms existing training-free guidance variants. Training-time experiments on transformer architectures demonstrate the effective migration and performance gains in both conditional and unconditional settings. Code is available at https://github.com/851695e35/SGG.",
+      "authors": [
+        "Liangyu Yuan",
+        "Yufei Huang",
+        "Mingkun Lei",
+        "Tong Zhao",
+        "Ruoyu Wang",
+        "Changxi Chi",
+        "Yiwei Wang",
+        "Chi Zhang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-21T00:51:46+00:00",
+      "link": "https://arxiv.org/pdf/2603.20584v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "analysis of Classifier Free Guidance (CFG) in diffusion models",
+      "llm_evidence_cn": "扩散模型中无分类器引导 (CFG) 的分析",
+      "llm_evidence": "扩散模型中无分类器引导 (CFG) 的分析",
+      "canonical_evidence": "扩散模型中无分类器引导 (CFG) 的分析",
+      "llm_tldr_en": "This work improves diffusion model generalization by analyzing and segmenting guidance techniques like CFG.",
+      "llm_tldr_cn": "该研究通过分析和细分 CFG 等引导技术，提升了扩散模型的泛化能力。",
+      "llm_tldr": "该研究通过分析和细分 CFG 等引导技术，提升了扩散模型的泛化能力。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "classifier-guided and classifier-free diffusion for RL",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.21342v1",
+      "title": "Generalized Discrete Diffusion from Snapshots",
+      "abstract": "We introduce Generalized Discrete Diffusion from Snapshots (GDDS), a unified framework for discrete diffusion modeling that supports arbitrary noising processes over large discrete state spaces. Our formulation encompasses all existing discrete diffusion approaches, while allowing significantly greater flexibility in the choice of corruption dynamics. The forward noising process relies on uniformization and enables fast arbitrary corruption. For the reverse process, we derive a simple evidence lower bound (ELBO) based on snapshot latents, instead of the entire noising path, that allows efficient training of standard generative modeling architectures with clear probabilistic interpretation. Our experiments on large-vocabulary discrete generation tasks suggest that the proposed framework outperforms existing discrete diffusion methods in terms of training efficiency and generation quality, and beats autoregressive models for the first time at this scale. We provide the code along with a blog post on the project page : \\href{https://oussamazekri.fr/gdds}{https://oussamazekri.fr/gdds}.",
+      "authors": [
+        "Oussama Zekri",
+        "Théo Uscidda",
+        "Nicolas Boullé",
+        "Anna Korba"
+      ],
+      "primary_category": "stat.ML",
+      "categories": [
+        "stat.ML",
+        "cs.AI",
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-03-22T17:58:01+00:00",
+      "link": "https://arxiv.org/pdf/2603.21342v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "unified framework for discrete diffusion modeling and noising processes",
+      "llm_evidence_cn": "离散扩散模型和加噪过程的统一框架",
+      "llm_evidence": "离散扩散模型和加噪过程的统一框架",
+      "canonical_evidence": "离散扩散模型和加噪过程的统一框架",
+      "llm_tldr_en": "Introduces GDDS, a unified framework for discrete diffusion modeling with flexible corruption dynamics.",
+      "llm_tldr_cn": "引入GDDS，一个支持灵活加噪动力学的离散扩散模型统一框架。",
+      "llm_tldr": "引入GDDS，一个支持灵活加噪动力学的离散扩散模型统一框架。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "generative diffusion models and denoising processes",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.23246v1",
+      "title": "GO-Renderer: Generative Object Rendering with 3D-aware Controllable Video Diffusion Models",
+      "abstract": "Reconstructing a renderable 3D model from images is a useful but challenging task. Recent feedforward 3D reconstruction methods have demonstrated remarkable success in efficiently recovering geometry, but still cannot accurately model the complex appearances of these 3D reconstructed models. Recent diffusion-based generative models can synthesize realistic images or videos of an object using reference images without explicitly modeling its appearance, which provides a promising direction for object rendering, but lacks accurate control over the viewpoints. In this paper, we propose GO-Renderer, a unified framework integrating the reconstructed 3D proxies to guide the video generative models to achieve high-quality object rendering on arbitrary viewpoints under arbitrary lighting conditions. Our method not only enjoys the accurate viewpoint control using the reconstructed 3D proxy but also enables high-quality rendering in different lighting environments using diffusion generative models without explicitly modeling complex materials and lighting. Extensive experiments demonstrate that GO-Renderer achieves state-of-the-art performance across the object rendering tasks, including synthesizing images on new viewpoints, rendering the objects in a novel lighting environment, and inserting an object into an existing video.",
+      "authors": [
+        "Zekai Gu",
+        "Shuoxuan Feng",
+        "Yansong Wang",
+        "Hanzhuo Huang",
+        "Zhongshuo Du",
+        "Chengfeng Zhao",
+        "Chengwei Ren",
+        "Peng Wang",
+        "Yuan Liu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-24T14:14:21+00:00",
+      "link": "https://arxiv.org/pdf/2603.23246v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "3D-aware controllable video diffusion models for object rendering",
+      "llm_evidence_cn": "用于物体渲染的3D感知可控视频扩散模型",
+      "llm_evidence": "用于物体渲染的3D感知可控视频扩散模型",
+      "canonical_evidence": "用于物体渲染的3D感知可控视频扩散模型",
+      "llm_tldr_en": "Integrates 3D proxies with video diffusion models for high-quality, viewpoint-controllable object rendering.",
+      "llm_tldr_cn": "将3D代理与视频扩散模型结合，实现了高质量、视角可控的物体渲染。",
+      "llm_tldr": "将3D代理与视频扩散模型结合，实现了高质量、视角可控的物体渲染。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Generative models for high-fidelity video synthesis",
+      "matched_requirement_id": "req-11",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.23491v1",
+      "title": "Foveated Diffusion: Efficient Spatially Adaptive Image and Video Generation",
+      "abstract": "Diffusion and flow matching models have unlocked unprecedented capabilities for creative content creation, such as interactive image and streaming video generation. The growing demand for higher resolutions, frame rates, and context lengths, however, makes efficient generation increasingly challenging, as computational complexity grows quadratically with the number of generated tokens. Our work seeks to optimize the efficiency of the generation process in settings where the user's gaze location is known or can be estimated, for example, by using eye tracking. In these settings, we leverage the eccentricity-dependent acuity of human vision: while a user perceives very high-resolution visual information in a small region around their gaze location (the foveal region), the ability to resolve detail quickly degrades in the periphery of the visual field. Our approach starts with a mask modeling the foveated resolution to allocate tokens non-uniformly, assigning higher token density to foveal regions and lower density to peripheral regions. An image or video is generated in a mixed-resolution token setting, yielding results perceptually indistinguishable from full-resolution generation, while drastically reducing the token count and generation time. To this end, we develop a principled mechanism for constructing mixed-resolution tokens directly from high-resolution data, allowing a foveated diffusion model to be post-trained from an existing base model while maintaining content consistency across resolutions. We validate our approach through extensive analysis and a carefully designed user study, demonstrating the efficacy of foveation as a practical and scalable axis for efficient generation.",
+      "authors": [
+        "Brian Chao",
+        "Lior Yariv",
+        "Howard Xiao",
+        "Gordon Wetzstein"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-24T17:57:35+00:00",
+      "link": "https://arxiv.org/pdf/2603.23491v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Efficient spatially adaptive video generation using diffusion models",
+      "llm_evidence_cn": "使用扩散模型进行高效的空间自适应视频生成",
+      "llm_evidence": "使用扩散模型进行高效的空间自适应视频生成",
+      "canonical_evidence": "使用扩散模型进行高效的空间自适应视频生成",
+      "llm_tldr_en": "Introduces Foveated Diffusion to optimize high-resolution video generation efficiency using human gaze location.",
+      "llm_tldr_cn": "引入注视点扩散模型，利用人类视线位置优化高分辨率视频生成的效率。",
+      "llm_tldr": "引入注视点扩散模型，利用人类视线位置优化高分辨率视频生成的效率。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Generative models for high-fidelity video synthesis",
+      "matched_requirement_id": "req-11",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.24083v1",
+      "title": "Knowledge-Guided Manipulation Using Multi-Task Reinforcement Learning",
+      "abstract": "This paper introduces Knowledge Graph based Massively Multi-task Model-based Policy Optimization (KG-M3PO), a framework for multi-task robotic manipulation in partially observable settings that unifies Perception, Knowledge, and Policy. The method augments egocentric vision with an online 3D scene graph that grounds open-vocabulary detections into a metric, relational representation. A dynamic-relation mechanism updates spatial, containment, and affordance edges at every step, and a graph neural encoder is trained end-to-end through the RL objective so that relational features are shaped directly by control performance. Multiple observation modalities (visual, proprioceptive, linguistic, and graph-based) are encoded into a shared latent space, upon which the RL agent operates to drive the control loop. The policy conditions on lightweight graph queries alongside visual and proprioceptive inputs, yielding a compact, semantically informed state for decision making.   Experiments on a suite of manipulation tasks with occlusions, distractors, and layout shifts demonstrate consistent gains over strong baselines: the knowledge-conditioned agent achieves higher success rates, improved sample efficiency, and stronger generalization to novel objects and unseen scene configurations. These results support the premise that structured, continuously maintained world knowledge is a powerful inductive bias for scalable, generalizable manipulation: when the knowledge module participates in the RL computation graph, relational representations align with control, enabling robust long-horizon behavior under partial observability.",
+      "authors": [
+        "Aditya Narendra",
+        "Mukhammadrizo Maribjonov",
+        "Dmitry Makarov",
+        "Dmitry Yudin",
+        "Aleksandr Panov"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-03-25T08:41:32+00:00",
+      "link": "https://arxiv.org/pdf/2603.24083v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "multi-task reinforcement learning and policy optimization",
+      "llm_evidence_cn": "多任务强化学习与策略优化",
+      "llm_evidence": "多任务强化学习与策略优化",
+      "canonical_evidence": "多任务强化学习与策略优化",
+      "llm_tldr_en": "Introduces KG-M3PO, a framework for multi-task robotic manipulation using model-based policy optimization.",
+      "llm_tldr_cn": "引入KG-M3PO框架，利用基于模型的策略优化实现多任务机器人操控。",
+      "llm_tldr": "引入KG-M3PO框架，利用基于模型的策略优化实现多任务机器人操控。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.25108v1",
+      "title": "MSRL: Scaling Generative Multimodal Reward Modeling via Multi-Stage Reinforcement Learning",
+      "abstract": "Recent advances in multimodal reward modeling have been largely driven by a paradigm shift from discriminative to generative approaches. Building on this progress, recent studies have further employed reinforcement learning from verifiable rewards (RLVR) to enhance multimodal reward models (MRMs). Despite their success, RLVR-based training typically relies on labeled multimodal preference data, which are costly and labor-intensive to obtain, making it difficult to scale MRM training. To overcome this limitation, we propose a Multi-Stage Reinforcement Learning (MSRL) approach, which can achieve scalable RL for MRMs with limited multimodal data. MSRL replaces the conventional RLVR-based training paradigm by first learning a generalizable reward reasoning capability from large-scale textual preference data, and then progressively transferring this capability to multimodal tasks through caption-based and fully multimodal reinforcement-learning stages. Furthermore, we introduce a cross-modal knowledge distillation approach to improve preference generalization within MSRL. Extensive experiments demonstrate that MSRL effectively scales the RLVR-based training of generative MRMs and substantially improves their performance across both visual understanding and visual generation tasks (e.g., from 66.6% to 75.9% on VL-RewardBench and from 70.2% to 75.7% on GenAI-Bench), without requiring additional multimodal preference annotations. Our code is available at: https://github.com/wangclnlp/MSRL.",
+      "authors": [
+        "Chenglong Wang",
+        "Yifu Huo",
+        "Yang Gan",
+        "Qiaozhi He",
+        "Qi Meng",
+        "Bei Li",
+        "Yan Wang",
+        "Junfu Liu",
+        "Tianhua Zhou",
+        "Jingbo Zhu",
+        "Tong Xiao"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-26T07:27:11+00:00",
+      "link": "https://arxiv.org/pdf/2603.25108v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "multi-stage reinforcement learning for multimodal reward modeling",
+      "llm_evidence_cn": "用于多模态奖励建模的多阶段强化学习",
+      "llm_evidence": "用于多模态奖励建模的多阶段强化学习",
+      "canonical_evidence": "用于多模态奖励建模的多阶段强化学习",
+      "llm_tldr_en": "MSRL scales multimodal reward modeling using a multi-stage reinforcement learning approach with limited data.",
+      "llm_tldr_cn": "MSRL 通过多阶段强化学习方法在有限数据下实现了多模态奖励模型的规模化训练。",
+      "llm_tldr": "MSRL 通过多阶段强化学习方法在有限数据下实现了多模态奖励模型的规模化训练。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.25730v1",
+      "title": "PackForcing: Short Video Training Suffices for Long Video Sampling and Long Context Inference",
+      "abstract": "Autoregressive video diffusion models have demonstrated remarkable progress, yet they remain bottlenecked by intractable linear KV-cache growth, temporal repetition, and compounding errors during long-video generation. To address these challenges, we present PackForcing, a unified framework that efficiently manages the generation history through a novel three-partition KV-cache strategy. Specifically, we categorize the historical context into three distinct types: (1) Sink tokens, which preserve early anchor frames at full resolution to maintain global semantics; (2) Mid tokens, which achieve a massive spatiotemporal compression (32x token reduction) via a dual-branch network fusing progressive 3D convolutions with low-resolution VAE re-encoding; and (3) Recent tokens, kept at full resolution to ensure local temporal coherence. To strictly bound the memory footprint without sacrificing quality, we introduce a dynamic top-$k$ context selection mechanism for the mid tokens, coupled with a continuous Temporal RoPE Adjustment that seamlessly re-aligns position gaps caused by dropped tokens with negligible overhead. Empowered by this principled hierarchical context compression, PackForcing can generate coherent 2-minute, 832x480 videos at 16 FPS on a single H200 GPU. It achieves a bounded KV cache of just 4 GB and enables a remarkable 24x temporal extrapolation (5s to 120s), operating effectively either zero-shot or trained on merely 5-second clips. Extensive results on VBench demonstrate state-of-the-art temporal consistency (26.07) and dynamic degree (56.25), proving that short-video supervision is sufficient for high-quality, long-video synthesis. https://github.com/ShandaAI/PackForcing",
+      "authors": [
+        "Xiaofeng Mao",
+        "Shaohao Rui",
+        "Kaining Ying",
+        "Bo Zheng",
+        "Chuanhao Li",
+        "Mingmin Chi",
+        "Kaipeng Zhang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-26T17:59:05+00:00",
+      "link": "https://arxiv.org/pdf/2603.25730v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "autoregressive video diffusion models for long video generation",
+      "llm_evidence_cn": "用于长视频生成的自回归视频扩散模型",
+      "llm_evidence": "用于长视频生成的自回归视频扩散模型",
+      "canonical_evidence": "用于长视频生成的自回归视频扩散模型",
+      "llm_tldr_en": "PackForcing optimizes KV-cache in autoregressive video diffusion models to enable high-fidelity long video synthesis.",
+      "llm_tldr_cn": "PackForcing 通过优化自回归视频扩散模型的 KV 缓存，实现了高保真长视频生成。",
+      "llm_tldr": "PackForcing 通过优化自回归视频扩散模型的 KV 缓存，实现了高保真长视频生成。",
+      "llm_tags": [
+        "query:rl-vg"
+      ],
+      "matched_query_tag": "query:rl-vg",
+      "matched_query_text": "Generative models for high-fidelity video synthesis",
+      "matched_requirement_id": "req-11",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.25734v1",
+      "title": "Unleashing Guidance Without Classifiers for Human-Object Interaction Animation",
+      "abstract": "Generating realistic human-object interaction (HOI) animations remains challenging because it requires jointly modeling dynamic human actions and diverse object geometries. Prior diffusion-based approaches often rely on hand-crafted contact priors or human-imposed kinematic constraints to improve contact quality. We propose LIGHT, a data-driven alternative in which guidance emerges from the denoising pace itself, reducing dependence on manually designed priors. Building on diffusion forcing, we factor the representation into modality-specific components and assign individualized noise levels with asynchronous denoising schedules. In this paradigm, cleaner components guide noisier ones through cross-attention, yielding guidance without auxiliary classifiers. We find that this data-driven guidance is inherently contact-aware, and can be enhanced when training is augmented with a broad spectrum of synthetic object geometries, encouraging invariance of contact semantics to geometric diversity. Extensive experiments show that pace-induced guidance more effectively mirrors the benefits of contact priors than conventional classifier-free guidance, while achieving higher contact fidelity, more realistic HOI generation, and stronger generalization to unseen objects and tasks.",
+      "authors": [
+        "Ziyin Wang",
+        "Sirui Xu",
+        "Chuan Guo",
+        "Bing Zhou",
+        "Jiangshan Gong",
+        "Jian Wang",
+        "Yu-Xiong Wang",
+        "Liang-Yan Gui"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-26T17:59:34+00:00",
+      "link": "https://arxiv.org/pdf/2603.25734v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Guidance without classifiers for human-object interaction animation",
+      "llm_evidence_cn": "无需分类器的引导用于人机交互动画生成",
+      "llm_evidence": "无需分类器的引导用于人机交互动画生成",
+      "canonical_evidence": "无需分类器的引导用于人机交互动画生成",
+      "llm_tldr_en": "Proposes a data-driven diffusion guidance method for realistic human-object interaction animations.",
+      "llm_tldr_cn": "提出一种数据驱动的扩散引导方法，用于生成逼真的人机交互动画。",
+      "llm_tldr": "提出一种数据驱动的扩散引导方法，用于生成逼真的人机交互动画。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "classifier-guided and classifier-free diffusion for RL",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2603.20645v1",
+      "title": "Diffusion Model for Manifold Data: Score Decomposition, Curvature, and Statistical Complexity",
+      "abstract": "Diffusion models have become a leading framework in generative modeling, yet their theoretical understanding -- especially for high-dimensional data concentrated on low-dimensional structures -- remains incomplete. This paper investigates how diffusion models learn such structured data, focusing on two key aspects: statistical complexity and influence of data geometric properties. By modeling data as samples from a smooth Riemannian manifold, our analysis reveals crucial decompositions of score functions in diffusion models under different levels of injected noise. We also highlight the interplay of manifold curvature with the structures in the score function. These analyses enable an efficient neural network approximation to the score function, built upon which we further provide statistical rates for score estimation and distribution learning. Remarkably, the obtained statistical rates are governed by the intrinsic dimension of data and the manifold curvature. These results advance the statistical foundations of diffusion models, bridging theory and practice for generative modeling on manifolds.",
+      "authors": [
+        "Zixuan Zhang",
+        "Kaixuan Huang",
+        "Tuo Zhao",
+        "Mengdi Wang",
+        "Minshuo Chen"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-03-21T04:40:19+00:00",
+      "link": "https://arxiv.org/pdf/2603.20645v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "statistical complexity and score decomposition in diffusion models",
+      "llm_evidence_cn": "扩散模型中的统计复杂度和分数分解",
+      "llm_evidence": "扩散模型中的统计复杂度和分数分解",
+      "canonical_evidence": "扩散模型中的统计复杂度和分数分解",
+      "llm_tldr_en": "Investigates how diffusion models learn high-dimensional data on low-dimensional manifolds via score decomposition.",
+      "llm_tldr_cn": "通过分数分解研究扩散模型如何学习分布在低维流形上的高维数据。",
+      "llm_tldr": "通过分数分解研究扩散模型如何学习分布在低维流形上的高维数据。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "generative diffusion models and denoising processes",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.20589v1",
+      "title": "Generating from Discrete Distributions Using Diffusions: Insights from Random Constraint Satisfaction Problems",
+      "abstract": "Generating data from discrete distributions is important for a number of application domains including text, tabular data, and genomic data. Several groups have recently used random $k$-satisfiability ($k$-SAT) as a synthetic benchmark for new generative techniques. In this paper, we show that fundamental insights from the theory of random constraint satisfaction problems have observable implications (sometime contradicting intuition) on the behavior of generative techniques on such benchmarks. More precisely, we study the problem of generating a uniformly random solution of a given (random) $k$-SAT or $k$-XORSAT formula. Among other findings, we observe that: $(i)$~Continuous diffusions outperform masked discrete diffusions; $(ii)$~Learned diffusions can match the theoretical `ideal' accuracy; $(iii)$~Smart ordering of the variables can significantly improve accuracy, although not following popular heuristics.",
+      "authors": [
+        "Alankrita Bhatt",
+        "Mukur Gupta",
+        "Germain Kolossov",
+        "Andrea Montanari"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-03-21T01:16:57+00:00",
+      "link": "https://arxiv.org/pdf/2603.20589v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Continuous diffusions for generating data from discrete distributions",
+      "llm_evidence_cn": "用于从离散分布生成数据的连续扩散模型",
+      "llm_evidence": "用于从离散分布生成数据的连续扩散模型",
+      "canonical_evidence": "用于从离散分布生成数据的连续扩散模型",
+      "llm_tldr_en": "Analyzes the behavior of diffusion techniques on discrete distributions using random constraint satisfaction problems.",
+      "llm_tldr_cn": "利用随机约束满足问题分析了扩散技术在离散分布上的行为。",
+      "llm_tldr": "利用随机约束满足问题分析了扩散技术在离散分布上的行为。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "generative diffusion models and denoising processes",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.20453v1",
+      "title": "Reinforcement Learning from Multi-Source Imperfect Preferences: Best-of-Both-Regimes Regret",
+      "abstract": "Reinforcement learning from human feedback (RLHF) replaces hard-to-specify rewards with pairwise trajectory preferences, yet regret-oriented theory often assumes that preference labels are generated consistently from a single ground-truth objective. In practical RLHF systems, however, feedback is typically \\emph{multi-source} (annotators, experts, reward models, heuristics) and can exhibit systematic, persistent mismatches due to subjectivity, expertise variation, and annotation/modeling artifacts. We study episodic RL from \\emph{multi-source imperfect preferences} through a cumulative imperfection budget: for each source, the total deviation of its preference probabilities from an ideal oracle is at most $ω$ over $K$ episodes. We propose a unified algorithm with regret $\\tilde{O}(\\sqrt{K/M}+ω)$, which exhibits a best-of-both-regimes behavior: it achieves $M$-dependent statistical gains when imperfection is small (where $M$ is the number of sources), while remaining robust with unavoidable additive dependence on $ω$ when imperfection is large. We complement this with a lower bound $\\tildeΩ(\\max\\{\\sqrt{K/M},ω\\})$, which captures the best possible improvement with respect to $M$ and the unavoidable dependence on $ω$, and a counterexample showing that naïvely treating imperfect feedback as as oracle-consistent can incur regret as large as $\\tildeΩ(\\min\\{ω\\sqrt{K},K\\})$. Technically, our approach involves imperfection-adaptive weighted comparison learning, value-targeted transition estimation to control hidden feedback-induced distribution shift, and sub-importance sampling to keep the weighted objectives analyzable, yielding regret guarantees that quantify when multi-source feedback provably improves RLHF and how cumulative imperfection fundamentally limits it.",
+      "authors": [
+        "Ming Shi",
+        "Yingbin Liang",
+        "Ness B. Shroff",
+        "Ananthram Swami"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-03-20T19:34:53+00:00",
+      "link": "https://arxiv.org/pdf/2603.20453v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "reinforcement learning from multi-source imperfect preferences",
+      "llm_evidence_cn": "基于多源不完美偏好的强化学习",
+      "llm_evidence": "基于多源不完美偏好的强化学习",
+      "canonical_evidence": "基于多源不完美偏好的强化学习",
+      "llm_tldr_en": "Studies episodic RL from multi-source imperfect preferences with a focus on regret-oriented theory.",
+      "llm_tldr_cn": "研究了基于多源不完美偏好的回合制强化学习，重点关注遗憾理论。",
+      "llm_tldr": "研究了基于多源不完美偏好的回合制强化学习，重点关注遗憾理论。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.20658v1",
+      "title": "Speedup Patch: Learning a Plug-and-Play Policy to Accelerate Embodied Manipulation",
+      "abstract": "While current embodied policies exhibit remarkable manipulation skills, their execution remains unsatisfactorily slow as they inherit the tardy pacing of human demonstrations. Existing acceleration methods typically require policy retraining or costly online interactions, limiting their scalability for large-scale foundation models. In this paper, we propose Speedup Patch (SuP), a lightweight, policy-agnostic framework that enables plug-and-play acceleration using solely offline data. SuP introduces an external scheduler that adaptively downsamples action chunks provided by embodied policies to eliminate redundancies. Specifically, we formalize the optimization of our scheduler as a Constrained Markov Decision Process (CMDP) aimed at maximizing efficiency without compromising task performance. Since direct success evaluation is infeasible in offline settings, SuP introduces World Model based state deviation as a surrogate metric to enforce safety constraints. By leveraging a learned world model as a virtual evaluator to predict counterfactual trajectories, the scheduler can be optimized via offline reinforcement learning. Empirical results on simulation benchmarks (Libero, Bigym) and real-world tasks validate that SuP achieves an overall 1.8x execution speedup for diverse policies while maintaining their original success rates.",
+      "authors": [
+        "Zhichao Wu",
+        "Junyin Ye",
+        "Zhilong Zhang",
+        "Yihao Sun",
+        "Haoxin Lin",
+        "Jiaheng Luo",
+        "Haoxiang Ren",
+        "Lei Yuan",
+        "Yang Yu"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-03-21T05:29:04+00:00",
+      "link": "https://arxiv.org/pdf/2603.20658v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "offline data policy optimization using Constrained Markov Decision Process",
+      "llm_evidence_cn": "使用约束马尔可夫决策过程进行离线数据策略优化",
+      "llm_evidence": "使用约束马尔可夫决策过程进行离线数据策略优化",
+      "canonical_evidence": "使用约束马尔可夫决策过程进行离线数据策略优化",
+      "llm_tldr_en": "Speedup Patch uses CMDP and offline data to accelerate embodied manipulation policies without retraining.",
+      "llm_tldr_cn": "Speedup Patch 利用 CMDP 和离线数据，在无需重新训练的情况下加速具身操作策略。",
+      "llm_tldr": "Speedup Patch 利用 CMDP 和离线数据，在无需重新训练的情况下加速具身操作策略。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "diffusion models for offline reinforcement learning and policy optimization",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.20741v1",
+      "title": "CTCal: Rethinking Text-to-Image Diffusion Models via Cross-Timestep Self-Calibration",
+      "abstract": "Recent advancements in text-to-image synthesis have been largely propelled by diffusion-based models, yet achieving precise alignment between text prompts and generated images remains a persistent challenge. We find that this difficulty arises primarily from the limitations of conventional diffusion loss, which provides only implicit supervision for modeling fine-grained text-image correspondence. In this paper, we introduce Cross-Timestep Self-Calibration (CTCal), founded on the supporting observation that establishing accurate text-image alignment within diffusion models becomes progressively more difficult as the timestep increases. CTCal leverages the reliable text-image alignment (i.e., cross-attention maps) formed at smaller timesteps with less noise to calibrate the representation learning at larger timesteps with more noise, thereby providing explicit supervision during training. We further propose a timestep-aware adaptive weighting to achieve a harmonious integration of CTCal and diffusion loss. CTCal is model-agnostic and can be seamlessly integrated into existing text-to-image diffusion models, encompassing both diffusion-based (e.g., SD 2.1) and flow-based approaches (e.g., SD 3). Extensive experiments on T2I-Compbench++ and GenEval benchmarks demonstrate the effectiveness and generalizability of the proposed CTCal. Our code is available at https://github.com/xiefan-guo/ctcal.",
+      "authors": [
+        "Xiefan Guo",
+        "Xinzhu Ma",
+        "Haiyu Zhang",
+        "Di Huang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-21T10:00:35+00:00",
+      "link": "https://arxiv.org/pdf/2603.20741v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "text-to-image diffusion models and self-calibration",
+      "llm_evidence_cn": "文本到图像扩散模型与自校准",
+      "llm_evidence": "文本到图像扩散模型与自校准",
+      "canonical_evidence": "文本到图像扩散模型与自校准",
+      "llm_tldr_en": "Improves text-image alignment in diffusion models using cross-timestep self-calibration.",
+      "llm_tldr_cn": "通过跨时间步自校准技术，提升扩散模型中文本与图像的对齐精度。",
+      "llm_tldr": "通过跨时间步自校准技术，提升扩散模型中文本与图像的对齐精度。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "generative diffusion models and denoising processes",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.20755v1",
+      "title": "Memory-Efficient Fine-Tuning Diffusion Transformers via Dynamic Patch Sampling and Block Skipping",
+      "abstract": "Diffusion Transformers (DiTs) have significantly enhanced text-to-image (T2I) generation quality, enabling high-quality personalized content creation. However, fine-tuning these models requires substantial computational complexity and memory, limiting practical deployment under resource constraints. To tackle these challenges, we propose a memory-efficient fine-tuning framework called DiT-BlockSkip, integrating timestep-aware dynamic patch sampling and block skipping by precomputing residual features. Our dynamic patch sampling strategy adjusts patch sizes based on the diffusion timestep, then resizes the cropped patches to a fixed lower resolution. This approach reduces forward & backward memory usage while allowing the model to capture global structures at higher timesteps and fine-grained details at lower timesteps. The block skipping mechanism selectively fine-tunes essential transformer blocks and precomputes residual features for the skipped blocks, significantly reducing training memory. To identify vital blocks for personalization, we introduce a block selection strategy based on cross-attention masking. Evaluations demonstrate that our approach achieves competitive personalization performance qualitatively and quantitatively, while reducing memory usage substantially, moving toward on-device feasibility (e.g., smartphones, IoT devices) for large-scale diffusion transformers.",
+      "authors": [
+        "Sunghyun Park",
+        "Jeongho Kim",
+        "Hyoungwoo Park",
+        "Debasmit Das",
+        "Sungrack Yun",
+        "Munawar Hayat",
+        "Jaegul Choo",
+        "Fatih Porikli",
+        "Seokeon Choi"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-21T11:02:18+00:00",
+      "link": "https://arxiv.org/pdf/2603.20755v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL VG"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "memory-efficient fine-tuning for Diffusion Transformers",
+      "llm_evidence_cn": "扩散 Transformer 的内存高效微调",
+      "llm_evidence": "扩散 Transformer 的内存高效微调",
+      "canonical_evidence": "扩散 Transformer 的内存高效微调",
+      "llm_tldr_en": "Proposes a framework to reduce memory usage during the fine-tuning of Diffusion Transformers for image generation.",
+      "llm_tldr_cn": "提出了一种在图像生成的扩散 Transformer 微调过程中减少内存使用的框架。",
+      "llm_tldr": "提出了一种在图像生成的扩散 Transformer 微调过程中减少内存使用的框架。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "generative diffusion models and denoising processes",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.21138v1",
+      "title": "Incentivizing Generative Zero-Shot Learning via Outcome-Reward Reinforcement Learning with Visual Cues",
+      "abstract": "Recent advances in zero-shot learning (ZSL) have demonstrated the potential of generative models. Typically, generative ZSL synthesizes visual features conditioned on semantic prototypes to model the data distribution of unseen classes, followed by training a classifier on the synthesized data. However, the synthesized features often remain task-agnostic, leading to degraded performance. Moreover, inferring a faithful distribution from semantic prototypes alone is insufficient for classes that are semantically similar but visually distinct. To address these and advance ZSL, we propose RLVC, an outcome-reward reinforcement learning RL framework with visual cues for generative ZSL. At its core, RL empowers the generative model to self-evolve, implicitly enhancing its generation capability. In particular, RLVC updates the generative model using an outcome-based reward, encouraging the synthesis of task-relevant features. Furthermore, we introduce class-wise visual cues that (i) align synthesized features with visual prototypes and (ii) stabilize the RL training updates. For the training process, we present a novel cold-start strategy. Comprehensive experiments and analyses on three prevalent ZSL benchmarks demonstrate that RLVC achieves state-of-the-art results with a 4.7% gain.",
+      "authors": [
+        "Wenjin Hou",
+        "Xiaoxiao Sun",
+        "Hehe Fan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-22T09:28:04+00:00",
+      "link": "https://arxiv.org/pdf/2603.21138v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "outcome-reward reinforcement learning framework for generative models",
+      "llm_evidence_cn": "用于生成模型的基于结果奖励的强化学习框架",
+      "llm_evidence": "用于生成模型的基于结果奖励的强化学习框架",
+      "canonical_evidence": "用于生成模型的基于结果奖励的强化学习框架",
+      "llm_tldr_en": "Uses reinforcement learning to empower generative models for better zero-shot learning performance.",
+      "llm_tldr_cn": "利用强化学习增强生成模型，以提高零样本学习的性能。",
+      "llm_tldr": "利用强化学习增强生成模型，以提高零样本学习的性能。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.21045v2",
+      "title": "LPNSR: Prior-Enhanced Diffusion Image Super-Resolution via LR-Guided Noise Prediction",
+      "abstract": "Diffusion-based image super-resolution (SR), which aims to reconstruct high-resolution (HR) images from corresponding low-resolution (LR) observations, faces a fundamental trade-off between inference efficiency and reconstruction quality. The state-of-the-art residual-shifting diffusion framework achieves efficient 4-step inference, yet suffers from severe performance degradation in compact sampling trajectories. This is mainly attributed to two core limitations: the inherent suboptimality of unconstrained random Gaussian noise in intermediate steps, which leads to error accumulation and insufficient LR prior guidance, and the initialization bias caused by naive bicubic upsampling. In this paper, we propose LPNSR, a prior-enhanced efficient diffusion framework to address these issues. We first mathematically derive the closed-form analytical solution of the optimal intermediate noise for the residual-shifting diffusion paradigm, and accordingly design an LR-guided multi-input-aware noise predictor to replace random Gaussian noise, embedding LR structural priors into the reverse process while fully preserving the framework's core efficient residual-shifting mechanism. We further mitigate initial bias with a high-quality pre-upsampling network to optimize the diffusion starting point. With a compact 4-step trajectory, LPNSR can be optimized in an end-to-end manner. Extensive experiments demonstrate that LPNSR achieves state-of-the-art perceptual performance on both synthetic and real-world datasets, without relying on any large-scale text-to-image priors. The source code of our method can be found at https://github.com/Faze-Hsw/LPNSR.",
+      "authors": [
+        "Shuwei Huang",
+        "Shizhuo Liu",
+        "Zijun Wei"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-22T03:52:38+00:00",
+      "link": "https://arxiv.org/pdf/2603.21045v2",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "diffusion-based image super-resolution and noise prediction",
+      "llm_evidence_cn": "基于扩散的图像超分辨率与噪声预测",
+      "llm_evidence": "基于扩散的图像超分辨率与噪声预测",
+      "canonical_evidence": "基于扩散的图像超分辨率与噪声预测",
+      "llm_tldr_en": "Improves diffusion-based super-resolution via LR-guided noise prediction and better initialization.",
+      "llm_tldr_cn": "通过低分辨率引导的噪声预测改进扩散模型在图像超分任务中的表现。",
+      "llm_tldr": "通过低分辨率引导的噪声预测改进扩散模型在图像超分任务中的表现。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "generative diffusion models and denoising processes",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.20828v1",
+      "title": "EruDiff: Refactoring Knowledge in Diffusion Models for Advanced Text-to-Image Synthesis",
+      "abstract": "Text-to-image diffusion models have achieved remarkable fidelity in synthesizing images from explicit text prompts, yet exhibit a critical deficiency in processing implicit prompts that require deep-level world knowledge, ranging from natural sciences to cultural commonsense, resulting in counter-factual synthesis. This paper traces the root of this limitation to a fundamental dislocation of the underlying knowledge structures, manifesting as a chaotic organization of implicit prompts compared to their explicit counterparts. In this paper, we propose EruDiff, which aims to refactor the knowledge within diffusion models. Specifically, we develop the Diffusion Knowledge Distribution Matching (DK-DM) to register the knowledge distribution of intractable implicit prompts with that of well-defined explicit anchors. Furthermore, to rectify the inherent biases in explicit prompt rendering, we employ the Negative-Only Reinforcement Learning (NO-RL) strategy for fine-grained correction. Rigorous empirical evaluations demonstrate that our method significantly enhances the performance of leading diffusion models, including FLUX and Qwen-Image, across both the scientific knowledge benchmark (i.e., Science-T2I) and the world knowledge benchmark (i.e., WISE), underscoring the effectiveness and generalizability. Our code is available at https://github.com/xiefan-guo/erudiff.",
+      "authors": [
+        "Xiefan Guo",
+        "Xinzhu Ma",
+        "Haoxiang Ma",
+        "Zihao Zhou",
+        "Di Huang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-21T14:04:08+00:00",
+      "link": "https://arxiv.org/pdf/2603.20828v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Refactoring knowledge in diffusion models for synthesis",
+      "llm_evidence_cn": "重构扩散模型中的知识以进行合成",
+      "llm_evidence": "重构扩散模型中的知识以进行合成",
+      "canonical_evidence": "重构扩散模型中的知识以进行合成",
+      "llm_tldr_en": "Proposes EruDiff to refactor knowledge structures in diffusion models for better handling of implicit prompts.",
+      "llm_tldr_cn": "提出 EruDiff，重构扩散模型中的知识结构，以更好地处理隐式提示词。",
+      "llm_tldr": "提出 EruDiff，重构扩散模型中的知识结构，以更好地处理隐式提示词。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "generative diffusion models and denoising processes",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.21177v1",
+      "title": "Prompt replay: speeding up grpo with on-policy reuse of high-signal prompts",
+      "abstract": "Reinforcement learning with verifiable rewards (RLVR) plays a crucial role in expanding the capacities of LLM reasoning, but GRPO-style training is dominated by expensive rollouts and wastes compute on unusable prompts. We propose Prompt Replay, an overhead-free online data selection method for GRPO that reuses prompts only (not trajectories), to preserve on-policy optimization. After each step, we insert prompts with medium difficulty into a buffer, and prioritize prompts closer to a pass rate of 0.5 (half answers correct, half wrong) to maximize the advantage, thus learning signal. Training batches are formed by mixing reused prompts with fresh samples, with cooldown steps and max reuse times controlling aggressiveness vs risk of overfitting. Across multiple model families (Llama-3.2- 3B, Qwen3-8B) and training datasets (Dolci, Polaris), evaluated using average accuracy on six standard math benchmarks, Prompt Replay reduces zero-variance prompts, increases mean absolute advantage and shows faster initial accuracy gains. Yet, it plateaus and converges with the baseline, as too aggressive configuration was used. The method is most efficient when the rollouts are the primary bottleneck and the dataset is difficult for the model. We additionally observe that Qwen2.5-Math can exhibit spurious-reward effects that invalidates ablations, raising a warning signal for using it as a sole testbed for GRPO method research.",
+      "authors": [
+        "Andrei Baroian",
+        "Rutger Berger"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-22T11:39:51+00:00",
+      "link": "https://arxiv.org/pdf/2603.21177v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "reinforcement learning with verifiable rewards and GRPO-style training",
+      "llm_evidence_cn": "具有可验证奖励的强化学习和GRPO风格训练",
+      "llm_evidence": "具有可验证奖励的强化学习和GRPO风格训练",
+      "canonical_evidence": "具有可验证奖励的强化学习和GRPO风格训练",
+      "llm_tldr_en": "Proposes Prompt Replay to speed up GRPO reinforcement learning by reusing high-signal prompts.",
+      "llm_tldr_cn": "提出Prompt Replay，通过重用高信号提示来加速GRPO强化学习训练。",
+      "llm_tldr": "提出Prompt Replay，通过重用高信号提示来加速GRPO强化学习训练。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "reinforcement learning algorithms and frameworks",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.21085v1",
+      "title": "Taming Sampling Perturbations with Variance Expansion Loss for Latent Diffusion Models",
+      "abstract": "Latent diffusion models have emerged as the dominant framework for high-fidelity and efficient image generation, owing to their ability to learn diffusion processes in compact latent spaces. However, while previous research has focused primarily on reconstruction accuracy and semantic alignment of the latent space, we observe that another critical factor, robustness to sampling perturbations, also plays a crucial role in determining generation quality. Through empirical and theoretical analyses, we show that the commonly used $β$-VAE-based tokenizers in latent diffusion models, tend to produce overly compact latent manifolds that are highly sensitive to stochastic perturbations during diffusion sampling, leading to visual degradation. To address this issue, we propose a simple yet effective solution that constructs a latent space robust to sampling perturbations while maintaining strong reconstruction fidelity. This is achieved by introducing a Variance Expansion loss that counteracts variance collapse and leverages the adversarial interplay between reconstruction and variance expansion to achieve an adaptive balance that preserves reconstruction accuracy while improving robustness to stochastic sampling. Extensive experiments demonstrate that our approach consistently enhances generation quality across different latent diffusion architectures, confirming that robustness in latent space is a key missing ingredient for stable and faithful diffusion sampling.",
+      "authors": [
+        "Qifan Li",
+        "Xingyu Zhou",
+        "Jinhua Zhang",
+        "Weiyi You",
+        "Shuhang Gu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-22T06:56:12+00:00",
+      "link": "https://arxiv.org/pdf/2603.21085v1",
+      "tags": [
+        "keyword:RL DM",
+        "keyword:RL VG",
+        "query:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Robustness to sampling perturbations in latent diffusion models",
+      "llm_evidence_cn": "潜扩散模型中对采样扰动的鲁棒性",
+      "llm_evidence": "潜扩散模型中对采样扰动的鲁棒性",
+      "canonical_evidence": "潜扩散模型中对采样扰动的鲁棒性",
+      "llm_tldr_en": "Analyzes and improves the robustness of latent diffusion models against stochastic sampling perturbations.",
+      "llm_tldr_cn": "分析并提升了潜扩散模型在随机采样扰动下的生成质量和鲁棒性。",
+      "llm_tldr": "分析并提升了潜扩散模型在随机采样扰动下的生成质量和鲁棒性。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "generative diffusion models and denoising processes",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.20930v1",
+      "title": "Causally-Guided Diffusion for Stable Feature Selection",
+      "abstract": "Feature selection is fundamental to robust data-centric AI, but most existing methods optimize predictive performance under a single data distribution. This often selects spurious features that fail under distribution shifts. Motivated by principles from causal invariance, we study feature selection from a stability perspective and introduce Causally-Guided Diffusion for Stable Feature Selection (CGDFS). In CGDFS, we formalized feature selection as approximate posterior inference over feature subsets, whose posterior mass favors low prediction error and low cross-environment variance. Our framework combines three key insights: First, we formulate feature selection as stability-aware posterior sampling. Here, causal invariance serves as a soft inductive bias rather than explicit causal discovery. Second, we train a diffusion model as a learned prior over plausible continuous selection masks, combined with a stability-aware likelihood that rewards invariance across environments. This diffusion prior captures structural dependencies among features and enables scalable exploration of the combinatorially large selection space. Third, we perform guided annealed Langevin sampling that combines the diffusion prior with the stability objective, which yields a tractable, uncertainty-aware posterior inference that avoids discrete optimization and produces robust feature selections. We evaluate CGDFS on open-source real-world datasets exhibiting distribution shifts. Across both classification and regression tasks, CGDFS consistently selects more stable and transferable feature subsets, which leads to improved out-of-distribution performance and greater selection robustness compared to sparsity-based, tree-based, and stability-selection baselines.",
+      "authors": [
+        "Arun Vignesh Malarkkan",
+        "Xinyuan Wang",
+        "Kunpeng Liu",
+        "Denghui Zhang",
+        "Yanjie Fu"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.IT"
+      ],
+      "published": "2026-03-21T20:14:00+00:00",
+      "link": "https://arxiv.org/pdf/2603.20930v1",
+      "tags": [
+        "keyword:RL DM",
+        "query:RL DM",
+        "query:RL VG"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Diffusion for posterior inference over feature subsets",
+      "llm_evidence_cn": "用于特征子集后验推理的扩散模型",
+      "llm_evidence": "用于特征子集后验推理的扩散模型",
+      "canonical_evidence": "用于特征子集后验推理的扩散模型",
+      "llm_tldr_en": "Uses diffusion models for stable feature selection by formalizing it as stability-aware posterior sampling.",
+      "llm_tldr_cn": "将特征选择建模为后验采样，利用扩散模型实现稳定的特征选择。",
+      "llm_tldr": "将特征选择建模为后验采样，利用扩散模型实现稳定的特征选择。",
+      "llm_tags": [
+        "query:rl-dm"
+      ],
+      "matched_query_tag": "query:rl-dm",
+      "matched_query_text": "generative diffusion models and denoising processes",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
