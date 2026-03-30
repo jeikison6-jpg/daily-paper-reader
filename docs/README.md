@@ -6,85 +6,74 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-03-29
-- 运行时间：2026-03-29 19:30:42 UTC
+- 最新运行日期：2026-03-21 ~ 2026-03-30
+- 运行时间：2026-03-30 12:53:05 UTC
 - 运行状态：成功
-- 本次总论文数：21
-- 精读区：9
-- 速读区：12
+- 本次总论文数：17
+- 精读区：6
+- 速读区：11
 
 ### 今日简报（AI）
-今日精选 21 篇前沿论文，深度拆解强化学习世界模型的底层逻辑与扩散模型的泛化突破。
-满分神作揭示了环境模拟器潜表征的本质，而“弱到强”引导策略则为提升生成模型泛化性提供了新路径。
-建议优先研读世界模型的探测研究，并关注可即插即用的机器人操控加速方案。
-- 详情：[/202603/29/README](/202603/29/README)
+- 今日共生成 17 篇推荐（精读 6 篇，速读 11 篇）
+- 精读：《GDPO-Listener: Expressive Interactive Head Generation via Auto-Regressive Flow Matching and Group reward-Decoupled Policy Optimization》（10.0/10）, 《Policy-based Tuning of Autoregressive Image Models with Instance- and Distribution-Level Rewards》（9.0/10）
+- 速读：《Efficient Coarse-to-Fine Diffusion Models with Time Step Sequence Redistribution》（8.0/10）, 《PROBE: Diagnosing Residual Concept Capacity in Erased Text-to-Video Diffusion Models》（8.0/10）, 《Closed-Loop Verbal Reinforcement Learning for Task-Level Robotic Planning》（8.0/10）
+- 这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。
+- 详情：[/20260321-20260330/README](/20260321-20260330/README)
 
 ### 精读区论文标签
-1. [What Do World Models Learn in RL? Probing Latent Representations in Learned Environment Simulators](/202603/29/2603.21546v1-what-do-world-models-learn-in-rl-probing-latent-representations-in-learned-environment-simulators)  
-   标签：评分：10.0/10、query:rl-dm
-   evidence：探究强化学习中基于扩散模型的世界模型
-2. [Improving Diffusion Generalization with Weak-to-Strong Segmented Guidance](/202603/29/2603.20584v1-improving-diffusion-generalization-with-weak-to-strong-segmented-guidance)  
-   标签：评分：9.0/10、query:rl-dm
-   evidence：扩散模型中无分类器引导 (CFG) 的分析
-3. [Generalized Discrete Diffusion from Snapshots](/202603/29/2603.21342v1-generalized-discrete-diffusion-from-snapshots)  
-   标签：评分：9.0/10、query:rl-dm
-   evidence：离散扩散模型和加噪过程的统一框架
-4. [GO-Renderer: Generative Object Rendering with 3D-aware Controllable Video Diffusion Models](/202603/29/2603.23246v1-go-renderer-generative-object-rendering-with-3d-aware-controllable-video-diffusion-models)  
-   标签：评分：9.0/10、query:rl-vg
-   evidence：用于物体渲染的3D感知可控视频扩散模型
-5. [Foveated Diffusion: Efficient Spatially Adaptive Image and Video Generation](/202603/29/2603.23491v1-foveated-diffusion-efficient-spatially-adaptive-image-and-video-generation)  
-   标签：评分：9.0/10、query:rl-vg
-   evidence：使用扩散模型进行高效的空间自适应视频生成
-6. [Knowledge-Guided Manipulation Using Multi-Task Reinforcement Learning](/202603/29/2603.24083v1-knowledge-guided-manipulation-using-multi-task-reinforcement-learning)  
-   标签：评分：9.0/10、query:rl-dm
-   evidence：多任务强化学习与策略优化
-7. [MSRL: Scaling Generative Multimodal Reward Modeling via Multi-Stage Reinforcement Learning](/202603/29/2603.25108v1-msrl-scaling-generative-multimodal-reward-modeling-via-multi-stage-reinforcement-learning)  
-   标签：评分：9.0/10、query:rl-dm
-   evidence：用于多模态奖励建模的多阶段强化学习
-8. [PackForcing: Short Video Training Suffices for Long Video Sampling and Long Context Inference](/202603/29/2603.25730v1-packforcing-short-video-training-suffices-for-long-video-sampling-and-long-context-inference)  
-   标签：评分：9.0/10、query:rl-vg
-   evidence：用于长视频生成的自回归视频扩散模型
-9. [Unleashing Guidance Without Classifiers for Human-Object Interaction Animation](/202603/29/2603.25734v1-unleashing-guidance-without-classifiers-for-human-object-interaction-animation)  
-   标签：评分：9.0/10、query:rl-dm
-   evidence：无需分类器的引导用于人机交互动画生成
+1. [GDPO-Listener: Expressive Interactive Head Generation via Auto-Regressive Flow Matching and Group reward-Decoupled Policy Optimization](/20260321-20260330/2603.25020v1-gdpo-listener-expressive-interactive-head-generation-via-auto-regressive-flow-matching-and-group-reward-decoupled-policy-optimization)  
+   标签：评分：10.0/10、query:flgrpo
+   evidence：自回归流匹配与组奖励解耦策略优化
+2. [Policy-based Tuning of Autoregressive Image Models with Instance- and Distribution-Level Rewards](/20260321-20260330/2603.23086v1-policy-based-tuning-of-autoregressive-image-models-with-instance--and-distribution-level-rewards)  
+   标签：评分：9.0/10、query:flgrpo
+   evidence：通过组相对策略优化 (GRPO) 优化图像模型
+3. [MoE-GRPO: Optimizing Mixture-of-Experts via Reinforcement Learning in Vision-Language Models](/20260321-20260330/2603.24984v1-moe-grpo-optimizing-mixture-of-experts-via-reinforcement-learning-in-vision-language-models)  
+   标签：评分：9.0/10、query:flgrpo
+   evidence：在视觉语言模型中使用GRPO进行强化学习
+4. [Train at Moving Edge: Online-Verified Prompt Selection for Efficient RL Training of Large Reasoning Model](/20260321-20260330/2603.25184v1-train-at-moving-edge-online-verified-prompt-selection-for-efficient-rl-training-of-large-reasoning-model)  
+   标签：评分：9.0/10、query:flgrpo
+   evidence：研究GRPO算法中高效强化学习训练的提示词选择
+5. [Stabilizing Rubric Integration Training via Decoupled Advantage Normalization](/20260321-20260330/2603.26535v1-stabilizing-rubric-integration-training-via-decoupled-advantage-normalization)  
+   标签：评分：9.0/10、query:flgrpo
+   evidence：将过程级评估整合到组相对策略优化 (GRPO) 中
+6. [Mitigating Selection Bias in Large Language Models via Permutation-Aware GRPO](/20260321-20260330/2603.21016v1-mitigating-selection-bias-in-large-language-models-via-permutation-aware-grpo)  
+   标签：评分：8.0/10、query:flgrpo
+   evidence：用于大语言模型去偏的排列感知GRPO
 
 ### 速读区论文标签
-1. [Diffusion Model for Manifold Data: Score Decomposition, Curvature, and Statistical Complexity](/202603/29/2603.20645v1-diffusion-model-for-manifold-data-score-decomposition-curvature-and-statistical-complexity)  
+1. [Efficient Coarse-to-Fine Diffusion Models with Time Step Sequence Redistribution](/20260321-20260330/2603.21348v1-efficient-coarse-to-fine-diffusion-models-with-time-step-sequence-redistribution)  
    标签：评分：8.0/10、query:rl-dm
-   evidence：扩散模型中的统计复杂度和分数分解
-2. [Speedup Patch: Learning a Plug-and-Play Policy to Accelerate Embodied Manipulation](/202603/29/2603.20658v1-speedup-patch-learning-a-plug-and-play-policy-to-accelerate-embodied-manipulation)  
+   evidence：具有时间步序列重分布的高效扩散模型
+2. [PROBE: Diagnosing Residual Concept Capacity in Erased Text-to-Video Diffusion Models](/20260321-20260330/2603.21547v1-probe-diagnosing-residual-concept-capacity-in-erased-text-to-video-diffusion-models)  
+   标签：评分：8.0/10、query:rl-vg
+   evidence：诊断文本到视频扩散模型中的概念容量
+3. [Closed-Loop Verbal Reinforcement Learning for Task-Level Robotic Planning](/20260321-20260330/2603.22169v1-closed-loop-verbal-reinforcement-learning-for-task-level-robotic-planning)  
    标签：评分：8.0/10、query:rl-dm
-   evidence：使用约束马尔可夫决策过程进行离线数据策略优化
-3. [Incentivizing Generative Zero-Shot Learning via Outcome-Reward Reinforcement Learning with Visual Cues](/202603/29/2603.21138v1-incentivizing-generative-zero-shot-learning-via-outcome-reward-reinforcement-learning-with-visual-cues)  
+   evidence：用于机器人规划的口头强化学习框架
+4. [SpatialReward: Verifiable Spatial Reward Modeling for Fine-Grained Spatial Consistency in Text-to-Image Generation](/20260321-20260330/2603.22228v1-spatialreward-verifiable-spatial-reward-modeling-for-fine-grained-spatial-consistency-in-text-to-image-generation)  
+   标签：评分：8.0/10、query:rl-vg
+   evidence：用于文本生成图像奖励建模的强化学习
+5. [MemDLM: Memory-Enhanced DLM Training](/20260321-20260330/2603.22241v1-memdlm-memory-enhanced-dlm-training)  
    标签：评分：8.0/10、query:rl-dm
-   evidence：用于生成模型的基于结果奖励的强化学习框架
-4. [Prompt replay: speeding up grpo with on-policy reuse of high-signal prompts](/202603/29/2603.21177v1-prompt-replay-speeding-up-grpo-with-on-policy-reuse-of-high-signal-prompts)  
-   标签：评分：8.0/10、query:rl-dm
-   evidence：具有可验证奖励的强化学习和GRPO风格训练
-5. [Generating from Discrete Distributions Using Diffusions: Insights from Random Constraint Satisfaction Problems](/202603/29/2603.20589v1-generating-from-discrete-distributions-using-diffusions-insights-from-random-constraint-satisfaction-problems)  
-   标签：评分：7.0/10、query:rl-dm
-   evidence：用于从离散分布生成数据的连续扩散模型
-6. [CTCal: Rethinking Text-to-Image Diffusion Models via Cross-Timestep Self-Calibration](/202603/29/2603.20741v1-ctcal-rethinking-text-to-image-diffusion-models-via-cross-timestep-self-calibration)  
-   标签：评分：7.0/10、query:rl-dm
-   evidence：文本到图像扩散模型与自校准
-7. [LPNSR: Prior-Enhanced Diffusion Image Super-Resolution via LR-Guided Noise Prediction](/202603/29/2603.21045v2-lpnsr-prior-enhanced-diffusion-image-super-resolution-via-lr-guided-noise-prediction)  
-   标签：评分：7.0/10、query:rl-dm
-   evidence：基于扩散的图像超分辨率与噪声预测
-8. [Taming Sampling Perturbations with Variance Expansion Loss for Latent Diffusion Models](/202603/29/2603.21085v1-taming-sampling-perturbations-with-variance-expansion-loss-for-latent-diffusion-models)  
-   标签：评分：7.0/10、query:rl-dm
-   evidence：潜扩散模型中对采样扰动的鲁棒性
-9. [Reinforcement Learning from Multi-Source Imperfect Preferences: Best-of-Both-Regimes Regret](/202603/29/2603.20453v1-reinforcement-learning-from-multi-source-imperfect-preferences-best-of-both-regimes-regret)  
-   标签：评分：6.0/10、query:rl-dm
-   evidence：基于多源不完美偏好的强化学习
-10. [Memory-Efficient Fine-Tuning Diffusion Transformers via Dynamic Patch Sampling and Block Skipping](/202603/29/2603.20755v1-memory-efficient-fine-tuning-diffusion-transformers-via-dynamic-patch-sampling-and-block-skipping)  
-   标签：评分：6.0/10、query:rl-dm
-   evidence：扩散 Transformer 的内存高效微调
-11. [EruDiff: Refactoring Knowledge in Diffusion Models for Advanced Text-to-Image Synthesis](/202603/29/2603.20828v1-erudiff-refactoring-knowledge-in-diffusion-models-for-advanced-text-to-image-synthesis)  
-   标签：评分：6.0/10、query:rl-dm
-   evidence：重构扩散模型中的知识以进行合成
-12. [Causally-Guided Diffusion for Stable Feature Selection](/202603/29/2603.20930v1-causally-guided-diffusion-for-stable-feature-selection)  
-   标签：评分：6.0/10、query:rl-dm
-   evidence：用于特征子集后验推理的扩散模型
+   evidence：扩散语言模型中的多步渐进去噪轨迹
+6. [DUO-VSR: Dual-Stream Distillation for One-Step Video Super-Resolution](/20260321-20260330/2603.22271v1-duo-vsr-dual-stream-distillation-for-one-step-video-super-resolution)  
+   标签：评分：8.0/10、query:rl-vg
+   evidence：基于扩散模型的视频超分辨率与分布匹配蒸馏
+7. [EVA: Efficient Reinforcement Learning for End-to-End Video Agent](/20260321-20260330/2603.22918v2-eva-efficient-reinforcement-learning-for-end-to-end-video-agent)  
+   标签：评分：7.0/10、query:rl-vg
+   evidence：用于端到端视频智能体和理解的强化学习
+8. [Flow matching on homogeneous spaces](/20260321-20260330/2603.24829v1-flow-matching-on-homogeneous-spaces)  
+   标签：评分：7.0/10、query:flgrpo
+   evidence：齐次空间和李群上流匹配的通用框架
+9. [DiReCT: Disentangled Regularization of Contrastive Trajectories for Physics-Refined Video Generation](/20260321-20260330/2603.25931v1-direct-disentangled-regularization-of-contrastive-trajectories-for-physics-refined-video-generation)  
+   标签：评分：7.0/10、query:rl-vg
+   evidence：流匹配视频生成器与对比轨迹
+10. [HolisticSemGes: Semantic Grounding of Holistic Co-Speech Gesture Generation with Contrastive Flow-Matching](/20260321-20260330/2603.26553v1-holisticsemges-semantic-grounding-of-holistic-co-speech-gesture-generation-with-contrastive-flow-matching)  
+   标签：评分：7.0/10、query:flgrpo
+   evidence：用于手势生成的对比流匹配技术
+11. [Uncertainty Quantification for Distribution-to-Distribution Flow Matching in Scientific Imaging](/20260321-20260330/2603.21717v2-uncertainty-quantification-for-distribution-to-distribution-flow-matching-in-scientific-imaging)  
+   标签：评分：6.0/10、query:flgrpo
+   evidence：用于生成模型的贝叶斯随机流匹配
 
 
 <div class="dpr-home-promo-card">

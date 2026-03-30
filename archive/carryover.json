@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-03-29T19:27:55.678654+00:00",
-  "updated_date": "20260329",
+  "generated_at": "2026-03-30T12:44:21.657122+00:00",
+  "updated_date": "20260321-20260330",
   "carryover_days": 9,
   "items": [
     {
@@ -41,7 +41,7 @@
       "matched_requirement_id": "req-composite-rl-vg",
       "selection_source": "carryover_cache",
       "paper_id": "2603.24270v1",
-      "carry_days": 1
+      "carry_days": 2
     },
     {
       "id": "2603.24270v2",
@@ -81,7 +81,7 @@
       "matched_requirement_id": "req-11",
       "selection_source": "carryover_cache",
       "paper_id": "2603.24270v2",
-      "carry_days": 1
+      "carry_days": 2
     },
     {
       "id": "2603.24198v1",
@@ -126,7 +126,7 @@
       "matched_requirement_id": "req-3",
       "selection_source": "carryover_cache",
       "paper_id": "2603.24198v1",
-      "carry_days": 3
+      "carry_days": 4
     },
     {
       "id": "2603.23132v1",
@@ -170,7 +170,7 @@
       "matched_requirement_id": "req-9",
       "selection_source": "carryover_cache",
       "paper_id": "2603.23132v1",
-      "carry_days": 1
+      "carry_days": 2
     },
     {
       "id": "2603.23462v1",
@@ -213,7 +213,7 @@
       "matched_requirement_id": "req-11",
       "selection_source": "carryover_cache",
       "paper_id": "2603.23462v1",
-      "carry_days": 1
+      "carry_days": 2
     },
     {
       "id": "2603.22962v1",
@@ -251,45 +251,7 @@
       "matched_requirement_id": "req-2",
       "selection_source": "carryover_cache",
       "paper_id": "2603.22962v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.21547v1",
-      "title": "PROBE: Diagnosing Residual Concept Capacity in Erased Text-to-Video Diffusion Models",
-      "abstract": "Concept erasure techniques for text-to-video (T2V) diffusion models report substantial suppression of sensitive content, yet current evaluation is limited to checking whether the target concept is absent from generated frames, treating output-level suppression as evidence of representational removal. We introduce PROBE, a diagnostic protocol that quantifies the \\textit{reactivation potential} of erased concepts in T2V models. With all model parameters frozen, PROBE optimizes a lightweight pseudo-token embedding through a denoising reconstruction objective combined with a novel latent alignment constraint that anchors recovery to the spatiotemporal structure of the original concept. We make three contributions: (1) a multi-level evaluation framework spanning classifier-based detection, semantic similarity, temporal reactivation analysis, and human validation; (2) systematic experiments across three T2V architectures, three concept categories, and three erasure strategies revealing that all tested methods leave measurable residual capacity whose robustness correlates with intervention depth; and (3) the identification of temporal re-emergence, a video-specific failure mode where suppressed concepts progressively resurface across frames, invisible to frame-level metrics. These findings suggest that current erasure methods achieve output-level suppression rather than representational removal. We release our protocol to support reproducible safety auditing. Our code is available at https://github.com/YiweiXie/PRObingBasedEvaluation.",
-      "authors": [
-        "Yiwei Xie",
-        "Zheng Zhang",
-        "Ping Liu"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV"
-      ],
-      "published": "2026-03-23T04:01:13+00:00",
-      "link": "https://arxiv.org/pdf/2603.21547v1",
-      "tags": [
-        "keyword:RL DM",
-        "keyword:RL VG",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "diagnosing concept capacity in text-to-video diffusion models",
-      "llm_evidence_cn": "诊断文本到视频扩散模型中的概念容量",
-      "llm_evidence": "诊断文本到视频扩散模型中的概念容量",
-      "canonical_evidence": "诊断文本到视频扩散模型中的概念容量",
-      "llm_tldr_en": "Introduces PROBE to evaluate the reactivation potential of erased concepts in text-to-video diffusion models.",
-      "llm_tldr_cn": "引入PROBE来评估文本到视频扩散模型中已擦除概念的重新激活潜力。",
-      "llm_tldr": "引入PROBE来评估文本到视频扩散模型中已擦除概念的重新激活潜力。",
-      "llm_tags": [
-        "query:rl-vg"
-      ],
-      "matched_query_tag": "query:rl-vg",
-      "matched_query_text": "Generative models for high-fidelity video synthesis",
-      "matched_requirement_id": "req-11",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.21547v1",
-      "carry_days": 1
+      "carry_days": 2
     },
     {
       "id": "2603.25420v1",
@@ -332,7 +294,7 @@
       "matched_requirement_id": "req-composite-rl-vg",
       "selection_source": "carryover_cache",
       "paper_id": "2603.25420v1",
-      "carry_days": 1
+      "carry_days": 2
     },
     {
       "id": "2603.25707v1",
@@ -372,134 +334,7 @@
       "matched_requirement_id": "req-9",
       "selection_source": "carryover_cache",
       "paper_id": "2603.25707v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.23086v1",
-      "title": "Policy-based Tuning of Autoregressive Image Models with Instance- and Distribution-Level Rewards",
-      "abstract": "Autoregressive (AR) models are highly effective for image generation, yet their standard maximum-likelihood estimation training lacks direct optimization for sample quality and diversity. While reinforcement learning (RL) has been used to align diffusion models, these methods typically suffer from output diversity collapse. Similarly, concurrent RL methods for AR models rely strictly on instance-level rewards, often trading off distributional coverage for quality. To address these limitations, we propose a lightweight RL framework that casts token-based AR synthesis as a Markov Decision Process, optimized via Group Relative Policy Optimization (GRPO). Our core contribution is the introduction of a novel distribution-level Leave-One-Out FID (LOO-FID) reward; by leveraging an exponential moving average of feature moments, it explicitly encourages sample diversity and prevents mode collapse during policy updates. We integrate this with composite instance-level rewards (CLIP and HPSv2) for strict semantic and perceptual fidelity, and stabilize the multi-objective learning with an adaptive entropy regularization term. Extensive experiments on LlamaGen and VQGAN architectures demonstrate clear improvements across standard quality and diversity metrics within only a few hundred tuning iterations. The results also show that the model can be updated to produce competitive samples even without Classifier-Free Guidance, and bypass its 2x inference cost.",
-      "authors": [
-        "Orhun Buğra Baran",
-        "Melih Kandemir",
-        "Ramazan Gokberk Cinbis"
-      ],
-      "primary_category": "cs.LG",
-      "categories": [
-        "cs.LG",
-        "cs.CV"
-      ],
-      "published": "2026-03-24T11:28:36+00:00",
-      "link": "https://arxiv.org/pdf/2603.23086v1",
-      "tags": [
-        "keyword:RL DM",
-        "keyword:RL VG",
-        "query:RL DM",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "RL for aligning generative models with rewards",
-      "llm_evidence_cn": "利用强化学习对齐生成模型与奖励",
-      "llm_evidence": "利用强化学习对齐生成模型与奖励",
-      "canonical_evidence": "利用强化学习对齐生成模型与奖励",
-      "llm_tldr_en": "Proposes a lightweight RL framework using GRPO to tune autoregressive image models with distribution rewards.",
-      "llm_tldr_cn": "提出轻量级强化学习框架，利用GRPO算法通过分布级奖励优化自回归图像生成。",
-      "llm_tldr": "提出轻量级强化学习框架，利用GRPO算法通过分布级奖励优化自回归图像生成。",
-      "llm_tags": [
-        "query:rl-dm:composite"
-      ],
-      "matched_query_tag": "query:rl-dm:composite",
-      "matched_query_text": "Papers central to 强化学习与扩散模型相关的学术论文检索, especially work that connects or combines: reinforcement learning algorithms and frameworks; generative diffusion models and denoising processes; classifier-guided and classifier-free diffusion for RL; generative models for decision making and planning; advancements in reinforcement learning using diffusion models; diffusion models for offline reinforcement learning and policy optimization; integrating generative diffusion processes into decision making agents.",
-      "matched_requirement_id": "req-composite-rl-dm",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.23086v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.22169v1",
-      "title": "Closed-Loop Verbal Reinforcement Learning for Task-Level Robotic Planning",
-      "abstract": "We propose a new Verbal Reinforcement Learning (VRL) framework for interpretable task-level planning in mobile robotic systems operating under execution uncertainty. The framework follows a closed-loop architecture that enables iterative policy improvement through interaction with the physical environment. In our framework, executable Behavior Trees are repeatedly refined by a Large Language Model actor using structured natural-language feedback produced by a Vision-Language Model critic that observes the physical robot and execution traces. Unlike conventional reinforcement learning, policy updates in VRL occur directly at the symbolic planning level, without gradient-based optimization. This enables transparent reasoning, explicit causal feedback, and human-interpretable policy evolution. We validate the proposed framework on a real mobile robot performing a multi-stage manipulation and navigation task under execution uncertainty. Experimental results show that the framework supports explainable policy improvements, closed-loop adaptation to execution failures, and reliable deployment on physical robotic systems.",
-      "authors": [
-        "Dmitrii Plotnikov",
-        "Iaroslav Kolomiets",
-        "Dmitrii Maliukov",
-        "Dmitrij Kosenkov",
-        "Daniia Zinniatullina",
-        "Artem Trandofilov",
-        "Georgii Gazaryan",
-        "Kirill Bogatikov",
-        "Timofei Kozlov",
-        "Igor Duchinskii",
-        "Mikhail Konenkov",
-        "Miguel Altamirano Cabrera",
-        "Dzmitry Tsetserukou"
-      ],
-      "primary_category": "cs.RO",
-      "categories": [
-        "cs.RO"
-      ],
-      "published": "2026-03-23T16:28:36+00:00",
-      "link": "https://arxiv.org/pdf/2603.22169v1",
-      "tags": [
-        "keyword:RL DM",
-        "keyword:RL VG",
-        "query:RL DM",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Verbal Reinforcement Learning framework for robotic planning",
-      "llm_evidence_cn": "用于机器人规划的口头强化学习框架",
-      "llm_evidence": "用于机器人规划的口头强化学习框架",
-      "canonical_evidence": "用于机器人规划的口头强化学习框架",
-      "llm_tldr_en": "Proposes a Verbal RL framework using LLMs and VLMs for interpretable robotic task-level planning.",
-      "llm_tldr_cn": "提出一种利用大语言模型和视觉语言模型进行可解释机器人任务级规划的口头强化学习框架。",
-      "llm_tldr": "提出一种利用大语言模型和视觉语言模型进行可解释机器人任务级规划的口头强化学习框架。",
-      "llm_tags": [
-        "query:rl-dm"
-      ],
-      "matched_query_tag": "query:rl-dm",
-      "matched_query_text": "reinforcement learning algorithms and frameworks",
-      "matched_requirement_id": "req-1",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.22169v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.21348v1",
-      "title": "Efficient Coarse-to-Fine Diffusion Models with Time Step Sequence Redistribution",
-      "abstract": "Recently, diffusion models (DMs) have made significant strides in high-quality image generation. However, the multi-step denoising process often results in considerable computational overhead, impeding deployment on resource-constrained edge devices. Existing methods mitigate this issue by compressing models and adjusting the time step sequence. However, they overlook input redundancy and require lengthy search times. In this paper, we propose Coarse-to-Fine Diffusion Models with Time Step Sequence Redistribution. Recognizing indistinguishable early-stage generated images, we introduce Coarse-to-Fine Denoising (C2F) to reduce computation during coarse feature generation. Furthermore, we design Time Step Sequence Redistribution (TRD) for efficient sampling trajectory adjustment, requiring less than 10 minutes for search. Experimental results demonstrate that the proposed methods achieve near-lossless performance with an 80% to 90% reduction in computation on CIFAR10 and LSUN-Church.",
-      "authors": [
-        "Yu-Shan Tai",
-        "An-Yeu",
-        "Wu"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV"
-      ],
-      "published": "2026-03-22T18:16:14+00:00",
-      "link": "https://arxiv.org/pdf/2603.21348v1",
-      "tags": [
-        "keyword:RL DM",
-        "keyword:RL VG",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Efficient diffusion models with time step sequence redistribution",
-      "llm_evidence_cn": "具有时间步序列重分布的高效扩散模型",
-      "llm_evidence": "具有时间步序列重分布的高效扩散模型",
-      "canonical_evidence": "具有时间步序列重分布的高效扩散模型",
-      "llm_tldr_en": "Proposes a coarse-to-fine denoising strategy to reduce computational overhead in diffusion model generation.",
-      "llm_tldr_cn": "提出一种由粗到精的去噪策略，以减少扩散模型生成过程中的计算开销。",
-      "llm_tldr": "提出一种由粗到精的去噪策略，以减少扩散模型生成过程中的计算开销。",
-      "llm_tags": [
-        "query:rl-dm"
-      ],
-      "matched_query_tag": "query:rl-dm",
-      "matched_query_text": "generative diffusion models and denoising processes",
-      "matched_requirement_id": "req-2",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.21348v1",
-      "carry_days": 1
+      "carry_days": 2
     },
     {
       "id": "2603.23957v1",
@@ -541,46 +376,7 @@
       "matched_requirement_id": "req-1",
       "selection_source": "carryover_cache",
       "paper_id": "2603.23957v1",
-      "carry_days": 2
-    },
-    {
-      "id": "2603.22271v1",
-      "title": "DUO-VSR: Dual-Stream Distillation for One-Step Video Super-Resolution",
-      "abstract": "Diffusion-based video super-resolution (VSR) has recently achieved remarkable fidelity but still suffers from prohibitive sampling costs. While distribution matching distillation (DMD) can accelerate diffusion models toward one-step generation, directly applying it to VSR often results in training instability alongside degraded and insufficient supervision. To address these issues, we propose DUO-VSR, a three-stage framework built upon a Dual-Stream Distillation strategy that unifies distribution matching and adversarial supervision for one-step VSR. Firstly, a Progressive Guided Distillation Initialization is employed to stabilize subsequent training through trajectory-preserving distillation. Next, the Dual-Stream Distillation jointly optimizes the DMD and Real-Fake Score Feature GAN (RFS-GAN) streams, with the latter providing complementary adversarial supervision leveraging discriminative features from both real and fake score models. Finally, a Preference-Guided Refinement stage further aligns the student with perceptual quality preferences. Extensive experiments demonstrate that DUO-VSR achieves superior visual quality and efficiency over previous one-step VSR approaches.",
-      "authors": [
-        "Zhengyao Lv",
-        "Menghan Xia",
-        "Xintao Wang",
-        "Kwan-Yee K. Wong"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV"
-      ],
-      "published": "2026-03-23T17:56:17+00:00",
-      "link": "https://arxiv.org/pdf/2603.22271v1",
-      "tags": [
-        "keyword:RL DM",
-        "keyword:RL VG",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "diffusion-based video super-resolution and distribution matching distillation",
-      "llm_evidence_cn": "基于扩散模型的视频超分辨率与分布匹配蒸馏",
-      "llm_evidence": "基于扩散模型的视频超分辨率与分布匹配蒸馏",
-      "canonical_evidence": "基于扩散模型的视频超分辨率与分布匹配蒸馏",
-      "llm_tldr_en": "Proposes DUO-VSR for one-step video super-resolution using dual-stream distillation of diffusion models.",
-      "llm_tldr_cn": "提出DUO-VSR框架，通过双流蒸馏实现扩散模型的一步视频超分辨率生成。",
-      "llm_tldr": "提出DUO-VSR框架，通过双流蒸馏实现扩散模型的一步视频超分辨率生成。",
-      "llm_tags": [
-        "query:rl-vg"
-      ],
-      "matched_query_tag": "query:rl-vg",
-      "matched_query_text": "Generative models for high-fidelity video synthesis",
-      "matched_requirement_id": "req-11",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.22271v1",
-      "carry_days": 1
+      "carry_days": 3
     },
     {
       "id": "2603.22286v1",
@@ -624,7 +420,7 @@
       "matched_requirement_id": "req-11",
       "selection_source": "carryover_cache",
       "paper_id": "2603.22286v1",
-      "carry_days": 1
+      "carry_days": 2
     },
     {
       "id": "2603.25053v1",
@@ -664,7 +460,7 @@
       "matched_requirement_id": "req-9",
       "selection_source": "carryover_cache",
       "paper_id": "2603.25053v1",
-      "carry_days": 1
+      "carry_days": 2
     },
     {
       "id": "2603.23964v1",
@@ -705,7 +501,7 @@
       "matched_requirement_id": "req-1",
       "selection_source": "carryover_cache",
       "paper_id": "2603.23964v1",
-      "carry_days": 1
+      "carry_days": 2
     },
     {
       "id": "2603.24989v1",
@@ -749,7 +545,7 @@
       "matched_requirement_id": "req-1",
       "selection_source": "carryover_cache",
       "paper_id": "2603.24989v1",
-      "carry_days": 1
+      "carry_days": 2
     },
     {
       "id": "2603.25357v1",
@@ -792,7 +588,7 @@
       "matched_requirement_id": "req-9",
       "selection_source": "carryover_cache",
       "paper_id": "2603.25357v1",
-      "carry_days": 1
+      "carry_days": 2
     },
     {
       "id": "2603.24840v1",
@@ -836,7 +632,7 @@
       "matched_requirement_id": "req-1",
       "selection_source": "carryover_cache",
       "paper_id": "2603.24840v1",
-      "carry_days": 1
+      "carry_days": 2
     },
     {
       "id": "2603.25464v1",
@@ -877,56 +673,7 @@
       "matched_requirement_id": "req-1",
       "selection_source": "carryover_cache",
       "paper_id": "2603.25464v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.22228v1",
-      "title": "SpatialReward: Verifiable Spatial Reward Modeling for Fine-Grained Spatial Consistency in Text-to-Image Generation",
-      "abstract": "Recent advances in text-to-image (T2I) generation via reinforcement learning (RL) have benefited from reward models that assess semantic alignment and visual quality. However, most existing reward models pay limited attention to fine-grained spatial relationships, often producing images that appear plausible overall yet contain inaccuracies in object positioning. In this work, we present \\textbf{SpatialReward}, a verifiable reward model explicitly designed to evaluate spatial layouts in generated images. SpatialReward adopts a multi-stage pipeline: a \\emph{Prompt Decomposer} extracts entities, attributes, and spatial metadata from free-form prompts; expert detectors provide accurate visual grounding of object positions and attributes; and a vision-language model applies chain-of-thought reasoning over grounded observations to assess complex spatial relations that are challenging for rule-based methods. To more comprehensively evaluate spatial relationships in generated images, we introduce \\textbf{SpatRelBench}, a benchmark covering object attributes, orientation, inter-object relations, and rendered text placement. Experiments on Stable Diffusion and FLUX show that incorporating SpatialReward into RL training consistently improves spatial consistency and overall generation quality, with results aligned more closely to human judgments. These findings indicate that verifiable reward models hold considerable potential for enabling more accurate and controllable optimization in text-to-image generation models.",
-      "authors": [
-        "Sashuai Zhou",
-        "Qiang Zhou",
-        "Junpeng Ma",
-        "Yue Cao",
-        "Ruofan Hu",
-        "Ziang Zhang",
-        "Xiaoda Yang",
-        "Zhibin Wang",
-        "Jun Song",
-        "Cheng Yu",
-        "Bo Zheng",
-        "Zhou Zhao"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV",
-        "cs.AI"
-      ],
-      "published": "2026-03-23T17:26:35+00:00",
-      "link": "https://arxiv.org/pdf/2603.22228v1",
-      "tags": [
-        "keyword:RL DM",
-        "keyword:RL VG",
-        "query:RL DM",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "reinforcement learning for text-to-image reward modeling",
-      "llm_evidence_cn": "用于文本生成图像奖励建模的强化学习",
-      "llm_evidence": "用于文本生成图像奖励建模的强化学习",
-      "canonical_evidence": "用于文本生成图像奖励建模的强化学习",
-      "llm_tldr_en": "A verifiable reward model for RL-based image generation to improve spatial consistency.",
-      "llm_tldr_cn": "为基于强化学习的图像生成提供可验证的奖励模型，提升空间一致性。",
-      "llm_tldr": "为基于强化学习的图像生成提供可验证的奖励模型，提升空间一致性。",
-      "llm_tags": [
-        "query:rl-vg"
-      ],
-      "matched_query_tag": "query:rl-vg",
-      "matched_query_text": "Optimizing video diffusion models using reward based learning",
-      "matched_requirement_id": "req-13",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.22228v1",
-      "carry_days": 1
+      "carry_days": 2
     },
     {
       "id": "2603.24241v1",
@@ -965,7 +712,7 @@
       "matched_requirement_id": "req-1",
       "selection_source": "carryover_cache",
       "paper_id": "2603.24241v1",
-      "carry_days": 1
+      "carry_days": 2
     },
     {
       "id": "2603.22846v1",
@@ -1006,47 +753,7 @@
       "matched_requirement_id": "req-1",
       "selection_source": "carryover_cache",
       "paper_id": "2603.22846v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.24324v1",
-      "title": "Large Language Model Guided Incentive Aware Reward Design for Cooperative Multi-Agent Reinforcement Learning",
-      "abstract": "Designing effective auxiliary rewards for cooperative multi-agent systems remains a precarious task; misaligned incentives risk inducing suboptimal coordination, especially where sparse task feedback fails to provide sufficient grounding. This study introduces an automated reward design framework that leverages large language models to synthesize executable reward programs from environment instrumentation. The procedure constrains candidate programs within a formal validity envelope and evaluates their efficacy by training policies from scratch under a fixed computational budget; selection depends exclusively on the sparse task return. The framework is evaluated across four distinct Overcooked-AI layouts characterized by varied corridor congestion, handoff dependencies, and structural asymmetries. Iterative search generations consistently yield superior task returns and delivery counts, with the most pronounced gains occurring in environments dominated by interaction bottlenecks. Diagnostic analysis of the synthesized shaping components indicates increased interdependence in action selection and improved signal alignment in coordination-intensive tasks. These results demonstrate that the search for objectivegrounded reward programs can mitigate the burden of manual engineering while producing shaping signals compatible with cooperative learning under finite budgets.",
-      "authors": [
-        "Dogan Urgun",
-        "Gokhan Gungor"
-      ],
-      "primary_category": "cs.LG",
-      "categories": [
-        "cs.LG",
-        "cs.AI",
-        "eess.SY"
-      ],
-      "published": "2026-03-25T14:05:59+00:00",
-      "link": "https://arxiv.org/pdf/2603.24324v1",
-      "tags": [
-        "keyword:RL DM",
-        "keyword:RL VG",
-        "query:RL DM",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "reward design for cooperative multi-agent reinforcement learning",
-      "llm_evidence_cn": "协作式多智能体强化学习的奖励设计",
-      "llm_evidence": "协作式多智能体强化学习的奖励设计",
-      "canonical_evidence": "协作式多智能体强化学习的奖励设计",
-      "llm_tldr_en": "Uses LLMs to automatically design auxiliary rewards for improving coordination in multi-agent reinforcement learning.",
-      "llm_tldr_cn": "利用LLM自动设计辅助奖励，以改善多智能体强化学习中的协作效率。",
-      "llm_tldr": "利用LLM自动设计辅助奖励，以改善多智能体强化学习中的协作效率。",
-      "llm_tags": [
-        "query:rl-dm"
-      ],
-      "matched_query_tag": "query:rl-dm",
-      "matched_query_text": "reinforcement learning algorithms and frameworks",
-      "matched_requirement_id": "req-1",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.24324v1",
-      "carry_days": 1
+      "carry_days": 2
     },
     {
       "id": "2603.23871v1",
@@ -1084,50 +791,7 @@
       "matched_requirement_id": "req-1",
       "selection_source": "carryover_cache",
       "paper_id": "2603.23871v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.22241v1",
-      "title": "MemDLM: Memory-Enhanced DLM Training",
-      "abstract": "Diffusion Language Models (DLMs) offer attractive advantages over Auto-Regressive (AR) models, such as full-attention parallel decoding and flexible generation. However, they suffer from a notable train-inference mismatch: DLMs are trained with a static, single-step masked prediction objective, but deployed through a multi-step progressive denoising trajectory. We propose MemDLM (Memory-Enhanced DLM), which narrows this gap by embedding a simulated denoising process into training via Bi-level Optimization. An inner loop updates a set of fast weights, forming a Parametric Memory that captures the local trajectory experience of each sample, while an outer loop updates the base model conditioned on this memory. By offloading memorization pressure from token representations to parameters, MemDLM yields faster convergence and lower training loss. Moreover, the inner loop can be re-enabled at inference time as an adaptation step, yielding additional gains on long-context understanding. We find that, when activated at inference time, this Parametric Memory acts as an emergent in-weight retrieval mechanism, helping MemDLM further reduce token-level attention bottlenecks on challenging Needle-in-a-Haystack retrieval tasks. Code: https://github.com/JarvisPei/MemDLM.",
-      "authors": [
-        "Zehua Pei",
-        "Hui-Ling Zhen",
-        "Weizhe Lin",
-        "Sinno Jialin Pan",
-        "Yunhe Wang",
-        "Mingxuan Yuan",
-        "Bei Yu"
-      ],
-      "primary_category": "cs.CL",
-      "categories": [
-        "cs.CL"
-      ],
-      "published": "2026-03-23T17:39:56+00:00",
-      "link": "https://arxiv.org/pdf/2603.22241v1",
-      "tags": [
-        "keyword:RL DM",
-        "keyword:RL VG",
-        "query:RL DM",
-        "query:RL VG"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "multi-step progressive denoising trajectory in diffusion language models",
-      "llm_evidence_cn": "扩散语言模型中的多步渐进去噪轨迹",
-      "llm_evidence": "扩散语言模型中的多步渐进去噪轨迹",
-      "canonical_evidence": "扩散语言模型中的多步渐进去噪轨迹",
-      "llm_tldr_en": "MemDLM improves diffusion language models by embedding a simulated denoising process into training via bi-level optimization.",
-      "llm_tldr_cn": "MemDLM通过双层优化将模拟去噪过程嵌入训练，改进了扩散语言模型。",
-      "llm_tldr": "MemDLM通过双层优化将模拟去噪过程嵌入训练，改进了扩散语言模型。",
-      "llm_tags": [
-        "query:rl-dm"
-      ],
-      "matched_query_tag": "query:rl-dm",
-      "matched_query_text": "generative diffusion models and denoising processes",
-      "matched_requirement_id": "req-2",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.22241v1",
-      "carry_days": 1
+      "carry_days": 2
     },
     {
       "id": "2603.24570v1",
@@ -1167,7 +831,7 @@
       "matched_requirement_id": "req-9",
       "selection_source": "carryover_cache",
       "paper_id": "2603.24570v1",
-      "carry_days": 1
+      "carry_days": 2
     },
     {
       "id": "2603.23414v1",
@@ -1214,7 +878,7 @@
       "matched_requirement_id": "req-1",
       "selection_source": "carryover_cache",
       "paper_id": "2603.23414v1",
-      "carry_days": 1
+      "carry_days": 2
     },
     {
       "id": "2603.22844v1",
@@ -1256,6 +920,46 @@
       "matched_requirement_id": "req-13",
       "selection_source": "carryover_cache",
       "paper_id": "2603.22844v1",
+      "carry_days": 2
+    },
+    {
+      "id": "2603.26320v1",
+      "title": "DFM-VLA: Iterative Action Refinement for Robot Manipulation via Discrete Flow Matching",
+      "abstract": "Vision--Language--Action (VLA) models that encode actions using a discrete tokenization scheme are increasingly adopted for robotic manipulation, but existing decoding paradigms remain fundamentally limited. Whether actions are decoded sequentially by autoregressive VLAs or in parallel by discrete diffusion VLAs, once a token is generated, it is typically fixed and cannot be revised in subsequent iterations, so early token errors cannot be effectively corrected later. We propose DFM-VLA, a discrete flow matching VLA for iterative refinement of action tokens. DFM-VLA~models a token-level probability velocity field that dynamically updates the full action sequence across refinement iterations. We investigate two ways to construct the velocity field: an auxiliary velocity-head formulation and an action-embedding-guided formulation. Our framework further adopts a two-stage decoding strategy with an iterative refinement stage followed by deterministic validation for stable convergence. Extensive experiments on CALVIN, LIBERO, and real-world manipulation tasks show that DFM-VLA consistently outperforms strong autoregressive, discrete diffusion, and continuous diffusion baselines in manipulation performance while retaining high inference efficiency. In particular, DFM-VLA achieves an average success length of 4.44 on CALVIN and an average success rate of 95.7\\% on LIBERO, highlighting the value of action refinement via discrete flow matching for robotic manipulation. Our project is available \\url{https://chris1220313648.github.io/DFM-VLA/}",
+      "authors": [
+        "Jiayi Chen",
+        "Wenxuan Song",
+        "Shuai Chen",
+        "Jingbo Wang",
+        "Zhijun Li",
+        "Haoang Li"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.CV"
+      ],
+      "published": "2026-03-27T11:38:43+00:00",
+      "link": "https://arxiv.org/pdf/2603.26320v1",
+      "tags": [
+        "keyword:FLGRPO"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Discrete flow matching for iterative action refinement in VLA models",
+      "llm_evidence_cn": "VLA模型中用于迭代动作细化的离散流匹配",
+      "llm_evidence": "VLA模型中用于迭代动作细化的离散流匹配",
+      "canonical_evidence": "VLA模型中用于迭代动作细化的离散流匹配",
+      "llm_tldr_en": "Proposes DFM-VLA using discrete flow matching to iteratively refine robotic action tokens.",
+      "llm_tldr_cn": "提出DFM-VLA，利用离散流匹配技术对机器人动作Token进行迭代优化。",
+      "llm_tldr": "提出DFM-VLA，利用离散流匹配技术对机器人动作Token进行迭代优化。",
+      "llm_tags": [
+        "query:flgrpo"
+      ],
+      "matched_query_tag": "query:flgrpo",
+      "matched_query_text": "Flow matching techniques in reinforcement learning",
+      "matched_requirement_id": "req-2",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.26320v1",
       "carry_days": 1
     }
   ]
