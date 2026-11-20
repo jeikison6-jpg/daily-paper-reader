@@ -1,5 +1,8 @@
 * <a class="dpr-sidebar-root-link" href="#/">首页</a>
 * <a class="dpr-sidebar-root-link dpr-sidebar-noactive-link" href="javascript:void(0)" data-dpr-hash="#/tutorial/README">使用教程</a>
+
+* Conference Papers
+  * CVPR-ICML-NEURIPS 2025, 2026 <!--dpr-conference:cvpr-icml-neurips-2025-2026-->
 * Daily Papers
   * 2026-03-30 <!--dpr-date:20260330-->
     * 精读区
