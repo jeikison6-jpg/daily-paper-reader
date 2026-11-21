@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-11-21T00:26:11.047521+00:00",
-  "updated_date": "20261121",
+  "generated_at": "2026-11-21T01:54:27.947997+00:00",
+  "updated_date": "20261112-20261121",
   "carryover_days": 9,
   "tag_states": {
     "RL DM": {
@@ -826,7 +826,7 @@
       "items": []
     },
     "DMD-RL": {
-      "updated_date": "20261121",
+      "updated_date": "20261112-20261121",
       "carryover_days": 9,
       "items": []
     }
